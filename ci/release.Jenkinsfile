@@ -19,7 +19,7 @@ pipeline {
                     . $HOME/.bash_profile
                     nvm install 8.9.3
                     nvm use 8.9.3
-                    curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.2'''
+                    curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.4'''
             }
         }
         stage('Build') {
