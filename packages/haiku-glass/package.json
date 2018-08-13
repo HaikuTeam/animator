@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "async": "^2.5.0",
-    "electron": "2.0.4",
+    "electron": "2.0.7",
     "cross-env": "^5.1.6",
     "istanbul-reporter-cobertura-haiku": "^1.0.1",
     "nyc": "^11.8.0",

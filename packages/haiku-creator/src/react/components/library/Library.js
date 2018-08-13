@@ -7,7 +7,7 @@ import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {isMac} from 'haiku-common/lib/environments/os';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {LoadingTopBar} from 'haiku-ui-common/lib/LoadingTopBar';
+import {LoadingTopBar} from 'haiku-ui-common/lib/react/LoadingTopBar';
 import {didAskedForSketch} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
 import {Figma} from 'haiku-serialization/src/bll/Figma';
@@ -15,7 +15,6 @@ import * as sketchUtils from 'haiku-serialization/src/utils/sketchUtils';
 import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';
 import FileImporter from './FileImporter';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import DesignFileCreator from './DesignFileCreator';
 
 const openWithDefaultProgram = (asset) => {

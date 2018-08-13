@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "cross-env": "^5.1.6",
-    "electron": "2.0.4",
+    "electron": "2.0.7",
     "haiku-testing": "3.5.2",
     "istanbul-reporter-cobertura-haiku": "^1.0.1",
     "jsdom": "^11.1.0",

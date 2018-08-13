@@ -13,9 +13,9 @@ Haiku monorepo. Plus command-line tools to make cross-project scripting simpler.
 
     $ nvm install 8.9.3 && nvm alias default 8.9.3
 
-3.) yarn 1.9.2:
+3.) yarn 1.9.4:
 
-    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.2
+    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.4
 
 ### Windows
 

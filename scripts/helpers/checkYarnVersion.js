@@ -2,7 +2,7 @@ const cp = require('child_process');
 
 const log = require('./log');
 
-const YARN_VERSION = '1.9.2';
+const YARN_VERSION = '1.9.4';
 
 module.exports = () => {
   const yarnVersion = cp.execSync('yarn --version').toString().trim();
