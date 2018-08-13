@@ -17,8 +17,12 @@ module.exports = function normalizeBytecodeAST (ast) {
 
   // Remove all comments at the top level since they cause more problems than they solve
   ast.program.body.forEach((node) => {
-    if (node.leadingComments) node.leadingComments.splice(0)
-    if (node.trailingComments) node.trailingComments.splice(0)
+    if (node.leadingComments){
+      node.leadingComments.splice(0)
+    } 
+    if (node.trailingComments) {
+      node.trailingComments.splice(0)
+    } 
   })
 
   // Convert any object-destructuring functions to Haiku.inject expressions
