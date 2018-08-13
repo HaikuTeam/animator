@@ -1,4 +1,8 @@
 export enum ErrorCode {
+  // Special errors we provide while calling services.
+  ErrorOffline = 'E_OFFLINE',
+  ErrorUncategorized = 'E_UNCATEGORIZED',
+
   ErrorCodeAuthorizationRequired = 'E_AUTHORIZATION_REQUIRED',
   ErrorCodePrivilegesPrivateProjectLimitExceeded = 'E_PRIVILEGES_PRIVATE_PROJECT_LIMIT_EXCEEDED',
   ErrorCodeProjectNameRequired = 'E_PROJECT_NAME_REQUIRED',

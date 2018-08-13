@@ -14,6 +14,7 @@ export interface EmbedDetailsProps {
   entry?: any;
   projectName?: string;
   userName?: string;
+  folder: string;
   organizationName?: string;
   onHide: (event: any) => void;
   mixpanel?: any;
@@ -42,6 +43,7 @@ export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
           organizationName={this.props.organizationName}
           urls={this.props.urls}
           mixpanel={this.props.mixpanel}
+          folder={this.props.folder}
         />
       </div>
     );

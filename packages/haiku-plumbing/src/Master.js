@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as os from 'os';
 import {debounce} from 'lodash';
 import * as fse from 'haiku-fs-extra';
+import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 import * as walkFiles from 'haiku-serialization/src/utils/walkFiles';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
@@ -25,7 +26,6 @@ import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
-import {ProjectError, ProjectSettings} from 'haiku-sdk-creator/lib/bll/Project';
 import {createCDNBundles} from './project-folder/createCDNBundle';
 import {
   getHaikuCoreVersion,
@@ -717,7 +717,7 @@ export default class Master extends EventEmitter {
     // Note: 'ensureProjectFolder' should already have run by this point.
     return async.series([
       (cb) => {
-        return this._git.initializeFolder(project, cb);
+        return this._git.initializeFolder(project, this.envoyHandlers.user.checkOfflinePrivileges(), cb);
       },
 
       // Now that we've (maybe) cloned content, we need to create any other necessary files that _might not_ yet
@@ -838,7 +838,7 @@ export default class Master extends EventEmitter {
           if (err) {
             return cb(err);
           }
-          if (doesGitHaveChanges) { // Presence of share data means early return
+          if (doesGitHaveChanges) {
             return cb();
           }
 
@@ -848,15 +848,38 @@ export default class Master extends EventEmitter {
               /*skipSaveSnapshot=*/true,
               ).then(() => {
                 this.envoyHandlers.project.getSnapshotInfo().then((info) => {
-                  // If we have info at all, we can exit early. Yeehaw!
-                  cb(true, info);
-                }).catch(() => {
-                  // If not, no worries—just continue saving as usual.
+                  // If we have info and it indicates publishing entirely succeeded, we can exit early.
+                  if (info.snapshotSyndicated) {
+                    return cb(true, info);
+                  }
+
+                  // Else, we should proceed as if this is the first publish. We might get here if a user tears down
+                  // Master in the middle of publishing, lost connectivity, etc.
+                  cb();
+                }).catch((error) => {
+                  if (error.message === ErrorCode.ErrorOffline) {
+                    return cb(error);
+                  }
+
+                  // As long as we're online, no worries—just continue saving as usual.
                   cb();
                 });
               });
           });
         });
+      },
+
+      (cb) => {
+        // At this point, we cannot proceed with an inkstone representation of the project.
+        if (!project.local) {
+          return cb();
+        }
+
+        this.envoyHandlers.project.createProject(
+          project.projectName,
+          /*allowOffline=*/false,
+          /*deferCaudexBacking=*/false,
+        ).then(() => cb()).catch(cb);
       },
 
       (cb) => {
@@ -866,6 +889,8 @@ export default class Master extends EventEmitter {
         }
 
         this.envoyHandlers.project.updateProject(
+          // The user may have opted in to specific privacy settings prior to this step. Calling update
+          // ensure those settings stick on the first publish.
           project,
           /*ensureCaudexBacking=*/true,
         ).then(() => {

@@ -21,7 +21,14 @@ class NewProjectModal extends React.PureComponent {
       .replace(/_/g, '') // Underscores are considered alphanumeric (?); strip them
       .slice(0, 32); // Keep the overall name length short
 
-    this.setState({recordedNewProjectName});
+    let newProjectError = null;
+    if (
+      this.props.projectsList &&
+      this.props.projectsList.find((project) => project.projectName === recordedNewProjectName)
+    ) {
+      newProjectError = 'A project with that name already exists.';
+    }
+    this.setState({recordedNewProjectName, newProjectError});
   }
 
   handleNewProjectGo (duplicate = false) {
@@ -108,7 +115,7 @@ class NewProjectModal extends React.PureComponent {
 NewProjectModal.propTypes = {
   duplicate: React.PropTypes.bool,
   onCancel: React.PropTypes.func,
-  setProjectLaunchStatus: React.PropTypes.func,
+  projectsList: React.PropTypes.array,
 };
 
 export default Radium(NewProjectModal);

@@ -1,7 +1,6 @@
 import * as lodash from 'lodash';
 import * as React from 'react';
 import * as Radium from 'radium';
-import {shell} from 'electron';
 import * as Popover from 'react-popover';
 import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
@@ -13,13 +12,14 @@ import NotificationExplorer from './notifications/NotificationExplorer';
 import ProjectThumbnail from './ProjectThumbnail';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 
 const STYLES = {
   adminButton: {
-    // TODO: make this a bit more not subdued?
+    // TODO: make this a bit more insane?
     background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
   },
 };
@@ -231,20 +231,31 @@ class ProjectBrowser extends React.Component {
       return null;
     }
 
-    // #FIXME(@taylor)
-    // On the below, it is important to not say definitively "you are not online" to avoid enraging users who have
-    // some other problem. All we know for sure is that we couldn't connect with Haiku services.
     return (
       <span style={DASH_STYLES.loadingWrap}>
-        <div>
-          <div>
-            <div>Unable to contact Haikiu hosting services. Are you connected to the Internet?</div>
-            <div>Upgrade to the Indie Pro plan for offline capabilities.</div>
-            <div onClick={this.props.explorePro}>Learn more</div>
+        <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
+          <div style={DASH_STYLES.notice}>
+            <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haiku hosting services.<br/>Are you connected to the Internet?</div>
+            <div>Upgrade to Haiku Pro for offline capabilities.</div>
+            <div
+              style={[
+                BTN_STYLES.btnText,
+                BTN_STYLES.btnPrimary,
+                DASH_STYLES.btn,
+              ]}
+              onClick={this.props.explorePro}>Go Pro
+              <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
+                <ExternalLinkSVG color={Palette.SUNSTONE}/>
+              </span>
+            </div>
           </div>
-          <div>
+          <div style={{marginTop:20}}>
             <div>Stuck behind a VPN?</div>
-            <div onClick={this.props.onShowProxySettings}>Change your proxy settings</div>
+            <div
+              style={{color: Palette.LIGHT_BLUE, cursor: 'pointer'}}
+              onClick={this.props.onShowProxySettings}>
+              Change your proxy settings
+            </div>
           </div>
         </div>
       </span>
@@ -256,7 +267,6 @@ class ProjectBrowser extends React.Component {
       return null;
     }
     const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
-    const {launchingProject} = this.props;
     if (this.state.areProjectsLoading) {
       return (
         <span style={DASH_STYLES.loadingWrap}>
@@ -269,7 +279,7 @@ class ProjectBrowser extends React.Component {
       <div
         style={[
           DASH_STYLES.projectsWrapper,
-          (showDeleteModal || showNewProjectModal || launchingProject || showChangelogModal) && {filter: 'blur(2px)'},
+          (showDeleteModal || showNewProjectModal || showChangelogModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout();
@@ -278,6 +288,7 @@ class ProjectBrowser extends React.Component {
         {this.state.projectsList.map((projectObject) => (
           <ProjectThumbnail
             key={projectObject.projectName}
+            allowDelete={this.props.isOnline || projectObject.local}
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectExistsLocally={projectObject.projectExistsLocally}
@@ -476,23 +487,25 @@ class ProjectBrowser extends React.Component {
 
         <div style={DASH_STYLES.frame} className="frame">
           {
-            /* #FIXME(@taylor) */
             this.props.privateProjectLimit !== null && this.state.projectsList.length > 0 && (
-              <div>
+              <div style={{marginRight: 15}}>
                 <strong>{this.state.projectsList.filter((projectObject) => !projectObject.isPublic).length}</strong>
                 <span>/</span>
                 <strong>{this.props.privateProjectLimit}</strong>
                 <span>&nbsp; private projects in use</span>
                 <span style={DASH_STYLES.bannerNotice} onClick={this.props.explorePro}>
-                  Explore Pro
+                  Go Pro
+                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                    <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>
+                  </span>
                 </span>
               </div>
             )
           }
 
-          <div style={{marginRight: '15px'}}>
-            <NotificationExplorer lastViewedChangelog={this.props.lastViewedChangelog} onShowChangelogModal={this.props.onShowChangelogModal} />
-          </div>
+          <NotificationExplorer
+            lastViewedChangelog={this.props.lastViewedChangelog}
+            onShowChangelogModal={this.props.onShowChangelogModal} />
 
           <button
             id="haiku-button-show-new-project-modal"
@@ -536,9 +549,6 @@ class ProjectBrowser extends React.Component {
 ProjectBrowser.propTypes = {
   envoyProject: React.PropTypes.object.isRequired,
   envoyClient: React.PropTypes.object.isRequired,
-  doShowProjectLoader: React.PropTypes.bool.isRequired,
-  setProjectLaunchStatus: React.PropTypes.func.isRequired,
-  launchingProject: React.PropTypes.bool.isRequired,
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
   showChangelogModal: React.PropTypes.bool.isRequired,

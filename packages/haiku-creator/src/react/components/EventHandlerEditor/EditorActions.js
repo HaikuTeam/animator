@@ -23,7 +23,7 @@ class EditorActions extends React.PureComponent {
       <div style={STYLES.buttonsWrapper}>
         <button
           onClick={this.props.onCancel}
-          style={{...STYLES.button, ...STYLES.cancelButton}}
+          style={STYLES.button}
         >
           Cancel
         </button>

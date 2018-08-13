@@ -29,7 +29,6 @@ import ProxySettingsScreen from './components/ProxySettingsScreen';
 import ChangelogModal from './components/ChangelogModal';
 import NewProjectModal from './components/NewProjectModal';
 import {OfflineExportUpgradeModal} from './components/OfflineExportUpgradeModal';
-import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {EXPORTER_CHANNEL, ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
@@ -101,7 +100,6 @@ export default class Creator extends React.Component {
     this.togglePreviewMode = this.togglePreviewMode.bind(this);
     this.clearAuth = this.clearAuth.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
-    this.setProjectLaunchStatus = this.setProjectLaunchStatus.bind(this);
     this.launchFolder = this.launchFolder.bind(this);
     this.switchActiveNav = this.switchActiveNav.bind(this);
     this.onLibraryDragEnd = this.onLibraryDragEnd.bind(this);
@@ -123,7 +121,6 @@ export default class Creator extends React.Component {
     this.state = {
       error: null,
       projectFolder: this.props.folder,
-      applicationImage: null,
       projectObject: null,
       projectModel: null, // Instance of the Project model
       dashboardVisible: !this.props.folder,
@@ -148,6 +145,7 @@ export default class Creator extends React.Component {
       artboardDimensions: null,
       showChangelogModal: false,
       showOfflineExportUpgradeModal: false,
+      supportOfflineExport: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -643,6 +641,14 @@ export default class Creator extends React.Component {
           this.setState({isUserAuthenticated: true});
         }, this.state.readyForAuth ? 0 : 2500);
       });
+
+      this.user.checkOfflinePrivileges().then((supportOfflineExport) => {
+        this.setState({supportOfflineExport});
+      });
+
+      this.user.checkOnline().then((isOnline) => {
+        this.setState({isOnline});
+      });
     });
 
     this.user.load().then(({user, organization}) => {
@@ -764,6 +770,8 @@ export default class Creator extends React.Component {
     this.envoyClient = new EnvoyClient(this.envoyOptions);
 
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
+      // #FIXME: ideally this should be passed down to the share modal to provide the assets to the user as soon as they're ready.
+      this.envoyExporter = exporterChannel;
       ipcRenderer.on('global-menu:save-as', () => {
         exporterChannel.checkOfflinePrivileges().then((supportOfflineExport) => {
           if (!supportOfflineExport) {
@@ -854,7 +862,7 @@ export default class Creator extends React.Component {
         if (this.state.projectModel) {
           this.teardownMaster({shouldFinishTour: false});
         } else {
-          this.setDashboardVisibility(true);
+          this.setState({dashboardVisible: true, doShowProjectLoader: false});
         }
 
         // Put it at the bottom of the event loop
@@ -1070,14 +1078,6 @@ export default class Creator extends React.Component {
     this.setInteractionMode(InteractionMode.CODE_EDITOR);
   }
 
-  setDashboardVisibility (dashboardVisible, launchingProject = false) {
-    this.setState({
-      dashboardVisible,
-      launchingProject,
-      doShowProjectLoader: false,
-    });
-  }
-
   switchActiveNav (activeNav) {
     this.setState({activeNav});
 
@@ -1139,22 +1139,20 @@ export default class Creator extends React.Component {
     });
   }
 
-  onProjectLaunchError (error) {
-    console.log(error);
-
-    this.createNotice({
-      type: 'error',
-      title: 'Oh no!',
-      message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
-      closeText: 'Okay',
-      lightScheme: true,
+  onProjectLaunchError () {
+    this.setState({projectLaunching: false, doShowProjectLoader: false, dashboardVisible: true}, () => {
+      this.createNotice({
+        type: 'error',
+        title: 'Oh no!',
+        message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+        closeText: 'Okay',
+        lightScheme: true,
+      });
     });
-
-    this.setProjectLaunchStatus({launchingProject: null});
   }
 
   createProject (projectName, duplicate = false, callback) {
-    this.setProjectLaunchStatus({launchingProject: true});
+    this.setState({doShowProjectLoader: true});
     this.envoyProject.createProject(projectName).then((newProject) => {
       if (duplicate && this.state.projectToDuplicate !== null) {
         this.props.websocket.request(
@@ -1170,7 +1168,7 @@ export default class Creator extends React.Component {
         callback(null, newProject);
       }
     }).catch((error) => {
-      this.setProjectLaunchStatus({launchingProject: null});
+      this.setState({doShowProjectLoader: false});
       console.log(error);
       this.createNotice({
         type: 'error',
@@ -1186,6 +1184,12 @@ export default class Creator extends React.Component {
   launchProject (projectObject, cb) {
     // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
     projectObject.skipContentCreation = true;
+
+    this.setState({
+      doShowProjectLoader: true,
+      doShowBackToDashboardButton: false,
+      dashboardVisible: false,
+    });
 
     if (projectObject.isFork && !projectObject.forkComplete) {
       return this.openNewlyForkedProject(projectObject, 0, () => {});
@@ -1261,10 +1265,8 @@ export default class Creator extends React.Component {
               applicationImage,
               projectObject,
               projectName,
-              doShowProjectLoader: true,
-              doShowBackToDashboardButton: false,
-              dashboardVisible: false,
             }, () => {
+              this.setState({doShowProjectLoader: false, projectLaunching: true});
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
               // active component. This also waits for MasterProcess to be bootstrapped
@@ -1310,8 +1312,6 @@ export default class Creator extends React.Component {
             });
 
             projectModel.on('remote-update', (what, ...args) => {
-              // console.log(`[creator] remote update ${what}, args:`,args)
-
               switch (what) {
                 case 'setCurrentActiveComponent':
                 case 'selectElement':
@@ -1391,10 +1391,10 @@ export default class Creator extends React.Component {
     // in the context of whatever the current component is
     return setTimeout(() => {
       return this.setState({
-        doShowProjectLoader: false,
+        projectLaunching: false,
         doShowBackToDashboardButton: true,
       });
-    }, 2000);
+    }, 1000);
   }
 
   mountHaikuComponent () {
@@ -1583,7 +1583,7 @@ export default class Creator extends React.Component {
   }
 
   showForkingError () {
-    this.setState({launchingProject: false});
+    this.setState({projectLaunching: false, doShowProjectLoader: false, dashboardVisible: true});
     this.createNotice({
       type: 'error',
       title: 'Oh no!',
@@ -1614,9 +1614,9 @@ export default class Creator extends React.Component {
     };
 
     if (this.state.projectModel) {
-      this.teardownMaster({shouldFinishTour: true, launchingProject: true}, doFork);
+      this.teardownMaster({shouldFinishTour: true, doShowProjectLoader: true}, doFork);
     } else {
-      this.setState({launchingProject: true});
+      this.setState({doShowProjectLoader: true});
       doFork();
     }
   }
@@ -1650,7 +1650,7 @@ export default class Creator extends React.Component {
     });
   }
 
-  teardownMaster ({shouldFinishTour, launchingProject = false}, cb) {
+  teardownMaster ({shouldFinishTour}, cb) {
     // Delete identifier not found notice on teardown
     this.deleteIdentifierNotFoundNotice();
 
@@ -1662,8 +1662,7 @@ export default class Creator extends React.Component {
       {method: 'teardownMaster', params: [this.state.projectModel.getFolder()]},
       () => {
         logger.info('[creator] master torn down');
-
-        this.setDashboardVisibility(true, launchingProject);
+        this.setState({dashboardVisible: true});
         this.onTimelineUnmounted();
 
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready');
@@ -1751,12 +1750,6 @@ export default class Creator extends React.Component {
     this.refs.stage.tryToChangeCurrentActiveComponent(scenename);
   }
 
-  setProjectLaunchStatus ({launchingProject}) {
-    if (launchingProject !== undefined) {
-      this.setState({launchingProject});
-    }
-  }
-
   showChangelogModal () {
     this.setState({showChangelogModal: true}, () => {
       const lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
@@ -1810,7 +1803,7 @@ export default class Creator extends React.Component {
 
       if (this.state.projectModel) {
         this.teardownMaster(
-          {shouldFinishTour: true, launchingProject: false},
+          {shouldFinishTour: true},
           () => {
             this.launchProject(projectObject, () => {});
           },
@@ -1826,6 +1819,7 @@ export default class Creator extends React.Component {
       this.state.showNewProjectModal && (
         <NewProjectModal
           defaultProjectName={this.state.duplicateProjectName}
+          projectsList={this.state.projectsList}
           duplicate={this.state.isDuplicateProjectModal}
           onCreateProject={this.onCreateProject}
           onClose={() => {
@@ -2001,14 +1995,13 @@ export default class Creator extends React.Component {
       return this.renderStartupDefaultScreen();
     }
 
-    // The ProjectLoader is managed by the ProjectBrowser, through this hack we can
-    // force it to display the ProjectLoader even though we aren't concerned with browsing projects
     if (this.state.dashboardVisible) {
       return (
         <div>
           <ProjectBrowser
             ref="ProjectBrowser"
             explorePro={this.explorePro}
+            isOnline={this.state.isOnline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
             onShowNewProjectModal={(...args) => {
@@ -2020,8 +2013,6 @@ export default class Creator extends React.Component {
             }}
             privateProjectLimit={this.state.privateProjectLimit}
             showChangelogModal={this.state.showChangelogModal}
-            launchingProject={this.state.launchingProject}
-            setProjectLaunchStatus={this.setProjectLaunchStatus}
             username={this.state.username}
             softwareVersion={this.state.softwareVersion}
             organizationName={this.state.organizationName}
@@ -2035,7 +2026,6 @@ export default class Creator extends React.Component {
             }}
             notices={this.state.notices}
             envoyClient={this.envoyClient}
-            doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
           {this.renderChangelogModal()}
           {this.renderOfflineExportUpgradeModal()}
@@ -2050,74 +2040,13 @@ export default class Creator extends React.Component {
             skipOptIn={this.state.updater.shouldSkipOptIn}
             runOnBackground={this.state.updater.shouldRunOnBackground}
           />
-          {(this.state.launchingProject || this.state.doShowProjectLoader)
-            ? <ProjectLoader />
-            : ''}
         </div>
       );
     }
 
-    if (!this.state.projectFolder) {
-      return (
-        <div>
-          {this.renderChangelogModal()}
-          {this.renderOfflineExportUpgradeModal()}
-          {this.renderNewProjectModal()}
-          <Tour
-            projectsList={this.state.projectsList}
-            envoyClient={this.envoyClient} />
-          <AutoUpdater
-            onComplete={this.onAutoUpdateCheckComplete}
-            check={this.state.updater.shouldCheck}
-            skipOptIn={this.state.updater.shouldSkipOptIn}
-            runOnBackground={this.state.updater.shouldRunOnBackground}
-          />
-          <ProjectBrowser
-            ref="ProjectBrowser"
-            explorePro={this.explorePro}
-            envoyProject={this.envoyProject}
-            onShowNewProjectModal={(...args) => {
-              this.showNewProjectModal(...args);
-            }}
-            lastViewedChangelog={this.state.lastViewedChangelog}
-            onShowChangelogModal={() => {
-              this.showChangelogModal();
-            }}
-            showChangelogModal={this.state.showChangelogModal}
-            loadProjects={this.loadProjects}
-            launchProject={this.launchProject}
-            createNotice={this.createNotice}
-            removeNotice={this.removeNotice}
-            notices={this.state.notices}
-            envoyClient={this.envoyClient}
-            launchProject={this.state.launchingProject}
-            {...this.props}
-          />
-          {(this.state.launchingProject || this.state.doShowProjectLoader)
-            ? <ProjectLoader />
-            : ''}
-        </div>
-      );
-    }
-
-    if (!this.state.applicationImage || this.state.folderLoadingError) {
-      return (
-        <div style={{position: 'absolute', width: '100%', height: '100%'}}>
-          <CSSTransition
-            classNames="toast"
-            timeout={{enter: 500, exit: 300}}
-          >
-            <div style={{position: 'absolute', right: 0, top: 0, width: 300}}>
-              {lodash.map(this.state.notices, this.renderNotice)}
-            </div>
-          </CSSTransition>
-          <div style={{position: 'relative', width: '100%', height: '100%'}}>
-            <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
-              <span style={{fontSize: 24, color: '#222'}}>Loading project...</span>
-            </div>
-          </div>
-        </div>
-      );
+    // While doShowProjectLoader is true, we don't have enough state variables to proceed.
+    if (this.state.doShowProjectLoader) {
+      return <ProjectLoader />;
     }
 
     return (
@@ -2220,6 +2149,7 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
+                    supportOfflineExport={this.state.supportOfflineExport}
                     explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}
@@ -2303,7 +2233,7 @@ export default class Creator extends React.Component {
             </SplitPanel>
           </div>
         </div>
-        {this.state.doShowProjectLoader && <ProjectLoader />}
+        {this.state.projectLaunching && <ProjectLoader />}
 
         {this.state.showConfirmGroupUngroupPopup &&
           <ConfirmGroupUngroupPopup

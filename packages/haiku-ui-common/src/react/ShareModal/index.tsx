@@ -35,6 +35,7 @@ export interface ShareModalProps {
   explorePro: () => void;
   privateProjectCount: number;
   privateProjectLimit: number;
+  supportOfflineExport: boolean;
 }
 
 export interface SelectedEntry {
@@ -114,6 +115,10 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
   }
 
   togglePublic () {
+    if (this.error) {
+      return;
+    }
+
     if (this.shouldDisablePrivate) {
       this.setState({shouldShowPrivateWarning: true});
       return;
@@ -125,7 +130,6 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
     }).then(() => {
       // ...
     }).catch(() => {
-      console.error('Could not set project privacy settings. Please contact support@haiku.ai');
       this.setState({isPublic: !desiredState});
     });
     this.setState({isPublic: desiredState});
@@ -144,17 +148,18 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       folder,
     } = this.props;
 
+    const hasError = !!this.error;
+
     return (
       <ModalWrapper style={STYLES.wrapper}>
-        {this.error && <ModalNotice message={'Publish was unsuccessful. Please try again momentarily.'} />}
+        {hasError && <ModalNotice message={'Publish was unsuccessful. Are you online?'} />}
         <ModalHeader>
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
             folder={folder}
             linkAddress={linkAddress}
-            isSnapshotSaveInProgress={isSnapshotSaveInProgress}
-            snapshotSyndicated={snapshotSyndicated}
+            isSnapshotSaveInProgress={isSnapshotSaveInProgress && !hasError}
             isPublic={this.state.isPublic}
             mixpanel={mixpanel}
             togglePublic={this.boundTogglePublic}
@@ -162,6 +167,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             explorePro={this.props.explorePro}
             privateProjectCount={this.props.privateProjectCount}
             privateProjectLimit={this.props.privateProjectLimit}
+            hasError={hasError}
           />
         </ModalHeader>
 
@@ -173,6 +179,8 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
               snapshotSyndicated={snapshotSyndicated}
               mixpanel={mixpanel}
               onOptionClicked={this.boundOptionClicked}
+              supportOfflineExport={this.props.supportOfflineExport}
+              hasError={hasError}
             />
           }
           rightPanel={
@@ -184,6 +192,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
               urls={this.props.urls}
               mixpanel={mixpanel}
               onHide={this.boundHideDetails}
+              folder={folder}
             />
           }
         />

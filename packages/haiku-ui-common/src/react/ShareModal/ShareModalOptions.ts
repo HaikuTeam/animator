@@ -4,7 +4,7 @@ export const enum ShareCategory {
   Other = 'Other',
 }
 
-export const SHARE_OPTIONS = {
+export const getShareOptions = (doSupportVideo: boolean) => ({
   [ShareCategory.Web]: {
     'Vanilla JS': {
       disabled: false,
@@ -47,8 +47,8 @@ export const SHARE_OPTIONS = {
       template: 'Gif',
     },
     Video: {
-      disabled: true,
-      template: '',
+      disabled: !doSupportVideo,
+      template: doSupportVideo ? 'Video' : '',
     },
   },
-};
+});

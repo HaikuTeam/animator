@@ -410,7 +410,7 @@ class StageTitleBar extends React.Component {
                 () => {
                   this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
                 },
-            );
+              );
             },
           });
         });
@@ -456,21 +456,18 @@ class StageTitleBar extends React.Component {
 
   performSyndicationCheck () {
     this.syndicationChecks++;
-    this.props.envoyProject.getSnapshotInfo().then(({snapshotSyndicated, urls}) => {
-      const newState = {urls};
+    this.props.envoyProject.getSnapshotInfo().then(({snapshotSyndicated, shareUrls}) => {
+      const newState = {shareUrls};
       // Avoid races with button display while aborting publish by only setting values that have become true.
       // #FIXME: do we still need this?
       if (snapshotSyndicated) {
         newState.snapshotSyndicated = snapshotSyndicated;
-      }
-      this.setState(newState);
-      if (snapshotSyndicated) {
         this.clearSyndicationChecks();
       } else if (this.syndicationChecks >= MAX_SYNDICATION_CHECKS) {
-        this.setState({
-          snapshotSyndicated: undefined,
-        });
+        newState.snapshotSyndicated = undefined;
+        this.clearSyndicationChecks();
       }
+      this.setState(newState);
     }).catch(() => {
       this.props.createNotice({
         type: 'danger',
@@ -522,9 +519,7 @@ class StageTitleBar extends React.Component {
             }
 
             logger.error(snapshotSaveError);
-            this.setState({isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError}, () => {
-              return setTimeout(() => this.setState({snapshotSaveError: null}), 2000);
-            });
+            this.setState({isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError, linkAddress: 'n/a'});
             return;
         }
       }
@@ -1011,6 +1006,7 @@ class StageTitleBar extends React.Component {
         {this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
             envoyProject={this.props.envoyProject}
+            supportOfflineExport={this.props.supportOfflineExport}
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
             isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
@@ -1045,6 +1041,7 @@ StageTitleBar.propTypes = {
   websocket: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,
   removeNotice: React.PropTypes.func.isRequired,
+  supportOfflineExport: React.PropTypes.bool,
 };
 
 export default Radium(StageTitleBar);

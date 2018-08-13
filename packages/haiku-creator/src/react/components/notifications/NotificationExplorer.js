@@ -7,6 +7,7 @@ const STYLES = {
     position: 'relative',
     cursor: 'pointer',
     display: 'flex',
+    marginRight: 15,
   },
   dot: {
     position: 'absolute',

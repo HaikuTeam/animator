@@ -71,6 +71,7 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
         height: Math.round(height),
         frame: false,
         show: false,
+        backgroundColor: 'transparent',
       });
     }
 
@@ -84,29 +85,45 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
       removeSync(outputDirectory);
     }
     mkdirpSync(outputDirectory);
+
+    const snap = (sender: any, payload: any, attemptNumber: number) => {
+      browserWindow.capturePage((image) => {
+        const data = image.toPNG();
+        if (data.byteLength === 0) {
+          // Try again…within reason.
+          if (attemptNumber > 10) {
+            finish();
+            return;
+          }
+          setTimeout(() => snap(sender, payload, attemptNumber + 1), 100);
+          return;
+        }
+
+        writeFile(
+          still
+            ? path.join(outputDirectory, 'still.png')
+            : path.join(outputDirectory, `frame-${frame.toString().padStart(7, '0')}.png`),
+          data,
+          (err) => {
+            if (err) {
+              LoggerInstance.warn(err);
+              return finish();
+            }
+
+            frame++;
+            if (payload.last || browserWindow.isDestroyed() || still) {
+              return finish();
+            }
+            sender.send('bakery', {type: 'tick'});
+          },
+        );
+      });
+    };
+
     const bakeryHandler = ({sender}: any, payload: any) => {
       switch (payload.type) {
         case 'snap':
-          browserWindow.capturePage((image) => {
-            writeFile(
-              still
-                ? path.join(outputDirectory, 'still.png')
-                : path.join(outputDirectory, `frame-${frame.toString().padStart(7, '0')}.png`),
-              image.toPNG(),
-              (err) => {
-                if (err) {
-                  LoggerInstance.warn(err);
-                  return finish();
-                }
-
-                frame++;
-                if (payload.last || browserWindow.isDestroyed() || still) {
-                  return finish();
-                }
-                sender.send('bakery', {type: 'tick'});
-              },
-            );
-          });
+          snap(sender, payload, 0);
           break;
         case 'closeShop':
           finish();
@@ -117,7 +134,7 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
     ipcMain.on('bakery', bakeryHandler);
 
     browserWindow.webContents.once('did-finish-load', () => {
-      browserWindow.webContents.send('bakery', {framerate, frame, type: 'init'});
+      browserWindow.webContents.send('bakery', {framerate, still, type: 'init'});
     });
     browserWindow.loadURL(`file://${path.join(__dirname, '..', '..', 'oven.html')}#${abspath}`);
   },
