@@ -108,6 +108,7 @@ export default class Creator extends React.Component {
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this);
     this.handleShowConfirmGroupPopup = this.handleShowConfirmGroupPopup.bind(this);
     this.hideConfirmGroupUngroupPopup = this.hideConfirmGroupUngroupPopup.bind(this);
+    this.openPreviewDevTools = this.openPreviewDevTools.bind(this);
     this.layout = new EventEmitter();
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this));
     // Keep tracks of not found identifiers and notice id
@@ -117,6 +118,9 @@ export default class Creator extends React.Component {
     this.debouncedForceUpdate = lodash.debounce(() => {
       this.forceUpdate();
     }, 100, {leading: false, trailing: true});
+
+    // Stores creator widget state, so when we leave preview, it can be restored
+    this.lastWidgetState = {activeNav: 'library', interactionMode: InteractionMode.GLASS_EDIT};
 
     this.state = {
       error: null,
@@ -985,18 +989,66 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack(`creator:interaction-mode:${interactionName}`);
   }
 
+  openPreviewDevTools () {
+    if (this.state.interactionMode !== InteractionMode.GLASS_PREVIEW ||
+        !experimentIsEnabled(Experiment.UserFacingDevTools)) {
+      return;
+    }
+
+    const glassView = document.getElementById('glass-webview');
+    const devtoolsView = document.getElementById('devtools');
+
+    if (glassView && devtoolsView) {
+      const glassBrowser = glassView.getWebContents();
+
+      let devContents = devtoolsView.getWebContents();
+
+      const devInterval = setInterval(() => {
+        devContents = devtoolsView.getWebContents();
+
+        if (devContents) {
+          clearInterval(devInterval);
+
+          glassBrowser.setDevToolsWebContents(devContents);
+
+          glassBrowser.openDevTools();
+
+          const cssInterval = setInterval(() => {
+            if (glassBrowser.devToolsWebContents) {
+              clearInterval(cssInterval);
+
+              // Uncomment to opens dev tools for the dev tools
+              // glassBrowser.devToolsWebContents.openDevTools({
+              //   mode: 'detach'
+              // });
+            }
+          });
+        }
+      });
+    }
+  }
+
   handleInteractionModeChange (interactionMode) {
     if (this.state.interactionMode === interactionMode) {
       return;
     }
 
+    // When exiting preview mode:
+    // - Pressing toggle preview button: restore creator creator (open design + restore left
+    //     panel) or (open code editor + state inspector)
+    // - Pressing design button: go to desing and restore left panel
+    // - Pressing code button: go to code editor and open state inspector on left panel
     if (interactionMode === InteractionMode.GLASS_PREVIEW) {
       this.hideEventHandlersEditor();
+    } else if (this.state.interactionMode === InteractionMode.GLASS_PREVIEW && interactionMode === InteractionMode.GLASS_EDIT) {
+      this.setState({activeNav: this.lastWidgetState.activeNav});
     } else if (interactionMode === InteractionMode.GLASS_EDIT) {
       this.setState({activeNav: 'library'});
     } else if (interactionMode === InteractionMode.CODE_EDITOR) {
       this.setState({activeNav: 'state_inspector'});
     }
+
+    this.lastWidgetState = {interactionMode: this.state.interactionMode, activeNav: this.state.activeNav};
 
     this.mixpanelReportPreviewMode(interactionMode);
 
@@ -1004,48 +1056,7 @@ export default class Creator extends React.Component {
       this.hideEventHandlersEditor();
     }
 
-    this.setState({
-      interactionMode,
-    }, () => {
-      if (
-        interactionMode !== InteractionMode.GLASS_PREVIEW ||
-        !experimentIsEnabled(Experiment.UserFacingDevTools)
-      ) {
-        return;
-      }
-
-      const glassView = document.getElementById('glass-webview');
-      const devtoolsView = document.getElementById('devtools');
-
-      if (glassView && devtoolsView) {
-        const glassBrowser = glassView.getWebContents();
-
-        let devContents = devtoolsView.getWebContents();
-
-        const devInterval = setInterval(() => {
-          devContents = devtoolsView.getWebContents();
-
-          if (devContents) {
-            clearInterval(devInterval);
-
-            glassBrowser.setDevToolsWebContents(devContents);
-
-            glassBrowser.openDevTools();
-
-            const cssInterval = setInterval(() => {
-              if (glassBrowser.devToolsWebContents) {
-                clearInterval(cssInterval);
-
-                // Uncomment to opens dev tools for the dev tools
-                // glassBrowser.devToolsWebContents.openDevTools({
-                //   mode: 'detach'
-                // });
-              }
-            });
-          }
-        });
-      }
-    });
+    this.setState({interactionMode}, this.openPreviewDevTools);
   }
 
   setInteractionMode (interactionMode) {
@@ -1060,7 +1071,7 @@ export default class Creator extends React.Component {
   togglePreviewMode () {
     // We delegate to state, so stage can check if code editor has any content
     if (isPreviewMode(this.state.interactionMode)) {
-      this.refs.stage.tryToSwitchToEditMode();
+      this.setInteractionMode(this.lastWidgetState.interactionMode);
     } else {
       this.refs.stage.tryToSwitchToPreviewMode();
     }

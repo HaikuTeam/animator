@@ -183,7 +183,8 @@ class HandlerManager {
           //     <original content indented two spaces>
           //   };
           // To restore the formatted function body, we have to strip off the terminal lines and outdent the remainder.
-          // The added newline after body is to avoid last line having comments to delete to also comment closing }
+          //
+          // The added newline after body is to avoid last line being commented and also commenting closing }
           const prettierHandlerBodyLines = prettier.format(`()=>{${handler.body}\n}`).trim().split('\n');
           // Strip terminal lines. Bail if we somehow encounter an unexpected format.
           if (prettierHandlerBodyLines.shift() === '() => {' && prettierHandlerBodyLines.pop() === '};') {

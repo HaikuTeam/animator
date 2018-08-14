@@ -20,7 +20,7 @@ function functionBodyStringToFunctionBodyAST (body) {
   }
   // If have inner comments, set them
   if (innerComments) {
-    block.innerComments = innerComments;
+    block.innerComments = innerComments
   }
   return block
 }
