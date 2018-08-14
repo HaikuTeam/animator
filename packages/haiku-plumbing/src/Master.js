@@ -766,8 +766,6 @@ export default class Master extends EventEmitter {
           return Project.setup(
             this.folder,
             'master', // alias
-            // websocket - a mock, since in theory no Master method will originate
-            // here and need to be sent outward to the other clients automatically
             new Websocket(
               `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
               this.folder,
