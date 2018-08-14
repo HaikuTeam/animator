@@ -24,7 +24,7 @@ class NewProjectModal extends React.PureComponent {
     let newProjectError = null;
     if (
       this.props.projectsList &&
-      this.props.projectsList.find((project) => project.projectName === recordedNewProjectName)
+      this.props.projectsList.find((project) => project.projectName.toLowerCase() === recordedNewProjectName.toLowerCase())
     ) {
       newProjectError = 'A project with that name already exists.';
     }

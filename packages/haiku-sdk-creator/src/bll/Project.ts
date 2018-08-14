@@ -200,7 +200,9 @@ export class ProjectHandler extends EnvoyHandler {
     // At this stage, replace local projects with their remote counterparts when possible.
     return this.retrieveProjectsList().filter(
       (project) => project.local &&
-        !inboundRemoteList.find((remoteProject) => remoteProject.projectName === project.projectName),
+        !inboundRemoteList.find(
+          (remoteProject) => remoteProject.projectName.toLowerCase() === project.projectName.toLowerCase(),
+        ),
     ).concat(inboundRemoteList);
   }
 

@@ -1,5 +1,3 @@
-*Everyone*
-
 Trouble Spots
 
 I can complete the full tour
@@ -13,7 +11,7 @@ Instantiating inline image, then deleting it, then re-instantiating it works
 I can instantiate two polygons, then delete the first one, and the others remain
 I can instantiate an element with text content, then instantiate other elements and not crash
 I can copy+paste an element several times, then delete the first one, and the others remain
-I can copy+paste an element with a gradient, move the copy, and it works
+I can copy+paste an element with a gradien fillt, move the copy, and it works
 I can copy+paste an element that has a gradient, then delete the first one, and the others remain
 I can copy+paste a polygon, then delete the first one, and the others remain
 I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
@@ -78,8 +76,6 @@ I can multi-scale elements that have been rotated in three dimensions
 I can negatively multi-scale (flip) elements that have been rotated without a problem
 Rapidly transforming Percy in multiple ways (move, rotate, scale) doesn't exhibit any lag/pauses/jank
 
-*Matthew*
-
 Basics
 
 I can launch Haiku without seeing a crash/error
@@ -94,7 +90,6 @@ Privacy policy appears under Help > Privacy Policy
 I can see a present box with a pink dot in the project browser after an update
 I can open the changelog modal from the app menu (Help > What's New)
 I can message support via the in-editor intercom "SUPPORT" button
-If I'm behind a proxy the app shows a modal with instructions and doesn't crash
 
 Auth
 
@@ -114,8 +109,34 @@ New Accounts
 I can create a brand new account
 Before verifying my email address, I see an error when logging in
 After verifying my email address, I can log in
-When I first log in, I see template projects Moto, Move, and Percy
-I can open any of the template projects without a problem
+When I first log in, I see template project haikudos
+The template project shows an animated thumbnail even if no local content exists
+I can open the template project without a problem
+
+Free user UX (test while logged in as a free user)
+
+A counter in the top right corner indicates how much of my private project limit I'm using with a CTA to go pro
+If I load the dashboard while offline, I receive an error with a CTA to go pro
+If I am at or over the private project limit:
+ - When I try to publish a new project for the first time, I cannot select "Private" with a CTA to go pro
+ - For public projects, if I try to toggle Public->Private in the share modal, I receive a notice with a CTA to go pro
+ - For existing private projects, I am able to toggle Private->Public->Private as desired
+If I try to offline export a project with Cmd+E or the project menu, I am blocked with a CTA to go pro
+When I publish a project, the Video option is grayed out and the GIF option is lower quality (15 FPS)
+
+Paid user UX (test while logged in as a paid user)
+
+No counter appears in the top right corner indicating a private project limit
+I can load the dashboard while offline
+I cannot delete projects that were created while online
+I cannot delete projects that were created offline and later published
+I can create a project while offline
+With a project open, I can Cmd+E to offline export as an Animated GIF, Video, or Lottie
+The offline exported file format appears as a pill in the bottom right of the timeline
+While the offline export is in progress, a loading bar appears and the pill is unclickable
+After the offline export completes, clicking the pill opens the exported file in Finder/Explorer
+I still have to be online to publish
+When I publish a project, I get a higher quality GIF and a Video (both at 30 FPS)
 
 Dashboard
 
@@ -124,13 +145,15 @@ If my account has no projects, I see none
 Projects with local content show an animated thumbnail
 Projects without local content show an empty thumbnail
 Hovering over the thumbnail plays the haiku and shows 'Open'
-Clicking the 3dot shows options to 'Reveal In Finder' or 'Delete' or 'Duplicate'
+Clicking the 3dot shows option to 'Delete'
+For projects with local content, clicking the 3dot also shows options to 'Reveal In Finder' or 'Duplicate'
 I can 'Reveal In Finder' a project
 I can delete a project; and it won't delete unless name is confirmed
 I can duplicate a project
 The name of duplicated project `Xyz` is suggested `XyzCopy`
 If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
 Duplicated projects appear animated in the dashboard immediately, but have no 'Reveal in Finder' or 'Duplicate' option
+I can't create a project with the same name as an existing project
 After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
 When naming a project, spaces and underscores and hyphens (etc) are not allowed
 When naming a project, the project name length is max 32
@@ -139,28 +162,25 @@ Creating a new project immediately opens it for editing
 I can resize the window and the flex layout works correctly
 My computer's fan doesn't spin up just from looking at this page
 The thumbnails all animate smoothly when hovered
-Template projects are loaded properly
 I can't create a project with a blank name
 The above works with project names longer than 20 characters
 The above works with projects with more than one asset from the primary Sketch file on stage
-When I have > 50-ish projects, a message 'Max projects' is shown (note: need to reload to be respected by duplicating projects)
-When I have > 50-ish projects, the + button is no longer shown
 
 Editing Navigation
 
 Clicking 'Open' on a project thumbnail starts a loading screen
-The loading screen shows waiting messages, tips, etc ("reticulating splines")
 Loading a project doesn't cause the computer to seem to go crazy
 The editing screen loads in under 10 seconds
 I can click the back button "<" to go back to the project's screen
 I can open the same project again without a problem
 I can open a different project than before, without a problem
 I can "Open in Terminal" via the global menu
-When pressing Cmd+S a toast with a link to view the project in finder appears
+When pressing Cmd+S a toast appears informing me saving is not necessary
 
 App Layout
 
 Editor view shows the Stage, Timeline, and Library
+Stage occupies approximately 2/3 of the vertical height of my screen
 I can resize the library pane and the timeline pane using the resize dividers
 Resizing the dividers doesn't cause any weirdness or clipping on stag
 Resizing the dividers doesn't cause flicker on stage
@@ -173,13 +193,7 @@ Forking
 
 I can fork a published, public project in the wild via right-click menu
 I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
-I can fork a project by running open `haiku://fork/:organizationName/:projectName`
-
-Embedding/Host Codebases
-
-By following the share page HTML embed instructions, it works
-By following the share page NPM/React instructions, it works
-It works inside create-react-app, including production (minified) build
+I can fork a project by running `open haiku://fork/:organizationName/:projectName`
 
 New Project
 
@@ -188,12 +202,11 @@ If screen is small, the full artboard is still accessible, and nothing seems cli
 Default timeline fields populated correctly (size, opacity)
 Default timeline JIT menu allows setting style.backgroundColor
 The artboard is positioned in the center of the glass
-A default sketch file with the proj name shows up in the library
+A default sketch file with the project name shows up in the library
 The default sketch file can be opened, and has explanatory content
 The default sketch file when opened is zoomed in appropriately
 My project's name displays on the stage
 My project's name displays at bottom-left
-My project's name displays as the root element on the timeline
 Opening an old project with `backgroundColor` set shows it as a timeline row
 
 Stage
@@ -202,6 +215,7 @@ I can pan the stage using spacebar+drag
 I can pan the stage using two-finger panning
 I can zoom the stage using Command+Plus/Minus
 I can zoom the stage using the global menu
+I can zoom the stage by pinching on a trackpad
 When zoomed, the scale/rotation cursors are not pixelated
 I can pan infinitely on stage without seeing a clip edge
 I can drag an element on stage (and see position changes reflected in timeline)
@@ -217,7 +231,8 @@ I can hold down Cmd to toggle rotation mode on stage
 When I rotate an element, the rotation cursor reflects the rotation of the element
 I can rotate an element on stage (and see rotation changes reflected in timeline)
 I can hold down Shift as I rotate and rotate by fixed increments
-On stage, right-click doesn't bring up the "public" right-click menu
+I can rotate (with and without Shift) more than one full rotation, and the timeline reflects values outside of [0, 2pi)
+On stage, right-click doesn't bring up the right-click menu
 On stage, right-click doesn't select any SVGs with `<text>` in them
 Moving the scrubber on the timeline updates the current time on the stage
 I can delete an element (reflects on stage+timeline)
@@ -230,7 +245,7 @@ I can drag a library asset to instantiate it on the stage
 The instantiated element appears in the correct place
 The instantiated element is in the correct place after reloading the project
 The instantiated element is automatically selected
-The instantiated element is at the front of the stack
+The instantiated element is at the z-front of the stack
 The instantiated element is at the top of the list of elements in the timeline
 The instantiated element appears in the timeline
 Instantiated assets work if they are SVG
@@ -268,7 +283,7 @@ I can paste elements on stage using keyboard controls
 I can cut/copy elements on stage using right-click menu
 I can paste elements on stage using right-click menu
 I can cut/copy/paste elements on stage using the global menu
-After paste, I can drag the element on stage
+After paste, the pasted element is selected and I can drag the element on stage
 I can use Alt+drag (or Option+drag) to create copies of an element on stage
 
 Undo/redo
@@ -304,7 +319,7 @@ On stage, I can reveal the context menu and I see 'Create Component'
 Clicking 'Create Component' opens a naming dialog box
 There is a 'Create Component' button in the top bar
 There is a 'Create Component' option in the library menus
-The component name dialog can be cancelled
+The component name dialog can be canceled
 I can enter a component name
 The component name field only allows numbers and lowercase letters
 The component name field shows validation errors as I type
@@ -313,7 +328,7 @@ I can hit Enter or click 'Create Component' to complete the dialog
 When a component is created, the elements selected are replaced with the component
 The elements on stage are all positioned correctly for the current time
 The bounding box of the newly created component is the size of the selection
-For subcomponents, the sizeAbsolute.x/y value is set to `true`
+For subcomponents, the sizeAbsolute.x/y value is set to `auto`
 When I resize the subcomponent, the host reflects the size change
 If the child has content overflowing the host's box, that content is visible in the host
 Overflow settings are automatically added as editable rows to components' timelines
@@ -358,8 +373,6 @@ I can undo/redo changes within a child, and those also reflect in the host
 I can set the playback value to `'once'` or `'stop'` or `100` and these all work correctly
 I can set the playback value for a grandchild via a child, and it works correctly from the host
 
-*Roberto*
-
 Sketch
 
 I can right click the library and open a design asset in Sketch
@@ -389,24 +402,11 @@ If the sync fails because the auth token is invalid I can see a message with a l
 If the sync fails because I don't have access to the file, a message appears and cointains a link to login with another account
 If the sync is successful the reload button stops spinning
 
-Tracking/Analytics
+Illustrator
 
-Mixpanel sends tracking events for various actions
-
-Logging
-
-The .app build logs to `~/.haiku/logs/haiku-debug.log`
-User secret credentials are not included in the log
-
-Errors/notifications
-
-Crash in Master, Plumbing, Glass, Timeline, or Creator sends Sentry notice
-An error response in Plumbing method sends Sentry notice
-An error will upload the user's project and metadata to S3 (Carbonite)
-If rapid errors occur, Carbonite snapshots only occur once per 10 minutes
-Carbonite errors can originate successfully from from Master, Plumbing, Glass, Timeline, or Creator
-Errors result in a toast being displayed to the user on any screen
-Carbonite report still gets sent even if the app crashes quickly
+I can import an Illustrator file
+Importing an Illustrator file opens Illustrator
+After import, the Illustrator file's artboard(s) are available in the library
 
 Autoupdate
 
@@ -419,7 +419,7 @@ I can see a present box with a pink dot in the project browser after an update
 
 Tour
 
-I can use the global menu to start the tour at any time
+I can use the global menu to start the tour at any time, including when I have a project open
 I can see a back button on the appropriate steps
 I can use the back button
 I can drag any of the tour windows around if they get in the way
@@ -430,8 +430,7 @@ I can dismiss the tour
 I can dismiss the tour ephemerally, start the app again, and see the tour prompt again
 I can dismiss the tour permanently and never see the prompt again
 I can accept the tour and go through all the steps without a problem
-The preview mode step turn preview mode off when you hit "Next"
-If I start the tour and don't have Percy there's no error or weirdness
+I can't start the tour if I don't have a project named "haikudos"
 
 Expressions
 
@@ -497,10 +496,9 @@ When exiting preview mode, the on-stage transform controls are restored if an el
 When in preview mode, the preview "Eye" icon follows your mouse around
 Expression values are set to 1 when in editing mode, and become 'real' during preview mode
 
-*Taylor*
-
 Library
 
+In a new project, I can set up a deafult file (Sketch or Illustrator)
 I can add a slice to the default file and see the slice show up in the library
 I can add an artboard to the default file and see the artboard show up in the library
 I can add a mix of slices and artboards and they show up in the library
@@ -526,7 +524,7 @@ I can scroll all the way down to see all assets
 
 Timeline
 
-The "reticulating splines" screen is shown until the timeline fully loads
+The loading screen is shown until the timeline fully loads
 On timeline, I can expand/collapse component entries
 When I expand on timeline, that element is selected on stage
 Selecting an input selects that row normally
@@ -591,7 +589,7 @@ The JIT properties for other elements in the timeline are correct and not overwh
 I can add a JIT property to an element, which creates a row in the timeline for that property name
 If I add a JIT property like style.border, the row cluster automatically expands and focuses
 
-Solo Keyframes [doing]
+Solo Keyframes
 
 I am able to select a single keyframe by clicking on it
 I am able to deselect a single keyframe by clicking elsewhere
@@ -649,10 +647,11 @@ I am able to deselect a segment by right-clicking a keyframe
 
 Publishing
 
+When I publish a new project for the first time, I am prompted to select privacy settings and the default is Public
+The privacy setting I select at first publish is persisted in the UI and in the cloud
 Publish works (clicking publish publishes the project and shows a share link)
-Doing publish opens Share Modal
-New projects are Public by default
-I can change the project from private to public and back again
+Eventually a GIF loads and can be previewed/copied
+I can change the project from private to public and back again inside the share modal
 When changing from private/public, the UI reflects this immediately
 After the publish action completes, the toggle remains in the same position I switched it to
 Publish results in a share link
@@ -671,6 +670,7 @@ If I publish again with no changes, I get a share link back immediately
 If I make a change and publish, I get a new share link
 Cmd+S should not publish the project, but should display an info toast
 Eventually the "other" option (for GIF) becomes clickable and shows correct info
+If I try to publish while offline, it fails immediately instead of appearing to try to publish
 
 Multi-select/Multi-transform
 
@@ -688,7 +688,7 @@ I can undo/redo a multitransform, and the whole set of changes is undone correct
 
 Group/ungroup
 
-I can instantiate the artboard from Moto and ungroup it
+I can instantiate a complex artboard with many elements and ungroup it
 I can instantiate an artboard with SVG <defs> and ungroup it
 I cannot ungroup an artboard or SVG that only contains one element
 I cannot group a selection that contains only one element
@@ -703,6 +703,8 @@ I can undo creation of a group, which restores both timeline and glass to expect
 I can ungroup a group I created, including an element that has 3D rotation
 Ungrouping preserves the layout of the group elements I see on stage at the time I ungrouped
 Ungrouping destroys any existing layout animations of the elements that were grouped
+If any affected element's layout properties were bound to an expression or animated, I receive a warning modal
+If I select the option for "don't show again" in the warning modal, I don't see this warning again
 
 Origin
 
@@ -718,29 +720,6 @@ I can scale an element/group about the origin
 The origin value updates accordingly in the timeline when I do any of the above
 I can change the origin value by editing its rows in the timeline
 
-*Sasha*
-
-Development
-
-If dev, mono can launch successfully
-If dev, mono can launch Glass individually
-If dev, mono can launch Timeline individually
-I can refresh creator, load the same project, and go back to editing as normal
-Plumbing logs show up correctly for actions
-If dev, I can test `haiku://` URLs using yarn test-url
-If prod, I can open the app via open `haiku://:`
-
-Core
-
-The perf test doesn't show a perf degradation
-Events still fire even when playback has been `pause()`'d or `stop()`'d
-Expressions still evaluate even when playback has been `pause()`'d or `stop()`'d
-All of the test/demo examples render/behave correctly in Chrome
-All of the test/demo examples render/behave correctly in Safari
-All of the test/demo examples render/behave correctly in Firefox
-All of the test/demo examples render/behave correctly in Edge
-All of the test/demo examples render/behave correctly in IE11*
-
 Stage Performance
 
 There isn't any judder when dragging, pausing, then dragging again
@@ -751,20 +730,10 @@ Small/fine-grained animations don't exhibit judder
 
 Timeline Performance
 
-"Metapoem" takes no more than ~1 second to load (rehydration)
-I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
 I can expand/collapse timeline rows at a reasonable speed
 I can drag keyframes at a reasonable speed
 I can drag the scrubber at a reasonable speed, seeing values reflect in the input fields
 When playback is initiated, the scrubber runs at a reasonable speed
-
-Bytecode Upgrade
-
-I can open legacy project "Moto" and it still works correctly
-I can open legacy project "Move" and it still works correctly
-I can open tour project "Percy" and it still works correctly
-I can open legacy project "Metapoem" and it still works correctly
-I can open a recent project and it still works correctly
 
 Code
 
@@ -778,13 +747,17 @@ I can still edit in timeline after a code reload
 After a code reload, the timeline input fields reflect the correct values
 During a code reload the timeline does not animate, and stays at the same frame
 
-Git/Gitlab
+Code Mode
 
-A Git commit is made for every atomic change
-I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
-Published projects show up on GitLab
-I can `$ git push` or `$ git pull` from the project folder without a problem
-Opening a project that exists on GitLab but not locally clones the project the first time
+I can switch between design mode and code mode while editing
+Switching between design mode and code mode does not lag
+I can make edits in code mode without errors
+I can undo/redo changes in code mode using keyboard shortcuts like a regular code editor
+I can save changes using Cmd+S
+If I try to save with a syntax error, I receive a warning with the specific error and am unable to save
+If I try to exit code mode with unsaved changes by selecting another component, I am prompted to save or discard my changes
+If I try to exit code mode with unsaved changes by selecting design mode, I am prompted to save or discard my changes
+After exiting code mode, changes I made in code mode are immediately reflected on stage
 
 Release Collateral
 
@@ -813,26 +786,90 @@ I can use Haiku CLI to login and logout
 Haiku CLI invalidates bad logins
 I can clone a project in my org with `$ haiku clone`
 
-
-Code editor
-
-- On a multi component project, select main component tab:
-  - Change to CODE mode
-    1. Change opacity (or any other property) value. A red circle should appear on tab name left side indicating it is not saved yet.
-    2. Save it using "CmdOrCtrl+S". The circle should disappear. Go back to DESIGN mode and verify that opacity has changed on timeline and also on glass.
-    3. Repeat 1. and 2. for a state, but check state inspector instead
-    4. Edit something valid on code editor, and try to change back to DESIGN without saving. It should ask to save it before changing tab
-    6. Edit something valid on code editor, and try to change other component without saving. It should ask to save or discard current buffer
-    7. Edit something invalid on code editor, and try to save. It should tell the error
-  - Move to a subcomponent:
-    8. repeat steps 1., 2., 3., 4., 5., 6. and 7.
-
 State transitions
 
-- Create a state transition on a click event using action editor helper ( the plus signal)
-- Create a state transition on a click event using action editor auto completer
-- Create a state transition with duration=1000 and a state transition with duration=1000 queue=true. The queued state transition should be started after first end
-- Create a state transition with duration=1000 and a state transition with duration=1000. The second state transition should discard the first
-- A boolean state tranisiton should change its value only on duration end
+I can trigger a state transition on an element in an event handler with this syntax:
+  `this.setState({foo: 1000}, {duration: 1000, curve: 'linear'})`
+Expressions involving `foo` behave as expected over the duration of the state transition
+If I trigger another state transition in the middle of a current state transition, the active transition is clobbered
+I can trigger a _queued_ state transition on an element in an event handler with this syntax:
+  `this.setState({foo: 1000}, {duration: 1000, curve: 'linear', queue: true})`
+If I trigger a _queued_ state transition, the active transition is not clobbered, and the state transition waits until the previous one is complete
+If I trigger a state transition on a boolean or string, the value of the state does not change until the end of the transition
 
 
+
+*The items below require special setup/access and are not required for normal QA.*
+
+
+
+Tracking/Analytics
+
+Mixpanel sends tracking events for various actions
+
+Logging
+
+The .app build logs to `~/.haiku/logs/haiku-debug.log`
+User secret credentials are not included in the log
+
+Errors/notifications
+
+Crash in Master, Plumbing, Glass, Timeline, or Creator sends Sentry notice
+An error response in Plumbing method sends Sentry notice
+An error will upload the user's project and metadata to S3 (Carbonite)
+If rapid errors occur, Carbonite snapshots only occur once per 10 minutes
+Carbonite errors can originate successfully from from Master, Plumbing, Glass, Timeline, or Creator
+Errors result in a toast being displayed to the user on any screen
+Carbonite report still gets sent even if the app crashes quickly
+
+Development
+
+If dev, mono can launch successfully
+If dev, mono can launch Glass individually
+If dev, mono can launch Timeline individually
+I can refresh creator, load the same project, and go back to editing as normal
+Plumbing logs show up correctly for actions
+If dev, I can test `haiku://` URLs using `yarn start <url>`
+If prod, I can open the app via open `haiku://:`
+
+Core
+
+The perf test doesn't show a perf degradation
+Events still fire even when playback has been `pause()`'d or `stop()`'d
+Expressions still evaluate even when playback has been `pause()`'d or `stop()`'d
+All of the test/demo examples render/behave correctly in Chrome
+All of the test/demo examples render/behave correctly in Safari
+All of the test/demo examples render/behave correctly in Firefox
+All of the test/demo examples render/behave correctly in Edge
+All of the test/demo examples render/behave correctly in IE11*
+
+Embedding/Host Codebases
+
+By following the share page HTML embed instructions, it works
+By following the share page NPM/React instructions, it works
+It works inside create-react-app, including production (minified) build
+
+Miscellaneous
+
+If I'm behind a proxy the app shows a modal with instructions and doesn't crash
+
+Bytecode Upgrade
+
+I can open legacy project "Moto" and it still works correctly
+I can open legacy project "Move" and it still works correctly
+I can open tour project "percy" and it still works correctly
+I can open legacy project "metapoem" and it still works correctly
+I can open a recent project and it still works correctly
+
+Timeline performance
+
+"Metapoem" takes no more than ~1 second to load (rehydration)
+I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
+
+Git/Gitlab
+
+A Git commit is made for every atomic change
+I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
+Published projects show up on GitLab
+I can `$ git push` or `$ git pull` from the project folder without a problem
+Opening a project that exists on GitLab but not locally clones the project the first time
