@@ -36,6 +36,7 @@ export interface ShareModalProps {
   privateProjectCount: number;
   privateProjectLimit: number;
   supportOfflineExport: boolean;
+  onClose: () => void;
 }
 
 export interface SelectedEntry {
@@ -151,7 +152,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
     const hasError = !!this.error;
 
     return (
-      <ModalWrapper style={STYLES.wrapper}>
+      <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
         {hasError && <ModalNotice message={'Publish was unsuccessful. Are you online?'} />}
         <ModalHeader>
           <ProjectShareDetails

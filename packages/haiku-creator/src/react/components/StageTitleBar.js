@@ -218,6 +218,15 @@ class StageTitleBar extends React.Component {
     });
   }
 
+  hideShareModal = () => {
+    this.setState({
+      showSharePopover: false,
+      isSnapshotSaveInProgress: false,
+      snapshotSyndicated: true,
+      snapshotSaveError: null,
+    });
+  };
+
   componentDidMount () {
     this._isMounted = true;
 
@@ -260,11 +269,7 @@ class StageTitleBar extends React.Component {
         const node = ReactDOM.findDOMNode(this._shareModal);
         const pnode = ReactDOM.findDOMNode(this);
         if (!node.contains(e.target) && !pnode.contains(e.target)) {
-          this.setState({
-            showSharePopover: false,
-            isSnapshotSaveInProgress: false,
-            snapshotSyndicated: true,
-          });
+          this.hideShareModal();
           this.clearSyndicationChecks();
         }
       }
@@ -1007,6 +1012,7 @@ class StageTitleBar extends React.Component {
           <ShareModal
             envoyProject={this.props.envoyProject}
             supportOfflineExport={this.props.supportOfflineExport}
+            onClose={this.hideShareModal}
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
             isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
