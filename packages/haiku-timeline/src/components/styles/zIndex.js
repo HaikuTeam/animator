@@ -75,7 +75,7 @@ const zIndex = {
 
   // Box with the expression input
   expressionInput: {
-    base: 8,
+    base: 20,
   },
 
   // Box with the marquee
