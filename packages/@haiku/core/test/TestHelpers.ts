@@ -42,18 +42,8 @@ const createDOM = (cb) => {
   mount.width = 800;
   mount.height = 600;
 
-  // Trick jsdom into giving us proper layout on mounts so we can write sizing tests.
-  Object.defineProperties(
-    win.HTMLElement.prototype,
-    {
-      offsetWidth: {
-        get: () => mount.width,
-      },
-      offsetHeight: {
-        get: () => mount.height,
-      },
-    },
-  );
+  // Trick jsdom into giving us proper getBoundingClientRect on mounts so we can write sizing tests.
+  win.HTMLElement.prototype.getBoundingClientRect = () => ({width: mount.width, height: mount.height});
 
   global.window.document.body.appendChild(mount);
 
