@@ -122,6 +122,7 @@ const STYLES = {
     padding: '4px 9px',
     fontSize: 11,
     letterSpacing: '1.3px',
+    textTransform: 'uppercase',
     lineHeight: 1,
     borderRadius: 3,
     color: Palette.SUNSTONE,

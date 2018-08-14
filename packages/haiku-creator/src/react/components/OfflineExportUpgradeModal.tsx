@@ -1,3 +1,6 @@
+import Palette from 'haiku-ui-common/lib/Palette';
+import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
+import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {ModalFooter, ModalHeader, ModalWrapper} from 'haiku-ui-common/lib/react/Modal';
 import * as React from 'react';
 import {BTN_STYLES} from '../styles/btnShared';
@@ -17,8 +20,22 @@ const STYLES: React.CSSProperties = {
   button: {
     ...BTN_STYLES.btnText,
     ...BTN_STYLES.centerBtns,
+    ...BTN_STYLES.btnPrimary,
     display: 'inline-block',
-    marginRight: 10,
+  },
+  upgradeWrap: {
+    color: Palette.SUNSTONE,
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  btnSecondary: {
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.centerBtns,
+    textTransform: 'uppercase',
+    display: 'inline-block',
+    marginTop: 10,
+    backgroundColor: 'transparent',
+    border: '1px solid ' + Palette.LIGHT_BLUE,
   },
 };
 
@@ -30,12 +47,25 @@ export interface OfflineExportUpgradeModalProps {
 export class OfflineExportUpgradeModal extends React.PureComponent<OfflineExportUpgradeModalProps> {
   render () {
     return (
-      // #FIXME(@taylor)
       <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
-        <ModalHeader>Subscription required</ModalHeader>
+        <ModalHeader><h2>Subscription required</h2></ModalHeader>
         <div style={STYLES.inner}>
-          <div>Haiku Indie Pro is required to export local assets and videos.</div>
-          <div onClick={this.props.explorePro}>Learn more</div>
+          <div style={STYLES.upgradeWrap}>
+            <div>Haiku Pro is required to export local assets and videos.</div>
+            <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
+              <span
+                style={{
+                  width: 11,
+                  height: 11,
+                  display: 'inline-block',
+                  marginLeft: 4,
+                  transform: 'translateY(1px)',
+                }}
+              >
+                <ExternalLinkIconSVG color={Palette.LIGHT_BLUE}/>
+              </span>
+            </span>
+          </div>
         </div>
         <ModalFooter>
           <div style={{display: 'inline-block'}}>

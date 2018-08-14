@@ -105,7 +105,7 @@ class ChangelogModal extends React.PureComponent {
       <div id="changelogwrap" style={DASH_STYLES.overlay} onClick={this.props.onClose}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
-            <span><h2><i>Release Notes</i></h2></span>
+            <span><h2>Release Notes</h2></span>
             <span
               style={STYLES.link}
               onClick={() => {
