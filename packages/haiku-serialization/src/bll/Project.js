@@ -34,6 +34,11 @@ const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
 }
+const NOISY_METHODS = {
+  syncCode: true,
+  pasteThings: true
+}
+
 const RACEY_METHODS = {
   hoverElement: true,
   unhoverElement: true,
@@ -204,7 +209,10 @@ class Project extends BaseModel {
 
       if (ac && typeof ac[method] === 'function') {
         if (!SILENT_METHODS[method]) {
-          logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
+          logger.info(
+            `[project (${this.getAlias()})] component handling method ${method}`,
+            NOISY_METHODS[method] ? params[0] : params
+          )
         }
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
