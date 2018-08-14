@@ -32,8 +32,10 @@ const tmp = create();
 const row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
 const pdum3 = [0, 0, 0];
 
+export const round = (value: number): number => Number(value.toFixed(3));
+
 export function roundVector<T extends number[]> (vector: T): T {
-  return vector.map((value) => Number(value.toFixed(3))) as T;
+  return vector.map((value) => round(value)) as T;
 }
 
 export type ThreeTuple = [number, number, number];

@@ -151,7 +151,7 @@ tape(
         {
           'translation.x': 61.937,
           'translation.y': -3,
-          'rotation.z': 6.109,
+          'rotation.z': 0.174, // Flipped over pole.
           'scale.x': -1,
           'scale.z': -1,
         },

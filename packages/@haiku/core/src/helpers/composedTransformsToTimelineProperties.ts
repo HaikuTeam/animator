@@ -6,7 +6,7 @@
 
 import {LayoutSpec} from '../api';
 import Layout3D from '../Layout3D';
-import mat4Decompose, {DecomposedMat4, roundVector, ThreeTuple} from '../vendor/mat4-decompose';
+import mat4Decompose, {DecomposedMat4, round, roundVector, ThreeTuple} from '../vendor/mat4-decompose';
 import {doublesEqual, getEulerAngles} from '../vendor/math3d';
 
 export interface ComposedTransformSpec {
@@ -59,14 +59,24 @@ const cleanInvalidOrOverexplicitProps = (out: ComposedTransformSpec, explicit = 
 export const simplify3dTransformations = (out: ComposedTransformSpec, epislon = 1e-3) => {
   // When our six degrees of freedom might allow us to remove 3D rotation entirely, opt to do so. This might prevent
   // downstream rendering issues with layout engines that don't support 3D rotation mechanics (e.g. Lottie).
+
+  // If there is any z-rotation, we also have to account for coordinate flips by inverting over the pole.
+  const hasZRotation = !doublesEqual(Math.abs(out['rotation.z']), 0, epislon);
+
   if (doublesEqual(Math.abs(out['rotation.x']), Math.PI, epislon)) {
     out['rotation.x'] = 0;
     out['scale.y'] *= -1;
+    if (hasZRotation) {
+      out['rotation.z'] = round(2 * Math.PI - out['rotation.z']);
+    }
   }
 
   if (doublesEqual(Math.abs(out['rotation.y']), Math.PI, epislon)) {
     out['rotation.y'] = 0;
     out['scale.x'] *= -1;
+    if (hasZRotation) {
+      out['rotation.z'] = round(2 * Math.PI - out['rotation.z']);
+    }
   }
 };
 
