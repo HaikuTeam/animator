@@ -46,14 +46,15 @@ const STYLES: React.CSSProperties = {
     ...BTN_STYLES.centerBtns,
     ...BTN_STYLES.btnPrimary,
     display: 'inline-block',
-    marginRight: 10,
   },
   cancelButton: {
     ...BTN_STYLES.btnText,
     ...BTN_STYLES.centerBtns,
     ...BTN_STYLES.btnCancel,
+    backgroundColor: 'transparent',
     display: 'inline-block',
     marginRight: 10,
+    marginTop: 0,
   },
   upgradeWrap: {
     color: Palette.SUNSTONE,
@@ -65,6 +66,7 @@ const STYLES: React.CSSProperties = {
   btnSecondary: {
     ...BTN_STYLES.btnText,
     ...BTN_STYLES.centerBtns,
+    textTransform: 'uppercase',
     display: 'inline-block',
     marginTop: 10,
     backgroundColor: 'transparent',
@@ -98,7 +100,7 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
   render () {
     return (
       <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
-        <ModalHeader>Confirm privacy settings</ModalHeader>
+        <ModalHeader><h2>Confirm privacy settings</h2></ModalHeader>
         <form style={STYLES.inner}>
           <div>Please confirm your privacy settings before continuing.</div>
           <label style={STYLES.field}>
