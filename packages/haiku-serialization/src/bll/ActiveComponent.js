@@ -3087,14 +3087,19 @@ class ActiveComponent extends BaseModel {
   /**
    * @method writeMetadata
    */
-  writeMetadata (metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.writeMetadata(
-        bytecode,
-        lodash.assign({}, metadata, {title: this.getTitle()})
-      )
-      done()
-    }, cb)
+  writeMetadata (bytecodeMetadata, metadata, cb) {
+    return this.project.updateHook('writeMetadata', this.getRelpath(), bytecodeMetadata, metadata, (fire) => {
+      return this.performComponentWork((bytecode, mana, done) => {
+        Bytecode.writeMetadata(
+          bytecode,
+          lodash.assign({}, bytecodeMetadata, {title: this.getTitle()})
+        )
+        done()
+      }, () => {
+        fire()
+        cb()
+      })
+    })
   }
 
   /**

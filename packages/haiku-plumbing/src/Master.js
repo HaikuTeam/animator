@@ -15,7 +15,8 @@ import * as Asset from 'haiku-serialization/src/bll/Asset';
 import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as Illustrator from 'haiku-serialization/src/bll/Illustrator';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
+import * as Websocket from 'haiku-serialization/src/ws/Websocket';
+import * as WebSocket from 'ws';
 import {EventEmitter} from 'events';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Watcher from './Watcher';
@@ -527,6 +528,7 @@ export default class Master extends EventEmitter {
 
         return ac.writeMetadata(
           {version: tag},
+          this.project.getMetadata(),
           (err) => {
             if (err) {
               return next(err);
@@ -766,7 +768,14 @@ export default class Master extends EventEmitter {
             'master', // alias
             // websocket - a mock, since in theory no Master method will originate
             // here and need to be sent outward to the other clients automatically
-            new MockWebsocket(),
+            new Websocket(
+              `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
+              this.folder,
+              'controllee',
+              'master',
+              WebSocket,
+              process.env.HAIKU_WS_SECURITY_TOKEN,
+            ),
             {}, // platform
             userconfig,
             this.fileOptions,
@@ -971,6 +980,7 @@ export default class Master extends EventEmitter {
 
             return ac.writeMetadata(
               userconfig,
+              this.project.getMetadata(),
               (err) => {
                 if (err) {
                   return next(err);
