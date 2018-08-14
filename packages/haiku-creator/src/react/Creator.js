@@ -1771,9 +1771,6 @@ export default class Creator extends React.Component {
     ) : null;
   }
 
-  /**
-   * #FIXME(@taylor)
-   */
   renderOfflineExportUpgradeModal () {
     return this.state.showOfflineExportUpgradeModal ? (
       <OfflineExportUpgradeModal
