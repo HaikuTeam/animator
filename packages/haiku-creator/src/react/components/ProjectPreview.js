@@ -52,7 +52,7 @@ class ProjectPreview extends React.Component {
       this.bytecode = requireModuleFromFilename(this.props.bytecodePath);
     } catch (exception) {
       console.warn(exception);
-      if (['Move', 'Moto', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
+      if (['Move', 'Moto', 'percy', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
         this.bytecode = require(path.join('..', 'bytecode-fixtures', this.props.projectName));
       }
     }
