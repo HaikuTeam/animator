@@ -30,7 +30,7 @@ glob(
           next();
           return;
         }
-        const uglified = uglifyES.minify(data.toString(), {compress: {unused: false}});
+        const uglified = uglifyES.minify(data.toString(), {compress: {unused: false}, mangle: true, toplevel: true});
         if (uglified.error) {
           log.log(`cannot uglify ${sourcePath}`);
           next();

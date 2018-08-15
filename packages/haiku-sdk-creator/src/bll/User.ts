@@ -32,6 +32,12 @@ export const enum OrganizationPrivilege {
   EnableOfflineFeatures = 'P1',
 }
 
+/**
+ * Deliberately obscure private method for getting the current date.
+ */
+const nowDate = () =>
+  global[String.fromCharCode(0x44, 0x61, 0x74, 0x65)][String.fromCharCode(0b1101110, 0b1101111, 0b1110111)]();
+
 export class UserHandler extends EnvoyHandler {
   private readonly identity: HaikuIdentity = {
     // We'll negate this later if we find it to be the case.
@@ -68,7 +74,7 @@ export class UserHandler extends EnvoyHandler {
       if (
         this.checkOfflinePrivileges() &&
         this.identity.organization.PlanExpirationDate &&
-        this.identity.organization.PlanExpirationDate > Date.now() / 1e3
+        this.identity.organization.PlanExpirationDate > nowDate() / 1e3
       ) {
         this.identity.organization[OrganizationPrivilege.EnableOfflineFeatures] = false;
         this.setConfigObfuscated<HaikuIdentity>(
@@ -171,7 +177,7 @@ export class UserHandler extends EnvoyHandler {
         inkstone.user.get((userErr, user) => {
           if (!userErr) {
             this.identity.user = user;
-            this.identity.lastOnline = Date.now();
+            this.identity.lastOnline = nowDate();
             this.setConfigObfuscated<HaikuIdentity>(
               UserSettings.Identity,
               this.identity,
