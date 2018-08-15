@@ -3,18 +3,16 @@
  */
 
 export default function getElementSize (domElement) {
-  let x;
-  let y;
-  if (domElement.offsetWidth === undefined) {
+  // Get fractional size when on DOM
+  if (domElement.getBoundingClientRect instanceof Function) {
     const rect = domElement.getBoundingClientRect();
-    x = rect.width;
-    y = rect.height;
-  } else {
-    x = domElement.offsetWidth;
-    y = domElement.offsetHeight;
+    return {x: rect.width, y: rect.height};
   }
-  return {
-    x,
-    y,
-  };
+
+  // Fallback to rounded offsetWidth/offsetHeight
+  if (domElement.offsetWidth !== undefined) {
+    return {x: domElement.offsetWidth, y: domElement.offsetHeight};
+  }
+
+  return {x: 1, y: 1};
 }

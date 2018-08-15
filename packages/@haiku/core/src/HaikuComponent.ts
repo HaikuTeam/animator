@@ -2497,8 +2497,11 @@ const computeAndApplyPresetSizing = (element, container, mode): boolean => {
   const elementWidth = element.layout.sizeAbsolute.x;
   const elementHeight = element.layout.sizeAbsolute.y;
 
-  const containerWidth = container.layout.computed.size.x;
-  const containerHeight = container.layout.computed.size.y;
+  // Some browsers does not work correctly with matrix3d transforms on SVGs
+  // with resulting subpixel rendering, so let's round up the size to avoid
+  // browser problems
+  const containerWidth = Math.ceil(container.layout.computed.size.x);
+  const containerHeight = Math.ceil(container.layout.computed.size.y);
 
   // I.e., the amount by which we'd have to multiply the element's scale to make it
   // exactly the same size as its container (without going above it)
