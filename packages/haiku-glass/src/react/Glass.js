@@ -951,7 +951,10 @@ export class Glass extends React.Component {
     if (this.project) {
       mixpanel.haikuTrack('creator:glass:undo');
       Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
-      this.project.undo({}, {from: 'glass'}, () => {});
+      this.project.undo({}, {from: 'glass'}, () => {
+        // Important: purge the element selection proxy so that our box points can be reestablished.
+        ElementSelectionProxy.purge();
+      });
     }
   }
 
@@ -959,7 +962,10 @@ export class Glass extends React.Component {
     if (this.project) {
       mixpanel.haikuTrack('creator:glass:redo');
       Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
-      this.project.redo({}, {from: 'glass'}, () => {});
+      this.project.redo({}, {from: 'glass'}, () => {
+        // Important: purge the element selection proxy so that our box points can be reestablished.
+        ElementSelectionProxy.purge();
+      });
     }
   }
 
