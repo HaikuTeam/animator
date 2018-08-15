@@ -1,5 +1,5 @@
-import {isMac} from 'haiku-common/lib/environments/os';
 import * as React from 'react';
+import Globals from './../../Globals';
 import Palette from './../../Palette';
 
 const STYLES = {
@@ -45,17 +45,17 @@ export class ModalWrapper extends React.PureComponent<ModalWrapperProps> {
 
     // Command+Enter on MAC
     // Ctrl+Enter on Windows/Linux
-    if (((isMac() && keyEvent.metaKey && keyEvent.keyCode === 13) ||
-         (!isMac() && keyEvent.ctrlKey && keyEvent.keyCode === 13)) &&
-         this.props.onCmdEnter instanceof Function) {
+    if (Globals.isSpecialKeyDown() &&
+        keyEvent.keyCode === 13 &&
+        this.props.onCmdEnter instanceof Function) {
       this.props.onCmdEnter();
     }
 
     // Command+s on MAC
     // Ctrl+s on Windows/Linux
-    if (((isMac() && keyEvent.metaKey && keyEvent.keyCode === 83) ||
-         (!isMac() && keyEvent.ctrlKey && keyEvent.keyCode === 83)) &&
-         this.props.onCmdS instanceof Function) {
+    if (Globals.isSpecialKeyDown() &&
+        keyEvent.keyCode === 83 &&
+        this.props.onCmdS instanceof Function) {
       this.props.onCmdS();
     }
 
