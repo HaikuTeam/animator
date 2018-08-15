@@ -1599,6 +1599,7 @@ class Timeline extends React.Component {
             return (
               <div
                 className="droppable-wrapper"
+                style={{paddingBottom: 20}}
                 ref={provided.innerRef}>
                 {groups.map((group, indexOfGroup) => {
                   const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth();
@@ -1676,7 +1677,7 @@ class Timeline extends React.Component {
         onClick={(clickEvent) => {
           this.getActiveComponent().getRows().forEach((row) => {
             row.blur({from: 'timeline'});
-            row.deselect({from: 'timeline'});
+            row.deselect({from: 'timeline'}, true);
           });
         }}
         style={{

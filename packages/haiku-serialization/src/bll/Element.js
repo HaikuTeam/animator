@@ -2235,9 +2235,11 @@ Element.safeElementName = (mana) => {
   return mana.elementName
 }
 
-Element.deselectAll = (criteria, metadata) => {
+Element.deselectAllOtherElements = (criteria, target, metadata) => {
   Element.where(Object.assign({_isSelected: true}, criteria)).forEach((element) => {
-    element.unselect(metadata, true)
+    if (element.getComponentId() !== target.getComponentId()) {
+      element.unselect(metadata, true)
+    }
   })
 }
 
