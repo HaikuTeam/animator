@@ -700,7 +700,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   handleMouseUp (mousePosition) {
-    // no-op for now; 'lifecycle' event stub
+    ElementSelectionProxy.snaps = []
   }
 
   // this is used specifically for the CMD key (though it is not explicitly filtered here.)
@@ -945,6 +945,11 @@ class ElementSelectionProxy extends BaseModel {
     viewportTransform,
     globals
   ) {
+    // If nothing's selected, we have nothing to drag
+    if(!this.selection || !this.selection.length){
+      return
+    }
+
     // 'mousetrap' for snapping
     if (this._shouldCaptureMousePosition || this._lastMouseDownPosition === undefined) {
       this._lastMouseDownPosition = mouseCoordsCurrent
@@ -1289,9 +1294,6 @@ class ElementSelectionProxy extends BaseModel {
     globals
   ) {
     if (this.doesSelectionContainArtboard()) {
-      //As long as we're not snapping artboard resize, we need to explicitly
-      //clear the snap storage, otherwise false snap lines will show during stage resize
-      ElementSelectionProxy.snaps = []
       return this.scaleArtboard(
         mouseCoordsCurrent,
         mouseCoordsPrevious,
