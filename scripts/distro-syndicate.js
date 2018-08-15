@@ -146,7 +146,12 @@ const maybeSyndicate = (data) => {
   });
 };
 
-s3.listObjects({Bucket: bucket, Prefix: `releases/${environment}/${branch}/${platform}`})
+if (!global.process.env.HAIKU_RELEASE_COUNTDOWN) {
+  log.err('No release countdown provided - aborting!');
+  global.process.exit(1);
+}
+
+s3.listObjects({Bucket: bucket, Prefix: `releases/${environment}/${branch}/${platform}/${global.process.env.HAIKU_RELEASE_COUNTDOWN}`})
   .promise()
   .then(maybeSyndicate)
   .catch(() => {

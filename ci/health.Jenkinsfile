@@ -4,9 +4,17 @@ final String STATUS_FAILURE = 'FAILURE'
 final String CONTEXT_HEALTH = 'health'
 final String CONTEXT_LINT = 'health/lint'
 final String CONTEXT_TEST_MAC = 'health/test/macOS'
+final String CONTEXT_BUILD = 'build'
+final String CONTEXT_BUILD_MAC = 'build/macOS'
+final String CONTEXT_PUSH = 'release/push'
+final String CONTEXT_SYNDICATION = 'release/syndication'
 
 pipeline {
     agent any
+    environment {
+      // Reverse the timestamp for squirrel ordering.
+      HAIKU_RELEASE_COUNTDOWN = "${10.power(13) - new Date().getTime()}"
+    }
     stages {
         // Sets up Node and Yarn at the correct versions.
         stage('Provision-macOS') {
@@ -14,6 +22,7 @@ pipeline {
                 label 'master'
             }
             steps {
+                echo env.HAIKU_RELEASE_COUNTDOWN
                 setBuildStatus(CONTEXT_HEALTH, 'health checks started', STATUS_PENDING)
                 sh '''#!/bin/bash -x
                     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
@@ -30,6 +39,7 @@ pipeline {
                         label 'master'
                     }
                     steps {
+                        echo env.HAIKU_RELEASE_COUNTDOWN
                         setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
                         yarnInstallUnixLike()
                         yarnRun('compile-all')
@@ -66,6 +76,7 @@ pipeline {
                 label 'master'
             }
             steps {
+                echo env.HAIKU_RELEASE_COUNTDOWN
                 setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
                 yarnInstallUnixLike()
                 yarnRun('lint-report')
@@ -76,9 +87,16 @@ pipeline {
                 }
                 success {
                     setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
+                    setBuildStatus(CONTEXT_HEALTH, 'all health checks passed', STATUS_SUCCESS)
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'good',
+                        message: "PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) is healthy!"
+                    ])
                 }
                 failure {
                     setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
+                    setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'warning',
@@ -87,18 +105,95 @@ pipeline {
                 }
             }
         }
-    }
-    post {
-        success {
-            setBuildStatus(CONTEXT_HEALTH, 'all health checks passed', STATUS_SUCCESS)
-            slackSend([
-                channel: 'engineering-feed',
-                color: 'good',
-                message: "PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) is healthy!"
-            ])
+        stage('Build-Advance') {
+            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            steps {
+                milestone 1
+                timeout(time: 1, unit: 'HOURS') {
+                    input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
+                    setBuildStatus(CONTEXT_BUILD, 'builds started', STATUS_PENDING)
+                }
+                milestone 2
+            }
         }
-        failure {
-            setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
+        stage('Build') {
+            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            parallel {
+                stage('macOS') {
+                    agent {
+                        label 'master'
+                    }
+                    steps {
+                        setBuildStatus(CONTEXT_BUILD_MAC, 'build started', STATUS_PENDING)
+                        yarnInstallUnixLike()
+                        nodeRun('./scripts/semver.js --non-interactive')
+                        nodeRun('./scripts/distro-configure.js --non-interactive')
+                        nodeRun('./scripts/distro-download-secrets.js')
+                        nodeRun('./scripts/distro-prepare.js')
+                        nodeRun('./scripts/distro-build.js')
+                        nodeRun('./scripts/distro-upload.js')
+                    }
+                    post {
+                        success {
+                            setBuildStatus(CONTEXT_BUILD_MAC, 'build complete', STATUS_SUCCESS)
+                        }
+                        failure {
+                            setBuildStatus(CONTEXT_BUILD_MAC, 'build failed', STATUS_FAILURE)
+                        }
+                    }
+                }
+            }
+            post {
+                success {
+                    setBuildStatus(CONTEXT_BUILD, 'all targets built', STATUS_SUCCESS)
+                }
+                failure {
+                    setBuildStatus(CONTEXT_BUILD, 'not all targets built', STATUS_FAILURE)
+                }
+            }
+        }
+        stage('Push') {
+            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            steps {
+                milestone 3
+                timeout(time: 1, unit: 'DAYS') {
+                    input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
+                    setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
+                    // Note: the pull request is merged in this step.
+                    yarnInstallUnixLike()
+                    nodeRun('./scripts/distro-push.js')
+                }
+                milestone 4
+            }
+            post {
+                success {
+                    setBuildStatus(CONTEXT_PUSH, 'pushed to NPM and CDN', STATUS_SUCCESS)
+                }
+                failure {
+                    setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN failed', STATUS_FAILURE)
+                }
+            }
+        }
+        stage('Syndicate') {
+            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            steps {
+                milestone 5
+                timeout(time: 1, unit: 'DAYS') {
+                    input message: 'Syndicate release?', submitter: 'matthew,zack,sasha'
+                    setBuildStatus(CONTEXT_SYNDICATION, 'syndicating...', STATUS_PENDING)
+                    yarnInstallUnixLike()
+                    nodeRun('./scripts/distro-syndicate.js --non-interactive')
+                }
+                milestone 6
+            }
+            post {
+                success {
+                    setBuildStatus(CONTEXT_SYNDICATION, 'syndicated', STATUS_SUCCESS)
+                }
+                failure {
+                    setBuildStatus(CONTEXT_SYNDICATION, 'syndication failed', STATUS_FAILURE)
+                }
+            }
         }
     }
 }
