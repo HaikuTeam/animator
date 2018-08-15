@@ -22,7 +22,6 @@ pipeline {
                 label 'master'
             }
             steps {
-                echo env.HAIKU_RELEASE_COUNTDOWN
                 setBuildStatus(CONTEXT_HEALTH, 'health checks started', STATUS_PENDING)
                 sh '''#!/bin/bash -x
                     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
@@ -39,7 +38,6 @@ pipeline {
                         label 'master'
                     }
                     steps {
-                        echo env.HAIKU_RELEASE_COUNTDOWN
                         setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
                         yarnInstallUnixLike()
                         yarnRun('compile-all')
@@ -76,7 +74,6 @@ pipeline {
                 label 'master'
             }
             steps {
-                echo env.HAIKU_RELEASE_COUNTDOWN
                 setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
                 yarnInstallUnixLike()
                 yarnRun('lint-report')
