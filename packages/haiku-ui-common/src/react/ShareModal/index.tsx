@@ -152,7 +152,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
     const hasError = !!this.error;
 
     return (
-      <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
+      <ModalWrapper style={STYLES.wrapper} onEsc={this.props.onClose}>
         {hasError && <ModalNotice message={'Publish was unsuccessful. Are you online?'} />}
         <ModalHeader>
           <ProjectShareDetails

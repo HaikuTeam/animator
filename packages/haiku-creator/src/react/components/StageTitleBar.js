@@ -206,7 +206,8 @@ class StageTitleBar extends React.Component {
     };
 
     ipcRenderer.on('global-menu:save', () => {
-      if (!this._isMounted) {
+      // Skip if event handler editor is open
+      if (!this._isMounted || this.props.showEventHandlerEditor) {
         return;
       }
 
@@ -352,11 +353,7 @@ class StageTitleBar extends React.Component {
     const noticeNotice = this.props.createNotice({
       type: 'info',
       title: 'No need to save!',
-      message: (
-        <p>
-          Haiku saves your work automatically
-        </p>
-      ),
+      message: 'Haiku saves your work automatically',
     });
 
     window.setTimeout(() => {

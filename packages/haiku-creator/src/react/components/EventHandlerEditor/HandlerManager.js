@@ -173,8 +173,7 @@ class HandlerManager {
 
       // #FIXME: our pipeline to save and retrieve bytecode modifies the code
       // wrote by the user causing two issues:
-      // 1. If the code only contains comments, the comments are deleted
-      // 2. The format is not respected.
+      // 1. The format is not respected.
       let prettierHandlerBody = null;
       if (handler.body) {
         try {
@@ -184,7 +183,9 @@ class HandlerManager {
           //     <original content indented two spaces>
           //   };
           // To restore the formatted function body, we have to strip off the terminal lines and outdent the remainder.
-          const prettierHandlerBodyLines = prettier.format(`()=>{${handler.body}}`).trim().split('\n');
+          //
+          // The added newline after body is to avoid last line being commented and also commenting closing }
+          const prettierHandlerBodyLines = prettier.format(`()=>{${handler.body}\n}`).trim().split('\n');
           // Strip terminal lines. Bail if we somehow encounter an unexpected format.
           if (prettierHandlerBodyLines.shift() === '() => {' && prettierHandlerBodyLines.pop() === '};') {
             // Outdent by two spaces.

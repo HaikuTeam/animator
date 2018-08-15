@@ -305,6 +305,7 @@ class Stage extends React.Component {
             interactionMode={this.props.interactionMode}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
+            showEventHandlerEditor={this.props.showEventHandlerEditor}
           />
           <ComponentMenu
             ref="component-menu"

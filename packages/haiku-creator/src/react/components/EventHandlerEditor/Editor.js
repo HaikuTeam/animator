@@ -79,6 +79,9 @@ class Editor extends React.Component {
     monaco.editor.setTheme('haiku-actions');
     // this.editor.onMouseMove listener declared in Snippets.js
 
+    // Avoid listening for  cmd|ctrl+ctrl on action editor, because it is used as shortcut
+    this.editor.addCommand([monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter], () => {});
+
     this.forceUpdate();
   }
 

@@ -232,6 +232,12 @@ class EventHandlerEditor extends React.PureComponent {
     }
   };
 
+  doSaveFromCmdS = () => {
+    if (!this.state.editorWithErrors) {
+      this.doSave();
+    }
+  };
+
   onEditorContentChange ({evaluator}) {
     this.setState({
       editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR,
@@ -267,7 +273,10 @@ class EventHandlerEditor extends React.PureComponent {
     const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers();
 
     return (
-      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}} onClose={this.doCloseFromEsc}>
+      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}
+            onEsc={this.doCloseFromEsc}
+            onCmdEnter={this.doCloseFromEsc}
+            onCmdS={this.doSaveFromCmdS}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us
@@ -386,9 +395,8 @@ class EventHandlerEditor extends React.PureComponent {
               />
             </ModalFooter>
           )}
-        </div>
-      </ModalWrapper>
-    );
+        </div>;
+      </ModalWrapper >);
   }
 }
 
