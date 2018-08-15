@@ -1,6 +1,5 @@
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
-import {assign} from 'lodash';
 // @ts-ignore
 import * as pascalcase from 'pascalcase';
 import * as path from 'path';
@@ -55,7 +54,7 @@ export const getOrganizationNameOrFallback = (organizationName: string) => {
 export const getAuthorNameOrFallback = (authorName: string) => authorName || FALLBACK_AUTHOR_NAME;
 
 export const readPackageJson = (folder: string) => {
-  let pkgjson: {haiku?: any, version?: any} = {};
+  let pkgjson: {haiku?: any, version?: string} = {};
   try {
     pkgjson = fse.readJsonSync(path.join(folder, 'package.json'), {throws: true});
   } catch (e) {
@@ -73,12 +72,19 @@ export const readPackageJson = (folder: string) => {
 export const fetchProjectConfigInfo = (folder: string, cb: any) => {
   const pkgjson = readPackageJson(folder);
   const config = (pkgjson && pkgjson.haiku) || {};
-  return cb(null, assign({
-    folder,
-    uuid: 'HAIKU_SHARE_UUID', // Replaced on the server
-    root: 'HAIKU_CDN_PROJECT_ROOT', // Replaced on the server
-    core: getHaikuCoreVersion(),
-  }, config));
+  return cb(
+    null,
+    Object.assign(
+      config,
+      {
+        folder,
+        uuid: 'HAIKU_SHARE_UUID', // Replaced on the server
+        root: 'HAIKU_CDN_PROJECT_ROOT', // Replaced on the server
+        core: getHaikuCoreVersion(),
+        version: pkgjson.version,
+      },
+    ),
+  );
 };
 
 export const storeConfigValues = (folder: string, incoming: any, extra = {}) => {
