@@ -72,6 +72,36 @@ export default class ComponentHeadingRow extends React.Component {
     this.handleRowHoverUnhover(false);
   };
 
+  toggleExpandAndSelect = (clickEvent) => {
+    if (clickEvent) {
+      clickEvent.stopPropagation();
+    }
+
+    if (this.props.isExpanded) {
+      this.collapseAndDeselect();
+    } else {
+      this.expandAndSelect();
+    }
+  };
+
+  expandAndSelect = (clickEvent) => {
+    if (clickEvent) {
+      clickEvent.stopPropagation();
+    }
+
+    Element.deselectAllOtherElements({
+      component: this.props.row.component},
+      this.props.row.element,
+      {from: 'timeline'},
+    );
+
+    this.props.row.expandAndSelect({from: 'timeline'});
+  };
+
+  collapseAndDeselect () {
+    this.props.row.collapseAndDeselect({from: 'timeline'});
+  }
+
   handleRowHoverUnhover (shouldHover) {
     if (shouldHover) {
       this.props.row.hoverAndUnhoverOthers({from: 'timeline'});
@@ -169,13 +199,6 @@ export default class ComponentHeadingRow extends React.Component {
           }
           <div
             className="component-heading-row-inner no-select"
-            onClick={(clickEvent) => {
-              clickEvent.stopPropagation();
-              // Expand and select the entire component area when it is clicked, but note that we
-              // only collapse if the user clicked directly on the chevron.
-              Element.deselectAll({component: this.props.row.component}, {from: 'timeline'});
-              this.props.row.expandAndSelect({from: 'timeline'});
-            }}
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
               width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 200 : propertiesPixelWidth,
               height: 'inherit',
@@ -205,13 +228,7 @@ export default class ComponentHeadingRow extends React.Component {
                 marginTop: -6,
                 maxWidth: (this.props.row.isRootRow()) ? '120px' : undefined,
               })}
-              onClick={(clickEvent) => {
-                // Collapse/expand the entire component area when it is clicked
-                if (this.props.isExpanded && this.props.isSelected) {
-                  clickEvent.stopPropagation();
-                  this.props.row.collapseAndDeselect({from: 'timeline'});
-                }
-              }}
+              onClick={this.expandAndSelect}
             >
               <span
                 className="component-heading-chevron-box"
@@ -225,13 +242,7 @@ export default class ComponentHeadingRow extends React.Component {
                   display: 'inline-block',
                   transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)',
                 })}
-                onClick={(clickEvent) => {
-                  // Collapse/expand the entire component area when it is clicked
-                  if (this.props.isExpanded) {
-                    clickEvent.stopPropagation();
-                    this.props.row.collapseAndDeselect({from: 'timeline'});
-                  }
-                }}
+                onClick={this.toggleExpandAndSelect}
               >
                 {this.props.isExpanded
                     ? <span className={experimentIsEnabled(Experiment.NativeTimelineScroll) ? '' : 'utf-icon'}
@@ -262,10 +273,7 @@ export default class ComponentHeadingRow extends React.Component {
                 isSelected={this.props.isSelected}
                 isHovered={this.props.isHovered}
                 onEventHandlerTriggered={this.props.onEventHandlerTriggered}
-                onExpand={() => {
-                  Element.deselectAll({component: this.props.row.component}, {from: 'timeline'});
-                  this.props.row.expandAndSelect({from: 'timeline'});
-                }}
+                onExpand={this.expandAndSelect}
               />
             </div>
             <div
@@ -372,15 +380,7 @@ export default class ComponentHeadingRow extends React.Component {
         </div>
         {!this.props.isExpanded &&
         <div
-          onClick={(clickEvent) => {
-            // We need this click listener here or we won't capture events that occur on
-            // the keyframe pills or transition body segments
-            clickEvent.stopPropagation();
-            // Expand and select the entire component area when it is clicked, but note that we
-            // only collapse if the user clicked directly on the chevron.
-            Element.deselectAll({component: this.props.row.component}, {from: 'timeline'});
-            this.props.row.expandAndSelect({from: 'timeline'});
-          }}
+          onClick={this.expandAndSelect}
           className="component-collapsed-segments-box"
           style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             height: 'inherit',

@@ -1677,7 +1677,7 @@ class Timeline extends React.Component {
         onClick={(clickEvent) => {
           this.getActiveComponent().getRows().forEach((row) => {
             row.blur({from: 'timeline'});
-            row.deselect({from: 'timeline'});
+            row.deselect({from: 'timeline'}, true);
           });
         }}
         style={{
