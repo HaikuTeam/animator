@@ -1599,6 +1599,7 @@ class Timeline extends React.Component {
             return (
               <div
                 className="droppable-wrapper"
+                style={{paddingBottom: 20}}
                 ref={provided.innerRef}>
                 {groups.map((group, indexOfGroup) => {
                   const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth();
