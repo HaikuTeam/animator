@@ -105,7 +105,6 @@ Bytecode.getAppliedStatesForNode = (out, bytecode, element) => {
   return out
 }
 
-
 Bytecode.getAppliedHelpersForNode = (out, bytecode, element) => {
   Template.visit(element, (node) => {
     for (const helperName in bytecode.helpers) {

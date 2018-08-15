@@ -24,5 +24,3 @@ export interface ForeignComponent {
   thumbnail: ArrayBuffer;
   moduleReference: any;
 }
-
-const noop = () => {};

@@ -135,10 +135,12 @@ export class VueCliFlavor extends CodebaseFlavor {
   }
 
   writeHaikuToCodebase (): void {
-    const haikuSrc = this.getHaikuSrcDir();
     // TODO:  - find all Haiku Components in the current project
     //          that should be written to the codebase
     //        - generate a Component.js (or .ts) in the src/haiku folder
+
+    // const haikuSrc = this.getHaikuSrcDir();
+
     throw new Error('not implemented');
   }
 
@@ -147,9 +149,9 @@ export class VueCliFlavor extends CodebaseFlavor {
     return path.join(this.directory, 'src');
   }
 
-  private getHaikuSrcDir (): string {
-    return path.join(this.getProjectSrcDir(), 'haiku/');
-  }
+  // private getHaikuSrcDir (): string {
+  //   return path.join(this.getProjectSrcDir(), 'haiku/');
+  // }
 
   private getPackageJsonAsObject (): any {
     let ret = {};

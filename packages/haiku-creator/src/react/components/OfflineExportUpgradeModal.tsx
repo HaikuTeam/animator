@@ -1,5 +1,4 @@
 import Palette from 'haiku-ui-common/lib/Palette';
-import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {ModalFooter, ModalHeader, ModalWrapper} from 'haiku-ui-common/lib/react/Modal';
 import * as React from 'react';

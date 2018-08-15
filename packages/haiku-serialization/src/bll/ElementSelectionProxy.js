@@ -946,7 +946,7 @@ class ElementSelectionProxy extends BaseModel {
     globals
   ) {
     // If nothing's selected, we have nothing to drag
-    if(!this.selection || !this.selection.length){
+    if (!this.selection || !this.selection.length) {
       return
     }
 
