@@ -232,6 +232,12 @@ class EventHandlerEditor extends React.PureComponent {
     }
   };
 
+  doSaveFromCmdS = () => {
+    if (!this.state.editorWithErrors) {
+      this.doSave();
+    }
+  };
+
   onEditorContentChange ({evaluator}) {
     this.setState({
       editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR,
@@ -270,7 +276,7 @@ class EventHandlerEditor extends React.PureComponent {
       <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}
             onEsc={this.doCloseFromEsc}
             onCmdEnter={this.doCloseFromEsc}
-            onCmdS={this.doCloseFromEsc}>
+            onCmdS={this.doSaveFromCmdS}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us

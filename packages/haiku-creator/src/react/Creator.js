@@ -2185,6 +2185,7 @@ export default class Creator extends React.Component {
                     setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}
                     setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
+                    showEventHandlerEditor={this.state.showEventHandlerEditor}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0}} />

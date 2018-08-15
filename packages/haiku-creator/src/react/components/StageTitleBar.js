@@ -206,7 +206,8 @@ class StageTitleBar extends React.Component {
     };
 
     ipcRenderer.on('global-menu:save', () => {
-      if (!this._isMounted) {
+      // Skip if event handler editor is open
+      if (!this._isMounted || this.props.showEventHandlerEditor) {
         return;
       }
 
