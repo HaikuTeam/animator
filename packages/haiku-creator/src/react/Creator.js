@@ -144,7 +144,7 @@ export default class Creator extends React.Component {
       },
       doShowBackToDashboardButton: false,
       doShowProjectLoader: false,
-      launchingProject: false,
+      projectLaunching: false,
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
@@ -1581,8 +1581,14 @@ export default class Creator extends React.Component {
   }
 
   onNavigateToDashboard () {
-    this.teardownMaster({shouldFinishTour: true});
-    ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false});
+    this.user.load().then(({user, organization}) => {
+      this.setState({
+        readyForAuth: true,
+        isUserAuthenticated: user && organization,
+      });
+      this.teardownMaster({shouldFinishTour: true});
+      ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false});
+    });
   }
 
   awaitAuthAndFire (cb) {

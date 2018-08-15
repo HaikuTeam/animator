@@ -156,6 +156,7 @@ export class UserHandler extends EnvoyHandler {
     return new Promise<HaikuIdentity>((resolve) => {
       const authToken = sdkClient.config.getAuthToken();
       if (!authToken) {
+        this.logOut();
         return resolve(this.identity);
       }
 
