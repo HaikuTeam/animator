@@ -12,6 +12,16 @@ const STYLES = {
 };
 
 class EventSelector extends React.Component {
+  onValueChange = (selected) => {
+    if (selected) {
+      this.props.onChange(selected.value);
+    }
+  };
+
+  createFromSearch = (options, search) => {
+    return {label: search, value: search, groupId: 'Custom Events'};
+  };
+
   render () {
     const groups = [];
     const select = [];
@@ -77,15 +87,9 @@ class EventSelector extends React.Component {
           options={select}
           hideResetButton={true}
           placeholder={'Add a new Action'}
-          createFromSearch={(options, search) => {
-            return {label: search, value: search, groupId: 'Custom Events'};
-          }}
+          createFromSearch={this.createFromSearch}
           value={null}
-          onValueChange={(selected) => {
-            if (selected) {
-              this.props.onChange(selected.value);
-            }
-          }}
+          onValueChange={this.onValueChange}
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
         />
