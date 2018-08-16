@@ -186,9 +186,9 @@ class ProjectBrowser extends React.Component {
         // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
         // the project.
         setTimeout(() => {
-          this.setState({
-            projectsList: projectsList.filter((project) => project.projectName !== projectToDelete.projectName),
-          });
+          const newList = projectsList.filter((project) => project.projectName !== projectToDelete.projectName);
+          this.setState({projectsList: newList});
+          this.props.onProjectDeleted(newList);
         }, Math.min(200, Date.now() - deleteStart));
       });
     });
