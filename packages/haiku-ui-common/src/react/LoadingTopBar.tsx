@@ -35,7 +35,7 @@ export class LoadingTopBar extends React.PureComponent<LoadingTopBarProps> {
     return (
       <span
         style={{
-          width: `${this.props.progress}%`,
+          width: `${this.props.done ? 0 : this.props.progress}%`,
           transition: `width ${this.props.speed} cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease`,
           opacity: this.props.done ? 0 : 1,
           ...STYLES.bar,

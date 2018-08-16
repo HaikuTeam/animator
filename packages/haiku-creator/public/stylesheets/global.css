@@ -490,10 +490,6 @@ input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
     cursor: pointer;
 }
 
-.animation-rotating {
-  animation: rotation 2s infinite linear;
-}
-
 @keyframes rotation {
   from {
     transform: rotate(0deg);
@@ -511,4 +507,3 @@ input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
 .button-css-transform:active {
   transform: scale(0.9);
 }
-

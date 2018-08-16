@@ -295,6 +295,11 @@ class AssetItem extends React.Component {
     return this.props.asset.isFigmaFile();
   }
 
+  refreshFigmaAsset = () => {
+    const url = Figma.buildFigmaLink(this.props.asset.figmaID, this.props.asset.displayName);
+    this.props.onRefreshFigmaAsset(url);
+  };
+
   renderSyncMenu () {
     if (this.isFigmaAndCanBeOpened()) {
       return (
@@ -302,29 +307,13 @@ class AssetItem extends React.Component {
           style={{...STYLES.threeDotMenu, right: '30px', transform: 'none'}}
         >
           <button
-            onClick={(clickEvent) => {
-              const svgSpinner = clickEvent.currentTarget.querySelector('svg');
-              const url = Figma.buildFigmaLink(this.props.asset.figmaID, this.props.asset.displayName);
-              const rotationClass = 'animation-rotating';
-
-              clickEvent.currentTarget.querySelector('svg').classList.add(rotationClass);
-
-              // TODO: find out why `Promise.prototype.finally` is not available
-              // and rewrite this properly
-              this.props.onRefreshFigmaAsset(url)
-                .then(() => {
-                  svgSpinner.classList.remove(rotationClass);
-                })
-                .catch(() => {
-                  svgSpinner.classList.remove(rotationClass);
-                });
-            }}
+            onClick={this.refreshFigmaAsset}
             style={{
               padding: '3px',
               backgroundColor: Palette.DARK_GRAY,
               color: Palette.ROCK,
             }}>
-            <SyncIconSVG className={this.props.asset.getChildAssets().every((asset) => asset.isPhonyOrOnlyHasPhonyChildrens()) ? 'animation-rotating' : ''} />
+            <SyncIconSVG />
           </button>
         </span>
       );
