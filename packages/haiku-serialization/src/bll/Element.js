@@ -567,7 +567,7 @@ class Element extends BaseModel {
     return this.getHaikuElement().size
   }
 
-  getComputedLayout () {
+  getComputedLayout (calculateAtRuntime = false) {
     const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
     const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
 
@@ -599,7 +599,8 @@ class Element extends BaseModel {
         attributes: parentNode.attributes,
         children: parentNode.children,
         __memory: parentNode.__memory
-      }
+      },
+      calculateAtRuntime
     )
   }
 
@@ -704,8 +705,8 @@ class Element extends BaseModel {
     }
   }
 
-  getBoundingBoxPoints () {
-    const layout = this.getComputedLayout()
+  getBoundingBoxPoints (calculateAtRuntime = false) {
+    const layout = this.getComputedLayout(calculateAtRuntime)
     const w = layout.size.x
     const h = layout.size.y
     return [
@@ -715,10 +716,10 @@ class Element extends BaseModel {
     ]
   }
 
-  getBoxPointsTransformed () {
+  getBoxPointsTransformed (calculateAtRuntime = false) {
     return HaikuElement.transformPointsInPlace(
-      this.getBoundingBoxPoints(),
-      this.getOriginOffsetComposedMatrix()
+      this.getBoundingBoxPoints(calculateAtRuntime),
+      this.getOriginOffsetComposedMatrix(calculateAtRuntime)
     )
   }
 
@@ -744,7 +745,7 @@ class Element extends BaseModel {
 
   getOriginOffsetComposedMatrix () {
     return this.cache.fetch('getOriginOffsetComposedMatrix', () => {
-      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry(calculateAtRuntime).reverse().map(
         (layout) => layout.matrix
       ))
     })
@@ -756,9 +757,9 @@ class Element extends BaseModel {
     return ancestors
   }
 
-  getComputedLayoutAncestry () {
+  getComputedLayoutAncestry (calculateAtRuntime = false) {
     return this.getAncestry().map((ancestor) => {
-      return ancestor.getComputedLayout()
+      return ancestor.getComputedLayout(calculateAtRuntime)
     })
   }
 

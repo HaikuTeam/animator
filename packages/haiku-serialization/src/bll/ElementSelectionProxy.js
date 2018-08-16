@@ -71,7 +71,7 @@ class ElementSelectionProxy extends BaseModel {
     if (elements.length === 1) {
       // It's assumed that this list of points is *not* transformed here but downstream
       // as the return value of this.getBoxPointsTransformed
-      this._proxyBoxPoints = elements[0].getBoundingBoxPoints().map((p) => p)
+      this._proxyBoxPoints = elements[0].getBoundingBoxPoints(true).map((p) => p)
 
       Object.assign(
         this._proxyProperties,
@@ -86,7 +86,7 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     const boxPoints = HaikuElement.getBoundingBoxPoints(
-      elements.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
+      elements.map((element) => element.getBoxPointsTransformed(true)).reduce((accumulator, boxPoints) => {
         accumulator.push(...boxPoints)
         return accumulator
       }, [])

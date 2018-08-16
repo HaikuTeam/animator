@@ -1136,6 +1136,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   static computeLayout = (
     targetNode: BytecodeNode,
     parentNode: BytecodeNode,
+    calculateAtRuntime: boolean = false,
   ): ComputedLayoutSpec => {
     const layoutSpec = targetNode.layout;
 
@@ -1224,6 +1225,14 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
 
           break;
       }
+    }
+
+    if (calculateAtRuntime && targetNode.elementName === 'svg' && targetElement.target) {
+      const bbox = (targetElement.target as any).getBBox();
+      targetSize.x = bbox.width;
+      targetSize.y = bbox.height;
+      targetSize.z = 0;
+      console.log('targetNode', targetNode.elementName, targetNode.attributes['haiku-title'], targetNode.attributes['haiku-id']);
     }
 
     const virtualSpec = {
