@@ -121,6 +121,14 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return this.memory && this.memory.instance;
   }
 
+  /**
+   * @method containee
+   * @description Returns the HaikuComponent instance into which this node was passed as a container.
+   */
+  get containee (): IHaikuComponent {
+    return this.memory && this.memory.containee;
+  }
+
   get owner (): IHaikuComponent {
     if (this.instance) {
       return this.instance;
@@ -866,7 +874,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
 
     // In case of the root container of a render tree
     if (!manager) {
-      manager = this.subcomponent;
+      manager = this.containee;
     }
 
     // Not sure how we'd get here, but if we do, skip this process
