@@ -1713,6 +1713,7 @@ class Timeline extends React.Component {
         {this.renderTopControls()}
         <ScrollView
           timeline={this.getActiveComponent().getCurrentTimeline()}
+          propertiesPixelWidth={this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()}
           onMouseDown={(mouseEvent) => {
             if (
               !Globals.isShiftKeyDown &&

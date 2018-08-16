@@ -87,6 +87,10 @@ const zIndex = {
   previewModeBlocker: {
     base: 20,
   },
+
+  areaPostMaxKeyframe: {
+    base: 3,
+  },
 };
 
 export default zIndex;

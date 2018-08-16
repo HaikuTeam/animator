@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 import zIndex from './styles/zIndex';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
@@ -33,13 +34,15 @@ class ScrollView extends React.PureComponent {
     }
     if (
       what === 'timeline-frame-range' ||
-      what === 'timeline-max-frame-changed'
+      what === 'timeline-max-frame-changed' ||
+      what === 'timeline-frame'
     ) {
       this.forceUpdate();
     }
   }
 
   render () {
+    const frameInfo = this.props.timeline.getFrameInfo();
     return (
       <div
         ref="scrollview"
@@ -77,9 +80,20 @@ class ScrollView extends React.PureComponent {
           background: Palette.GRAY,
           zIndex: zIndex.backgroundHelper.base,
           flex: 1,
-          width: this.props.timeline.getPropertiesPixelWidth(),
+          width: this.props.propertiesPixelWidth,
           position: 'sticky',
           left: 0,
+        }} />
+
+        <div style={{
+          position: 'absolute',
+          background: Color(Palette.LIGHT_GRAY).fade(0.7),
+          pointerEvents: 'none',
+          zIndex: zIndex.areaPostMaxKeyframe.base,
+          top: '0',
+          bottom: '0',
+          width: '9999999px',
+          left: frameInfo.maxf * frameInfo.pxpf + this.props.propertiesPixelWidth + 14,
         }} />
       </div>
     );
