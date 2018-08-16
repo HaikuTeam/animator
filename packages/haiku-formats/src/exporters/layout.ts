@@ -1,8 +1,7 @@
-import {BytecodeTimelineProperties, LayoutSpec} from '@haiku/core/lib/api';
+import {BytecodeTimelineProperties, LayoutSpec, ThreeDimensionalLayoutProperty} from '@haiku/core/lib/api';
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/HaikuComponent';
 import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
 import Layout3D from '@haiku/core/lib/Layout3D';
-import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
 
 const {createLayoutSpec, computeMatrix} = Layout3D;
@@ -78,15 +77,15 @@ const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, elemen
  * We only need to actually calculate affine transformation matrices and multiply them when translation and rotation
  * are composed together.
  *
- * @param {ContextualSize} shapeLayerSize
- * @param {ContextualSize} animationSize
+ * @param {ThreeDimensionalLayoutProperty} shapeLayerSize
+ * @param {ThreeDimensionalLayoutProperty} animationSize
  * @param childTimeline
  * @param parentTimeline
  * @returns {{}}
  */
 export const composeTimelines = (
-  shapeLayerSize: ContextualSize,
-  animationSize: ContextualSize,
+  shapeLayerSize: ThreeDimensionalLayoutProperty,
+  animationSize: ThreeDimensionalLayoutProperty,
   childTimeline: any,
   parentTimeline: any,
 ) => {
