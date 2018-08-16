@@ -223,3 +223,9 @@ void yarnRun(String command) {
         . $HOME/.bash_profile
         ''' + "yarn ${command}"
 }
+
+void nodeRun(String command) {
+    sh '''#!/bin/bash -x
+        . $HOME/.bash_profile
+        ''' + "node ${command}"
+}
