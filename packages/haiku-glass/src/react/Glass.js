@@ -994,6 +994,11 @@ export class Glass extends React.Component {
       return;
     }
 
+    // Vertex deletion is not yet implemented
+    if (Element.directlySelected) {
+      return;
+    }
+
     if (this.getActiveComponent()) {
       mixpanel.haikuTrack('creator:glass:delete-element');
       const proxy = this.fetchProxyElementForSelection();
