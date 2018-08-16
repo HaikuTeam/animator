@@ -1856,6 +1856,14 @@ class ActiveComponent extends BaseModel {
 
     logger.info(`[active component (${this.project.getAlias()})] pastee (bytecode) ${haikuId}`)
 
+    // When pasting, move the object to the front
+    this.zMoveToFrontImpl(
+      ourBytecode,
+      haikuId,
+      'Default',
+      0
+    )
+
     return haikuId
   }
 
