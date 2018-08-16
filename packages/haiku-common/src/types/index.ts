@@ -1,11 +1,5 @@
 export type Maybe<T> = T|null|undefined;
 
-export interface ContextualSize {
-  x: number;
-  y: number;
-  z: number;
-}
-
 export interface CubicCurve {
   type: string;
   x1: number;
