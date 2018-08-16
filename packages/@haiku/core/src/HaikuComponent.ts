@@ -568,10 +568,10 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.hydrateMutableTimelines();
     this.parsedValueClusters = {};
 
-    if (this.bytecode.timelines) {
-      for (const timelineName in this.bytecode.timelines) {
-        delete this.bytecode.timelines[timelineName].__max;
-      }
+    // Our managed timeline instances may have their own privately cached properties
+    const timelines = this.fetchTimelines();
+    for (const timelineName in timelines) {
+      timelines[timelineName].cacheClear();
     }
   }
 
@@ -635,7 +635,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
         HaikuTimeline.create(
           this,
           name,
-          this.getTimelineDescriptor(name),
           this.config,
         );
       }
@@ -664,7 +663,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       return found;
     }
 
-    return HaikuTimeline.create(this, name, descriptor, this.config);
+    return HaikuTimeline.create(this, name, this.config);
   }
 
   getDefaultTimeline (): HaikuTimeline {

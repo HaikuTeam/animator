@@ -4,6 +4,7 @@
 
 import {IHaikuComponent} from './api';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
+import getActionsMaxTime from './helpers/getActionsMaxTime';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import {isNumeric, tokenizeDirective} from './reflection/Tokenizer';
 import assign from './vendor/assign';
@@ -47,12 +48,10 @@ export default class HaikuTimeline extends HaikuBase {
   options;
   component: IHaikuComponent;
   name;
-  descriptor;
 
   private globalClockTime: number;
   private localElapsedTime: number;
   private localControlledTime: number|null;
-  private maxExplicitlyDefinedTime: number;
   private areUpdatesFrozen: boolean;
   private isTimelinePlaying: boolean;
   private isTimelineLooping: boolean;
@@ -60,18 +59,16 @@ export default class HaikuTimeline extends HaikuBase {
   private lastFrame: number;
   private numLoops: number;
 
-  constructor (component: IHaikuComponent, name, descriptor, options) {
+  constructor (component: IHaikuComponent, name, options) {
     super();
 
     this.component = component;
     this.name = name;
-    this.descriptor = descriptor;
     this.assignOptions(options || {});
 
     this.globalClockTime = 0;
     this.localElapsedTime = 0;
     this.localControlledTime = null; // Only set this to a number if time is 'controlled'
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
     this.areUpdatesFrozen = !!this.options.freeze;
     this.isTimelineLooping = !!this.options.loop;
     this.isTimelinePlaying = true;
@@ -83,12 +80,16 @@ export default class HaikuTimeline extends HaikuBase {
   getMs (amount: number, unit: TimeUnit): number {
     switch (unit) {
       case TimeUnit.Frame:
-        return Math.round(this.component.getClock().getFrameDuration() * amount);
+        return Math.round(this.getFrameDuration() * amount);
       case TimeUnit.Millisecond:
       default:
         // The only currently valid alternative to TimeUnit.Frame is TimeUnit.Millisecond.
         return amount;
     }
+  }
+
+  getFrameDuration (): number {
+    return this.component.getClock().getFrameDuration();
   }
 
   assignOptions (options) {
@@ -201,12 +202,6 @@ export default class HaikuTimeline extends HaikuBase {
     this.doUpdateWithGlobalClockTime(newGlobalClockTime);
   }
 
-  resetMaxDefinedTimeFromDescriptor (
-    descriptor,
-  ) {
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
-  }
-
   isTimeControlled () {
     return typeof this.getControlledTime() === NUMBER;
   }
@@ -224,7 +219,27 @@ export default class HaikuTimeline extends HaikuBase {
    * @description Return the maximum time that this timeline will reach, in ms.
    */
   getMaxTime () {
-    return this.maxExplicitlyDefinedTime;
+    return this.cacheFetch('getMaxTime', () => {
+      const descriptorMax = this.getMaxKeyframeTime();
+      const actionsMax = this.getMaxActionsTime();
+      return Math.max(descriptorMax, actionsMax);
+    });
+  }
+
+  getMaxKeyframeTime (): number {
+    return getTimelineMaxTime(this.getDescriptor());
+  }
+
+  getMaxActionsTime (): number {
+    return Math.round(getActionsMaxTime(
+      this.name,
+      this.component.bytecode.eventHandlers,
+      this.getFrameDuration(),
+    ));
+  }
+
+  getDescriptor () {
+    return this.component.getTimelineDescriptor(this.name);
   }
 
   /**
@@ -422,7 +437,6 @@ export default class HaikuTimeline extends HaikuBase {
   ) {
     this.setPlaying(true);
     this.setElapsedTime(maybeElapsedTime || 0);
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   stop () {
@@ -432,7 +446,6 @@ export default class HaikuTimeline extends HaikuBase {
 
   stopSoftly () {
     this.setPlaying(false);
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   pause () {
@@ -442,7 +455,6 @@ export default class HaikuTimeline extends HaikuBase {
 
   pauseSoftly () {
     this.setPlaying(false);
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   play (options: any = {}) {
@@ -467,8 +479,6 @@ export default class HaikuTimeline extends HaikuBase {
       // To properly exit controlled-time mode, we need to set controlled time to null.
       this.setControlledTime(null);
     }
-
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   seek (amount: number, unit: TimeUnit = TimeUnit.Frame) {
@@ -482,7 +492,6 @@ export default class HaikuTimeline extends HaikuBase {
     this.ensureClockIsRunning();
     this.controlTime(ms, this.component.getClock().getTime());
     this.setElapsedTime(this.getControlledTime());
-    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   gotoAndPlay (amount: number, unit: TimeUnit = TimeUnit.Frame) {
@@ -674,11 +683,10 @@ export default class HaikuTimeline extends HaikuBase {
     });
   };
 
-  static create = (component: IHaikuComponent, name, descriptor, config): HaikuTimeline => {
+  static create = (component: IHaikuComponent, name, config): HaikuTimeline => {
     return new HaikuTimeline(
       component,
       name,
-      descriptor,
       config,
     );
   };
