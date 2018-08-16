@@ -191,6 +191,15 @@ export default class Master extends EventEmitter {
       500,
       {trailing: true},
     );
+
+    this.websocket = new Websocket(
+      `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
+      this.folder,
+      'controllee',
+      'master',
+      WebSocket,
+      process.env.HAIKU_WS_SECURITY_TOKEN,
+    );
   }
 
   handleBroadcast (message) {
@@ -766,14 +775,7 @@ export default class Master extends EventEmitter {
           return Project.setup(
             this.folder,
             'master', // alias
-            new Websocket(
-              `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
-              this.folder,
-              'controllee',
-              'master',
-              WebSocket,
-              process.env.HAIKU_WS_SECURITY_TOKEN,
-            ),
+            this.websocket,
             {}, // platform
             userconfig,
             this.fileOptions,
