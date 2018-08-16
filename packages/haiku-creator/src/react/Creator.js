@@ -463,6 +463,16 @@ export default class Creator extends React.Component {
       false,
     );
 
+    // Add event listeners for when the network connectivity status of the browser changes.
+    const checkOnlineStatus = () => this.checkOnlineStatus();
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
+
+    // For good measure, periodically check if we're online every five minutes. The online/offline events are
+    // inherently flaky (they use navigator.onLine, which never returns false negatives but frequently returns false
+    // positives).
+    window.setInterval(checkOnlineStatus, 5 * 60 * 1000);
+
     // Flexibly keep track of states in the various subviews as broadcasted to us.
     // TODO: Move to Envoy. Put here to avoid boiling the ocean on multi-component.
     // This is a dictionary of state changes broadcasted to us via the subviews.
@@ -621,6 +631,17 @@ export default class Creator extends React.Component {
     }
   }
 
+  checkOnlineStatus () {
+    // In case this gets called too early.
+    if (!this.user) {
+      return;
+    }
+
+    this.user.checkOnline().then((isOnline) => {
+      this.setState({isOnline});
+    });
+  }
+
   handleEnvoyUserReady () {
     if (!this.user) {
       return;
@@ -650,9 +671,7 @@ export default class Creator extends React.Component {
         this.setState({supportOfflineExport});
       });
 
-      this.user.checkOnline().then((isOnline) => {
-        this.setState({isOnline});
-      });
+      this.checkOnlineStatus();
     });
 
     this.user.load().then(({user, organization}) => {

@@ -8,6 +8,9 @@ import {requestInstance} from './transport';
 const INKSTONE_ERROR_HEADER = 'x-inkstone-error-code';
 
 export const enum Endpoints {
+  // Ping.
+  Ping = '/ping',
+
   // Project.
   ProjectResourceCollection = '/project',
   ProjectResource = '/project/:project_name',

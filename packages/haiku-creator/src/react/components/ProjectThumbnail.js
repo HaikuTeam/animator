@@ -110,7 +110,7 @@ class ProjectThumbnail extends React.Component {
           <span style={DASH_STYLES.title}>
             {this.props.projectName}
           </span>
-          <span
+          {(this.props.allowDelete || this.props.projectExistsLocally) && <span
             title="Show project options"
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
             onClick={() => {
@@ -120,7 +120,7 @@ class ProjectThumbnail extends React.Component {
             }}
           >
             <StackMenuSVG color={Palette.SUNSTONE} width="5px" height="12px" />
-          </span>
+          </span>}
         </div>
       </div>
     );

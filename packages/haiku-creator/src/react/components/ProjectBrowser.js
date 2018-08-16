@@ -34,7 +34,7 @@ class ProjectBrowser extends React.Component {
     this.state = {
       username: null,
       error: null,
-      isOffline: false,
+      isOffline: !props.isOnline,
       projectsList: [],
       areProjectsLoading: true,
       isPopoverOpen: false,
@@ -47,6 +47,13 @@ class ProjectBrowser extends React.Component {
       newProjectError: null,
       newProjectIsPublic: true,
     };
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (this.state.isOffline === nextProps.isOnline) {
+      // Value has changed.
+      this.loadProjects();
+    }
   }
 
   componentDidMount () {
@@ -109,6 +116,7 @@ class ProjectBrowser extends React.Component {
       }
       this.setState({
         projectsList,
+        isOffline: false,
         areProjectsLoading: false,
       });
     });
