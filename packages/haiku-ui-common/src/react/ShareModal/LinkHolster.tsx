@@ -5,7 +5,7 @@ import Palette from '../../Palette';
 import {LoadingTopBar} from '../LoadingTopBar';
 import {CliboardIconSVG} from '../OtherIcons';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   linkHolster: {
     height: '30px',
     cursor: 'pointer',
@@ -18,7 +18,7 @@ const STYLES = {
     borderRadius: '3px',
     overflow: 'hidden',
     position: 'relative',
-  } as React.CSSProperties,
+  },
   link: {
     color: Palette.BLUE,
     fontSize: '10px',
@@ -27,16 +27,16 @@ const STYLES = {
     display: 'inline-block',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-  } as React.CSSProperties,
+  },
   linkDisabled: {
     cursor: 'not-allowed',
-  } as React.CSSProperties,
+  },
   linkCopyBtn: {
     height: '100%',
     padding: '0 8px',
     display: 'flex',
     alignItems: 'center',
-  } as React.CSSProperties,
+  },
 };
 
 export interface LinkHolsterProps {
@@ -164,7 +164,13 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
           text={this.props.linkAddress}
           onCopy={this.onCopy}
         >
-          <span style={{...STYLES.linkCopyBtn, background: dark ? Palette.BLACK : Palette.COAL}}>
+          <span
+            style={{
+              ...STYLES.linkCopyBtn,
+              ...(this.props.isSnapshotSaveInProgress ? STYLES.linkDisabled : {}),
+              background: dark ? Palette.BLACK : Palette.COAL,
+            }}
+          >
             <CliboardIconSVG />
           </span>
         </CopyToClipboard>
