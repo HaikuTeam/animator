@@ -2411,12 +2411,12 @@ export class Glass extends React.Component {
                           value: y,
                         },
                       },
-                      'sizeAbsolute.x': {
+                      width: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: width,
                         },
                       },
-                      'sizeAbsolute.y': {
+                      height: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: height,
                         },
