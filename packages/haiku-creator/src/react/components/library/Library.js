@@ -202,7 +202,7 @@ class Library extends React.Component {
       return;
     }
 
-    this.setState({isLoading: true, loadingProgress: 80, loadingSpeed: '10s', lockLoadingFromWatchers: true});
+    this.setState({isLoading: true, loadingProgress: 80, loadingSpeed: '20s', lockLoadingFromWatchers: true});
     const projectFolder = this.props.projectModel.folder;
     return this.props.servicesEnvoyClient.figmaImportSVG({url, projectFolder}, this.state.figma.token)
       .then(() => {
