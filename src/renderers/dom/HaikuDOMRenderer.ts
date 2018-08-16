@@ -268,12 +268,23 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       setMouches();
     });
 
+    let lastMoveTarget;
+
     // NOTE: if there are perf or interop issues that arise from
     //       attaching event listeners directly to host window,
     //       could expose a haikuOption for reverting to "attach to mount" behavior
     win.addEventListener('mousemove', (mouseEvent) => {
       setMouse(mouseEvent);
       setMouches();
+
+      if (lastMoveTarget !== mouseEvent.target) {
+        lastMoveTarget = mouseEvent.target;
+
+        const element = this.getHaikuElementFromTarget(mouseEvent.target);
+        if (element) {
+          element.triggerHover();
+        }
+      }
     });
 
     win.addEventListener('mouseenter', (mouseEvent) => {
