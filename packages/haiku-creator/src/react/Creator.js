@@ -1162,6 +1162,10 @@ export default class Creator extends React.Component {
     });
   }
 
+  onProjectDeleted = (projectsList) => {
+    ipcRenderer.send('topmenu:update', {projectsList});
+  };
+
   createProject (projectName, duplicate = false, callback) {
     this.setState({doShowProjectLoader: true});
     this.envoyProject.createProject(projectName).then((newProject) => {
@@ -2020,6 +2024,7 @@ export default class Creator extends React.Component {
             isOnline={this.state.isOnline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
+            onProjectDeleted={this.onProjectDeleted}
             onShowNewProjectModal={(...args) => {
               this.showNewProjectModal(...args);
             }}
