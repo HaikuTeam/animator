@@ -1443,24 +1443,26 @@ export default class Creator extends React.Component {
   }
 
   shouldNoticeBeSkipped (notice) {
-    // Assume that any notice without a string isn't usable, so just skip it
-    if (!notice || typeof notice.message !== 'string') {
+    // Assume that any notice without a string or a react element isn't usable, so just skip it
+    if (!notice || typeof notice.message !== 'string' && !React.isValidElement(notice.message)) {
       return true;
     }
 
-    // Ignore Intercom widget errors which are transient and confuse the user
-    if (notice.message.match(/intercom/)) {
-      return true;
-    }
+    if (typeof notice.message === 'string') {
+      // Ignore Intercom widget errors which are transient and confuse the user
+      if (notice.message.match(/intercom/)) {
+        return true;
+      }
 
-    // HACK: Skip human-unfriendly duplicate errors that originate from ActiveComponent action calls
-    if (notice.message.match(/\[active/)) {
-      return true;
-    }
+      // HACK: Skip human-unfriendly duplicate errors that originate from ActiveComponent action calls
+      if (notice.message.match(/\[active/)) {
+        return true;
+      }
 
-    // Avoid scary error messages (752175308356950)
-    if (notice.message.match(/EventEmitter/)) {
-      return true;
+      // Avoid scary error messages (752175308356950)
+      if (notice.message.match(/EventEmitter/)) {
+        return true;
+      }
     }
 
     return false;
