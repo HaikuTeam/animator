@@ -1184,7 +1184,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     HaikuElement.findOrCreateByNode(this.container);
 
     if (!this.container.__memory.subcomponent) {
-      this.container.__memory.subcomponent = this;
+      // A semantically different thing than .subcomponent/.instance
+      this.container.__memory.containee = this;
     }
 
     hydrateNode(
