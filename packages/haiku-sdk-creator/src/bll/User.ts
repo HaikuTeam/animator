@@ -1,6 +1,6 @@
 import {client as sdkClient, FILE_PATHS} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
-
+import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 import {Registry} from '../dal/Registry';
 import {MaybeAsync} from '../envoy';
 import EnvoyHandler from '../envoy/EnvoyHandler';
@@ -161,14 +161,23 @@ export class UserHandler extends EnvoyHandler {
   load (): Promise<HaikuIdentity> {
     return new Promise<HaikuIdentity>((resolve) => {
       const authToken = sdkClient.config.getAuthToken();
-      if (!authToken) {
+      const reset = () => {
         this.logOut();
-        return resolve(this.identity);
+        resolve(this.identity);
+      };
+
+      if (!authToken) {
+        return reset();
       }
 
       inkstone.setConfig({authToken});
       inkstone.organization.list((err, organizations) => {
-        if (err || !organizations) {
+        if (err && err.message !== ErrorCode.ErrorOffline) {
+          // If we errored for any reason other than being offline, continue as if we have no auth token.
+          return reset();
+        }
+
+        if (!organizations || err) {
           this.recoverIdentityOffline();
           return resolve(this.identity);
         }
