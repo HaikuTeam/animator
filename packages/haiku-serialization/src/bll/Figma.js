@@ -27,6 +27,8 @@ const FOLDERS = {
   [VALID_TYPES.FRAME]: 'frames/'
 }
 
+const MAX_ITEMS_TO_IMPORT = 100
+
 const uniqueNameResolver = {}
 
 const PHONY_FIGMA_FILE = 'phony-haiku-helper-file.svg'
@@ -165,9 +167,7 @@ class Figma {
    */
   getSVGLinks (elements, id) {
     return new Promise((resolve, reject) => {
-      const ids = elements.map((element) => element.id)
-      const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]])
-      const uri = API_BASE + 'images/' + id + '?' + params.toString()
+      let ids = elements.map((element) => element.id)
 
       if (ids.length === 0) {
         return reject({
@@ -175,6 +175,17 @@ class Figma {
           err: 'It looks like the Figma document you imported doesn\'t have any groups or slices. Try adding some and re-syncing.'
         })
       }
+
+      // TODO: instead of limiting the max number of items to import, import them in batches
+      // for now it doesn't make sense to import a lot of items anyway due to performance
+      // reasons. [Look in Asana][1] for the related ticket
+      // [1]: https://app.asana.com/0/506410768732347/781835844490777
+      if (ids.length > MAX_ITEMS_TO_IMPORT) {
+        ids = ids.slice(0, MAX_ITEMS_TO_IMPORT);
+      }
+
+      const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]])
+      const uri = API_BASE + 'images/' + id + '?' + params.toString()
 
       this.request({ uri })
         .then((SVGLinks) => {
