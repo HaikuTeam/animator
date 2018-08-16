@@ -35,6 +35,7 @@ const STYLES = {
     top: 0,
     height: '36px',
     padding: '6px',
+    minWidth: 500,
   },
   disabled: {
     opacity: 0.5,
