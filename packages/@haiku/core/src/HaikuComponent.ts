@@ -166,6 +166,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   doPreserve3d;
   guests: {[haikuId: string]: HaikuComponent};
   helpers;
+  lastHoveredElement: HaikuElement;
   hooks;
   host: HaikuComponent;
   playback;
@@ -272,6 +273,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     // Dictionary of event handler names to handler functions; used to efficiently manage multiple subscriptions
     this.registeredEventHandlers = {};
+
+    // The last HaikuElement in this scope to be hovered; used to help manage hover/unhover
+    this.lastHoveredElement = null;
 
     // Flag to determine whether this component should continue doing any work
     this.isDeactivated = false;
@@ -1178,6 +1182,10 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.clearCaches();
 
     HaikuElement.findOrCreateByNode(this.container);
+
+    if (!this.container.__memory.subcomponent) {
+      this.container.__memory.subcomponent = this;
+    }
 
     hydrateNode(
       this.bytecode.template, // node
