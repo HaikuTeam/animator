@@ -15,6 +15,7 @@ import * as Asset from 'haiku-serialization/src/bll/Asset';
 import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as Illustrator from 'haiku-serialization/src/bll/Illustrator';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as WebSocket from 'ws';
 import {EventEmitter} from 'events';
@@ -192,7 +193,9 @@ export default class Master extends EventEmitter {
       {trailing: true},
     );
 
-    this.websocket = new Websocket(
+    this.websocket = (global.process.env.NODE_ENV === 'test')
+      ? new MockWebsocket()
+      : new Websocket(
       `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
       this.folder,
       'controllee',
