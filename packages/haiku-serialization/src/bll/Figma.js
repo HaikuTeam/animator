@@ -181,7 +181,7 @@ class Figma {
       // reasons. [Look in Asana][1] for the related ticket
       // [1]: https://app.asana.com/0/506410768732347/781835844490777
       if (ids.length > MAX_ITEMS_TO_IMPORT) {
-        ids = ids.slice(0, MAX_ITEMS_TO_IMPORT);
+        ids = ids.slice(0, MAX_ITEMS_TO_IMPORT)
       }
 
       const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]])
