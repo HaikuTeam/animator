@@ -4,6 +4,7 @@
 
 import {
   BytecodeEventHandlerDescriptor,
+  BytecodeHelpers,
   BytecodeNode,
   BytecodeOptions,
   BytecodeTimelines,
@@ -278,8 +279,14 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
     this.isSleeping = false;
 
-    for (const helperName in HaikuHelpers.helpers) {
-      this.helpers[helperName] = HaikuHelpers.helpers[helperName];
+    this.helpers = {
+      data: {},
+    };
+
+    const helpers =  Object.assign({}, HaikuHelpers.helpers, this.getHelpers());
+
+    for (const helperName in helpers) {
+      this.helpers[helperName] = helpers[helperName];
     }
 
     this.helpers.now = () => {
@@ -593,6 +600,14 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
   getClock (): HaikuClock {
     return this.context.clock;
+  }
+
+  getTemplate (): any {
+    return this.bytecode.template;
+  }
+
+  getHelpers (): BytecodeHelpers {
+    return this.bytecode.helpers;
   }
 
   getTimelines () {
@@ -953,7 +968,12 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   callEventHandler (eventsSelector: string, eventName: string, handler: Function, eventArgs: any): any {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
-    if (!isLiveMode(this.config.interactionMode)) {
+    // However, some components rely on specific event hooks firing in Edit mode, too — they can
+    // whitelist their "edit mode" event names through `options`
+    if (!isLiveMode(this.config.interactionMode) &&
+      !(this.bytecode.options &&
+          this.bytecode.options.editModeEvents &&
+          this.bytecode.options.editModeEvents[eventName])) {
       return;
     }
 

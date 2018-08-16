@@ -700,7 +700,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   handleMouseUp (mousePosition) {
-    // no-op for now; 'lifecycle' event stub
+    ElementSelectionProxy.snaps = []
   }
 
   // this is used specifically for the CMD key (though it is not explicitly filtered here.)
@@ -945,6 +945,11 @@ class ElementSelectionProxy extends BaseModel {
     viewportTransform,
     globals
   ) {
+    // If nothing's selected, we have nothing to drag
+    if (!this.selection || !this.selection.length) {
+      return
+    }
+
     // 'mousetrap' for snapping
     if (this._shouldCaptureMousePosition || this._lastMouseDownPosition === undefined) {
       this._lastMouseDownPosition = mouseCoordsCurrent
@@ -1251,13 +1256,13 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {} // no-op
     )
-    if (overrides && overrides.groupOrigin && overrides.groupOrigin.x) {
+    if (overrides && overrides.groupOrigin && overrides.groupOrigin.x !== undefined) {
       this.applyPropertyValue('translation.x', overrides.groupOrigin.x - this.computePropertyValue('offset.x'))
     } else {
       this.applyPropertyDelta('translation.x', dx)
     }
 
-    if (overrides && overrides.groupOrigin && overrides.groupOrigin.y) {
+    if (overrides && overrides.groupOrigin && overrides.groupOrigin.y !== undefined) {
       this.applyPropertyValue('translation.y', overrides.groupOrigin.y - this.computePropertyValue('offset.y'))
     } else {
       this.applyPropertyDelta('translation.y', dy)

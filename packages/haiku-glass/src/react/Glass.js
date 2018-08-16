@@ -847,11 +847,11 @@ export class Glass extends React.Component {
 
     const horizSnaps = [];
     const vertSnaps = [];
-
     if (
       this.state.isMouseDown &&
       ElementSelectionProxy.snaps.length > 0 &&
       !Globals.isSpecialKeyDown() &&
+      !Globals.isSpaceKeyDown &&
       !this.isMarqueeActive()
     ) {
       ElementSelectionProxy.snaps.forEach((snapLine, index) => {
@@ -2233,6 +2233,7 @@ export class Glass extends React.Component {
     }
 
     // Multi-select is not allowed when selecting the stage name
+    this.setState({snapLines: []});
     Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
     const artboard = Element.findRoots({component: this.getActiveComponent()})[0];
     artboard.select({from: 'glass'});

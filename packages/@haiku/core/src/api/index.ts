@@ -212,6 +212,13 @@ export interface BytecodeEventHandlers {
 }
 
 /**
+ * Tuples of `elementName` and `BytecodeEventHandler`.
+ */
+export interface BytecodeHelpers {
+  [helperName: string]: (...inputs: any[]) => any;
+}
+
+/**
  * Value of an element property in a given frame.
  */
 export interface BytecodeTimelineValue {
@@ -285,6 +292,9 @@ export interface BytecodeOptions {
   // Timestamp reflecting the point in time that rendering begin,
   // for deterministic timestamp production
   timestamp?: number;
+
+  // Whitelist of events that should fire during Edit Mode
+  editModeEvents?: string[];
 
   // Whether we should mount the given context to the mount
   // element automatically
@@ -400,12 +410,10 @@ export interface HaikuBytecode {
   template: BytecodeNode;
   states?: BytecodeStates;
   eventHandlers?: BytecodeEventHandlers;
+  helpers?: BytecodeHelpers;
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
   methods?: {
-    [key in string]: Function;
-  };
-  helpers?: {
     [key in string]: Function;
   };
   /**
