@@ -82,6 +82,9 @@ class Library extends React.Component {
       previewImageTime: null,
       overDropTarget: false,
       isLoading: false,
+      loadingProgress: null,
+      loadingSpeed: null,
+      lockLoadingFromWatchers: false,
       figma: null,
       sketchDownloader: {
         isVisible: false,
@@ -110,7 +113,13 @@ class Library extends React.Component {
   broadcastListener ({name, assets, data}) {
     switch (name) {
       case 'assets-changed':
-        return this.handleAssetsChanged(assets, {isLoading: false});
+        const additionalState = {};
+
+        if (!this.state.lockLoadingFromWatchers) {
+          additionalState.isLoading = false;
+        }
+
+        return this.handleAssetsChanged(assets, additionalState);
     }
   }
 
@@ -121,7 +130,6 @@ class Library extends React.Component {
 
   componentDidMount () {
     this.setState({isLoading: true});
-
     this.reloadAssetList();
 
     this.props.websocket.on('broadcast', this.broadcastListener);
@@ -194,14 +202,19 @@ class Library extends React.Component {
       return;
     }
 
+    this.setState({isLoading: true, loadingProgress: 80, loadingSpeed: '10s', lockLoadingFromWatchers: true});
     const projectFolder = this.props.projectModel.folder;
     return this.props.servicesEnvoyClient.figmaImportSVG({url, projectFolder}, this.state.figma.token)
+      .then(() => {
+        this.setState({isLoading: false, loadingProgress: null, loadingSpeed: null, lockLoadingFromWatchers: false});
+      })
       .catch((error = {}) => {
         const message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.';
         const reportData = {url, message};
 
         Raven.captureException(new Error(message), reportData);
         mixpanel.haikuTrack('creator:figma:fileImport:fail', reportData);
+        this.setState({isLoading: false, progress: null, speed: null});
 
         if (error.status === 403) {
           return this.props.createNotice({
@@ -387,7 +400,11 @@ class Library extends React.Component {
         id="library-wrapper"
         style={{display: this.props.visible ? 'initial' : 'none'}}>
         <div style={STYLES.loadingWrapper}>
-          <LoadingTopBar progress={100} done={!this.state.isLoading} speed="0.5s" />
+          <LoadingTopBar
+            progress={this.state.loadingProgress || 100}
+            done={!this.state.isLoading}
+            speed={this.state.loadingSpeed || '0.5s'}
+          />
         </div>
         <div
           id="library-scroll-wrap"
