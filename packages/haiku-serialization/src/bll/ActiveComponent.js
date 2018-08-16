@@ -373,14 +373,6 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  updateTimelineMaxes (timelineName) {
-    const timeline = this.$instance.getTimeline(timelineName)
-    if (timeline) {
-      const descriptor = this.$instance.getTimelineDescriptor(timelineName)
-      timeline.resetMaxDefinedTimeFromDescriptor(descriptor)
-    }
-  }
-
   getPropertyGroupValueFromPropertyKeys (componentId, timelineName, timelineTime, propertyKeys) {
     const groupValue = {}
     const bytecode = this.getReifiedBytecode()
@@ -1856,6 +1848,14 @@ class ActiveComponent extends BaseModel {
 
     logger.info(`[active component (${this.project.getAlias()})] pastee (bytecode) ${haikuId}`)
 
+    // When pasting, move the object to the front
+    this.zMoveToFrontImpl(
+      ourBytecode,
+      haikuId,
+      'Default',
+      0
+    )
+
     return haikuId
   }
 
@@ -2173,9 +2173,6 @@ class ActiveComponent extends BaseModel {
   }
 
   softReload (reloadOptions, instanceConfig, cb) {
-    // Make sure the maximum keyframe is correctly defined for proper playback calc
-    this.updateTimelineMaxes(this.getCurrentTimelineName())
-
     this.clearCaches(reloadOptions.clearCacheOptions)
 
     // Check sustained warnings should be done after cache clear

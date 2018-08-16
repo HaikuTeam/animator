@@ -994,6 +994,11 @@ export class Glass extends React.Component {
       return;
     }
 
+    // Vertex deletion is not yet implemented
+    if (Element.directlySelected) {
+      return;
+    }
+
     if (this.getActiveComponent()) {
       mixpanel.haikuTrack('creator:glass:delete-element');
       const proxy = this.fetchProxyElementForSelection();
@@ -2406,12 +2411,12 @@ export class Glass extends React.Component {
                           value: y,
                         },
                       },
-                      'sizeAbsolute.x': {
+                      width: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: width,
                         },
                       },
-                      'sizeAbsolute.y': {
+                      height: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: height,
                         },
@@ -3555,7 +3560,8 @@ export class Glass extends React.Component {
                 width: mount.w,
                 userSelect: 'none',
                 cursor: 'default',
-                overflow: 'hidden', // Prevent visible wrapping to next line if component name is long
+                whiteSpace: 'nowrap', // Prevent wrapping if name is longer than stage box
+                overflow: 'visible',
               }}
               onClick={this.handleClickStageName.bind(this)}
               onMouseOver={this.handleMouseOverStageName.bind(this)}
