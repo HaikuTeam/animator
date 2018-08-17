@@ -1613,7 +1613,7 @@ class Element extends BaseModel {
     return this.getUngroupables().length > 1
   }
 
-  ungroup (metadata) {
+  ungroup (metadata, cb = () => {}) {
     const nodes = []
     this.ungroupWrapper(nodes)
     switch (this.getStaticTemplateNode().elementName) {
@@ -1631,7 +1631,7 @@ class Element extends BaseModel {
       this.getComponentId(),
       nodes,
       metadata,
-      () => {}
+      cb
     )
   }
 
