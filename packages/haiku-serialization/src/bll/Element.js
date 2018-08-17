@@ -1220,59 +1220,6 @@ class Element extends BaseModel {
     return depth
   }
 
-  getIdsOfDescendantsThatHaveEditedKeyframes () {
-    const idsToNodes = {}
-
-    Template.visit(this.getStaticTemplateNode(), (node) => {
-      if (node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
-        // Visitor goes to all nodes including ours; skip since we're concerned with descendants only
-        if (node.attributes[HAIKU_ID_ATTRIBUTE] !== this.getComponentId()) {
-          idsToNodes[node.attributes[HAIKU_ID_ATTRIBUTE]] = node
-        }
-      }
-    })
-
-    const idsWithEditedKeyframes = {}
-
-    const bytecode = this.component.getReifiedBytecode()
-
-    if (bytecode && bytecode.timelines) {
-      for (const timelineName in bytecode.timelines) {
-        for (const foundSelector in bytecode.timelines[timelineName]) {
-          const haikuId = Template.haikuSelectorToHaikuId(foundSelector)
-
-          // No point proceeding if this is a property set for another element;
-          if (!idsToNodes[haikuId]) {
-            continue
-          }
-
-          for (const propertyName in bytecode.timelines[timelineName][foundSelector]) {
-            const propertyObj = bytecode.timelines[timelineName][foundSelector][propertyName]
-
-            // If the zeroth keyframe is edited or if there are any keyframes other
-            // than the zeroth keyframe, assume that the property has been edited
-            if (
-              (propertyObj[0] && propertyObj[0].edited) ||
-              Object.keys(propertyObj).length > 1
-            ) {
-              idsWithEditedKeyframes[haikuId] = idsToNodes[haikuId]
-
-              // We've found at least one so we can stop iterating through properties
-              break
-            }
-          }
-        }
-      }
-    }
-
-    return idsWithEditedKeyframes
-  }
-
-  hasAnyDescendantsWithEditedKeyframes () {
-    const idsWithEditedKeyframes = this.getIdsOfDescendantsThatHaveEditedKeyframes()
-    return Object.keys(idsWithEditedKeyframes).length > 0
-  }
-
   getBuiltinAddressables () {
     const builtinAddressables = {}
 
@@ -1463,7 +1410,7 @@ class Element extends BaseModel {
   }
 
   eachAddressableProperty (iteratee) {
-    const addressableProperties = this.getDisplayedAddressableProperties(/* includeSubElements= */ true)
+    const addressableProperties = this.getDisplayedAddressableProperties()
 
     for (const propertyName in addressableProperties) {
       if (addressableProperties[propertyName]) {
