@@ -103,7 +103,6 @@ class Illustrator {
 
     fse.writeFileSync(exportScriptPath, exportScript)
 
-    execSync(Illustrator.openIllustratorFile(abspath))
     execSync(Illustrator.openIllustratorFile(exportScriptPath))
 
     return true

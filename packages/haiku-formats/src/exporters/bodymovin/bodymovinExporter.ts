@@ -1,4 +1,3 @@
-import HaikuDOMAdapter from '@haiku/core/lib/adapters/dom/HaikuDOMAdapter';
 import {
   BytecodeNode,
   BytecodeSummonable,
@@ -6,12 +5,12 @@ import {
   BytecodeTimelineProperty,
   Curve,
   HaikuBytecode,
+  ThreeDimensionalLayoutProperty,
 } from '@haiku/core/lib/api';
 import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 import {writeFile} from 'fs-extra';
-import {ContextualSize} from 'haiku-common/lib/types';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
@@ -137,11 +136,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   /**
    * The size of the animation.
    */
-  private animationSize: ContextualSize = {
-    x: 0,
-    y: 0,
-    z: 0,
-  };
+  private animationSize: ThreeDimensionalLayoutProperty;
 
   /**
    * The structural node with which we determine the current element's position in the layout hierarchy.
@@ -151,7 +146,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   /**
    * The size of the current layer.
    */
-  private currentNodeSize: ContextualSize = {
+  private currentNodeSize: ThreeDimensionalLayoutProperty = {
     x: 0,
     y: 0,
     z: 0,
@@ -1410,21 +1405,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
-    const factory = HaikuDOMAdapter(this.bytecode);
-    const component = factory(
-      null,
-      {
-        mixpanel: false,
-        contextMenu: 'disabled',
-        hotEditingMode: true,
-        autoplay: false,
-      },
-      );
-
-    this.animationSize.x = component.size.x;
-    this.animationSize.y = component.size.y;
-    // We only want to run migrations and perform auto-sizing. The component can go out of scope now.
-    component.context.destroy();
+    this.animationSize = this.getComponentSize();
 
     // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to
     // do this step prior to the subsequent ones, since we might end up with fewer keyframes in the later

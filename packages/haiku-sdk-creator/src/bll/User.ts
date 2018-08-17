@@ -1,6 +1,6 @@
 import {client as sdkClient, FILE_PATHS} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
-
+import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 import {Registry} from '../dal/Registry';
 import {MaybeAsync} from '../envoy';
 import EnvoyHandler from '../envoy/EnvoyHandler';
@@ -21,7 +21,6 @@ export interface HaikuIdentity {
   organization?: inkstone.organization.Organization;
   user?: inkstone.user.User;
   lastOnline?: number;
-  isOnline: boolean;
 }
 
 /**
@@ -39,10 +38,10 @@ const nowDate = () =>
   global[String.fromCharCode(0x44, 0x61, 0x74, 0x65)][String.fromCharCode(0b1101110, 0b1101111, 0b1110111)]();
 
 export class UserHandler extends EnvoyHandler {
-  private readonly identity: HaikuIdentity = {
-    // We'll negate this later if we find it to be the case.
-    isOnline: true,
-  };
+  private readonly identity: HaikuIdentity = {};
+
+  // We'll negate this later if we find it to be the case.
+  private isOnline = true;
 
   protected registry = new Registry(FILE_PATHS.HAIKU_HOME);
 
@@ -62,11 +61,18 @@ export class UserHandler extends EnvoyHandler {
     return this.identity.organization;
   }
 
+  private storeOnlineUser () {
+    this.identity.lastOnline = nowDate();
+    this.setConfigObfuscated<HaikuIdentity>(
+      UserSettings.Identity,
+      this.identity,
+    );
+  }
+
   private recoverIdentityOffline (): MaybeAsync<void> {
     Object.assign(
       this.identity,
       this.getConfigObfuscated<HaikuIdentity>(UserSettings.Identity),
-      {isOnline: false},
     );
 
     if (this.identity.user && this.identity.organization) {
@@ -154,21 +160,39 @@ export class UserHandler extends EnvoyHandler {
     return this.getPrivilege(OrganizationPrivilege.PrivateProjectLimit);
   }
 
-  checkOnline (): MaybeAsync<boolean> {
-    return this.identity.isOnline;
+  checkOnline (): Promise<boolean> {
+    return new Promise((resolve) => {
+      inkstone.isOnline().then((isOnline) => {
+        this.isOnline = isOnline;
+        if (this.isOnline) {
+          this.storeOnlineUser();
+        }
+
+        resolve(this.isOnline);
+      });
+    });
   }
 
   load (): Promise<HaikuIdentity> {
     return new Promise<HaikuIdentity>((resolve) => {
       const authToken = sdkClient.config.getAuthToken();
-      if (!authToken) {
+      const reset = () => {
         this.logOut();
-        return resolve(this.identity);
+        resolve(this.identity);
+      };
+
+      if (!authToken) {
+        return reset();
       }
 
       inkstone.setConfig({authToken});
       inkstone.organization.list((err, organizations) => {
-        if (err || !organizations) {
+        if (err && err.message !== ErrorCode.ErrorOffline) {
+          // If we errored for any reason other than being offline, continue as if we have no auth token.
+          return reset();
+        }
+
+        if (!organizations || err) {
           this.recoverIdentityOffline();
           return resolve(this.identity);
         }
@@ -177,11 +201,7 @@ export class UserHandler extends EnvoyHandler {
         inkstone.user.get((userErr, user) => {
           if (!userErr) {
             this.identity.user = user;
-            this.identity.lastOnline = nowDate();
-            this.setConfigObfuscated<HaikuIdentity>(
-              UserSettings.Identity,
-              this.identity,
-            );
+            this.storeOnlineUser();
             this.server.emit(USER_CHANNEL, {
               payload: this.identity,
               name: `${USER_CHANNEL}:load`,

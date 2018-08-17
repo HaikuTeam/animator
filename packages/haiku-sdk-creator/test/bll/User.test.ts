@@ -83,7 +83,6 @@ tape('User', async (suite) => {
         user: {Username: 'foo@foo.com'},
         organization: {Name: 'Foo'},
         lastOnline: 123456789,
-        isOnline: true,
       }, 'identity remains stored on User model');
       test.true(mockSetConfigObfuscated.calledWith('id', identity));
       unstub();

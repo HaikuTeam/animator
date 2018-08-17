@@ -463,6 +463,16 @@ export default class Creator extends React.Component {
       false,
     );
 
+    // Add event listeners for when the network connectivity status of the browser changes.
+    const checkOnlineStatus = () => this.checkOnlineStatus();
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
+
+    // For good measure, periodically check if we're online every five minutes. The online/offline events are
+    // inherently flaky (they use navigator.onLine, which never returns false negatives but frequently returns false
+    // positives).
+    window.setInterval(checkOnlineStatus, 5 * 60 * 1000);
+
     // Flexibly keep track of states in the various subviews as broadcasted to us.
     // TODO: Move to Envoy. Put here to avoid boiling the ocean on multi-component.
     // This is a dictionary of state changes broadcasted to us via the subviews.
@@ -621,6 +631,17 @@ export default class Creator extends React.Component {
     }
   }
 
+  checkOnlineStatus () {
+    // In case this gets called too early.
+    if (!this.user) {
+      return;
+    }
+
+    this.user.checkOnline().then((isOnline) => {
+      this.setState({isOnline});
+    });
+  }
+
   handleEnvoyUserReady () {
     if (!this.user) {
       return;
@@ -650,9 +671,7 @@ export default class Creator extends React.Component {
         this.setState({supportOfflineExport});
       });
 
-      this.user.checkOnline().then((isOnline) => {
-        this.setState({isOnline});
-      });
+      this.checkOnlineStatus();
     });
 
     this.user.load().then(({user, organization}) => {
@@ -1162,6 +1181,10 @@ export default class Creator extends React.Component {
     });
   }
 
+  onProjectDeleted = (projectsList) => {
+    ipcRenderer.send('topmenu:update', {projectsList});
+  };
+
   createProject (projectName, duplicate = false, callback) {
     this.setState({doShowProjectLoader: true});
     this.envoyProject.createProject(projectName).then((newProject) => {
@@ -1443,24 +1466,26 @@ export default class Creator extends React.Component {
   }
 
   shouldNoticeBeSkipped (notice) {
-    // Assume that any notice without a string isn't usable, so just skip it
-    if (!notice || typeof notice.message !== 'string') {
+    // Assume that any notice without a string or a react element isn't usable, so just skip it
+    if (!notice || typeof notice.message !== 'string' && !React.isValidElement(notice.message)) {
       return true;
     }
 
-    // Ignore Intercom widget errors which are transient and confuse the user
-    if (notice.message.match(/intercom/)) {
-      return true;
-    }
+    if (typeof notice.message === 'string') {
+      // Ignore Intercom widget errors which are transient and confuse the user
+      if (notice.message.match(/intercom/)) {
+        return true;
+      }
 
-    // HACK: Skip human-unfriendly duplicate errors that originate from ActiveComponent action calls
-    if (notice.message.match(/\[active/)) {
-      return true;
-    }
+      // HACK: Skip human-unfriendly duplicate errors that originate from ActiveComponent action calls
+      if (notice.message.match(/\[active/)) {
+        return true;
+      }
 
-    // Avoid scary error messages (752175308356950)
-    if (notice.message.match(/EventEmitter/)) {
-      return true;
+      // Avoid scary error messages (752175308356950)
+      if (notice.message.match(/EventEmitter/)) {
+        return true;
+      }
     }
 
     return false;
@@ -2018,6 +2043,7 @@ export default class Creator extends React.Component {
             isOnline={this.state.isOnline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
+            onProjectDeleted={this.onProjectDeleted}
             onShowNewProjectModal={(...args) => {
               this.showNewProjectModal(...args);
             }}

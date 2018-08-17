@@ -12,6 +12,7 @@ export class GifExporter extends BaseExporter implements ExporterInterface {
     const workingDirectory = path.join(this.componentFolder, `png-${framerate}`);
     const palettePath = path.join(workingDirectory, 'palette.png');
     const assetPathPattern = path.join(workingDirectory, 'frame-%07d.png');
+    const componentSize = this.getComponentSize();
     return new Promise<void>((resolve, reject) => {
       // First make the palette.
       newFfmpegCommand()
@@ -26,6 +27,7 @@ export class GifExporter extends BaseExporter implements ExporterInterface {
             .withInputOption(['-framerate', `${framerate}`])
             .addInput(palettePath)
             .withOutputOptions(['-lavfi', `fps=${framerate} [x]; [x][1:v] paletteuse`])
+            .withOutputOptions(['-vf', `scale=${componentSize.x}:${componentSize.y}`])
             .on('error', (stdout, stderr) => {
               reject(stderr);
             })

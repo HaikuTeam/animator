@@ -59,6 +59,7 @@ pipeline {
                         }
                         failure {
                             setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
+                            setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
                             slackSend([
                                 channel: 'engineering-feed',
                                 color: 'danger',

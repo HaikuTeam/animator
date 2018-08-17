@@ -1,6 +1,5 @@
 const numeral = require('numeral')
 const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty')
-const getTimelineMaxTime = require('@haiku/core/lib/helpers/getTimelineMaxTime').default
 const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
 const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').default
@@ -502,7 +501,10 @@ class Timeline extends BaseModel {
       frameInfo.mspf = 1000 / frameInfo.fps
 
       // The maximum milliseconds *as defined in the bytecode*
-      frameInfo.maxms = Timeline.getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
+      // and *including timeline keyframes and frame linsteners*
+      frameInfo.maxms = this.component.$instance.getTimeline(
+        this.component.getCurrentTimelineName()
+      ).getMaxTime()
 
       // The maximum frame *as defined in the bytecode*
       frameInfo.maxf = Timeline.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
@@ -946,23 +948,6 @@ Timeline.getMillisecondModulus = (pxpf) => {
   if (pxpf >= 3) return 500
   if (pxpf >= 2) return 1000
   return 5000
-}
-
-Timeline.getMaximumMs = (reifiedBytecode, timelineName) => {
-  if (!reifiedBytecode) {
-    return 0
-  }
-  if (!reifiedBytecode.timelines) {
-    return 0
-  }
-  if (!reifiedBytecode.timelines[timelineName]) {
-    return 0
-  }
-  return Timeline.getTimelineMaxTime(reifiedBytecode.timelines[timelineName])
-}
-
-Timeline.getTimelineMaxTime = (timelineDescriptor) => {
-  return getTimelineMaxTime(timelineDescriptor)
 }
 
 Timeline.millisecondToNearestFrame = function millisecondToNearestFrame (msValue, mspf) {

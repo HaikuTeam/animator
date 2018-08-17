@@ -69,9 +69,20 @@ export namespace inkstone {
     Collection: T[];
   }
 
-  export function setConfig (newVals: InkstoneConfig) {
+  export const setConfig = (newVals: InkstoneConfig) => {
     Object.assign(inkstoneConfig, newVals);
-  }
+  };
+
+  export const isOnline = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // In Haiku, "online" means "able to communicate with inkstone". We can use the /ping endpoint for this purpose.
+      newGetRequest()
+        .withEndpoint(Endpoints.Ping)
+        .call((err, _, body) => {
+          resolve(!err && body === 'pong');
+        });
+    });
+  };
 
   const baseHeaders = {
     'X-Haiku-Version': packageJson.version,
