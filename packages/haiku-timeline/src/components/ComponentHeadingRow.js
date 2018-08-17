@@ -102,7 +102,7 @@ export default class ComponentHeadingRow extends React.Component {
     if (this.props.row.isRootRow()) {
       this.props.row.visit((row) => {
         row.collapse({from: 'timeline'});
-      })
+      });
     } else {
       this.props.row.collapseAndDeselect({from: 'timeline'});
     }
