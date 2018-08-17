@@ -1853,12 +1853,19 @@ class Element extends BaseModel {
           }]
         }, {resetIds: true})
 
-        // Important: hold onto the original ID references of our defs (i.e. do NOT reset IDs here).
         if (defs.length > 0) {
-          node.children.unshift(Template.cleanMana({
-            elementName: 'defs',
-            children: defs.map(lodash.cloneDeep)
-          }))
+          node.children.unshift(
+            Template.cleanMana(
+              {
+                elementName: 'defs',
+                attributes: {},
+                children: defs.map(lodash.cloneDeep)
+              },
+              // Note: by resetting IDs here, we willfully destroy any animations that are inside defs. Since this is an atypical
+              // construct which can only be achieved by editing bytecode directly today, it's "acceptable".
+              {resetIds: true}
+            )
+          )
         }
 
         nodes.push(node)
