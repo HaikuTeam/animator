@@ -1795,7 +1795,16 @@ class ElementSelectionProxy extends BaseModel {
       globals
     )
 
-    this.applyPropertyDelta('rotation.z', rotationZ)
+    const rotationGroup = ElementSelectionProxy.computeRotationPropertyGroup(
+      this,
+      rotationZ,
+      fixedPoint
+    )
+
+    for (const property in rotationGroup) {
+      this.applyPropertyValue(property, rotationGroup[property].value)
+    }
+
     this.selection.forEach((element) => {
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
