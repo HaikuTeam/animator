@@ -60,7 +60,6 @@ I can scrub wildly over a keyframe sequence that involves rotation and the rotat
 In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
 I can play a short (<30f) animation on a loop and playback doesn't slow down
 I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
-I can ungroup the Moto artboard without a problem
 The "secret `<div>`" in a group of elements isn't selectable (the hitbox of the group is bounded by the transform box)
 I can scale an element down to near zero in either dimension without a problem
 I can ungroup a group of components
@@ -71,10 +70,9 @@ I can add text elements to the stage and the text content becomes "content" attr
 I can continuously scale an element round and round without causing a freeze-up or a crash
 I can create a subcomponent, give it animations, and scrub to see the animations in the host
 I can create a subcomponent, give it animations, and use preview mode to see the animations in the host
-I can multi-rotate elements in a legacy project (pre-3.3)
 I can multi-scale elements that have been rotated in three dimensions
 I can negatively multi-scale (flip) elements that have been rotated without a problem
-Rapidly transforming Percy in multiple ways (move, rotate, scale) doesn't exhibit any lag/pauses/jank
+
 
 Basics
 
@@ -97,7 +95,6 @@ In Haiku.app, as a logged-out user, opening app takes me to login screen
 As a logged-out user, logging in with bad credentials shows meaningful error
 As a logged-out user, I can log in with my credentials
 As a logged-in user, opening app takes me to project dashboard
-Clicking on the EULA link takes me to the EULA page
 The projects dash lets me click a user button to log out
 When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
 I can click the sign up link
@@ -145,14 +142,13 @@ If my account has no projects, I see none
 Projects with local content show an animated thumbnail
 Projects without local content show an empty thumbnail
 Hovering over the thumbnail plays the haiku and shows 'Open'
-Clicking the 3dot shows option to 'Delete'
+Clicking the 3dot shows option to 'Delete' (if offline, you can only delete projects created offline that haven't been published yet)
 For projects with local content, clicking the 3dot also shows options to 'Reveal In Finder' or 'Duplicate'
 I can 'Reveal In Finder' a project
 I can delete a project; and it won't delete unless name is confirmed
 I can duplicate a project
 The name of duplicated project `Xyz` is suggested `XyzCopy`
 If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
-Duplicated projects appear animated in the dashboard immediately, but have no 'Reveal in Finder' or 'Duplicate' option
 I can't create a project with the same name as an existing project
 After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
 When naming a project, spaces and underscores and hyphens (etc) are not allowed
@@ -232,7 +228,7 @@ When I rotate an element, the rotation cursor reflects the rotation of the eleme
 I can rotate an element on stage (and see rotation changes reflected in timeline)
 I can hold down Shift as I rotate and rotate by fixed increments
 I can rotate (with and without Shift) more than one full rotation, and the timeline reflects values outside of [0, 2pi)
-On stage, right-click doesn't bring up the right-click menu
+On stage, right-click does bring up the right-click menu
 On stage, right-click doesn't select any SVGs with `<text>` in them
 Moving the scrubber on the timeline updates the current time on the stage
 I can delete an element (reflects on stage+timeline)
@@ -254,7 +250,6 @@ An instantiated element can be deleted with the Delete key
 When element is deleted on stage, it is also deleted in the timeline
 When instantiated, the asset looks the same as the original design (no transform problems)
 When I instantiate elements, the z-stacking order of the previous instantiatees is preserved
-I can double-click an asset to instantiate it on stage
 
 Artboard
 
@@ -269,13 +264,12 @@ Element transform controls are not transparent when outside the artboard box
 
 Cut/Copy/Paste
 
-I can selectall/cut/copy/paste text in Login UI
+I can selectall/cut/copy/paste text in Login UI (username field)
 I can selectall/cut/copy/paste text in State Inspector UI
 I can selectall/cut/copy/paste text in Expression Input UI (single-line)
 I can selectall/cut/copy/paste text in Expression Input UI (multi-line)
 I can selectall/cut/copy/paste text in Intercom Support Widget
 I can selectall/cut/copy/paste text in Actions UI
-I can selectall/cut/copy/paste text in Publish UI share link
 I can selectall/cut/copy/paste text in Publish UI HTML+CDN Embed snippet
 I can selectall/cut/copy/paste text in Publish UI React Embed snippet
 I can cut/copy elements on stage using keyboard controls
@@ -351,8 +345,8 @@ The host's display of the state shows the default value for the child state
 I can override the child state from the host component
 If the child state is bound to behavior, I see that affect on stage
 I can enter and exit preview mode when multiple components are in play
-If the child has animations, moving the host's scrubber plays them
-If the child has animations, playing the host plays them (note: host must have > 0 keyframes)
+If the child has animations, moving the host's scrubber plays them (in BACKLOG)
+If the child has animations, playing the host plays them (note: host must have > 0 keyframes) (in BACKLOG)
 If the child has animations, going into preview mode plays them
 I can create a higher order component of multiple components
 I can create a higher order component mixing plain elements with components
@@ -368,7 +362,6 @@ If I try to instantiate 'Foo' within itself, it won't let me and tells me so
 If I create 'Foo', then 'Bar', then put 'Foo' in 'Bar' and try to put 'Bar' in 'Foo' it won't let me and tells me so
 I can copy and paste components
 I can cut and paste components
-I can undo/redo changes from a host component to a child
 I can undo/redo changes within a child, and those also reflect in the host
 I can set the playback value to `'once'` or `'stop'` or `100` and these all work correctly
 I can set the playback value for a grandchild via a child, and it works correctly from the host
@@ -376,6 +369,7 @@ I can set the playback value for a grandchild via a child, and it works correctl
 Sketch
 
 I can right click the library and open a design asset in Sketch
+I can double-click an asset to open the Sketch file
 I can right click the library design asset in Finder
 When I make slices manually, they appear in the library
 When I make artboards manually, they appear in the library
@@ -444,7 +438,7 @@ I can escape to exit an expression
 I can click away to exit an expression
 Text selection turns into plain cursor when I mouse click expression field that is selected
 Pressing tab while an autocompletion is selected chooses that item
-Pressing enter while an autocompletion is selected chooses that item
+Pressing enter while an autocompletion is selected chooses that item (BACKLOG)
 I can create an expression that causes a runtime error and things don't crash (error shown)
 I can save a multiline expression by pressing the "save" button on the left side
 
@@ -459,7 +453,6 @@ I can bind an expression to a declared state
 Actions
 
 I can use the stage right click menu to attach an action
-I can use the stage gear icon to attach an action
 I can save my changes to my action
 I can cancel my changes to my action
 I can view a previously written action in the window (correct code is loaded)
@@ -517,8 +510,6 @@ I can use the right-click menu to open in Sketch or show in finder
 I can import an SVG file using the "+" button
 I can drop a SVG directly on Haiku and have it import to the library
 I can drop a Sketch directly on Haiku and have it import to the library
-The "..." menu should only appear when the asset is hovered
-I can use the "..." menu to delete an asset or open in Sketch
 The library can be scrolled when there are many assets
 I can scroll all the way down to see all assets
 
@@ -538,7 +529,6 @@ When I navigate into a collapsed set of rows, they auto-expand, and the first on
 I can enter a valid value into any input, and see it reflected on stage at time 0
 I can enter a valid value into any input, and see it reflected on stage at time N>0
 When I enter an input, I see a keyframe created in the timeline
-If I enter an invalid value (e.g. string into numeric field), the field complains
 I can click a transition body element and not have a problem
 I can right-click between keyframes to create a tween
 I can remove the tween between keyframes
@@ -860,6 +850,8 @@ I can open legacy project "Move" and it still works correctly
 I can open tour project "percy" and it still works correctly
 I can open legacy project "metapoem" and it still works correctly
 I can open a recent project and it still works correctly
+I can multi-rotate elements in a legacy project (pre-3.3)
+I can ungroup the "Moto" artboard without a problem
 
 Timeline performance
 
