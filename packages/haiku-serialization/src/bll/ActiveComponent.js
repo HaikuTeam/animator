@@ -3938,7 +3938,9 @@ class ActiveComponent extends BaseModel {
       }
     })
 
-    return `Group ${Math.max(reservations) + 1}`
+    const next = Math.max(...reservations);
+
+    return `Group ${isFinite(next) ? next + 1 : 1}`
   }
 
   /**
