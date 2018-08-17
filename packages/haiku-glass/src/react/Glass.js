@@ -2989,6 +2989,14 @@ export class Glass extends React.Component {
     });
   }
 
+  pointHasNaN (point) {
+    return (
+      Number.isNaN(point.x) ||
+      Number.isNaN(point.y) ||
+      Number.isNaN(point.z)
+    );
+  }
+
   renderTransformBoxOverlay (proxy, overlays, isRotationModeOn) {
     if (!this.getActiveComponent()) {
       return;
@@ -3036,6 +3044,10 @@ export class Glass extends React.Component {
         return;
       }
 
+      if (this.pointHasNaN(point)) {
+        return;
+      }
+
       if (index !== 4) {
         overlays.push(controlPointMana(
           scale,
@@ -3047,7 +3059,9 @@ export class Glass extends React.Component {
     });
 
     if (canRotate && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()));
+      if (!this.pointHasNaN(origin)) {
+        overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()));
+      }
     }
 
     // Everything below requires controllable handles.

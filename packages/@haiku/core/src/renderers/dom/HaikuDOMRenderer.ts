@@ -268,12 +268,23 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       setMouches();
     });
 
+    let lastMoveTarget;
+
     // NOTE: if there are perf or interop issues that arise from
     //       attaching event listeners directly to host window,
     //       could expose a haikuOption for reverting to "attach to mount" behavior
     win.addEventListener('mousemove', (mouseEvent) => {
       setMouse(mouseEvent);
       setMouches();
+
+      if (lastMoveTarget !== mouseEvent.target) {
+        lastMoveTarget = mouseEvent.target;
+
+        const element = this.getHaikuElementFromTarget(mouseEvent.target);
+        if (element) {
+          element.triggerHover();
+        }
+      }
     });
 
     win.addEventListener('mouseenter', (mouseEvent) => {
@@ -401,18 +412,25 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
   mountEventListener (component: IHaikuComponent, selector: string, name: string, listener: Function) {
     let rewritten = name;
 
-    if (name === 'hover') {
-      rewritten = 'mouseover';
-    } else if (name === 'unhover') {
-      rewritten = 'mouseout';
-    } else if (name === 'mouseenter') {
+    if (name === 'mouseenter') {
       rewritten = 'mouseover';
     } else if (name === 'mouseleave') {
       rewritten = 'mouseout';
     }
 
+    // Convert haiku:* selectors into proper attribute selectors
+    let query = selector;
+    if (selector.slice(0, 6) === 'haiku:') {
+      query = `[haiku-id="${selector.slice(6)}"]`;
+    }
+
     const mount = this.decideMountElement(component, selector, name);
 
+    // Since elements inside out tree may be added or removed at will, event listener
+    // management (i.e. cleanup and re-registration) becomes a problem. Rather than solve
+    // that tangle, we register listeners on our mount element, which is assumed to
+    // remain through the lifespan of the component, and then delegate the events as
+    // appropriate per their respective specifications.
     mount.addEventListener(rewritten, (domEvent) => {
       // If no explicit selector/target for the event, just fire the listener
       if (
@@ -428,20 +446,13 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         return;
       }
 
-      let query = selector;
-
-      // Convert haiku:* selectors into proper attribute selectors
-      if (selector.slice(0, 6) === 'haiku:') {
-        query = `[haiku-id="${selector.slice(6)}"]`;
-      }
-
       // If the event originated from the element or its descendants
       const match = (component.target.parentNode as Element).querySelector(query);
 
       if (match) {
         if (this.shouldListenerReceiveEvent(name, rewritten, domEvent, match, mount)) {
           listener(
-            this.getHaikuElementFromTarget(domEvent.target),
+            this.getHaikuElementFromTarget(match),
             domEvent.target,
             this.wrapEvent(name, domEvent, match, component),
           );

@@ -282,6 +282,13 @@ class Row extends BaseModel {
     this.destroy()
   }
 
+  visit (visitor) {
+    visitor(this)
+    this.children.forEach((child) => {
+      child.visit(visitor)
+    })
+  }
+
   rehydrate () {
     this.rehydrateKeyframes()
     this.emit('update', 'row-rehydrated')

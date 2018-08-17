@@ -51,9 +51,11 @@ const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
 
 export default class HaikuElement extends HaikuBase implements IHaikuElement {
   node: BytecodeNode;
+  isHovered: boolean;
 
   constructor () {
     super();
+    this.isHovered = false;
   }
 
   get childNodes (): (string|BytecodeNode)[] {
@@ -126,6 +128,14 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
    */
   get instance (): IHaikuComponent {
     return this.memory && this.memory.instance;
+  }
+
+  /**
+   * @method containee
+   * @description Returns the HaikuComponent instance into which this node was passed as a container.
+   */
+  get containee (): IHaikuComponent {
+    return this.memory && this.memory.containee;
   }
 
   get owner (): IHaikuComponent {
@@ -888,6 +898,81 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     }
 
     return 1;
+  }
+
+  triggerHover (event) {
+    let manager;
+
+    if (this.isComponent()) {
+      manager = this;
+    } else {
+      manager = this.owner;
+    }
+
+    // In case of the root container of a render tree
+    if (!manager) {
+      manager = this.containee;
+    }
+
+    // Not sure how we'd get here, but if we do, skip this process
+    if (!manager) {
+      return;
+    }
+
+    // tslint:disable-next-line:no-this-assignment
+    let hoverable = this;
+
+    // If no last hovered element, there's nothing to unhover.
+    let mustUnhover = manager.lastHoveredElement !== undefined;
+
+    while (hoverable) {
+      // If the last hovered element is an ancestor,
+      // we _don't_ want to unhover it—that's the
+      // annoying browser behavior we're trying to
+      // "fix" in the first place.
+      if (mustUnhover && manager.lastHoveredElement === hoverable) {
+        mustUnhover = false;
+      }
+
+      // If we are hovered here, by virtue of this algorithm we are hovered above.
+      if (hoverable.isHovered) {
+        break;
+      }
+
+      hoverable.isHovered = true;
+
+      (manager as IHaikuComponent).routeEventToHandlerAndEmit(
+        hoverable.selector,
+        'hover',
+        [hoverable, hoverable.target /* event? */],
+      );
+
+      hoverable = hoverable.parent;
+    }
+
+    // We must be in a different branch of the tree.
+    if (mustUnhover) {
+      let unhoverable = manager.lastHoveredElement;
+
+      // Stop until we hit the common hovered ancestor (wherever we break'ed above).
+      while (unhoverable && unhoverable !== hoverable) {
+        unhoverable.isHovered = false;
+
+        (manager as IHaikuComponent).routeEventToHandlerAndEmit(
+          unhoverable.selector,
+          'unhover',
+          [unhoverable, unhoverable.target /* event? */],
+        );
+
+        unhoverable = unhoverable.parent;
+      }
+    }
+
+    manager.lastHoveredElement = this;
+  }
+
+  get selector (): string {
+    return `haiku:${this.getComponentId()}`;
   }
 
   dump (): string {

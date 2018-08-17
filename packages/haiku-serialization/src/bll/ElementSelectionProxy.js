@@ -1220,11 +1220,16 @@ class ElementSelectionProxy extends BaseModel {
 
   // overrides allow per-element absolute position overrides, useful for snapping
   move (dx, dy, overrides) {
-    const propertyGroupDelta = {
-      'translation.x': {
+    const propertyGroupDelta = {}
+
+    if (dx > 0 || dx < 0) {
+      propertyGroupDelta['translation.x'] = {
         value: dx
-      },
-      'translation.y': {
+      }
+    }
+
+    if (dy > 0 || dy < 0) {
+      propertyGroupDelta['translation.y'] = {
         value: dy
       }
     }
@@ -1234,6 +1239,7 @@ class ElementSelectionProxy extends BaseModel {
     this.selection.forEach((element, i) => {
       const layoutSpec = element.getLayoutSpec()
       const propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
+
       if (overrides && overrides[i] && overrides[i].x !== undefined) {
         propertyGroup['translation.x'] = {value: overrides[i].x - layoutSpec.offset.x}
       }

@@ -68,6 +68,12 @@ export default function assignAttributes (domElement, virtualElement, component,
       continue;
     }
 
+    // It's (almost?) never beneficial to write `NaN` to a DOM attribute here;
+    // this is a very hot path, and the result is a deluge of not-catchable errors.
+    if (Number.isNaN(anotherNewValue)) {
+      continue;
+    }
+
     setAttribute(
       domElement,
       virtualElement,
