@@ -569,39 +569,56 @@ class Element extends BaseModel {
 
   getComputedLayout (calculateAtRuntime = false) {
     const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
-    const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
 
-    return HaikuElement.computeLayout(
-      { // targetNode
-        // We need the layout spec which is *produced by this module* as opposed to the
-        // layout spec mutated on the node during rendering/property application, because
-        // this module's layout spec represents a "snapshot in time" that we can safely
-        // transform without resulting in exponentially-accumulating value-updates.
-        // (If we pass the actual live rendered node, resizing the stage goes crazy.)
-        layout: this.getLayoutSpec(),
-        // But we still need the live node's actual properties in case we need to compute
-        // auto sizing, which will require that we hydrate a HaikuElement and recurse
-        // into its children and compute their sizes, and so-on.
-        elementName: targetNode.elementName,
-        attributes: targetNode.attributes,
-        children: targetNode.__memory.children || targetNode.children,
-        __memory: targetNode.__memory
-      },
-      { // parentNode
-        layout: {
-          computed: {
-            matrix: Layout3D.createMatrix(),
-            bounds: (this.parent && this.parent.getHaikuElement().computeContentBounds()) || {},
-            size: (this.parent && this.parent.getComputedSize()) || this.getComputedSize()
-          }
-        },
-        elementName: parentNode.elementName,
-        attributes: parentNode.attributes,
-        children: parentNode.children,
-        __memory: parentNode.__memory
-      },
-      calculateAtRuntime
-    )
+    const targetRenderedNode = { // targetNode
+      // We need the layout spec which is *produced by this module* as opposed to the
+      // layout spec mutated on the node during rendering/property application, because
+      // this module's layout spec represents a "snapshot in time" that we can safely
+      // transform without resulting in exponentially-accumulating value-updates.
+      // (If we pass the actual live rendered node, resizing the stage goes crazy.)
+      layout: this.getLayoutSpec(),
+      // But we still need the live node's actual properties in case we need to compute
+      // auto sizing, which will require that we hydrate a HaikuElement and recurse
+      // into its children and compute their sizes, and so-on.
+      elementName: targetNode.elementName,
+      attributes: targetNode.attributes,
+      children: targetNode.__memory.children || targetNode.children,
+      __memory: targetNode.__memory
+    }
+
+    const parentLayout = { // parentLayout
+      computed: {
+        matrix: Layout3D.createMatrix(),
+        bounds: (this.parent && this.parent.getHaikuElement().computeContentBounds()) || {},
+        size: (this.parent && this.parent.getComputedSize()) || this.getComputedSize()
+      }
+    };
+
+    const layout = HaikuElement.computeLayout(targetRenderedNode, parentLayout)
+
+    // If we want runtime calculation, update layout.size and layout.matrix
+    if (calculateAtRuntime && targetRenderedNode.elementName === 'svg') {
+      const targetElement = HaikuElement.findOrCreateByNode(targetRenderedNode);
+
+      if (!targetElement.target) {
+        return layout;
+      }
+      
+      // Calculate BB using DOM. TODO: Use svg primitives to calculate it
+      const bbox = targetElement.target.getBBox();
+      const targetSize = { x: bbox.width, y: bbox.height, z: 0};
+      
+      console.log('targetRenderedNode', targetRenderedNode.elementName, targetRenderedNode.attributes['haiku-title'], targetRenderedNode.attributes['haiku-id']);
+      
+      const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetRenderedNode.layout, parentLayout);
+      const targetMatrixWithParentOffset = Layout3D.computeMatrix(targetLayoutWithParentOffset, targetSize);
+  
+      // Update computed layout with values from runtime BB
+      layout.size = targetSize
+      layout.matrix = targetMatrixWithParentOffset
+    }
+
+    return layout;
   }
 
   getLayoutSpec () {
