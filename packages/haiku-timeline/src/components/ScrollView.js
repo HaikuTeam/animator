@@ -34,15 +34,13 @@ class ScrollView extends React.PureComponent {
     }
     if (
       what === 'timeline-frame-range' ||
-      what === 'timeline-max-frame-changed' ||
-      what === 'timeline-frame'
+      what === 'timeline-max-frame-changed'
     ) {
       this.forceUpdate();
     }
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo();
     return (
       <div
         ref="scrollview"
@@ -83,17 +81,8 @@ class ScrollView extends React.PureComponent {
           width: this.props.propertiesPixelWidth,
           position: 'sticky',
           left: 0,
-        }} />
-
-        <div style={{
-          position: 'absolute',
-          background: Color(Palette.LIGHT_GRAY).fade(0.7),
-          pointerEvents: 'none',
-          zIndex: zIndex.areaPostMaxKeyframe.base,
-          top: '0',
-          bottom: '0',
-          width: '9999999px',
-          left: frameInfo.maxf * frameInfo.pxpf + this.props.propertiesPixelWidth + 14,
+          paddingBottom: 20,
+          marginTop: -20,
         }} />
       </div>
     );

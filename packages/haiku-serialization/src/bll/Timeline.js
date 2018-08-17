@@ -328,7 +328,6 @@ class Timeline extends BaseModel {
 
     this.component.$instance.controlTime(timelineName, timelineTime)
 
-    this.cache.unset('frameInfo')
     this.emit('update', 'timeline-frame')
 
     return this
