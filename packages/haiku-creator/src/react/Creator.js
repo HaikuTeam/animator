@@ -149,7 +149,7 @@ export default class Creator extends React.Component {
       artboardDimensions: null,
       showChangelogModal: false,
       showOfflineExportUpgradeModal: false,
-      supportOfflineExport: false,
+      allowOffline: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -667,8 +667,8 @@ export default class Creator extends React.Component {
         }, this.state.readyForAuth ? 0 : 2500);
       });
 
-      this.user.checkOfflinePrivileges().then((supportOfflineExport) => {
-        this.setState({supportOfflineExport});
+      this.user.checkOfflinePrivileges().then((allowOffline) => {
+        this.setState({allowOffline});
       });
 
       this.checkOnlineStatus();
@@ -796,8 +796,8 @@ export default class Creator extends React.Component {
       // #FIXME: ideally this should be passed down to the share modal to provide the assets to the user as soon as they're ready.
       this.envoyExporter = exporterChannel;
       ipcRenderer.on('global-menu:save-as', () => {
-        exporterChannel.checkOfflinePrivileges().then((supportOfflineExport) => {
-          if (!supportOfflineExport) {
+        exporterChannel.checkOfflinePrivileges().then((allowOffline) => {
+          if (!allowOffline) {
             this.setState({showOfflineExportUpgradeModal: true});
             return;
           }
@@ -2040,7 +2040,7 @@ export default class Creator extends React.Component {
           <ProjectBrowser
             ref="ProjectBrowser"
             explorePro={this.explorePro}
-            isOnline={this.state.isOnline}
+            isOnline={this.state.isOnline || this.state.allowOffline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
             onProjectDeleted={this.onProjectDeleted}
@@ -2189,7 +2189,7 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
-                    supportOfflineExport={this.state.supportOfflineExport}
+                    supportOfflineExport={this.state.allowOffline}
                     explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}
