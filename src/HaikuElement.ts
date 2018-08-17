@@ -8,7 +8,6 @@ import {
   BytecodeNodeMemoryObject,
   ClientRect,
   ComputedLayoutSpec,
-  HaikuBytecode,
   IHaikuComponent,
   IHaikuElement,
   LayoutSpec,
@@ -25,6 +24,16 @@ export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
 export const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
 export const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 export const HAIKU_LOCKED_ATTRIBUTE = 'haiku-locked';
+
+const SVG_PRIMITIVE_NAMES = {
+  rect: true,
+  line: true,
+  circle: true,
+  ellipse: true,
+  path: true,
+  polygon: true,
+  polyline: true,
+};
 
 const DEFAULT_DEPTH = 0;
 const DEFAULT_TAG_NAME = 'div';
@@ -86,7 +95,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return this.attributes.class;
   }
 
-  get tagName (): string|HaikuBytecode {
+  get tagName (): string {
     if (this.isTextNode()) {
       return TEXT_PSEUDO_TAG_NAME;
     }
@@ -399,6 +408,20 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return this.sizeZ;
   }
 
+  get attributeWidth (): number {
+    if (this.attributes && this.attributes.width) {
+      return Number(this.attributes.width);
+    }
+    return;
+  }
+
+  get attributeHeight (): number {
+    if (this.attributes && this.attributes.height) {
+      return Number(this.attributes.height);
+    }
+    return;
+  }
+
   get sizeAbsolute (): StringableThreeDimensionalLayoutProperty {
     return (this.rawLayout && this.rawLayout.sizeAbsolute) || {...LAYOUT_DEFAULTS.sizeAbsolute};
   }
@@ -637,6 +660,11 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   }
 
   computeSizeX (): number {
+    // SVG primitives use native SVG layout instead of our system
+    if (this.isSvgPrimitive() && typeof this.attributeWidth === 'number') {
+      return this.attributeWidth;
+    }
+
     if (typeof this.sizeAbsolute.x === 'number') {
       return this.sizeAbsolute.x;
     }
@@ -651,6 +679,11 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   }
 
   computeSizeY (): number {
+    // SVG primitives use native SVG layout instead of our system
+    if (this.isSvgPrimitive() && typeof this.attributeHeight === 'number') {
+      return this.attributeHeight;
+    }
+
     if (typeof this.sizeAbsolute.y === 'number') {
       return this.sizeAbsolute.y;
     }
@@ -696,6 +729,10 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
 
   isWrapper (): boolean {
     return !!this.subcomponent;
+  }
+
+  isSvgPrimitive (): boolean {
+    return !!SVG_PRIMITIVE_NAMES[this.tagName];
   }
 
   componentMatches (selector: string): boolean {
