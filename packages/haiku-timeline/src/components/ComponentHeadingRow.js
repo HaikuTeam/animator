@@ -99,7 +99,13 @@ export default class ComponentHeadingRow extends React.Component {
   };
 
   collapseAndDeselect () {
-    this.props.row.collapseAndDeselect({from: 'timeline'});
+    if (this.props.row.isRootRow()) {
+      this.props.row.visit((row) => {
+        row.collapse({from: 'timeline'});
+      })
+    } else {
+      this.props.row.collapseAndDeselect({from: 'timeline'});
+    }
   }
 
   handleRowHoverUnhover (shouldHover) {
