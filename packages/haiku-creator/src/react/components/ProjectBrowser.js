@@ -234,8 +234,12 @@ class ProjectBrowser extends React.Component {
     this.props.onShowNewProjectModal(true, potentialName, projectObject);
   }
 
+  get shouldShowOfflineNotice () {
+    return this.state.isOffline && !this.props.allowOffline;
+  }
+
   offlineElement () {
-    if (!this.state.isOffline) {
+    if (!this.shouldShowOfflineNotice) {
       return null;
     }
 
@@ -271,7 +275,7 @@ class ProjectBrowser extends React.Component {
   }
 
   projectsListElement () {
-    if (this.state.isOffline) {
+    if (this.shouldShowOfflineNotice) {
       return null;
     }
     const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;

@@ -2040,7 +2040,8 @@ export default class Creator extends React.Component {
           <ProjectBrowser
             ref="ProjectBrowser"
             explorePro={this.explorePro}
-            isOnline={this.state.isOnline || this.state.allowOffline}
+            isOnline={this.state.isOnline}
+            allowOffline={this.state.allowOffline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
             onProjectDeleted={this.onProjectDeleted}
