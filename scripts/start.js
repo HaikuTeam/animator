@@ -49,6 +49,7 @@ const FOLDER_CHOICES = {
   blank: blankProject,
   'blank-noclean': blankProject,
   'primitives-misc-1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives-misc-1'),
+  'nan-errorz-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/nan-errorz'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
   'statetransitions-core': path.join(ROOT, 'packages/@haiku/core/demo/projects/statetransitions'),
   'simple-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/simple'),
