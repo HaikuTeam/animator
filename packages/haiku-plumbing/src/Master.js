@@ -340,9 +340,12 @@ export default class Master extends EventEmitter {
       logger.info('[master] merge designs requested');
       if (this.project && this.project.getCurrentActiveComponent()) {
         this._designsPendingMerge = {};
-        this.emit(
-          'merge-designs',
+        this.project.mergeDesigns(
           designs,
+          {from: 'master'},
+          () => {
+            logger.info(`[master] finished merge designs`);
+          },
         );
       }
     }
