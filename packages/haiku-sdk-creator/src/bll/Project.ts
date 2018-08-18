@@ -175,17 +175,15 @@ export class ProjectHandler extends EnvoyHandler {
           linkAddress: info.PrivateURL,
           semverVersion: this.semver,
           snapshotSyndicated: info.AssetsSyndicated,
-        };
-
-        if (info.AssetsSyndicated) {
-          haikuSnapshot.shareUrls = {
+          shareUrls: {
             standalone: info.StandaloneURL,
             embed: info.EmbedURL,
             gif: info.GifURL,
             video: info.VideoURL,
             lottie: info.LottieURL,
-          };
-        }
+          },
+        };
+
         resolve(haikuSnapshot);
       });
     });
