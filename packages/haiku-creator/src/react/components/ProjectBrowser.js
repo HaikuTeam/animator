@@ -34,7 +34,6 @@ class ProjectBrowser extends React.Component {
     this.state = {
       username: null,
       error: null,
-      isOffline: !props.isOnline,
       projectsList: [],
       areProjectsLoading: true,
       isPopoverOpen: false,
@@ -50,7 +49,7 @@ class ProjectBrowser extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (this.state.isOffline === nextProps.isOnline) {
+    if (this.props.isOnline ^ nextProps.isOnline) {
       // Value has changed.
       this.loadProjects();
     }
@@ -98,7 +97,7 @@ class ProjectBrowser extends React.Component {
             this.props.logOut();
             return;
           case ProjectError.Offline:
-            this.setState({isOffline: true});
+            // Noop.
             break;
           default:
             // "This should never happen"
@@ -116,7 +115,6 @@ class ProjectBrowser extends React.Component {
       }
       this.setState({
         projectsList,
-        isOffline: false,
         areProjectsLoading: false,
       });
     });
@@ -235,7 +233,7 @@ class ProjectBrowser extends React.Component {
   }
 
   get shouldShowOfflineNotice () {
-    return this.state.isOffline && !this.props.allowOffline;
+    return !this.props.isOnline && !this.props.allowOffline;
   }
 
   offlineElement () {

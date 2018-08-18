@@ -149,7 +149,9 @@ export default class Creator extends React.Component {
       artboardDimensions: null,
       showChangelogModal: false,
       showOfflineExportUpgradeModal: false,
-      allowOffline: false,
+      // This is a sensible default to avoid flashes of offline warnings.
+      // (The Envoy server will protect us from any potential abuse.)
+      allowOffline: true,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
