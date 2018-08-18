@@ -567,7 +567,7 @@ class Element extends BaseModel {
     return this.getHaikuElement().size
   }
 
-  getComputedLayout (calculateAtRuntime = false) {
+  getComputedLayout () {
     const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
 
     const targetRenderedNode = { // targetNode
@@ -592,33 +592,31 @@ class Element extends BaseModel {
         bounds: (this.parent && this.parent.getHaikuElement().computeContentBounds()) || {},
         size: (this.parent && this.parent.getComputedSize()) || this.getComputedSize()
       }
-    };
+    }
 
     const layout = HaikuElement.computeLayout(targetRenderedNode, parentLayout)
 
     // If we want runtime calculation, update layout.size and layout.matrix
-    if (calculateAtRuntime && targetRenderedNode.elementName === 'svg') {
-      const targetElement = HaikuElement.findOrCreateByNode(targetRenderedNode);
+    if (targetRenderedNode.elementName === 'svg') {
+      const targetElement = HaikuElement.findOrCreateByNode(targetRenderedNode)
 
       if (!targetElement.target) {
-        return layout;
+        return layout
       }
-      
+
       // Calculate BB using DOM. TODO: Use svg primitives to calculate it
-      const bbox = targetElement.target.getBBox();
-      const targetSize = { x: bbox.width, y: bbox.height, z: 0};
-      
-      console.log('targetRenderedNode', targetRenderedNode.elementName, targetRenderedNode.attributes['haiku-title'], targetRenderedNode.attributes['haiku-id']);
-      
-      const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetRenderedNode.layout, parentLayout);
-      const targetMatrixWithParentOffset = Layout3D.computeMatrix(targetLayoutWithParentOffset, targetSize);
-  
+      const bbox = targetElement.target.getBBox()
+      const targetSize = { x: bbox.width, y: bbox.height, z: 0 }
+
+      const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetRenderedNode.layout, parentLayout)
+      const targetMatrixWithParentOffset = Layout3D.computeMatrix(targetLayoutWithParentOffset, targetSize)
+
       // Update computed layout with values from runtime BB
       layout.size = targetSize
       layout.matrix = targetMatrixWithParentOffset
     }
 
-    return layout;
+    return layout
   }
 
   getLayoutSpec () {
@@ -722,8 +720,8 @@ class Element extends BaseModel {
     }
   }
 
-  getBoundingBoxPoints (calculateAtRuntime = false) {
-    const layout = this.getComputedLayout(calculateAtRuntime)
+  getBoundingBoxPoints () {
+    const layout = this.getComputedLayout()
     const w = layout.size.x
     const h = layout.size.y
     return [
@@ -733,10 +731,10 @@ class Element extends BaseModel {
     ]
   }
 
-  getBoxPointsTransformed (calculateAtRuntime = false) {
+  getBoxPointsTransformed () {
     return HaikuElement.transformPointsInPlace(
-      this.getBoundingBoxPoints(calculateAtRuntime),
-      this.getOriginOffsetComposedMatrix(calculateAtRuntime)
+      this.getBoundingBoxPoints(),
+      this.getOriginOffsetComposedMatrix()
     )
   }
 
@@ -762,7 +760,7 @@ class Element extends BaseModel {
 
   getOriginOffsetComposedMatrix () {
     return this.cache.fetch('getOriginOffsetComposedMatrix', () => {
-      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry(calculateAtRuntime).reverse().map(
+      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
         (layout) => layout.matrix
       ))
     })
@@ -774,9 +772,9 @@ class Element extends BaseModel {
     return ancestors
   }
 
-  getComputedLayoutAncestry (calculateAtRuntime = false) {
+  getComputedLayoutAncestry () {
     return this.getAncestry().map((ancestor) => {
-      return ancestor.getComputedLayout(calculateAtRuntime)
+      return ancestor.getComputedLayout()
     })
   }
 
