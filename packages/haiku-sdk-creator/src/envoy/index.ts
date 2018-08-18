@@ -52,7 +52,7 @@ export interface RequestOptions {
 }
 
 export const DEFAULT_REQUEST_OPTIONS: RequestOptions = {
-  timeout: 5000,
+  timeout: 60000,
 };
 
 export type MaybeAsync<T> = (T | Promise<T>);
