@@ -29,6 +29,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar';
 import HorzScrollShadow from './HorzScrollShadow';
 import ScrollView from './ScrollView';
 import Marquee from './Marquee';
+import PostMaxKeyframeArea from './PostMaxKeyframeArea';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
@@ -1674,6 +1675,9 @@ class Timeline extends React.Component {
       );
     }
 
+    const timeline = this.getActiveComponent().getCurrentTimeline();
+    const propertiesPixelWidth = timeline.getPropertiesPixelWidth();
+
     return (
       <div
         ref={this.attachContainerElement}
@@ -1714,10 +1718,15 @@ class Timeline extends React.Component {
             />
           )
         }
-        <HorzScrollShadow timeline={this.getActiveComponent().getCurrentTimeline()} />
+        <HorzScrollShadow timeline={timeline} />
         {this.renderTopControls()}
+        <PostMaxKeyframeArea
+          propertiesPixelWidth={propertiesPixelWidth}
+          timeline={timeline}
+        />
         <ScrollView
-          timeline={this.getActiveComponent().getCurrentTimeline()}
+          timeline={timeline}
+          propertiesPixelWidth={propertiesPixelWidth}
           onMouseDown={(mouseEvent) => {
             if (
               !Globals.isShiftKeyDown &&
@@ -1737,7 +1746,7 @@ class Timeline extends React.Component {
           ref="expressionInput"
           reactParent={this}
           component={this.getActiveComponent()}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
+          timeline={timeline}
           onCommitValue={this.onCommitValue}
           onFocusRequested={() => {
             const selected = this.getActiveComponent().getSelectedRows()[0];

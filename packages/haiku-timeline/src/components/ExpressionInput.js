@@ -705,11 +705,13 @@ export default class ExpressionInput extends React.Component {
 
       // Up/down arrows (when selected) navigate the selection state between cells
       if (keydownEvent.which === 38) { // Up arrow
+        keydownEvent.preventDefault();
         this.requestNavigate(NAVIGATION_DIRECTIONS.PREV, false);
         return 3;
       }
 
       if (keydownEvent.which === 40) { // Down arrow
+        keydownEvent.preventDefault();
         this.requestNavigate(NAVIGATION_DIRECTIONS.NEXT, false);
         return 4;
       }
@@ -751,6 +753,12 @@ export default class ExpressionInput extends React.Component {
       if (keydownEvent.which === 46 || keydownEvent.which === 8) { // Delete
         this.props.onFocusRequested(keydownEvent.key);
         return 8;
+      }
+
+      // Altough we don't do anything on left and right, we need to prevent the timeline from scrolling
+      if (keydownEvent.which === 37 || keydownEvent.which === 39) {
+        keydownEvent.preventDefault();
+        return 9;
       }
 
       return false;
