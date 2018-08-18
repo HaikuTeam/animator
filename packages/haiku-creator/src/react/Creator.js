@@ -2194,6 +2194,7 @@ export default class Creator extends React.Component {
                     explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}
+                    envoyExporter={this.envoyExporter}
                     projectModel={this.state.projectModel}
                     envoyClient={this.envoyClient}
                     haiku={this.props.haiku}

@@ -19,7 +19,9 @@ export class VideoExporter extends BaseExporter implements ExporterInterface {
         .withVideoCodec('libx264')
         .withOutputOptions([
           '-vf',
-          `fps=${framerate}, scale=${componentSize.x}:${componentSize.y}`,
+          `fps=${framerate}`,
+          '-vf',
+          `scale=${componentSize.x}:${componentSize.y}`,
           '-pix_fmt',
           'yuv420p',
         ])

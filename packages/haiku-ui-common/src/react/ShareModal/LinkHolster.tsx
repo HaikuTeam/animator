@@ -127,7 +127,7 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
   }
 
   get speed () {
-    return (this.props.isSnapshotSaveInProgress || !this.state.didStart) ? '15s' : '1ms';
+    return (this.props.isSnapshotSaveInProgress || !this.state.didStart) ? '5s' : '1ms';
   }
 
   get progress () {

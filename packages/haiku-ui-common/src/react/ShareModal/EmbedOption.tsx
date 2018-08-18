@@ -97,10 +97,10 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
 
   get startSpeed () {
     if (this.requiresSyndication) {
-      return '60s';
+      return '10s';
     }
 
-    return '15s';
+    return '5s';
   }
 
   get requiresSyndication () {
