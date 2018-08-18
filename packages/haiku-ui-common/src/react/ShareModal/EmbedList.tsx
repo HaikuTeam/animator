@@ -48,9 +48,12 @@ export interface EmbedListStates {
 }
 
 export class EmbedList extends React.PureComponent<EmbedListProps, EmbedListStates> {
-  state = {
-    shareOptions: Object.entries(getShareOptions(false)),
-  };
+  constructor (props: EmbedListProps) {
+    super(props);
+    this.state = {
+      shareOptions: Object.entries(getShareOptions(props.supportOfflineExport)),
+    };
+  }
 
   renderShareOptions () {
     return this.state.shareOptions.map(([category, options]) => (
