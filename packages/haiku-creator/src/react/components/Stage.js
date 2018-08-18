@@ -288,6 +288,7 @@ class Stage extends React.Component {
             supportOfflineExport={this.props.supportOfflineExport}
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
+            envoyExporter={this.props.envoyExporter}
             projectModel={this.props.projectModel}
             project={this.props.project}
             websocket={this.props.websocket}

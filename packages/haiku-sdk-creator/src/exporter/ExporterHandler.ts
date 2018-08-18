@@ -40,4 +40,12 @@ export class ExporterHandler extends EnvoyHandler {
       name: `${EXPORTER_CHANNEL}:saved`,
     } as EnvoyEvent);
   }
+
+  abort (request: ExporterRequest): MaybeAsync<void> {
+    this.trackProgress(request, 0);
+    this.server.emit(EXPORTER_CHANNEL, {
+      payload: request,
+      name: `${EXPORTER_CHANNEL}:abort`,
+    } as EnvoyEvent);
+  }
 }

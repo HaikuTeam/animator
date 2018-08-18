@@ -745,12 +745,17 @@ class Timeline extends React.Component {
    */
   handleExportProgress (exporterRequest) {
     const trackedExporterRequests = [...this.state.trackedExporterRequests];
-    const activeRequest = trackedExporterRequests.find(
+    const activeRequestIndex = trackedExporterRequests.findIndex(
       (trackedExporterRequest) => trackedExporterRequest.filename === exporterRequest.filename,
     );
-    if (activeRequest) {
-      activeRequest.progress = exporterRequest.progress;
-    } else {
+    if (activeRequestIndex !== -1) {
+      if (exporterRequest.progress === 0) {
+        // We must have aborted for some reason. Silently splice the item from the list.
+        trackedExporterRequests.splice(activeRequestIndex, 1);
+      } else {
+        trackedExporterRequests[activeRequestIndex].progress = exporterRequest.progress;
+      }
+    } else if (exporterRequest.progress !== 0) {
       trackedExporterRequests.unshift(exporterRequest);
     }
     this.setState({trackedExporterRequests});

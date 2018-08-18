@@ -58,7 +58,8 @@ export default (
                     exporterChannel.trackProgress(request, 0.5);
                     saveExport(request, activeComponent, (err) => {
                       if (err) {
-                        throw err;
+                        exporterChannel.abort(request);
+                        return next();
                       }
 
                       return finish();

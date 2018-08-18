@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {ipcRenderer, shell} from 'electron';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
 import {BTN_STYLES} from '../styles/btnShared';
@@ -253,7 +254,7 @@ class StageTitleBar extends React.Component {
             return this.props.createNotice({
               type: 'danger',
               title: 'Uh oh!',
-              message: 'Haiku is having a problem accessing your project. 😢 Please restart Haiku. If you see this error again, contact Haiku for support.',
+              message: 'Haiku is having a problem accessing your project. 😢  Please restart Haiku. If you see this error again, contact Haiku for support.',
             });
           }
 
@@ -552,6 +553,21 @@ class StageTitleBar extends React.Component {
           this._performSyndicationCheckInterval = setInterval(() => {
             this.performSyndicationCheck();
           }, SYNDICATION_CHECK_INTERVAL);
+
+          if (this.props.envoyExporter) {
+            this.abortSyndicationCheck = () => {
+              this.setState({snapshotSyndicated: undefined});
+              this.clearSyndicationChecks();
+              this.props.envoyExporter.off(`${EXPORTER_CHANNEL}:abort`, this.abortSyndicationCheck);
+              this.props.createNotice({
+                type: 'danger',
+                title: 'Uh oh!',
+                message: 'Not all assets were published successfully. 😢  If you see this error again, contact Haiku for support.',
+              });
+            };
+
+            this.props.envoyExporter.on(`${EXPORTER_CHANNEL}:abort`, this.abortSyndicationCheck);
+          }
         }
 
         mixpanel.haikuTrack('creator:project:saved', {

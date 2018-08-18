@@ -1031,7 +1031,7 @@ export default class Master extends EventEmitter {
             const requests = this.envoyHandlers.project.getExporterAssetRequests(project);
             let processedRequests = 0;
             async.eachSeries(requests, (request, next) => {
-              const listener = (finishedRequest) => {
+              const savedListener = (finishedRequest) => {
                 if (finishedRequest === request) {
                   this.envoyHandlers.project.syndicateExporterRequest(request).then(() => {
                     processedRequests++;
@@ -1042,10 +1042,24 @@ export default class Master extends EventEmitter {
                     logger.warn('[master] project save: asset syndication failed');
                     logger.warn(err.message);
                   });
-                  this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:saved`, listener);
+
+                  removeOneTimeListeners();
                 }
               };
-              this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:saved`, listener);
+
+              const abortListener = (abortedRequest) => {
+                if (abortedRequest === request) {
+                  removeOneTimeListeners();
+                }
+              };
+
+              const removeOneTimeListeners = () => {
+                this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:saved`, savedListener);
+                this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:abort`, abortListener);
+              };
+
+              this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:saved`, savedListener);
+              this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:abort`, abortListener);
               this.envoyHandlers.exporter.save(request);
               next();
             }, cb);
