@@ -777,6 +777,11 @@ Property.buildFilterObject = (
     return
   }
 
+  // For non-rendered components, the *only* thing we want are exposed properties (above)
+  if (hostElement.isNonRenderedComponent()) {
+    return
+  }
+
   const keyframesObject = hostElement.getPropertyKeyframesObject(propertyName)
   const hasManyKeyframes = keyframesObject && Object.keys(keyframesObject).length > 1
   const hasOneKeyframe = keyframesObject && Object.keys(keyframesObject).length === 1

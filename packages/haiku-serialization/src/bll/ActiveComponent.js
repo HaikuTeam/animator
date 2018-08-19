@@ -1375,6 +1375,26 @@ class ActiveComponent extends BaseModel {
               })
             }
 
+            if (Asset.isFont(relpath)) {
+              const fontComponent = FontComponent.upsert({
+                project: this.project,
+                relpath
+              })
+
+              return this.instantiateReference(
+                fontComponent, // subcomponent
+                fontComponent.identifier, // identifier
+                fontComponent.modpath, // modpath
+                coords, // coords
+                { // overrides
+                  name: fontComponent.getTitle(),
+                  href: fontComponent.getLocalHref()
+                },
+                metadata,
+                done
+              )
+            }
+
             return done(new Error(`Problem instantiating ${relpath}`))
           }, finish)
         }
@@ -4662,6 +4682,7 @@ const Element = require('./Element')
 const ElementSelectionProxy = require('./ElementSelectionProxy')
 const File = require('./File')
 const ImageComponent = require('./ImageComponent')
+const FontComponent = require('./FontComponent')
 const InstalledComponent = require('./InstalledComponent')
 const Keyframe = require('./Keyframe')
 const ModuleWrapper = require('./ModuleWrapper')

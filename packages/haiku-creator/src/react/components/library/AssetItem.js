@@ -20,6 +20,7 @@ import {
   TrashIconSVG,
   ComponentIconSVG,
   SyncIconSVG,
+  FontIconSVG,
 } from 'haiku-ui-common/lib/react/OtherIcons';
 
 import ControlImage from 'haiku-ui-common/lib/react/icons/ControlImage';
@@ -333,7 +334,8 @@ class AssetItem extends React.Component {
       this.isFigmaAndCanBeOpened() ||
       this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
-      this.props.asset.isComponentOtherThanMain()
+      this.props.asset.isComponentOtherThanMain() ||
+      this.props.asset.isFont()
     ) {
       return (
         <span
@@ -425,6 +427,16 @@ class AssetItem extends React.Component {
           className="folder-icon-container"
           style={STYLES.cardIcon}>
           <FolderIconSVG />
+        </span>
+      );
+    }
+
+    if (this.props.asset.kind === Asset.KINDS.FONT) {
+      return (
+        <span
+          className="font-icon-container"
+          style={STYLES.cardIcon}>
+          <FontIconSVG />
         </span>
       );
     }
