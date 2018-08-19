@@ -858,7 +858,7 @@ export default class Creator extends React.Component {
     );
 
     // Use a lengthy timeout for project channel, which does some CRUD.
-    this.envoyClient.get(PROJECT_CHANNEL, {timeout: 60000}).then(
+    this.envoyClient.get(PROJECT_CHANNEL).then(
 
       (project) => {
         this.envoyProject = project;
