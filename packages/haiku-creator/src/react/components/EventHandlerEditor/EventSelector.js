@@ -22,6 +22,34 @@ class EventSelector extends React.Component {
     return {label: search, value: search, groupId: 'Custom Events'};
   };
 
+  optionToLabel (option) {
+    let label = option.label;
+
+    if (option.newOption) {
+      if (option.label) {
+        label = `Add '${option.label}'`;
+      } else {
+        label = 'To add a custom event, type anything and press Enter';
+      }
+    }
+
+    return label;
+  }
+
+  renderOption = (item) => {
+    return (
+      <div
+        className="simple-option"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        {this.optionToLabel(item)}
+      </div>
+    );
+  };
+
   render () {
     const groups = [];
     const select = [];
@@ -92,6 +120,7 @@ class EventSelector extends React.Component {
           onValueChange={this.onValueChange}
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
+          renderOption={this.renderOption}
         />
       </div>
     );
