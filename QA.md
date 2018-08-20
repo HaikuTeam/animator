@@ -1,20 +1,58 @@
-Trouble Spots
+🏁 QA CHECKLIST 3.5.3 🏁
 
-I can complete the full tour
+Please complete all sections under YOUR NAME.
+
+If you find a bug, file it in Asana and label it here.
+
+Use the following legend:
+  -strikethrough-=checked (use this to mark items that you have checked)
+  🔴=showstopper (use only for defects that should block release syndication)
+  🐛=minor bug (use for known bugs, bugs already in prod, or small stuff)
+  💚=fixed issue
+
+
+
+*EVERYONE*
+
+Tour
+
+As a brand new user who has the "haikudos" project, I can complete the full tour
+
+Trouble Spot: Sketch Integration
+
+When I use Sketch to change a polygon with a gradient or shadow, that reflects on stage
+When I use Sketch to change a polygon with multiple instances on stage, all reflect the change
+After changing a Sketch design that affects multiple instances of a polygon, I can delete the first polygon
+After making changes in Sketch, I can continue editing when the scrubber is beyond the last keyframe
+I can move an element, change it in Sketch, move the scrubber, change in Sketch, then move the element
+When I make a Sketch change in a project with Actions defined, the code in code.js looks correct
+I can instantiate two different slices, change one in Sketch, and then rapidly instantiate the other one
+
+Trouble Spot: Duplicating/Opening Projects
+
 I can open a duplicated project and the default Sketch file and its references have been renamed
 I can open a duplicated project and the default Adobe Illustrator file and its references have been renamed
 I can open an existing project 5 times (navigating back and forth from editor to dashboard)
 I can open a new project 5 times (navigating back and forth from editor to dashboard)
+
+Trouble Spot: Instantiation/Deletion
+
 I can instantiate the Haiku "H", drag it 5 times, then quickly delete it, without causing a crash
 Instantiating multiple inline image elements works (images don't disappear)
 Instantiating inline image, then deleting it, then re-instantiating it works
 I can instantiate two polygons, then delete the first one, and the others remain
 I can instantiate an element with text content, then instantiate other elements and not crash
+
+Trouble Spot: Copy/Paste
+
 I can copy+paste an element several times, then delete the first one, and the others remain
 I can copy+paste an element with a gradient filter, move the copy, and it works
 I can copy+paste an element that has a gradient, then delete the first one, and the others remain
 I can copy+paste a polygon, then delete the first one, and the others remain
 I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
+
+Trouble Spot: Undo/Redo vs. Other Things
+
 I can instantiate an element, cut it, undo the cut, and then select and move the element without crash
 After undoing, I can make on-stage changes beyond the max defined frame
 I can undo a deletion of an element and things still work normally
@@ -35,40 +73,49 @@ I can zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo when the scrubb
 I can use Bring to Front, Backward, and friends when the scrubber is not at zero
 I can delete keyframe, undo, redo
 I can create keyframe, undo, redo
-I can move keyframes across multiple rows, undo
-I can undo a change from a keyframe value to an expression, and vice versa
+I can move keyframes across multiple rows, undo, redo
 I can undo a z-index change that occurred via the on-stage context menu
 I can undo a z-index change that occurred via drag-and-drop in the timeline
 I can move many keyframes, including an expression, undo, redo, and verify the expression still works
 Instantiate component, move on stage, click timeline, undo until component is gone, then redo all actions
-When I use Sketch to change a polygon with a gradient or shadow, that reflects on stage
-When I use Sketch to change a polygon with multiple instances on stage, all reflect the change
-After changing a Sketch design that affects multiple instances of a polygon, I can delete the first polygon
-After making changes in Sketch, I can continue editing when the scrubber is beyond the last keyframe
-I can move an element, change it in Sketch, move the scrubber, change in Sketch, then move the element
-When I make a Sketch change in a project with Actions defined, the code in code.js looks correct
-I can instantiate two different slices, change one in Sketch, and then rapidly instantiate the other one
+I can undo a change from a keyframe value to an expression, and vice versa
+I can copy+paste a component
+
+Trouble Spot: Expressions
+
 Text selection doesn't keep appearing/reappearing as I type in an expression field
 Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
 I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
 If I have an expression bound to time or interactivity, this continues to work even if playback is paused
-In Preview Mode, the $user.mouse.y position is calculated correctly with respect to the share page artboard box
-In Preview Mode, the $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
+In Preview Mode, the `$user.mouse.y` position is calculated correctly with respect to the share page artboard box
+In Preview Mode, the `$user.mouse.y` position is calculated correctly when the stage has been zoomed/panned
 I can enter `rotation.x,y,z` `0,0,0` (defaults) and not see any change in rotation reflected
+
+Trouble Spot: Timeline
+
 I can scrub wildly over a keyframe sequence that involves rotation and the rotation doesn't become nondeterministic
 In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
 I can play a short (<30f) animation on a loop and playback doesn't slow down
 I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
+
+Trouble Spot: On-Stage Transforming
+
 I can scale an element down to near zero in either dimension without a problem
-I can ungroup a group of components
-I can copy+paste a component
-I delete an instance of a component from the stage, and then undo this
-Multi-component projects shown on the dashboard behave like normal projects
 I can continuously scale an element round and round without causing a freeze/crash
-I can create a subcomponent, give it animations, and when I scrub via the host, the child's animations don't play
-I can create a subcomponent, give it animations, and use Preview Mode to see the animations in the host and child
 I can multi-scale elements that have been rotated in three dimensions
 I can negatively multi-scale (flip) elements that have been rotated without a problem
+
+Trouble Spot: Multi-Component
+
+I can ungroup a group of component instances
+I delete an instance of a component from the stage, and then undo this
+Multi-component projects shown on the dashboard behave like normal projects
+I can create a subcomponent, give it animations, and when I scrub via the host, the child's animations don't play
+I can create a subcomponent, give it animations, and use Preview Mode to see the animations in the host and child
+
+
+
+*TAYLOR*
 
 Basics
 
@@ -83,7 +130,8 @@ Terms appears under Help > Terms of Service
 Privacy policy appears under Help > Privacy Policy
 I can see a present box with a pink dot in the project browser after an update
 I can open the changelog modal from the app menu (Help > What's New)
-I can message support via the in-editor intercom "SUPPORT" button
+The changelog contents show the correct changelog items for this release
+I can message support via the in-editor Intercom "SUPPORT" button
 
 Auth
 
@@ -92,7 +140,6 @@ As a logged-out user, logging in with bad credentials shows meaningful error
 As a logged-out user, I can log in with my credentials
 As a logged-in user, opening app takes me to project dashboard
 The projects dash lets me click a user button to log out
-When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
 I can click the sign up link
 I can click the reset password link
 I can successfully reset my password and login again
@@ -184,6 +231,10 @@ I can fork a published, public project in the wild via right-click menu
 I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
 I can fork a project by running `open haiku://fork/:organizationName/:projectName`
 
+
+
+*TINA*
+
 New Project
 
 For a fresh project, I see a blank artboard on stage
@@ -196,6 +247,30 @@ The default sketch file can be opened, and has explanatory content
 The default sketch file when opened is zoomed in appropriately
 My project's name displays on the stage
 My project's name displays at bottom-left of the screen
+
+Library
+
+In a new project, I can set up a deafult file (Sketch or Illustrator)
+I can add a slice to the default file and see the slice show up in the library
+I can add an artboard to the default file and see the artboard show up in the library
+I can add a mix of slices and artboards and they show up in the library
+The library message goes away after at least one slice is created
+On all of above, long project names are truncated correctly
+In the library, long asset names are truncated correctly
+I can import a Sketch file using the "+" button
+Importing a Sketch file doesn't de-list the other files
+The imported Sketch file's slices, etc. appear in the library pane
+I can expand/collapse the asset folders shown in the library
+Hovering the asset icon shows a floating preview window
+The floating preview isn't clipped at the bottom
+The floating preview isn't clipped by the stage on the right
+I can double-click a library asset to open it in Sketch
+I can use the right-click menu to open in Sketch or show in finder
+I can import an SVG file using the "+" button
+I can drop a SVG directly on Haiku and have it import to the library
+I can drop a Sketch directly on Haiku and have it import to the library
+The library can be scrolled when there are many assets
+I can scroll all the way down to see all assets
 
 Stage
 
@@ -227,6 +302,10 @@ Moving the scrubber on the timeline updates the current time on the stage
 I can delete an element (and this reflects on stage+timeline)
 When I transform an on-stage element I see a keyframe created on the timeline
 I can grip very small elements
+When I transform an element on stage (move, rotate, scale), the element snaps to visible snap lines
+When I hold down Cmd, snapping does not occur, nor do snap-lines appear
+I can use the Align/Distribute menu to align/distribute a set of selected elements in various ways
+I can undo whatever I just did with Align/Distribute
 
 Instantiation
 
@@ -244,6 +323,65 @@ When element is deleted on stage, it is also deleted in the timeline
 When instantiated, the asset looks the same as the original design (no transform problems)
 When I instantiate elements, the z-stacking order of the previous instantiatees is preserved
 
+Timeline
+
+The loading screen is shown until the timeline fully loads
+On timeline, I can expand/collapse component entries
+When I expand on timeline, that element is selected on stage
+Selecting an input selects that row normally
+Focusing an input selects the value (when the input is single-line)
+Escape exits the input field focus
+Clicking away exits the input field focus
+I can use the keyboard to navigate up/down in the timeline row cells
+I can navigate all the way to the top, and keep going, and I jump to the bottom cell
+I can navigate all the way to the bottom, and keep going, and I jump to the top
+When I navigate into a collapsed set of rows, they auto-expand, and the first one is selected
+I can enter a valid value into any input, and see it reflected on stage at time 0
+I can enter a valid value into any input, and see it reflected on stage at time N>0
+When I enter an input, I see a keyframe created in the timeline
+I can click a transition body element and not have a problem
+I can right-click between keyframes to create a tween
+I can remove the tween between keyframes
+I can change the tween between keyframes
+Holding shift or clicking doesn't accidentally activate the expression input
+The assigned curve displays as a rendered curve on the timeline
+I can right-click on the timeline in an empty area to create a keyframe at that spot
+I can right click on an existing curve to create a keyframe at that spot
+I can right click on an existing constant body to create a keyframe at that spot
+The keyframe created doesn't have a curve
+I can change the value of a keyframe that I created via right-click
+Activating a keyframe/segment highlights it
+Highlighting just one keyframe only highlights the one
+
+Timeline Scrolling/Zooming/Display
+
+I can horizontally scroll on the timeline using my trackpad
+I can use the scrollbar to zoom and pan the timeline
+Using scrollbar to zoom and pan updates all rows correctly
+The scrollbar shows a mini version of the playhead position
+The scrollbar is proportional to the length of the timeline
+I can scroll beyond the last keyframe to create "infinite" more keyframes
+Moving the scrubber doesn't vertically scroll the timeline
+The scrollbar proportion updates if I scroll to create more keyframes
+Milliseconds and frames display properly at different zoom levels
+The current time/frame changes whenever the scrubber moves
+I can click the time/frame box to toggle from frames to seconds
+
+Timeline Playback/Scrubbing
+
+I can play/pause/rewind/forward using the playback controls
+Forwarding to the end changes the stage to the correct end state
+Spacebar works for playback (pauses if playing, plays if paused, etc)
+I can manually drag the scrubber to different places (reflecting changes on stage+timeline)
+I can click on the "gauge" to move the scrubber to that time
+I can move the scrubber to a time greater than 60 (or the max keyframe)
+I can create keyframes greater than frame 60 (or the max keyframe)
+The timeline can play to the very end without a problem
+When playback reaches the timeline page boundary, the timeline paginates
+When I play the timeline, it plays back on stage at a reasonable speed
+I can play an animation with only keyframe 0 and it works
+I can play an animation with only keyframe 0 and 1 and it doesn't crash
+
 Artboard
 
 I can click the artboard name to select the artboard
@@ -255,7 +393,7 @@ I can resize the artboard at any frame greater than 0, and its transform box is 
 Elements are semi-transparent outside artboard box
 Element transform controls are not transparent when outside the artboard box
 
-Cut/Copy/Paste
+Cut/Copy/Paste (Inputs)
 
 I can selectall/cut/copy/paste text in Login UI (username field)
 I can selectall/cut/copy/paste text in State Inspector UI
@@ -265,6 +403,40 @@ I can selectall/cut/copy/paste text in Intercom Support Widget
 I can selectall/cut/copy/paste text in Actions UI
 I can selectall/cut/copy/paste text in Publish UI HTML+CDN Embed snippet
 I can selectall/cut/copy/paste text in Publish UI React Embed snippet
+
+Publishing
+
+When I publish a new project for the first time, I am prompted to select privacy settings and the default is Public
+The privacy setting I select at first publish is persisted in the UI and in the cloud
+Publish works (clicking publish publishes the project and shows a share link)
+Eventually a GIF loads and can be previewed/copied
+I can change the project from private to public and back again inside the share modal
+When changing from private/public, the UI reflects this immediately
+After the publish action completes, the toggle remains in the same position I switched it to
+Publish results in a share link
+I can copy the share link to clipboard using the clipboard icon
+I can copy the share link using the clipboard icon while an element is selected on stage
+I can select and copy any of the code snippets
+Before the share link is ready, the "not-allowed" cursor is shown over the share link
+Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
+As soon as the share link is ready, the web install options become clickable and show correct info
+As soon as the share page loads content, the mobile options become clickable and show correct info
+I can click the link and get taken to the page in my browser
+The share page shows my component animating and looping
+The published version behaves the same as the Preview Mode version
+The share page renders the element inside the artboard box
+If I publish again with no changes, I get a share link back immediately
+If I make a change and publish, I get a new share link
+Cmd+S should not publish the project, but should display an info toast
+Eventually the "other" option (for GIF) becomes clickable and shows correct info
+If I try to publish while offline, it fails immediately instead of appearing to try to publish
+
+
+
+*MATTHEW*
+
+Cut/Copy/Paste (Stage)
+
 I can cut/copy elements on stage using keyboard controls
 I can paste elements on stage using keyboard controls
 I can cut/copy elements on stage using right-click menu
@@ -294,6 +466,52 @@ Changes to z-index reflect correctly on stage
 Changes to z-index reflect correctly in the timeline as `style.zIndex` ("Style > Z Index")
 I can drag-and-drop timeline rows to reorder z-index
 
+Expressions
+
+I can create an expression (e.g. binding to $user.mouse.x)
+I can create an expression binding it to ($user.mouches[0] && $user.mouches[0].x)
+I can bind an expression to $core.timeline.frame.elapsed
+I can convert expression back to normal value
+I can convert normal value to expression
+I can edit expression and save in multi-line mode
+I can escape to exit an expression
+I can click away to exit an expression
+Text selection turns into plain cursor when I mouse click expression field that is selected
+Pressing tab while an autocompletion is selected chooses that item
+Pressing enter while an autocompletion is selected chooses that item (BACKLOG)
+I can create an expression that causes a runtime error and things don't crash (error shown)
+I can save a multiline expression by pressing the "save" button on the left side
+
+States
+
+I can create a state entry in the states UI
+I can rename a state entry in the states UI
+I can change a state entry value in the states UI
+I can remove an entry in the states UI by removing both fields
+I can bind an expression to a declared state
+
+Timeline JIT Properties
+
+The JIT properties available for the root element are limited
+The JIT properties for other elements in the timeline are correct and not overwhelming
+I can add a JIT property to an element, which creates a row in the timeline for that property name
+If I add a JIT property like "Style > Border", the row cluster automatically expands and focuses the cell
+
+Preview Mode/Edit Mode
+
+I can toggle back and forth between Preview Mode and Edit Mode
+Event updates to states don't occur in editing mode, but only in Preview Mode
+Playback works normally during Preview Mode
+The stage UI looks different, indicating we are in Preview Mode
+The Library and Timeline are dimmed when we are in Preview Mode
+State values changed with setState revert to previous values when Preview Mode is exited
+The timeline scrubber position is retained to what it was before entering Preview Mode
+I can click on the dimmed Library UI to exit Preview Mode
+I can click on the dimmed Timeline UI to exit Preview Mode
+When exiting Preview Mode, the on-stage transform controls are restored if an element had been selected
+When in Preview Mode, the preview "Eye" icon follows your mouse around
+Expression values (such as `$user.mouse.x`) are set to 1 when in editing mode, and become 'real' during Preview Mode
+
 Multi-Component
 
 In the library, a 'Components' folder is shown above 'Designs'
@@ -306,6 +524,7 @@ On stage, I can reveal the context menu and I see 'Create Component'
 Clicking 'Create Component' opens a naming dialog box
 There is a 'Create Component' button in the top bar
 There is a 'Create Component' option in the library menus
+There is a "+" tab to create a component via the Component Tabs
 The component name dialog can be canceled
 I can enter a component name
 The component name field only allows numbers and lowercase letters
@@ -336,10 +555,10 @@ I can add a state to the child, go back to the host, and the host shows the stat
 The host's display of the state shows the default value for the child state
 I can override the child state from the host component
 If the child state is bound to behavior, I see that affect on stage
-I can enter and exit preview mode when multiple components are in play
+I can enter and exit Preview Mode when multiple components are in play
 If the child has animations, moving the host's scrubber plays them (in BACKLOG)
 If the child has animations, playing the host plays them (note: host must have > 0 keyframes) (in BACKLOG)
-If the child has animations, going into preview mode plays them
+If the child has animations, going into Preview Mode plays them
 I can create a higher order component of multiple components
 I can create a higher order component mixing plain elements with components
 When I do this, all of the above functionality also continues to work correctly
@@ -356,7 +575,12 @@ I can copy and paste components
 I can cut and paste components
 I can undo/redo changes within a child, and those also reflect in the host
 I can set the playback value to `'once'` or `'stop'` or `100` and these all work correctly
+I can set the playback value to `'play+100'` or `'-100'` to stagger animation times, and these all work correctly
 I can set the playback value for a grandchild via a child, and it works correctly from the host
+
+
+
+*ROBERTO*
 
 Sketch
 
@@ -418,37 +642,13 @@ I can dismiss the tour permanently and never see the prompt again
 I can accept the tour and go through all the steps without a problem
 I can't start the tour if I don't have a project named "haikudos"
 
-Expressions
-
-I can create an expression (e.g. binding to $user.mouse.x)
-I can create an expression binding it to ($user.mouches[0] && $user.mouches[0].x)
-I can bind an expression to $core.timeline.frame.elapsed
-I can convert expression back to normal value
-I can convert normal value to expression
-I can edit expression and save in multi-line mode
-I can escape to exit an expression
-I can click away to exit an expression
-Text selection turns into plain cursor when I mouse click expression field that is selected
-Pressing tab while an autocompletion is selected chooses that item
-Pressing enter while an autocompletion is selected chooses that item (BACKLOG)
-I can create an expression that causes a runtime error and things don't crash (error shown)
-I can save a multiline expression by pressing the "save" button on the left side
-
-States
-
-I can create a state entry in the states UI
-I can rename a state entry in the states UI
-I can change a state entry value in the states UI
-I can remove an entry in the states UI by removing both fields
-I can bind an expression to a declared state
-
 Actions
 
 I can use the stage right click menu to attach an action
 I can save my changes to my action
 I can cancel my changes to my action
 I can view a previously written action in the window (correct code is loaded)
-I can enter preview mode and verify that event listeners work correctly
+I can enter Preview Mode and verify that event listeners work correctly
 Code formatting is sensible after saving and reloading the function content
 Scrolling in the action window doesn't pan the stage
 I can add 2 or more actions
@@ -457,7 +657,7 @@ I can still use the "new action" dropdown menu when there are 2 or more actions
 I can add a frame listener at 0
 I can add a frame listener at frame>0
 I can remove any frame listener
-I can enter preview mode and verify that frame listeners work correctly
+I can enter Preview Mode and verify that frame listeners work correctly
 When an action exists on an element, a bolt icon shows next to it in the timeline
 Frame listener window opens when you click the frame listener button
 When a frame listener exists at a frame, a bolt icon shows next to it in the timeline gauge
@@ -465,111 +665,13 @@ I can delete a frame listener using the trash icon
 I can delete an element listener
 I can add an event listener with a custom name like "foo-bar"
 I can remove an event listener with a custom name like "foo-bar"
-
-Preview Mode/Edit Mode
-
-I can toggle back and forth between 'preview' and 'edit' mode
-Event updates to states don't occur in editing mode, but only in live mode
-Playback works normally during preview mode
-The stage UI looks different, indicating we are in preview mode
-The Library and Timeline are dimmed when we are in preview mode
-State values changed with setState revert to previous values when preview mode is exited
-The timeline scrubber position is retained to what it was before entering preview mode
-I can click on the dimmed Library UI to exit preview mode
-I can click on the dimmed Timeline UI to exit preview mode
-When exiting preview mode, the on-stage transform controls are restored if an element had been selected
-When in preview mode, the preview "Eye" icon follows your mouse around
-Expression values are set to 1 when in editing mode, and become 'real' during preview mode
-
-Library
-
-In a new project, I can set up a deafult file (Sketch or Illustrator)
-I can add a slice to the default file and see the slice show up in the library
-I can add an artboard to the default file and see the artboard show up in the library
-I can add a mix of slices and artboards and they show up in the library
-The library message goes away after at least one slice is created
-On all of above, long project names are truncated correctly
-In the library, long asset names are truncated correctly
-I can import a Sketch file using the "+" button
-Importing a Sketch file doesn't de-list the other files
-The imported Sketch file's slices, etc. appear in the library pane
-I can expand/collapse the asset folders shown in the library
-Hovering the asset icon shows a floating preview window
-The floating preview isn't clipped at the bottom
-The floating preview isn't clipped by the stage on the right
-I can double-click a library asset to open it in Sketch
-I can use the right-click menu to open in Sketch or show in finder
-I can import an SVG file using the "+" button
-I can drop a SVG directly on Haiku and have it import to the library
-I can drop a Sketch directly on Haiku and have it import to the library
-The library can be scrolled when there are many assets
-I can scroll all the way down to see all assets
-
-Timeline
-
-The loading screen is shown until the timeline fully loads
-On timeline, I can expand/collapse component entries
-When I expand on timeline, that element is selected on stage
-Selecting an input selects that row normally
-Focusing an input selects the value (when the input is single-line)
-Escape exits the input field focus
-Clicking away exits the input field focus
-I can use the keyboard to navigate up/down in the timeline row cells
-I can navigate all the way to the top, and keep going, and I jump to the bottom cell
-I can navigate all the way to the bottom, and keep going, and I jump to the top
-When I navigate into a collapsed set of rows, they auto-expand, and the first one is selected
-I can enter a valid value into any input, and see it reflected on stage at time 0
-I can enter a valid value into any input, and see it reflected on stage at time N>0
-When I enter an input, I see a keyframe created in the timeline
-I can click a transition body element and not have a problem
-I can right-click between keyframes to create a tween
-I can remove the tween between keyframes
-I can change the tween between keyframes
-Holding shift or clicking doesn't accidentally activate the expression input
-The assigned curve displays as a rendered curve on the timeline
-I can right-click on the timeline in an empty area to create a keyframe at that spot
-I can right click on an existing curve to create a keyframe at that spot
-I can right click on an existing constant body to create a keyframe at that spot
-The keyframe created doesn't have a curve
-I can change the value of a keyframe that I created via right-click
-Activating a keyframe/segment highlights it
-Highlighting just one keyframe only highlights the one
-
-Timeline Scrolling/Zooming/Display
-
-I can horizontally scroll on the timeline using my trackpad
-I can use the scrollbar to zoom and pan the timeline
-Using scrollbar to zoom and pan updates all rows correctly
-The scrollbar shows a mini version of the playhead position
-The scrollbar is proportional to the length of the timeline
-I can scroll beyond the last keyframe to create "infinite" more keyframes
-Moving the scrubber doesn't vertically scroll the timeline
-The scrollbar proportion updates if I scroll to create more keyframes
-Milliseconds and frames display properly at different zoom levels
-The current time/frame changes whenever the scrubber moves
-I can click the time/frame box to toggle from frames to seconds
-
-Timeline Playback/Scrubbing
-
-I can play/pause/rewind/forward using the playback controls
-Forwarding to the end changes the stage to the correct end state
-Spacebar works for playback (pauses if playing, plays if paused, etc)
-I can manually drag the scrubber to different places (reflecting changes on stage+timeline)
-I can click on the "gauge" to move the scrubber to that time
-I can move the scrubber to a time greater than 60 (or the max keyframe)
-I can create keyframes greater than frame 60 (or the max keyframe)
-The timeline can play to the very end without a problem
-When playback reaches the timeline page boundary, the timeline paginates
-When I play the timeline, it plays back on stage at a reasonable speed
-I can play an animation with only keyframe 0 and it works
-I can play an animation with only keyframe 0 and 1 and it doesn't crash
-
-JIT Properties
-
-The JIT properties available for the root element are limited
-The JIT properties for other elements in the timeline are correct and not overwhelming
-I can add a JIT property to an element, which creates a row in the timeline for that property name
-If I add a JIT property like "Style > Border", the row cluster automatically expands and focuses the cell
+In Preview Mode, custom events like "foo-bar" emit from the child to the main component
+I can have an action whose code uses a return statement
+I can evaluate `this.evaluate('$user.mouse.x')` in an action and it works
+I can create an Action listening to Component Lifecycle > Frame, and it fires every frame
+I can create an Action listening to Hover/Unhover, and it works intuitively
+I can use the bolt icon at the top above the stage to create an action
+I can create an action on the root component using the right-click menu without having to select the Artboard
 
 Solo Keyframes
 
@@ -627,32 +729,68 @@ I am able to deselect a previously selected segment holding Shift and clicking o
 I am able to deselect a segment by right-clicking a tween
 I am able to deselect a segment by right-clicking a keyframe
 
-Publishing
 
-When I publish a new project for the first time, I am prompted to select privacy settings and the default is Public
-The privacy setting I select at first publish is persisted in the UI and in the cloud
-Publish works (clicking publish publishes the project and shows a share link)
-Eventually a GIF loads and can be previewed/copied
-I can change the project from private to public and back again inside the share modal
-When changing from private/public, the UI reflects this immediately
-After the publish action completes, the toggle remains in the same position I switched it to
-Publish results in a share link
-I can copy the share link to clipboard using the clipboard icon
-I can copy the share link using the clipboard icon while an element is selected on stage
-I can select and copy any of the code snippets
-Before the share link is ready, the "not-allowed" cursor is shown over the share link
-Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
-As soon as the share link is ready, the web install options become clickable and show correct info
-As soon as the share page loads content, the mobile options become clickable and show correct info
-I can click the link and get taken to the page in my browser
-The share page shows my component animating and looping
-The published version behaves the same as the preview mode version
-The share page renders the element inside the artboard box
-If I publish again with no changes, I get a share link back immediately
-If I make a change and publish, I get a new share link
-Cmd+S should not publish the project, but should display an info toast
-Eventually the "other" option (for GIF) becomes clickable and shows correct info
-If I try to publish while offline, it fails immediately instead of appearing to try to publish
+
+*JONAS*
+
+CLI
+
+I can use Haiku CLI to login and logout
+Haiku CLI invalidates bad logins
+I can clone a project in my org with `$ haiku clone`
+I can generate a component with `$ haiku generate`
+
+State transitions
+
+I can trigger a state transition on an element in an event handler with this syntax: `this.setState({foo: 1000}, {duration: 1000, curve: 'linear'})`
+Expressions involving `foo` behave as expected over the duration of the state transition
+If I trigger another state transition in the middle of a current state transition, the active transition is clobbered
+I can trigger a _queued_ state transition on an element in an event handler with this syntax: `this.setState({foo: 1000}, {duration: 1000, curve: 'linear', queue: true})`
+If I trigger a _queued_ state transition, the active transition is not clobbered, and the state transition waits until the previous one is complete
+If I trigger a state transition on a boolean or string, the value of the state does not change until the end of the transition
+
+Code Mode
+
+I can switch between design mode and code mode while editing
+Switching between design mode and code mode does not lag
+I can make edits in code mode without errors
+I can undo/redo changes in code mode using keyboard shortcuts like a regular code editor
+I can save changes using Cmd+S
+If I try to save with a syntax error, I receive a warning with the specific error and am unable to save
+If I try to exit code mode with unsaved changes by selecting another component, I am prompted to save or discard my changes
+If I try to exit code mode with unsaved changes by selecting design mode, I am prompted to save or discard my changes
+After exiting code mode, changes I made in code mode are immediately reflected on stage
+Properties with no animations are written as shorthand (`style.position: 'relative'` instead of `style.position: {0: {value: 'relative'}`)
+In the template object, `haiku-id` attributes have a human-friendly prefix (like `haiku:Some Slice Name:abc123xyz789` instead of `haiku:abc123xyz789`)
+
+Direct Selection
+
+I can double click to directly select a `<rect>` on stage
+I can double click to directly select a `<circle>` on stage
+I can double click to directly select a `<ellipse>` on stage
+I can double click to directly select a `<line>` on stage
+I can double click to directly select a `<polyline>` on stage
+I can double click to directly select a `<polygon>` on stage
+I can double click to directly select a `<path>` on stage
+I can edit the vertices of a `<rect>` on stage to change its shape
+I can edit the vertices of a `<circle>` on stage to change its shape
+I can edit the vertices of a `<ellipse>` on stage to change its shape
+I can edit the vertices of a `<line>` on stage to change its shape
+I can edit the vertices of a `<polyline>` on stage to change its shape
+I can edit the vertices of a `<polygon>` on stage to change its shape
+I can edit the vertices of a `<path>` on stage to change its shape
+When I edit a shape directly, the parent `<svg>` gets set to `overflow: visible`
+Moving the vertices outside of the parent `<svg>` box are still visible
+After I change the size of an inner shape, the transform control box size reflects this when I re-select the parent `<svg>`
+I can do all of the above edits at keyframe 0
+I can do all of the above edits at keyframe n>0
+I can add a keyframe to create a tween (path morph) for any of the above edits between 0..n>0
+When I directly edit vertices, I see the updated property/keyframe change in the Timeline
+I can directly edit shape attributes like `d` in the Timeline, and see the change reflect on Stage
+
+
+
+*SASHA*
 
 Multi-select/Multi-transform
 
@@ -724,22 +862,10 @@ I can open code.js and verify the action got written ok
 I can open code.js and verify the state got written ok
 I can open code.js and verify a require('@haiku/core') at the top
 I can manually edit the code and see the reloaded code on stage, timeline, etc.
-I can still edit on stage after a code reload
-I can still edit in timeline after a code reload
-After a code reload, the timeline input fields reflect the correct values
-During a code reload the timeline does not animate, and stays at the same frame
-
-Code Mode
-
-I can switch between design mode and code mode while editing
-Switching between design mode and code mode does not lag
-I can make edits in code mode without errors
-I can undo/redo changes in code mode using keyboard shortcuts like a regular code editor
-I can save changes using Cmd+S
-If I try to save with a syntax error, I receive a warning with the specific error and am unable to save
-If I try to exit code mode with unsaved changes by selecting another component, I am prompted to save or discard my changes
-If I try to exit code mode with unsaved changes by selecting design mode, I am prompted to save or discard my changes
-After exiting code mode, changes I made in code mode are immediately reflected on stage
+I can still edit on stage after a code reload from an on-disk change
+I can still edit in timeline after a code reload from an on-disk change
+After a code reload due to an on-disk change, the timeline input fields reflect the correct values
+During a code reload due to an on-disk change the timeline does not animate, and stays at the same frame
 
 Release Collateral
 
@@ -762,32 +888,19 @@ Publishing produces a static bundle at code/main/static.json which renders corre
 Changes made in Sketch after first publish also appear correctly on the published share page
 A GIF shows up in Slack when the link is shared in Slack
 
-CLI
 
-I can use Haiku CLI to login and logout
-Haiku CLI invalidates bad logins
-I can clone a project in my org with `$ haiku clone`
 
-State transitions
+- - - -
 
-I can trigger a state transition on an element in an event handler with this syntax: `this.setState({foo: 1000}, {duration: 1000, curve: 'linear'})`
-Expressions involving `foo` behave as expected over the duration of the state transition
-If I trigger another state transition in the middle of a current state transition, the active transition is clobbered
-I can trigger a _queued_ state transition on an element in an event handler with this syntax: `this.setState({foo: 1000}, {duration: 1000, curve: 'linear', queue: true})`
-If I trigger a _queued_ state transition, the active transition is not clobbered, and the state transition waits until the previous one is complete
-If I trigger a state transition on a boolean or string, the value of the state does not change until the end of the transition
+*ENGINEERING*
 
 *The items below require special setup/access and are not required for normal QA.*
 
-Errors/notifications
+Distro
 
-Crash in Master, Plumbing, Glass, Timeline, or Creator sends Sentry notice
-An error response in Plumbing method sends Sentry notice
-An error will upload the user's project and metadata to S3 (Carbonite)
-If rapid errors occur, Carbonite snapshots only occur once per 10 minutes
-Carbonite errors can originate successfully from from Master, Plumbing, Glass, Timeline, or Creator
-Errors result in a toast being displayed to the user on any screen
-Carbonite report still gets sent even if the app crashes quickly
+A MacOS build can be created
+A Windows build can be created
+A Linux build can be created
 
 Development
 
@@ -809,6 +922,16 @@ All of the test/demo examples render/behave correctly in Safari
 All of the test/demo examples render/behave correctly in Firefox
 All of the test/demo examples render/behave correctly in Edge
 All of the test/demo examples render/behave correctly in IE11*
+
+Errors/Notifications
+
+Crash in Master, Plumbing, Glass, Timeline, or Creator sends Sentry notice
+An error response in Plumbing method sends Sentry notice
+An error will upload the user's project and metadata to S3 (Carbonite)
+If rapid errors occur, Carbonite snapshots only occur once per 10 minutes
+Carbonite errors can originate successfully from from Master, Plumbing, Glass, Timeline, or Creator
+Errors result in a toast being displayed to the user on any screen
+Carbonite report still gets sent even if the app crashes quickly
 
 Embedding/Host Codebases
 
@@ -852,3 +975,18 @@ Mixpanel sends tracking events for various actions
 The .app build logs to `~/.haiku/logs/haiku-debug.log`
 User secret credentials are not included in the log
 For subcomponents, the `sizeAbsolute.x/y` value is set to `auto`
+When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
+
+
+
+- - - -
+
+*SLAM*
+
+*When doing a Haiku SLAM, consider all of the following:*
+
+Build a real piece of UI (something you might see in an app, website, or game)
+Create at least one Action
+Create at least one Expression
+Create at least one State
+Create at least one Component
