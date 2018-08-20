@@ -28,7 +28,7 @@ export class GifExporter extends BaseExporter implements ExporterInterface {
             .addInput(palettePath)
             .withOutputOptions([
               '-lavfi',
-              `fps=${framerate} [x]; [x][1:v] paletteuse, scale=${componentSize.x}:${componentSize.y}`,
+              `scale=${componentSize.x}:${componentSize.y}, fps=${framerate} [x]; [x][1:v] paletteuse`,
             ])
             .on('error', (stdout, stderr) => {
               reject(stderr);
