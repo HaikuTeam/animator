@@ -395,7 +395,7 @@ class EventHandlerEditor extends React.PureComponent {
               />
             </ModalFooter>
           )}
-        </div>;
+        </div>
       </ModalWrapper >);
   }
 }
