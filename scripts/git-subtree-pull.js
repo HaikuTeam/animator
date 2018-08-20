@@ -34,7 +34,15 @@ const prefix = packageName === 'changelog' ? 'changelog' : `packages/${pack.name
 
 log.hat(`pulling changes from git subtree for ${packageName} on ${branch}`);
 
+const mergeMessage = `'auto: subtree pull for ${packageName} at ${semver}'`;
 const cmd = `git subtree pull --prefix ${prefix} ${pack.remote} ${branch} \
-  -m 'auto: subtree pull for ${packageName} at ${semver}'`;
+  -m ${mergeMessage}`;
 log.log(cmd);
-cp.execSync(cmd, {cwd: ROOT, stdio: 'inherit'});
+try {
+  cp.execSync(cmd, {cwd: ROOT, stdio: 'inherit'});
+} catch (err) {
+  // Attempt automatic conflict resolution.
+  cp.execSync('git checkout --ours .', {cwd: ROOT, stdio: 'inherit'});
+  cp.execSync('git add -u', {cwd: ROOT, stdio: 'inherit'});
+  cp.execSync(`git commit -m ${mergeMessage}`, {cwd: ROOT, stdio: 'inherit'});
+}
