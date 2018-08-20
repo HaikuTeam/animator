@@ -3562,6 +3562,9 @@ class ActiveComponent extends BaseModel {
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
+          if (!node) {
+            continue
+          }
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
             node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
@@ -3694,6 +3697,9 @@ class ActiveComponent extends BaseModel {
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
+          if (!node) {
+            continue
+          }
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
             node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
