@@ -139,7 +139,7 @@
     "asar": true,
     "asarUnpack": [
       "node_modules/haiku-plumbing/bins/*",
-      "node_modules/ffmpeg-static/bin/*"
+      "node_modules/ffmpeg-static"
     ],
     "extraResources": [
       "app/index.js"
