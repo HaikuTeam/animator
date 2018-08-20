@@ -207,7 +207,7 @@ export default class Creator extends React.Component {
         const node = ReactDOM.findDOMNode(this.editor);
         const pnode = ReactDOM.findDOMNode(this.refs.stage);
         if (!node.contains(e.target) && pnode.contains(e.target)) {
-          this.hideEventHandlersEditor();
+          this.safelyHideEventHandlersEditor();
         }
       }
     });
@@ -1060,7 +1060,7 @@ export default class Creator extends React.Component {
     // - Pressing design button: go to desing and restore left panel
     // - Pressing code button: go to code editor and open state inspector on left panel
     if (interactionMode === InteractionMode.GLASS_PREVIEW) {
-      this.hideEventHandlersEditor();
+      this.safelyHideEventHandlersEditor();
     } else if (this.state.interactionMode === InteractionMode.GLASS_PREVIEW && interactionMode === InteractionMode.GLASS_EDIT) {
       this.setState({activeNav: this.lastWidgetState.activeNav});
     } else if (interactionMode === InteractionMode.GLASS_EDIT) {
@@ -1074,7 +1074,7 @@ export default class Creator extends React.Component {
     this.mixpanelReportPreviewMode(interactionMode);
 
     if (interactionMode === InteractionMode.GLASS_PREVIEW) {
-      this.hideEventHandlersEditor();
+      this.safelyHideEventHandlersEditor();
     }
 
     this.setState({interactionMode}, this.openPreviewDevTools);
@@ -1731,6 +1731,8 @@ export default class Creator extends React.Component {
         // unfound.
         BaseModel.extensions.forEach((klass) => klass.purge());
 
+        this.forceHideEventHandlersEditor();
+
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
@@ -1774,7 +1776,7 @@ export default class Creator extends React.Component {
     );
   }
 
-  logOut () {
+  logOut = () => {
     if (this.user) {
       this.user.logOut().then(() => {
         this.clearAuth();
@@ -1783,7 +1785,7 @@ export default class Creator extends React.Component {
         });
       });
     }
-  }
+  };
 
   clearAuth () {
     this.setState({readyForAuth: true, isUserAuthenticated: false, username: ''});
@@ -1794,7 +1796,7 @@ export default class Creator extends React.Component {
     this.refs.stage.tryToChangeCurrentActiveComponent(scenename);
   }
 
-  showChangelogModal () {
+  showChangelogModal = () => {
     this.setState({showChangelogModal: true}, () => {
       const lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
       this.setState({lastViewedChangelog});
@@ -1802,7 +1804,7 @@ export default class Creator extends React.Component {
     });
 
     mixpanel.haikuTrack('creator:changelog:shown');
-  }
+  };
 
   renderChangelogModal () {
     return this.state.showChangelogModal ? (
@@ -1936,20 +1938,24 @@ export default class Creator extends React.Component {
     this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'creator'}, () => {});
   }
 
-  hideEventHandlersEditor () {
+  forceHideEventHandlersEditor () {
+    this.setState({
+      targetElement: null,
+      showEventHandlerEditor: false,
+      eventHandlerEditorOptions: {},
+    });
+
+    this.state.projectModel.broadcastPayload({
+      name: 'event-handlers-editor-closed',
+    });
+  }
+
+  safelyHideEventHandlersEditor = () => {
     if (this.editor && this.editor.canBeClosedExternally()) {
       mixpanel.haikuTrack('creator:hide-event-handlers-editor');
-      this.setState({
-        targetElement: null,
-        showEventHandlerEditor: false,
-        eventHandlerEditorOptions: {},
-      });
-
-      this.state.projectModel.broadcastPayload({
-        name: 'event-handlers-editor-closed',
-      });
+      this.forceHideEventHandlersEditor();
     }
-  }
+  };
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
     if (isPreviewMode(this.state.interactionMode) || !targetElement) {
@@ -2051,9 +2057,7 @@ export default class Creator extends React.Component {
               this.showNewProjectModal(...args);
             }}
             lastViewedChangelog={this.state.lastViewedChangelog}
-            onShowChangelogModal={() => {
-              this.showChangelogModal();
-            }}
+            onShowChangelogModal={this.showChangelogModal}
             privateProjectLimit={this.state.privateProjectLimit}
             showChangelogModal={this.state.showChangelogModal}
             username={this.state.username}
@@ -2064,9 +2068,7 @@ export default class Creator extends React.Component {
             launchProject={this.launchProject}
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
-            logOut={() => {
-              this.logOut();
-            }}
+            logOut={this.logOut}
             notices={this.state.notices}
             envoyClient={this.envoyClient}
             {...this.props} />
@@ -2179,9 +2181,7 @@ export default class Creator extends React.Component {
                           save={(targetElement, serializedEvent) => {
                             this.saveEventHandlers(targetElement, serializedEvent);
                           }}
-                          close={() => {
-                            this.hideEventHandlersEditor();
-                          }}
+                          close={this.safelyHideEventHandlersEditor}
                           visible={this.state.showEventHandlerEditor}
                           options={this.state.eventHandlerEditorOptions}
                           ref={(editor) => {
