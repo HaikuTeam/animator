@@ -1720,10 +1720,6 @@ class Timeline extends React.Component {
         }
         <HorzScrollShadow timeline={timeline} />
         {this.renderTopControls()}
-        <PostMaxKeyframeArea
-          propertiesPixelWidth={propertiesPixelWidth}
-          timeline={timeline}
-        />
         <ScrollView
           timeline={timeline}
           propertiesPixelWidth={propertiesPixelWidth}
@@ -1757,6 +1753,10 @@ class Timeline extends React.Component {
           onNavigateRequested={(navDir, doFocus) => {
             this.getActiveComponent().focusSelectNext(navDir, doFocus, {from: 'timeline'});
           }} />
+        <PostMaxKeyframeArea
+          propertiesPixelWidth={propertiesPixelWidth}
+          timeline={timeline}
+        />
       </div>
     );
   }
