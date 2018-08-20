@@ -9,6 +9,8 @@ const branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --
 const ROOT = global.process.cwd();
 const processOptions = {cwd: ROOT, stdio: 'inherit'};
 
+// Stash semver changes.
+cp.execSync('git stash');
 // Fast-forward master
 cp.execSync('git fetch', processOptions);
 cp.execSync('git checkout master', processOptions);
@@ -19,12 +21,9 @@ cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions);
 cp.execSync(`git merge ${branch}`, processOptions);
 // Regenerate changelog and push to remote.
 cp.execSync('node ./scripts/changelog.js', processOptions);
+cp.execSync('git stash pop');
 cp.execSync('git add -u', processOptions);
-
-// git commit might fail if there is no changelog. Not a big deal.
-try {
-  cp.execSync('git commit -m "auto: Updates changelog."', processOptions);
-} catch (e) {}
+cp.execSync('git commit -m "auto: Updates changelog."', processOptions);
 
 // Compile packages.
 cp.execSync('yarn install --frozen-lockfile', processOptions);
