@@ -80,7 +80,7 @@ export default class SoloKeyframe extends React.Component {
         id={`solo-keyframe-${this.props.keyframe.getUniqueKey()}`}
         style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
           position: 'absolute',
-          left: leftPx + 2,
+          left: leftPx + 3,
           top: 10,
           transform: 'scale(1.7)',
           transition: 'opacity 130ms linear',
