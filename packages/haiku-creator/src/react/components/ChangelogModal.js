@@ -12,6 +12,7 @@ import {DASH_STYLES} from '../styles/dashShared';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll';
 import * as Changelog from 'haiku-serialization/src/bll/Changelog';
+import {getUrl} from 'haiku-common/lib/environments';
 
 const STYLES = {
   modalWrapper: {
@@ -109,7 +110,7 @@ class ChangelogModal extends React.PureComponent {
             <span
               style={STYLES.link}
               onClick={() => {
-                shell.openExternal('https://www.haiku.ai/release-notes');
+                shell.openExternal(getUrl('release-notes'));
               }}
             >
               Full Changelog
