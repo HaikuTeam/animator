@@ -119,10 +119,10 @@ When I publish a project, the Video option is grayed out and the GIF option is l
 Paid User UX (while logged in as a paid user)
 
 No counter appears in the top right corner indicating a private project limit
-I can load the dashboard while offline
-I cannot delete projects that were created while online
-I cannot delete projects that were created offline and later published
-I can create a project while offline
+While offline, I can load the dashboard
+While offline, I cannot delete projects that were created while online
+While offline, I cannot delete projects that were created offline and later published
+While offline, I can create a project
 With a project open, I can Cmd+E to offline export as an Animated GIF, Video, or Lottie
 The offline exported file format appears as a pill in the bottom right of the timeline
 While the offline export is in progress, a loading bar appears and the pill is unclickable
