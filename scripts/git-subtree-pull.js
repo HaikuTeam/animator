@@ -42,7 +42,20 @@ try {
   cp.execSync(cmd, {cwd: ROOT, stdio: 'inherit'});
 } catch (err) {
   // Attempt automatic conflict resolution.
-  cp.execSync('git checkout --ours .', {cwd: ROOT, stdio: 'inherit'});
+  const statusLines = cp.execSync('git status', {cwd: ROOT}).toString().split('\n').map((line) => line.trim());
+  statusLines.forEach((line) => {
+    if (!/:\s/.test(line)) {
+      return;
+    }
+
+    if (/^both modified:/.test(line)) {
+      cp.execSync(`git checkout --ours ${line.split(':')[1]}`, {cwd: ROOT, stdio: 'inherit'});
+    } else if (/^deleted by us:/.test(line)) {
+      cp.execSync(`git rm ${line.split(':')[1]}`, {cwd: ROOT, stdio: 'inherit'});
+    } else {
+      throw new Error(`Unable to process line: ${line}`);
+    }
+  });
   cp.execSync('git add -u', {cwd: ROOT, stdio: 'inherit'});
   cp.execSync(`git commit -m ${mergeMessage}`, {cwd: ROOT, stdio: 'inherit'});
 }
