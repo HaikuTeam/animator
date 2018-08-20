@@ -1588,17 +1588,6 @@ class Element extends BaseModel {
     return HaikuElement.findOrCreateByNode(this.getLiveRenderedNode())
   }
 
-  getParentSvgElement () {
-    let currElem = this
-    while (currElem) {
-      if (currElem.getNameString() === 'svg') {
-        return currElem
-      }
-      currElem = currElem.parent
-    }
-    return null
-  }
-
   getUngroupables () {
     const haikuElement = this.getHaikuElement()
     switch (haikuElement.tagName) {
