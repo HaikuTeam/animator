@@ -76,7 +76,7 @@ class Illustrator {
    * @param {string} abspath
    * @returns {Boolean}
    */
-  static importSVG (abspath) {
+  static importSVG ({abspath, tryToOpenFile}) {
     if (!Illustrator.isIllustratorFile(abspath)) return false
 
     logger.info('[illustrator] got', abspath)
@@ -103,7 +103,14 @@ class Illustrator {
 
     fse.writeFileSync(exportScriptPath, exportScript)
 
-    execSync(Illustrator.openIllustratorFile(exportScriptPath))
+    if (tryToOpenFile) {
+      execSync(Illustrator.openIllustratorFile(abspath))
+      // Try to do our best to wait until the file is open before running the
+      // script.
+      setTimeout(() => Illustrator.openIllustratorFile(exportScriptPath), 5000)
+    } else {
+      execSync(Illustrator.openIllustratorFile(exportScriptPath))
+    }
 
     return true
   }
