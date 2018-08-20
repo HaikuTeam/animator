@@ -2313,6 +2313,10 @@ export class Glass extends React.Component {
             },
           };
 
+          // We get SVG root element here so we can update svg overflow to visible
+          const selectedElement = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
+          const rootSvgElement = selectedElement.getParentSvgElement();
+
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
 
@@ -2323,6 +2327,11 @@ export class Glass extends React.Component {
               case 'circle': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       r: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2348,6 +2357,11 @@ export class Glass extends React.Component {
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       [property]: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2400,6 +2414,11 @@ export class Glass extends React.Component {
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2435,6 +2454,11 @@ export class Glass extends React.Component {
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2460,6 +2484,11 @@ export class Glass extends React.Component {
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: attrUpdate,
                   },
                 }, keyframeOptions, {from: 'glass'}, () => {});
@@ -2528,6 +2557,11 @@ export class Glass extends React.Component {
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2548,6 +2582,11 @@ export class Glass extends React.Component {
               case 'circle': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       cx: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2567,6 +2606,11 @@ export class Glass extends React.Component {
               case 'rect': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2592,6 +2636,11 @@ export class Glass extends React.Component {
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2607,6 +2656,11 @@ export class Glass extends React.Component {
               case 'line': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x1: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
@@ -2647,6 +2701,11 @@ export class Glass extends React.Component {
                   }
                 }
                 this.getActiveComponent().updateKeyframes({
+                  [rootSvgElement.componentId]: {
+                    'style.overflow': {
+                      0: {value: 'visible'},
+                    },
+                  },
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
