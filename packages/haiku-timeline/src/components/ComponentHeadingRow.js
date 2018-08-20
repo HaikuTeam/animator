@@ -368,7 +368,7 @@ export default class ComponentHeadingRow extends React.Component {
                 className="design-sync-button"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   ...STYLES.actionButton,
-                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none',
+                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none',
                 } : {
                   width: 16,
                   position: 'absolute',
