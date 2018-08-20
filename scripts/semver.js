@@ -23,6 +23,9 @@ const inputs = lodash.assign({}, DEFAULTS, argv);
 
 if (argv['non-interactive']) {
   go();
+} else if (argv.explicit && semver.valid(argv.explicit) && semver.lt(current, argv.explicit)) {
+  inputs.version = argv.explicit;
+  go();
 } else {
   inquirer.prompt([
     {
