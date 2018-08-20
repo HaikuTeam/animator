@@ -11,7 +11,7 @@ Instantiating inline image, then deleting it, then re-instantiating it works
 I can instantiate two polygons, then delete the first one, and the others remain
 I can instantiate an element with text content, then instantiate other elements and not crash
 I can copy+paste an element several times, then delete the first one, and the others remain
-I can copy+paste an element with a gradien fillt, move the copy, and it works
+I can copy+paste an element with a gradient filter, move the copy, and it works
 I can copy+paste an element that has a gradient, then delete the first one, and the others remain
 I can copy+paste a polygon, then delete the first one, and the others remain
 I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
@@ -48,31 +48,27 @@ After making changes in Sketch, I can continue editing when the scrubber is beyo
 I can move an element, change it in Sketch, move the scrubber, change in Sketch, then move the element
 When I make a Sketch change in a project with Actions defined, the code in code.js looks correct
 I can instantiate two different slices, change one in Sketch, and then rapidly instantiate the other one
-I don't see an ever-growing number of "file ingested" messages for each time I reopen a project
 Text selection doesn't keep appearing/reappearing as I type in an expression field
 Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
 I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
 If I have an expression bound to time or interactivity, this continues to work even if playback is paused
-The $user.mouse.y position is calculated correctly with respect to the share page artboard box
-The $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
+In Preview Mode, the $user.mouse.y position is calculated correctly with respect to the share page artboard box
+In Preview Mode, the $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
 I can enter `rotation.x,y,z` `0,0,0` (defaults) and not see any change in rotation reflected
 I can scrub wildly over a keyframe sequence that involves rotation and the rotation doesn't become nondeterministic
 In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
 I can play a short (<30f) animation on a loop and playback doesn't slow down
 I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
-The "secret `<div>`" in a group of elements isn't selectable (the hitbox of the group is bounded by the transform box)
 I can scale an element down to near zero in either dimension without a problem
 I can ungroup a group of components
 I can copy+paste a component
 I delete an instance of a component from the stage, and then undo this
 Multi-component projects shown on the dashboard behave like normal projects
-I can add text elements to the stage and the text content becomes "content" attributes in code.js
-I can continuously scale an element round and round without causing a freeze-up or a crash
-I can create a subcomponent, give it animations, and scrub to see the animations in the host
-I can create a subcomponent, give it animations, and use preview mode to see the animations in the host
+I can continuously scale an element round and round without causing a freeze/crash
+I can create a subcomponent, give it animations, and when I scrub via the host, the child's animations don't play
+I can create a subcomponent, give it animations, and use Preview Mode to see the animations in the host and child
 I can multi-scale elements that have been rotated in three dimensions
 I can negatively multi-scale (flip) elements that have been rotated without a problem
-
 
 Basics
 
@@ -106,22 +102,21 @@ New Accounts
 I can create a brand new account
 Before verifying my email address, I see an error when logging in
 After verifying my email address, I can log in
-When I first log in, I see template project haikudos
+When I first log in, I see template project "haikudos"
 The template project shows an animated thumbnail even if no local content exists
 I can open the template project without a problem
 
-Free user UX (test while logged in as a free user)
+Free User UX (while logged in as a free user)
 
 A counter in the top right corner indicates how much of my private project limit I'm using with a CTA to go pro
 If I load the dashboard while offline, I receive an error with a CTA to go pro
-If I am at or over the private project limit:
- - When I try to publish a new project for the first time, I cannot select "Private" with a CTA to go pro
- - For public projects, if I try to toggle Public->Private in the share modal, I receive a notice with a CTA to go pro
- - For existing private projects, I am able to toggle Private->Public->Private as desired
+If I am at or over the private project limit: When I try to publish a new project for the first time, I cannot select "Private" with a CTA to go pro
+If I am at or over the private project limit: For public projects, if I try to toggle Public->Private in the share modal, I receive a notice with a CTA to go pro
+If I am at or over the private project limit: For existing private projects, I am able to toggle Private->Public->Private as desired
 If I try to offline export a project with Cmd+E or the project menu, I am blocked with a CTA to go pro
 When I publish a project, the Video option is grayed out and the GIF option is lower quality (15 FPS)
 
-Paid user UX (test while logged in as a paid user)
+Paid User UX (while logged in as a paid user)
 
 No counter appears in the top right corner indicating a private project limit
 I can load the dashboard while offline
@@ -156,8 +151,6 @@ When naming a project, the project name length is max 32
 When naming a project, if I choose a project name that already exists I am blocked with an error
 Creating a new project immediately opens it for editing
 I can resize the window and the flex layout works correctly
-My computer's fan doesn't spin up just from looking at this page
-The thumbnails all animate smoothly when hovered
 I can't create a project with a blank name
 The above works with project names longer than 20 characters
 The above works with projects with more than one asset from the primary Sketch file on stage
@@ -178,10 +171,10 @@ App Layout
 Editor view shows the Stage, Timeline, and Library
 Stage occupies approximately 2/3 of the vertical height of my screen
 I can resize the library pane and the timeline pane using the resize dividers
-Resizing the dividers doesn't cause any weirdness or clipping on stag
-Resizing the dividers doesn't cause flicker on stage
-Resizing the dividers doesn't cause layout weirdness in timeline
-Resizing the dividers results in the stage moving accordingly
+Resizing the resize-dividers doesn't cause any clipping artifacts on stage
+While actively resizing the resize-dividers, the stage doesn't flicker
+Resizing the dividers doesn't cause persistent layout weirdness in timeline
+Resizing the dividers results in the stage center adjusting itself accordingly
 I can toggle between the Library and State Inspector
 When the Library is reloaded, it is populated with the assets I have
 
@@ -202,12 +195,11 @@ A default sketch file with the project name shows up in the library
 The default sketch file can be opened, and has explanatory content
 The default sketch file when opened is zoomed in appropriately
 My project's name displays on the stage
-My project's name displays at bottom-left
-Opening an old project with `backgroundColor` set shows it as a timeline row
+My project's name displays at bottom-left of the screen
 
 Stage
 
-I can pan the stage using spacebar+drag
+I can pan the stage using Spacebar+drag
 I can pan the stage using two-finger panning
 I can zoom the stage using Command+Plus/Minus
 I can zoom the stage using the global menu
@@ -228,10 +220,11 @@ When I rotate an element, the rotation cursor reflects the rotation of the eleme
 I can rotate an element on stage (and see rotation changes reflected in timeline)
 I can hold down Shift as I rotate and rotate by fixed increments
 I can rotate (with and without Shift) more than one full rotation, and the timeline reflects values outside of [0, 2pi)
-On stage, right-click does bring up the right-click menu
-On stage, right-click doesn't select any SVGs with `<text>` in them
+On stage, right-click shows the editor's right-click menu (with options like "Delete Element")
+On stage, right-click doesn't show the published component right-click menu ("Crafted In Haiku")
+On stage, right-click doesn't select any SVGs with `<text>`/`<tspan>` in them
 Moving the scrubber on the timeline updates the current time on the stage
-I can delete an element (reflects on stage+timeline)
+I can delete an element (and this reflects on stage+timeline)
 When I transform an on-stage element I see a keyframe created on the timeline
 I can grip very small elements
 
@@ -298,7 +291,7 @@ I can use right-click menu to send an element forward
 Z-index shows up in the timeline
 Z-index, when done on stage, only creates keyframes at 0
 Changes to z-index reflect correctly on stage
-Changes to z-index reflect correctly in the timeline as `style.zIndex`
+Changes to z-index reflect correctly in the timeline as `style.zIndex` ("Style > Z Index")
 I can drag-and-drop timeline rows to reorder z-index
 
 Multi-Component
@@ -322,7 +315,6 @@ I can hit Enter or click 'Create Component' to complete the dialog
 When a component is created, the elements selected are replaced with the component
 The elements on stage are all positioned correctly for the current time
 The bounding box of the newly created component is the size of the selection
-For subcomponents, the sizeAbsolute.x/y value is set to `auto`
 When I resize the subcomponent, the host reflects the size change
 If the child has content overflowing the host's box, that content is visible in the host
 Overflow settings are automatically added as editable rows to components' timelines
@@ -577,7 +569,7 @@ JIT Properties
 The JIT properties available for the root element are limited
 The JIT properties for other elements in the timeline are correct and not overwhelming
 I can add a JIT property to an element, which creates a row in the timeline for that property name
-If I add a JIT property like style.border, the row cluster automatically expands and focuses
+If I add a JIT property like "Style > Border", the row cluster automatically expands and focuses the cell
 
 Solo Keyframes
 
@@ -679,7 +671,7 @@ I can undo/redo a multitransform, and the whole set of changes is undone correct
 Group/ungroup
 
 I can instantiate a complex artboard with many elements and ungroup it
-I can instantiate an artboard with SVG <defs> and ungroup it
+I can instantiate an artboard with SVG `<defs>` and ungroup it
 I cannot ungroup an artboard or SVG that only contains one element
 I cannot group a selection that contains only one element
 I can instantiate two slices, animate them, and create a group at keyframe N > 0
@@ -778,29 +770,14 @@ I can clone a project in my org with `$ haiku clone`
 
 State transitions
 
-I can trigger a state transition on an element in an event handler with this syntax:
-  `this.setState({foo: 1000}, {duration: 1000, curve: 'linear'})`
+I can trigger a state transition on an element in an event handler with this syntax: `this.setState({foo: 1000}, {duration: 1000, curve: 'linear'})`
 Expressions involving `foo` behave as expected over the duration of the state transition
 If I trigger another state transition in the middle of a current state transition, the active transition is clobbered
-I can trigger a _queued_ state transition on an element in an event handler with this syntax:
-  `this.setState({foo: 1000}, {duration: 1000, curve: 'linear', queue: true})`
+I can trigger a _queued_ state transition on an element in an event handler with this syntax: `this.setState({foo: 1000}, {duration: 1000, curve: 'linear', queue: true})`
 If I trigger a _queued_ state transition, the active transition is not clobbered, and the state transition waits until the previous one is complete
 If I trigger a state transition on a boolean or string, the value of the state does not change until the end of the transition
 
-
-
 *The items below require special setup/access and are not required for normal QA.*
-
-
-
-Tracking/Analytics
-
-Mixpanel sends tracking events for various actions
-
-Logging
-
-The .app build logs to `~/.haiku/logs/haiku-debug.log`
-User secret credentials are not included in the log
 
 Errors/notifications
 
@@ -839,10 +816,6 @@ By following the share page HTML embed instructions, it works
 By following the share page NPM/React instructions, it works
 It works inside create-react-app, including production (minified) build
 
-Miscellaneous
-
-If I'm behind a proxy the app shows a modal with instructions and doesn't crash
-
 Bytecode Upgrade
 
 I can open legacy project "Moto" and it still works correctly
@@ -853,10 +826,12 @@ I can open a recent project and it still works correctly
 I can multi-rotate elements in a legacy project (pre-3.3)
 I can ungroup the "Moto" artboard without a problem
 
-Timeline performance
+Performance
 
-"Metapoem" takes no more than ~1 second to load (rehydration)
-I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
+Timeline: "Metapoem" takes no more than ~1 second to load (rehydration)
+Timeline: I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
+Dashboard: My computer's fan doesn't spin up just from looking at this screen
+Dashboard: The thumbnails all animate smoothly when hovered
 
 Git/Gitlab
 
@@ -865,3 +840,15 @@ I can `$ git reset —hard {sha}` while editing, see the change on stage, and co
 Published projects show up on GitLab
 I can `$ git push` or `$ git pull` from the project folder without a problem
 Opening a project that exists on GitLab but not locally clones the project the first time
+
+Miscellaneous/Special
+
+If I'm behind a proxy, the app shows a modal with instructions and doesn't crash
+Opening an old project with `backgroundColor` set shows it as a timeline row
+The "secret `<div>`" in a group of elements isn't selectable (the hitbox of the group is bounded by the transform box)
+In the dev terminal, I don't see an ever-growing number of "file ingested" messages for each time I reopen a project
+I can add text elements to the stage and the text content becomes "content" attributes in code.js
+Mixpanel sends tracking events for various actions
+The .app build logs to `~/.haiku/logs/haiku-debug.log`
+User secret credentials are not included in the log
+For subcomponents, the `sizeAbsolute.x/y` value is set to `auto`
