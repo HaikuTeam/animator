@@ -49,6 +49,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
+import {getUrl} from 'haiku-common/lib/environments';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -80,6 +81,9 @@ const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5; /* 5 minutes */
 export default class Creator extends React.Component {
   constructor (props) {
     super(props);
+    if (props.haiku && props.haiku.dotenv) {
+      Object.assign(global.process.env, props.haiku.dotenv);
+    }
     this.authenticateUser = this.authenticateUser.bind(this);
     this.resendEmailConfirmation = this.resendEmailConfirmation.bind(this);
     this.authenticationComplete = this.authenticationComplete.bind(this);
@@ -499,7 +503,7 @@ export default class Creator extends React.Component {
   }
 
   explorePro = () => {
-    shell.openExternal('https://www.haiku.ai/pricing/');
+    shell.openExternal(getUrl('pricing/'));
   };
 
   isTextInputFocused () {

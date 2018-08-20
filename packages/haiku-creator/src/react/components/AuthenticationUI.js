@@ -6,6 +6,7 @@ import {shake} from 'react-animations';
 import {FadingCircle} from 'better-react-spinkit';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {LogoGradientSVG, UserIconSVG, PasswordIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {getAccountUrl, getUrl} from 'haiku-common/lib/environments';
 
 const STYLES = {
   container: {
@@ -334,7 +335,7 @@ class AuthenticationUI extends React.Component {
             <span
               style={STYLES.link}
               onClick={() => {
-                shell.openExternal('https://www.haiku.ai/account/new');
+                shell.openExternal(getAccountUrl('new'));
               }}
             >
               Sign up
@@ -345,7 +346,7 @@ class AuthenticationUI extends React.Component {
             <span
               style={STYLES.link}
               onClick={() => {
-                shell.openExternal('https://www.haiku.ai/account/reset-password');
+                shell.openExternal(getAccountUrl('reset-password'));
               }}
             >
               forgot your password?
@@ -359,7 +360,7 @@ class AuthenticationUI extends React.Component {
           color: Palette.ROCK,
         }}>
           By logging into Haiku you agree to our <span style={{...STYLES.link, marginTop: '30px'}} onClick={() => {
-            shell.openExternal('https://www.haiku.ai/terms-of-service.html');
+            shell.openExternal(getUrl('terms-of-service.html'));
           }}>terms and conditions</span>
         </div>
       </div>

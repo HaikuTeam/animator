@@ -37,3 +37,7 @@ export const getEnvironmentType = () => {
 
 export const isProduction = () => getEnvironmentType() === EnvironmentType.Production;
 export const isDevelopment = () => getEnvironmentType() === EnvironmentType.Development;
+
+export const getUrl = (path: string) => `${global.process.env.HAIKU_WWW || 'https://www.haiku.ai/'}${path}`;
+export const getAccountUrl = (path: string) =>
+  `${global.process.env.HAIKU_ACCOUNT || 'https://account.haiku.ai/'}${path}`;
