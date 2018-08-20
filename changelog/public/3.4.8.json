@@ -1,0 +1,16 @@
+{
+  "date": "June 25, 2018",
+  "sections": {
+    "What's new": [
+      "Added a raw code editor for editing components.",
+      "Git commit history is now more descriptive.",
+      "Figma frames are now synced to Haiku.",
+      "Added support for SVGs generated with Affinity.",
+      "Reduced footprint of @haiku/core by 20%."
+    ],
+    "Fixes": [
+      "Fixed several UX issues related to new project creation.",
+      "Fixed crashes when hovering and selecting elements."
+    ]
+  }
+}
