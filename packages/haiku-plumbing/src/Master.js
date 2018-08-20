@@ -441,7 +441,7 @@ export default class Master extends EventEmitter {
 
         if (Illustrator.isIllustratorFile(abspath)) {
           logger.info('[master] illustrator pipeline running; please wait');
-          Illustrator.importSVG(abspath);
+          Illustrator.importSVG({abspath});
           logger.info('[master] illustrator import done');
           return;
         }
@@ -488,7 +488,7 @@ export default class Master extends EventEmitter {
 
         if (Illustrator.isIllustratorFile(abspath)) {
           logger.info('[master] illustrator pipeline running; please wait');
-          Illustrator.importSVG(abspath);
+          Illustrator.importSVG({abspath, tryToOpenFile: true});
           logger.info('[master] illustrator import done');
         }
       });
