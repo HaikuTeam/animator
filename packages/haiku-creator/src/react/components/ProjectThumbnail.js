@@ -106,14 +106,19 @@ class ProjectThumbnail extends React.Component {
             DELETE
           </span>}
         </div>
-        <div style={DASH_STYLES.titleStrip}>
+        <div
+            onClick={this.props.launchProject}
+            style={DASH_STYLES.titleStrip}
+        >
           <span style={DASH_STYLES.title}>
             {this.props.projectName}
           </span>
           {(this.props.allowDelete || this.props.projectExistsLocally) && <span
             title="Show project options"
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
-            onClick={() => {
+            onClick={(e) => {
+              // Prevend launching project, as parent div has onClick handler
+              e.stopPropagation();
               this.setState({
                 isMenuActive: !this.state.isMenuActive,
               });

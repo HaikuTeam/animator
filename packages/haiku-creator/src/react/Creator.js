@@ -2194,6 +2194,14 @@ export default class Creator extends React.Component {
                         />
                       )
                     }
+                    {
+                      this.state.showConfirmGroupUngroupPopup &&
+                        <ConfirmGroupUngroupPopup
+                          user={this.user}
+                          setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
+                          groupOrUngroup={this.state.groupOrUngroup}
+                        />
+                    }
                   <Stage
                     ref="stage"
                     supportOfflineExport={this.state.allowOffline}
@@ -2283,13 +2291,6 @@ export default class Creator extends React.Component {
           </div>
         </div>
         {this.state.projectLaunching && <ProjectLoader />}
-
-        {this.state.showConfirmGroupUngroupPopup &&
-          <ConfirmGroupUngroupPopup
-            user={this.user}
-            setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
-            groupOrUngroup={this.state.groupOrUngroup}
-          />}
       </div>
     );
   }
