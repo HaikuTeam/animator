@@ -113,6 +113,7 @@ class SideBar extends React.Component {
              ? <button id="go-to-dashboard" key="dashboard" onClick={() => {
                this.goToDashboard();
              }}
+               title="Navigate back to Dashboard"
                style={[
                  BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, BTN_STYLES.btnText,
                  {width: 'auto', position: 'absolute', right: 6},

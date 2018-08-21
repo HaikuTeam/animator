@@ -86,6 +86,7 @@ class PlaybackButtons extends React.Component {
         <button
           disabled={currentFrame < 1}
           key="skipback"
+          title="Jump to timeline beginning"
           style={[STYLES.btn, currentFrame < 1 && STYLES.disabled]}
           onClick={playbackSkipBack}
         >
@@ -93,6 +94,7 @@ class PlaybackButtons extends React.Component {
         </button>
         <button
           key="pause"
+          title="Play/pause timeline"
           onClick={playbackPlayPause}
           style={[
             STYLES.btn,
@@ -110,6 +112,7 @@ class PlaybackButtons extends React.Component {
         <button
           disabled={currentFrame >= lastFrame}
           key="skipforward"
+          title="Jump to timeline end"
           style={[STYLES.btn, currentFrame >= lastFrame && STYLES.disabled]}
           onClick={playbackSkipForward}
         >
@@ -118,6 +121,7 @@ class PlaybackButtons extends React.Component {
 
         <button
           key="repeat"
+          title="Repeat timeline during playback"
           style={[STYLES.btn, STYLES.btnRepeat, !isRepeat && {opacity: 0.5}]}
           onClick={toggleRepeat}
         >

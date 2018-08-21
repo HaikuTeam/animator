@@ -723,6 +723,7 @@ class StageTitleBar extends React.Component {
         <button
           key="conglomerate-component-button"
           id="conglomerate-component-button"
+          title="Create/edit a component definition"
           onClick={this.handleConglomerateComponent}
           style={[
             BTN_STYLES.btnIcon,
@@ -735,7 +736,7 @@ class StageTitleBar extends React.Component {
           <button
             key="show-event-handlers-editor-button"
             id="show-event-handlers-editor-button"
-            title="Edit element Actions"
+            title="Create/edit selected element Actions"
             onClick={this.handleShowEventHandlersEditor}
             style={[
               BTN_STYLES.btnIcon,
@@ -749,6 +750,7 @@ class StageTitleBar extends React.Component {
           <button
             key="show-align-panel-button"
             id="show-align-panel-button"
+            title="Open align/distribute controls"
             onClick={this.handleShowAlignPanel}
             ref="alignPanelButton"
             style={[
@@ -777,6 +779,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performAlign.bind(this, 0, undefined)}
                 key="btn-align-v-left"
+                title="Align vertical-left"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -789,6 +792,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performAlign.bind(this, .5, undefined)}
                 key="btn-align-v-mid"
+                title="Align vertical-middle"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -801,6 +805,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performAlign.bind(this, 1, undefined)}
                 key="btn-align-v-right"
+                title="Align vertical-right"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -814,6 +819,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performAlign.bind(this, undefined, 0)}
                 key="btn-align-h-top"
+                title="Align horizontal-top"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -826,6 +832,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performAlign.bind(this, undefined, .5)}
                 key="btn-align-h-mid"
+                title="Align horizontal-middle"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -838,6 +845,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performAlign.bind(this, undefined, 1)}
                 key="btn-align-h-bottom"
+                title="Align horizontal-bottom"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -853,6 +861,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performDistribute.bind(this, undefined, 0)}
                 key="btn-dist-v-left"
+                title="Distribute vertical-left"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -865,6 +874,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performDistribute.bind(this, undefined, .5)}
                 key="btn-dist-v-mid"
+                title="Distribute vertical-middle"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -877,6 +887,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performDistribute.bind(this, undefined, 1)}
                 key="btn-dist-v-right"
+                title="Distribute vertical-right"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -890,6 +901,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performDistribute.bind(this, 0, undefined)}
                 key="btn-dist-h-top"
+                title="Distribute horizontal-top"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -902,6 +914,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performDistribute.bind(this, .5, undefined)}
                 key="btn-dist-h-mid"
+                title="Distribute horizontal-middle"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -914,6 +927,7 @@ class StageTitleBar extends React.Component {
               <button
                 onClick={this.performDistribute.bind(this, 1, undefined)}
                 key="btn-dist-h-bottom"
+                title="Distribute horizontal-bottom"
                 style={[
                   BTN_STYLES.btnIcon,
                   BTN_STYLES.leftBtns,
@@ -937,6 +951,7 @@ class StageTitleBar extends React.Component {
             <button
               key="toggle-design"
               id="toggle-design"
+              title="Switch to Design Mode"
               onClick={this.props.tryToSwitchToEditMode}
               style={[
                 BTN_STYLES.btnText,
@@ -957,6 +972,7 @@ class StageTitleBar extends React.Component {
             <button
               key="toggle-code"
               id="toggle-code"
+              title="Switch to Code Mode"
               onClick={this.props.setGlassInteractionToCodeEditorMode}
               style={[
                 BTN_STYLES.btnText,

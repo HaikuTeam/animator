@@ -92,7 +92,10 @@ class ComponentMenu extends React.Component {
           );
         }))}
         {this.props.showGlass &&
-          <button style={STYLES.newComponentButton} onClick={this.showNewComponentDialog}>
+          <button
+            title="Create component from selected elements"
+            style={STYLES.newComponentButton}
+            onClick={this.showNewComponentDialog}>
             +
           </button>
         }

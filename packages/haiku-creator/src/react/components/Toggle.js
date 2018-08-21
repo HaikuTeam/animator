@@ -36,6 +36,7 @@ class Toggle extends React.Component {
       <Tooltip content="Toggle preview" style={this.props.style}>
         <a
           href="#"
+          title="Preview component"
           style={[
             this.props.disabled && STYLES.disabled,
             this.props.style,

@@ -82,6 +82,7 @@ export default class GaugeTimeReadout extends React.Component {
         </div>
         <div
           className="gauge-toggle"
+          title="Display time in frames/seconds"
           onClick={this.handleClick}
           style={{
             width: 50,

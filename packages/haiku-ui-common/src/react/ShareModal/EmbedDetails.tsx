@@ -32,8 +32,8 @@ export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
 
     return (
       <div style={STYLES.wrapper}>
-        <button onClick={this.props.onHide} style={SHARED_STYLES.btn}>
-          &lt; ALL OPTIONS
+        <button title="See all install options" onClick={this.props.onHide} style={SHARED_STYLES.btn}>
+          &lt; ALL INSTALL OPTIONS
         </button>
 
         <Template
