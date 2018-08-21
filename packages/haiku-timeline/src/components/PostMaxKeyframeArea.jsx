@@ -24,9 +24,9 @@ export default class PostMaxKeyframeArea extends React.Component {
   render () {
     return (
       <div style={{
-        background: Color(Palette.COAL).fade(0.8),
+        background: Color(Palette.COAL).fade(0.7),
         zIndex: zIndex.areaPostMaxKeyframe.base,
-        marginLeft: this.frameInfo.maxf * this.frameInfo.pxpf + this.props.propertiesPixelWidth + 14,
+        marginLeft: Math.round((this.frameInfo.maxf + 1) * this.frameInfo.pxpf) + this.props.propertiesPixelWidth + this.props.timelineOffsetPadding,
         position: 'sticky',
         pointerEvents: 'none',
         height: 'calc(100% - 35px)',

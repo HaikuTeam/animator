@@ -1756,6 +1756,7 @@ class Timeline extends React.Component {
         <PostMaxKeyframeArea
           propertiesPixelWidth={propertiesPixelWidth}
           timeline={timeline}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
         />
       </div>
     );
