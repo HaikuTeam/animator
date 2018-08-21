@@ -14,6 +14,7 @@ import EventHandlerEditor from './components/EventHandlerEditor';
 import AuthenticationUI from './components/AuthenticationUI';
 import ProjectBrowser from './components/ProjectBrowser';
 import SideBar from './components/SideBar';
+import {DASH_STYLES} from './styles/dashShared';
 import Library from './components/library/Library';
 import ComponentInfoInspector from './components/ComponentInfoInspector/ComponentInfoInspector';
 import StateInspector from './components/StateInspector/StateInspector';
@@ -146,9 +147,9 @@ export default class Creator extends React.Component {
         shouldRunOnBackground: true,
         shouldSkipOptIn: true,
       },
-      doShowBackToDashboardButton: false,
       doShowProjectLoader: false,
       projectLaunching: false,
+      tearingDown: false,
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
@@ -1227,7 +1228,6 @@ export default class Creator extends React.Component {
 
     this.setState({
       doShowProjectLoader: true,
-      doShowBackToDashboardButton: false,
       dashboardVisible: false,
     });
 
@@ -1432,7 +1432,6 @@ export default class Creator extends React.Component {
     return setTimeout(() => {
       return this.setState({
         projectLaunching: false,
-        doShowBackToDashboardButton: true,
       });
     }, 1000);
   }
@@ -1612,6 +1611,8 @@ export default class Creator extends React.Component {
   }
 
   onNavigateToDashboard () {
+    // Redundant with a future call, but ensures we will show the loading spinner ASAP.
+    this.setState({tearingDown: true});
     this.user.load().then(({user, organization}) => {
       this.setState({
         readyForAuth: true,
@@ -1699,6 +1700,7 @@ export default class Creator extends React.Component {
   }
 
   teardownMaster ({shouldFinishTour}, cb) {
+    this.setState({tearingDown: true});
     // Delete identifier not found notice on teardown
     this.deleteIdentifierNotFoundNotice();
 
@@ -1710,7 +1712,7 @@ export default class Creator extends React.Component {
       {method: 'teardownMaster', params: [this.state.projectModel.getFolder()]},
       () => {
         logger.info('[creator] master torn down');
-        this.setState({dashboardVisible: true});
+        this.setState({dashboardVisible: true, tearingDown: false});
         this.onTimelineUnmounted();
 
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready');
@@ -2125,7 +2127,6 @@ export default class Creator extends React.Component {
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
-                  doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
@@ -2290,6 +2291,7 @@ export default class Creator extends React.Component {
             </SplitPanel>
           </div>
         </div>
+        {this.state.tearingDown && <ProjectLoader message={'Loading....'} />}
         {this.state.projectLaunching && <ProjectLoader />}
       </div>
     );
