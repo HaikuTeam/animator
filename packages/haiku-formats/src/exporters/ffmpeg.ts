@@ -1,10 +1,13 @@
-import {path as ffmpegPath} from 'ffmpeg-static';
 import fluentFfmpeg = require('fluent-ffmpeg');
+import {join} from 'path';
 
-// @ts-ignore
-fluentFfmpeg.setFfmpegPath(ffmpegPath);
-
-export const newFfmpegCommand = (): fluentFfmpeg.FfmpegCommand => {
+try {
   // @ts-ignore
-  return fluentFfmpeg();
-};
+  // tslint:disable-next-line:no-var-requires
+  fluentFfmpeg.setFfmpegPath(require('ffmpeg-static').path);
+} catch (error) {
+  // @ts-ignore
+  fluentFfmpeg.setFfmpegPath(join(require.resolve('haiku-formats').split('app.asar')[0], 'ffmpeg'));
+}
+
+export const newFfmpegCommand = (): fluentFfmpeg.FfmpegCommand => fluentFfmpeg();

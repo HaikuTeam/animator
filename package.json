@@ -137,12 +137,12 @@
       ]
     },
     "asar": true,
-    "asarUnpack": [
-      "node_modules/haiku-plumbing/bins/*",
-      "node_modules/ffmpeg-static"
-    ],
     "extraResources": [
-      "app/index.js"
+      "app/index.js",
+      {
+        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
+        "to": ""
+      }
     ],
     "files": [
       "package.json",
@@ -160,8 +160,7 @@
       "!node_modules/proxyquire",
       "!node_modules/sinon",
       "!node_modules/table",
-      "!node_modules/ffmpeg-static/bin",
-      "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
+      "!node_modules/ffmpeg-static",
       "!node_modules/nodegit/vendor",
       "!node_modules/haiku-plumbing/dev${/*}",
       "!node_modules/haiku-plumbing/docs${/*}",
