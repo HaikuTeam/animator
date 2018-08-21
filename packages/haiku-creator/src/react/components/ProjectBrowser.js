@@ -273,6 +273,34 @@ class ProjectBrowser extends React.Component {
     );
   }
 
+  renderNewProjectBoxorama () {
+    return (
+      <div
+        style={DASH_STYLES.cardAsButton}
+        key="wrap">
+        <div
+          key="scrim"
+          className="js-utility-project-launcher"
+          title="Create new project"
+          style={Object.assign(
+            {},
+            DASH_STYLES.scrimAsButton,
+            {opacity: 1},
+          )}
+          onClick={() => this.showNewProjectModal()}>
+          <span
+            style={{
+              marginTop: 30,
+              marginLeft: -10,
+              display: 'inline-block',
+            }}>
+            + NEW PROJECT
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   projectsListElement () {
     if (this.shouldShowOfflineNotice) {
       return null;
@@ -296,6 +324,7 @@ class ProjectBrowser extends React.Component {
           this.tourChannel.updateLayout();
         }, 50)}
       >
+        {this.renderNewProjectBoxorama()}
         {this.state.projectsList.map((projectObject) => (
           <ProjectThumbnail
             key={projectObject.projectName}
