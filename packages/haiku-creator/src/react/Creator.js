@@ -146,9 +146,9 @@ export default class Creator extends React.Component {
         shouldRunOnBackground: true,
         shouldSkipOptIn: true,
       },
-      doShowBackToDashboardButton: false,
       doShowProjectLoader: false,
       projectLaunching: false,
+      tearingDown: false,
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
@@ -931,8 +931,8 @@ export default class Creator extends React.Component {
       this._projectStates[folder][what] &&
       this._projectStates[folder][what].creator === value &&
       this._projectStates[folder][what].glass === value &&
-      this._projectStates[folder][what].timeline === value
-      // this._projectStates[folder][what].master === value // happens too fast?
+      this._projectStates[folder][what].timeline === value &&
+      this._projectStates[folder][what].master === value
     );
   }
 
@@ -1227,7 +1227,6 @@ export default class Creator extends React.Component {
 
     this.setState({
       doShowProjectLoader: true,
-      doShowBackToDashboardButton: false,
       dashboardVisible: false,
     });
 
@@ -1425,16 +1424,15 @@ export default class Creator extends React.Component {
       }
     });
 
-    // Hide loading screens, re-enable navigating back to dashboard but only after a
-    // delay since we've seen race-related crashes when people nav back too early.
     // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
-    // in the context of whatever the current component is
-    return setTimeout(() => {
-      return this.setState({
-        projectLaunching: false,
-        doShowBackToDashboardButton: true,
+    // in the context of whatever the current component is.
+    if (this.state.projectFolder) {
+      this.awaitAllProjectModelsState(this.state.projectFolder, 'component:mounted', true, () => {
+        this.setState({
+          projectLaunching: false,
+        });
       });
-    }, 1000);
+    }
   }
 
   mountHaikuComponent () {
@@ -1442,6 +1440,12 @@ export default class Creator extends React.Component {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
       freeze: true, // No display means no need for overflow settings, etc
+    }, () => {
+      this.handleConnectedProjectModelStateChange({
+        from: 'creator',
+        folder: this.state.projectFolder,
+        what: 'component:mounted',
+      });
     });
     logger.timeEnd('mountHaikuComponent');
   }
@@ -1612,6 +1616,8 @@ export default class Creator extends React.Component {
   }
 
   onNavigateToDashboard () {
+    // Redundant with a future call, but ensures we will show the loading spinner ASAP.
+    this.setState({tearingDown: true});
     this.user.load().then(({user, organization}) => {
       this.setState({
         readyForAuth: true,
@@ -1699,6 +1705,7 @@ export default class Creator extends React.Component {
   }
 
   teardownMaster ({shouldFinishTour}, cb) {
+    this.setState({tearingDown: true});
     // Delete identifier not found notice on teardown
     this.deleteIdentifierNotFoundNotice();
 
@@ -1710,7 +1717,7 @@ export default class Creator extends React.Component {
       {method: 'teardownMaster', params: [this.state.projectModel.getFolder()]},
       () => {
         logger.info('[creator] master torn down');
-        this.setState({dashboardVisible: true});
+        this.setState({dashboardVisible: true, tearingDown: false});
         this.onTimelineUnmounted();
 
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready');
@@ -2125,7 +2132,6 @@ export default class Creator extends React.Component {
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
-                  doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
@@ -2290,6 +2296,7 @@ export default class Creator extends React.Component {
             </SplitPanel>
           </div>
         </div>
+        {this.state.tearingDown && <ProjectLoader message={'Loading....'} />}
         {this.state.projectLaunching && <ProjectLoader />}
       </div>
     );
