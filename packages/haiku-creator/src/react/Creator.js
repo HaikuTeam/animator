@@ -1187,7 +1187,7 @@ export default class Creator extends React.Component {
     });
   }
 
-  onProjectDeleted = (projectsList) => {
+  onProjectsList = (projectsList) => {
     ipcRenderer.send('topmenu:update', {projectsList});
   };
 
@@ -2056,7 +2056,7 @@ export default class Creator extends React.Component {
             allowOffline={this.state.allowOffline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
-            onProjectDeleted={this.onProjectDeleted}
+            onProjectsList={this.onProjectsList}
             onShowNewProjectModal={(...args) => {
               this.showNewProjectModal(...args);
             }}
