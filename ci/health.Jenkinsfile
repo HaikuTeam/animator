@@ -107,8 +107,11 @@ pipeline {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             steps {
                 milestone 1
+                notifyAdvancementRequest()
                 timeout(time: 1, unit: 'HOURS') {
-                    input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
+                    script {
+                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
+                    }
                     setBuildStatus(CONTEXT_BUILD, 'builds started', STATUS_PENDING)
                 }
                 milestone 2
@@ -124,7 +127,7 @@ pipeline {
                     steps {
                         setBuildStatus(CONTEXT_BUILD_MAC, 'build started', STATUS_PENDING)
                         yarnInstallUnixLike()
-                        nodeRun('./scripts/semver.js --non-interactive')
+                        nodeRun("./scripts/semver.js ${(env.haikuExplicitSemver == '') ? '--non-interactive' : "--explicit=${env.haikuExplicitSemver}"}")
                         nodeRun('./scripts/distro-configure.js --non-interactive')
                         nodeRun('./scripts/distro-download-secrets.js')
                         nodeRun('./scripts/distro-prepare.js')
@@ -154,6 +157,7 @@ pipeline {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             steps {
                 milestone 3
+                notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
                     input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
                     setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
@@ -176,6 +180,7 @@ pipeline {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             steps {
                 milestone 5
+                notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
                     input message: 'Syndicate release?', submitter: 'matthew,zack,sasha'
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicating...', STATUS_PENDING)
@@ -194,6 +199,15 @@ pipeline {
             }
         }
     }
+}
+
+void notifyAdvancementRequest() {
+    slackSend([
+        channel: 'engineering-feed',
+        color: 'good',
+        message: ":powerup: A build would like to advance\n\n" +
+                  "https://ci.haiku.ai/blue/organizations/jenkins/Haiku/detail/Haiku/${env.BUILD_NUMBER}/pipeline"
+    ])
 }
 
 void setBuildStatus(String context, String message, String state) {
@@ -222,4 +236,10 @@ void yarnRun(String command) {
     sh '''#!/bin/bash -x
         . $HOME/.bash_profile
         ''' + "yarn ${command}"
+}
+
+void nodeRun(String command) {
+    sh '''#!/bin/bash -x
+        . $HOME/.bash_profile
+        ''' + "node ${command}"
 }
