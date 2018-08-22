@@ -139,7 +139,7 @@ export default class ComponentHeadingRow extends React.Component {
       <div
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
-        className="component-heading-row no-select unselectable-during-marquee js-avoid-marquee-init"
+        className="component-heading-row no-select js-avoid-marquee-init"
         onMouseOver={this.hoverRow}
         onMouseOut={this.unhoverRow}
         style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
