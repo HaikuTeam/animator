@@ -847,6 +847,7 @@ export class Glass extends React.Component {
 
     const horizSnaps = [];
     const vertSnaps = [];
+
     if (
       this.state.isMouseDown &&
       ElementSelectionProxy.snaps.length > 0 &&
