@@ -4,6 +4,13 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 
+const isHandlerEmpty = (handler) => {
+  return (
+    !handler.body ||
+    /^\s*$/.test(handler.body)
+  )
+}
+
 /*
  * The purpose of this clas is to abstract all the logic related to
  * event manipulation in an element.
@@ -68,7 +75,11 @@ class HandlerManager {
    * @param {String} oldEventName
    */
   replaceEvent ({id, event, handler, evaluator}, oldEventName) {
-    this.appliedEventHandlers.set(event, {id, handler, evaluator});
+    if (isHandlerEmpty(handler)) {
+      this.delete(event)
+    } else {
+      this.appliedEventHandlers.set(event, {id, handler, evaluator});
+    }
   }
 
   /**
