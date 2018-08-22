@@ -160,9 +160,9 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   pushCachedTransform (key) {
-    this.transformCache.push(key)
+    this.transformCache.set(key)
     this.selection.forEach((element) => {
-      element.transformCache.push(key)
+      element.transformCache.set(key)
     })
   }
 
@@ -1333,7 +1333,7 @@ class ElementSelectionProxy extends BaseModel {
     const baseProxyBox = Object.assign({}, this._lastProxyBox)
 
     // note an Object.assign({}, ...) doesn't suffice here because computeScalePropertyGroup mutates properties deeply
-    const getBaseTransform = () => _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
+    const getBaseTransform = () => _.cloneDeep(this.transformCache.get('CONTROL_ACTIVATION'))
 
     const baseTransform = getBaseTransform()
 
@@ -1519,7 +1519,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.selection.forEach((element) => {
       // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
-      const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
+      const layoutSpec = element.transformCache.get('CONTROL_ACTIVATION')
       if (!layoutSpec) {
         return
       }
@@ -1539,7 +1539,7 @@ class ElementSelectionProxy extends BaseModel {
       // This converts a composition of matrices like [[1,0,0,...],...] into our own
       // transform properties like scale.x, rotation.z, and merges them into the
       // given property group object.
-      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], false, 1e-3, element.getLayoutSpec())
+      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true, 1e-3, element.getLayoutSpec())
 
       const offsetX = layoutSpec.offset.x
       const offsetY = layoutSpec.offset.y
