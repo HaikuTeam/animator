@@ -126,13 +126,6 @@ tape(
         },
       ],
       [
-        'rotate3d(0,60deg,120deg);',
-        {
-          'rotation.y': 1.047, // = Math.PI / 3
-          'rotation.z': 2.094,  // = 2 * Math.PI / 3
-        },
-      ],
-      [
         'matrix3d(1,0,0,.1,-0.2,-.22,30000,1,0,0,0,1,0.2,0,0,1) translate3d(10px,20,20) matrix(0,6,4,3,2.2,0) scale3d(0,0,0) rotate3d(0,0.5,0,0) rotateZ(1.2);',
         {
           'scale.x': 0,
@@ -151,8 +144,10 @@ tape(
         {
           'translation.x': 61.937,
           'translation.y': -3,
-          'rotation.z': 0.174, // Flipped over pole.
+          'rotation.x': 3.142,
+          'rotation.z': 6.109,
           'scale.x': -1,
+          'scale.y': -1,
           'scale.z': -1,
         },
       ],

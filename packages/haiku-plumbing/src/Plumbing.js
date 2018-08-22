@@ -29,8 +29,6 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
-import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir';
-import * as Project from 'haiku-serialization/src/bll/Project';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
@@ -43,8 +41,6 @@ import {duplicateProject} from './project-folder/duplicateProject';
 import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
-
-const {HOMEDIR_PATH} = HaikuHomeDir;
 
 global.eval = () => {
   // noop: eval is forbidden
@@ -98,6 +94,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
 const METHOD_MESSAGES_TIMEOUT = 15000;
 const METHODS_TO_AWAIT_FOREVER = {
   bootstrapProject: true,
+  setCurrentActiveComponent: true,
   startProject: true,
   initializeFolder: true,
   saveProject: true,
@@ -736,7 +733,7 @@ export default class Plumbing extends EventEmitter {
       return this.sendClientMethod(client, method, params, (error, response) => {
         responseReceived = true;
 
-        if (!timedOut) {
+        if (!timedOut || METHODS_TO_AWAIT_FOREVER[method]) {
           if (error) {
             this.sentryError(method, error, {tags: query});
             return cb(error);
