@@ -348,6 +348,13 @@ class Timeline extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange(...args);
           break;
+        case 'zMoveToBack':
+        case 'zMoveToFront':
+        case 'zMoveForward':
+        case 'zMoveBackward':
+          const row = Row.findByComponentAndHaikuId(this.getActiveComponent(), args[1]);
+          this.scrollToRow(row);
+          break;
       }
     });
 
@@ -1619,7 +1626,7 @@ class Timeline extends React.Component {
                         return (
                           <div style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {minWidth}}>
                             <div
-                              className="droppable-wrapper unselectable-during-marquee"
+                              className="droppable-wrapper no-select"
                               ref={providedDraggable.innerRef}
                               {...providedDraggable.draggableProps}
                               style={{
@@ -1756,6 +1763,7 @@ class Timeline extends React.Component {
         <PostMaxKeyframeArea
           propertiesPixelWidth={propertiesPixelWidth}
           timeline={timeline}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
         />
       </div>
     );

@@ -1134,7 +1134,10 @@ export default class Master extends EventEmitter {
       });
     });
 
-    this.emit('project-state-change', {what: 'project-ready'});
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'project:ready',
+    });
   }
 
   handleActiveComponentReady () {
@@ -1165,9 +1168,9 @@ export default class Master extends EventEmitter {
         instance.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
       });
 
-      this.emit('project-state-change', {
+      this.project.broadcastPayload({
+        name: 'project-state-change',
         what: 'component:mounted',
-        scenename: this.getActiveComponent().getSceneName(),
       });
     });
   }

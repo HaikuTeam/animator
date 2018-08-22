@@ -117,6 +117,7 @@ class ProjectBrowser extends React.Component {
         projectsList,
         areProjectsLoading: false,
       });
+      this.props.onProjectsList(projectsList);
     });
   }
 
@@ -157,7 +158,6 @@ class ProjectBrowser extends React.Component {
   performDeleteProject () {
     const projectsList = this.state.projectsList;
     const projectToDelete = projectsList.find((project) => project.projectName === this.state.projToDelete);
-    const deleteStart = Date.now();
     projectToDelete.isDeleted = true;
     this.setState({projectsList}, () => {
       this.requestDeleteProject(projectToDelete, (deleteError) => {
@@ -171,23 +171,22 @@ class ProjectBrowser extends React.Component {
           });
           // Oops, we actually didn't delete this project. Let's put it back.
           projectToDelete.isDeleted = false;
-          this.setState({projectsList});
+          this.setState({projectsList}, () => {
+          });
           return;
         }
+
+        // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
+        // the project.
+        setTimeout(() => {
+          this.loadProjects();
+        }, 200);
 
         mixpanel.haikuTrack('creator:project:deleted', {
           username: this.props.username,
           project: projectToDelete.projectName,
           organization: this.props.organizationName,
         });
-
-        // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
-        // the project.
-        setTimeout(() => {
-          const newList = projectsList.filter((project) => project.projectName !== projectToDelete.projectName);
-          this.setState({projectsList: newList});
-          this.props.onProjectDeleted(newList);
-        }, Math.min(200, Date.now() - deleteStart));
       });
     });
   }

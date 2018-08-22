@@ -85,7 +85,7 @@ const zIndex = {
 
   // Overlay blocking all actions if preview mode is enabled
   previewModeBlocker: {
-    base: 20,
+    base: 99999,
   },
 
   areaPostMaxKeyframe: {

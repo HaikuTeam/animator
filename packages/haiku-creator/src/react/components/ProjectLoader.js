@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as Hai from '@haiku/taylor-hai/react';
-import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
@@ -28,6 +27,10 @@ const STYLES = {
 };
 
 class ProjectLoader extends React.PureComponent {
+  static defaultProps = {
+    message: 'Initializing project....',
+  };
+
   render () {
     return (
       <div style={STYLES.fullScreenCenterWrap} id="js-helper-project-loader">
@@ -41,7 +44,7 @@ class ProjectLoader extends React.PureComponent {
             }}
           />
         </div>
-        <span>Initializing project....</span>
+        <span>{this.props.message}</span>
       </div>
     );
   }

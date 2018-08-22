@@ -33,6 +33,9 @@ out.didTakeTour = () => {
 
 // Creates a file to store tour options
 out.createTourFile = () => {
+  // Even if the file wasn't in fact created (imagine an error on
+  //  ensureFileSync), we want to set the cache anyway
+  didTakeTourCache = true
   return fse.ensureFileSync(out.HOMEDIR_TOUR_PATH)
 }
 

@@ -722,25 +722,31 @@ class Element extends BaseModel {
   }
 
   getOriginNotTransformed () {
-    const layout = this.getComputedLayout()
-    return {
-      x: layout.size.x * layout.origin.x,
-      y: layout.size.y * layout.origin.y,
-      z: layout.size.z * layout.origin.z
-    }
+    return this.cache.fetch('getOriginNotTransformed', () => {
+      const layout = this.getComputedLayout()
+      return {
+        x: layout.size.x * layout.origin.x,
+        y: layout.size.y * layout.origin.y,
+        z: layout.size.z * layout.origin.z
+      }
+    })
   }
 
   getOriginTransformed () {
-    return HaikuElement.transformPointInPlace(
-      this.getOriginNotTransformed(),
-      this.getOriginOffsetComposedMatrix()
-    )
+    return this.cache.fetch('getOriginTransformed', () => {
+      return HaikuElement.transformPointInPlace(
+        this.getOriginNotTransformed(),
+        this.getOriginOffsetComposedMatrix()
+      )
+    })
   }
 
   getOriginOffsetComposedMatrix () {
-    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
-      (layout) => layout.matrix
-    ))
+    return this.cache.fetch('getOriginOffsetComposedMatrix', () => {
+      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+        (layout) => layout.matrix
+      ))
+    })
   }
 
   getAncestry () {
@@ -986,7 +992,14 @@ class Element extends BaseModel {
     })
   }
 
-  rehydrateRows () {
+  rehydrateRows (options = {}) {
+    if (
+      options.superficial ||
+      process.env.HAIKU_SUBPROCESS !== 'timeline'
+    ) {
+      return
+    }
+
     const existingRows = this.getAllRows()
     existingRows.forEach((row) => row.mark())
 
@@ -1586,6 +1599,17 @@ class Element extends BaseModel {
 
   getHaikuElement () {
     return HaikuElement.findOrCreateByNode(this.getLiveRenderedNode())
+  }
+
+  getParentSvgElement () {
+    let currElem = this
+    while (currElem) {
+      if (currElem.getNameString() === 'svg') {
+        return currElem
+      }
+      currElem = currElem.parent
+    }
+    return null
   }
 
   getUngroupables () {
