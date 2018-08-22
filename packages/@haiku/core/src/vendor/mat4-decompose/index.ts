@@ -45,7 +45,7 @@ export interface DecomposedMat4 {
   translation: ThreeTuple;
   scale: ThreeTuple;
   shear: ThreeTuple;
-  quaternion: FourTuple;
+  rotation: ThreeTuple;
 }
 
 export default function decomposeMat4 (matrix): DecomposedMat4 {
@@ -55,7 +55,7 @@ export default function decomposeMat4 (matrix): DecomposedMat4 {
       translation: [0, 0, 0],
       scale: [0, 0, 0],
       shear: [0, 0, 0],
-      quaternion: [0, 0, 0, 1],
+      rotation: [0, 0, 0],
     };
   }
 
@@ -104,27 +104,29 @@ export default function decomposeMat4 (matrix): DecomposedMat4 {
     }
   }
 
-  // Now, get the rotations out
-  const quaternion: FourTuple = [
-    0.5 * Math.sqrt(Math.max(1 + row[0][0] - row[1][1] - row[2][2], 0)),
-    0.5 * Math.sqrt(Math.max(1 - row[0][0] + row[1][1] - row[2][2], 0)),
-    0.5 * Math.sqrt(Math.max(1 - row[0][0] - row[1][1] + row[2][2], 0)),
-    0.5 * Math.sqrt(Math.max(1 + row[0][0] + row[1][1] + row[2][2], 0)),
+  const rotation: ThreeTuple = [
+    0,
+    Math.asin(-row[0][2]),
+    0,
   ];
 
-  if (row[2][1] > row[1][2]) {
-    quaternion[0] = -quaternion[0];
+  if (Math.cos(rotation[1])) {
+    rotation[0] = Math.atan2(row[1][2], row[2][2]);
+    rotation[2] = Math.atan2(row[0][1], row[0][0]);
+  } else {
+    rotation[0] = Math.atan2(-row[2][1], row[1][1]);
   }
-  if (row[0][2] > row[2][0]) {
-    quaternion[1] = -quaternion[1];
-  }
-  if (row[1][0] > row[0][1]) {
-    quaternion[2] = -quaternion[2];
+
+  // Force positive rotations.
+  for (let i = 0; i < rotation.length; i++) {
+    if (rotation[i] < 0) {
+      rotation[i] += 2 * Math.PI;
+    }
   }
 
   return {
-    quaternion,
     translation,
+    rotation: roundVector<ThreeTuple>(rotation),
     scale: roundVector<ThreeTuple>(scale),
     shear: roundVector<ThreeTuple>(shear),
   };
