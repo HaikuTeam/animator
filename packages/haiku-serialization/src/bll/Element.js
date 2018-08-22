@@ -722,25 +722,31 @@ class Element extends BaseModel {
   }
 
   getOriginNotTransformed () {
-    const layout = this.getComputedLayout()
-    return {
-      x: layout.size.x * layout.origin.x,
-      y: layout.size.y * layout.origin.y,
-      z: layout.size.z * layout.origin.z
-    }
+    return this.cache.fetch('getOriginNotTransformed', () => {
+      const layout = this.getComputedLayout()
+      return {
+        x: layout.size.x * layout.origin.x,
+        y: layout.size.y * layout.origin.y,
+        z: layout.size.z * layout.origin.z
+      }
+    })
   }
 
   getOriginTransformed () {
-    return HaikuElement.transformPointInPlace(
-      this.getOriginNotTransformed(),
-      this.getOriginOffsetComposedMatrix()
-    )
+    return this.cache.fetch('getOriginTransformed', () => {
+      return HaikuElement.transformPointInPlace(
+        this.getOriginNotTransformed(),
+        this.getOriginOffsetComposedMatrix()
+      )
+    })
   }
 
   getOriginOffsetComposedMatrix () {
-    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
-      (layout) => layout.matrix
-    ))
+    return this.cache.fetch('getOriginOffsetComposedMatrix', () => {
+      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+        (layout) => layout.matrix
+      ))
+    })
   }
 
   getAncestry () {

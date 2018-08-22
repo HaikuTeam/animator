@@ -1689,7 +1689,10 @@ class ActiveComponent extends BaseModel {
       if (a > b) return 1
       return 0
     })
-    if (!designsAsArray.length) return cb()
+
+    if (!designsAsArray.length) {
+      return cb()
+    }
 
     // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
     return async.eachSeries(designsAsArray, (relpath, next) => {

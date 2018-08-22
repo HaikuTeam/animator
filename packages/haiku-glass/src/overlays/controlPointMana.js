@@ -6,7 +6,7 @@
  * @param cursor
  * @returns {*}
  */
-export default (scale, {x, y}, index, cursor) => ({
+export default (scale, {x, y}, index, cursor, doUseFilters) => ({
   elementName: 'g',
   attributes: {
     transform: `scale(${scale}) translate(${x - 12.5} ${y - 12.5})`,
@@ -26,7 +26,7 @@ export default (scale, {x, y}, index, cursor) => ({
         cy: 12.5,
         r: 3.5,
         fill: '#000',
-        filter: 'url(#a)',
+        filter: (doUseFilters) ? 'url(#a)' : undefined,
       },
     },
     {
