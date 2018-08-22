@@ -49,7 +49,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
-import {getUrl} from 'haiku-common/lib/environments';
+import {getAccountUrl} from 'haiku-common/lib/environments';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -504,7 +504,7 @@ export default class Creator extends React.Component {
   }
 
   explorePro = () => {
-    shell.openExternal(getUrl('pricing/'));
+    shell.openExternal(getAccountUrl('checkout'));
   };
 
   isTextInputFocused () {
