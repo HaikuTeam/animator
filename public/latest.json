@@ -34,6 +34,7 @@
       "Fixed a bug preventing Frame Actions from being accounted for when determining the final keyframe/loop point in animations.",
       "Fixed issue causing both X and Y keyframes to be created when elements were only moved in one direction.",
       "Fixed a bug causing line elements from being lost during ungroup.",
+      "Fixed issues related to incorrect composition of 3D rotations. (Projects with 3D rotation created in earlier versions of Haiku may look slightly different.)",
       "Fixed a crash caused by copying and pasting certain components.",
       "Fixed issue causing errors when using a return statement in an Action handler function.",
       "Improved performance when horizontally scrolling in the Timeline.",
