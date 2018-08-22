@@ -627,6 +627,7 @@ class ActiveComponent extends BaseModel {
     this.interactionMode = interactionMode
 
     return this.reload({
+      superficial: true,
       clearCacheOptions: {
         doClearEntityCaches: true
       }
@@ -2176,7 +2177,10 @@ class ActiveComponent extends BaseModel {
   }
 
   softReload (reloadOptions, instanceConfig, cb) {
-    this.clearCaches(reloadOptions.clearCacheOptions)
+    // Some methods, like setInteractionMode, don't actually require a cache clear
+    if (!reloadOptions.superficial) {
+      this.clearCaches(reloadOptions.clearCacheOptions)
+    }
 
     // Check sustained warnings should be done after cache clear
     // We use emit so only creator will perform sustained warning check
@@ -2229,13 +2233,13 @@ class ActiveComponent extends BaseModel {
           // In many cases a full rehydration isn't desired because we know exactly
           // what models need to be updated in order to proceed; if the user
           // specifies this then we call their own custom rehydration function
-          reloadOptions.customRehydrate()
+          reloadOptions.customRehydrate(reloadOptions)
         } else {
           // Rehydrate all the view-models so our view renders correctly
           // This has to happen __after softReload__ because soft reload calls
           // flush, and all the models need access to the rendered app in
           // order to compute various things properly (race condition)
-          this.rehydrate()
+          this.rehydrate(reloadOptions)
         }
 
         // Fix caches from our on-stage controls.
@@ -2561,7 +2565,7 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  rehydrate () {
+  rehydrate (options = {}) {
     logger.time('ActiveComponent#rehydrate')
 
     // Don't allow any incoming syncs while we're in the midst of this
@@ -2592,11 +2596,13 @@ class ActiveComponent extends BaseModel {
     // We *must* unset this or else stale elements will be left, messing up rehydration
     root.children = []
 
-    root.rehydrate({maxRehydrationDepth: 1})
+    root.rehydrate(Object.assign({}, options, {
+      maxRehydrationDepth: 1
+    }))
 
     // Note that visitAll also visits self, so all elements' rows get rehydrated here
     root.visitAll((element) => {
-      element.rehydrateRows()
+      element.rehydrateRows(options)
     })
 
     Element.where({ component: this }).forEach((element) => {

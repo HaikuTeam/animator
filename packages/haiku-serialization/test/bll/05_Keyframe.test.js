@@ -6,6 +6,8 @@ const Project = require('./../../src/bll/Project')
 const Keyframe = require('./../../src/bll/Keyframe')
 
 tape('Keyframe.01', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   t.plan(44)
   return setupTest('keyframe-01', (err, ac, rows, done) => {
     if (err) throw err
@@ -117,11 +119,14 @@ tape('Keyframe.01', (t) => {
     t.ok(kfs[2].isSelected(), 'kf2 sel')
     t.ok(!kfs[3].isSelected(), 'kf3 not sel')
 
+    process.env.HAIKU_SUBPROCESS = subproc
     done()
   })
 })
 
 tape('Keyframe.02', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   t.plan(6)
   return setupTest('keyframe-02', (err, ac, rows, done) => {
     if (err) throw err
@@ -148,12 +153,15 @@ tape('Keyframe.02', (t) => {
       ac.joinSelectedKeyframes('linear', { from: 'timeline' })
       t.equal(kfs2[1].getCurve(), 'linear', 'curve is ok')
 
+      process.env.HAIKU_SUBPROCESS = subproc
       done()
     })
   })
 })
 
 tape('Keyframe.03', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   t.plan(2)
   return setupTest('keyframe-03', (err, ac, rows, done) => {
     if (err) throw err
@@ -172,11 +180,14 @@ tape('Keyframe.03', (t) => {
     })
     rows[0].deleteKeyframe(kfs[2], { from: 'test' })
 
+    process.env.HAIKU_SUBPROCESS = subproc
     done()
   })
 })
 
 tape('Keyframe.04', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   t.plan(3)
   return setupTest('keyframe-04', (err, ac, rows, done) => {
     if (err) throw err
@@ -188,11 +199,14 @@ tape('Keyframe.04', (t) => {
     fireClick(kfs[2], false, { shift: false })
     t.equal(ac.checkIfSelectedKeyframesAreMovableToZero(), false, 'any other keyframe cannot be moved to zero')
 
+    process.env.HAIKU_SUBPROCESS = subproc
     done()
   })
 })
 
 tape('Keyframe.05', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   t.plan(2)
   return setupTest('keyframe-05', (err, ac, rows, done) => {
     if (err) throw err
@@ -212,12 +226,15 @@ tape('Keyframe.05', (t) => {
       t.equal(kfs2[0].value, cachedValue, 'newly created keyframe at zero has initial value by default')
       t.equal(kfs2[1].value, cachedValue, 'moved keyframe keeps its value')
 
+      process.env.HAIKU_SUBPROCESS = subproc
       done()
     })
   })
 })
 
 tape('Keyframe.06', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   return setupTest('keyframe-06', (err, ac, rows, done) => {
     if (err) throw err
     const kfs = rows[0].getKeyframes()
@@ -231,6 +248,8 @@ tape('Keyframe.06', (t) => {
     selection[0].curve = 'linear'
 
     t.ok(Keyframe.groupIsSingleTween(selection), 'returns true if there is a tween between the two provided keyframes')
+
+    process.env.HAIKU_SUBPROCESS = subproc
     done()
     t.end()
   })

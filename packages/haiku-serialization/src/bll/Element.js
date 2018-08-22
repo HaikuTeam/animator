@@ -992,7 +992,14 @@ class Element extends BaseModel {
     })
   }
 
-  rehydrateRows () {
+  rehydrateRows (options = {}) {
+    if (
+      options.superficial ||
+      process.env.HAIKU_SUBPROCESS !== 'timeline'
+    ) {
+      return
+    }
+
     const existingRows = this.getAllRows()
     existingRows.forEach((row) => row.mark())
 
