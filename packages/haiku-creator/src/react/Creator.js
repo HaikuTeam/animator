@@ -2086,10 +2086,13 @@ export default class Creator extends React.Component {
           {this.renderChangelogModal()}
           {this.renderOfflineExportUpgradeModal()}
           {this.renderNewProjectModal()}
-          <Tour
-            projectsList={this.state.projectsList}
-            envoyClient={this.envoyClient}
-            startTourOnMount={true} />
+          {!this.state.tearingDown &&
+            <Tour
+              projectsList={this.state.projectsList}
+              envoyClient={this.envoyClient}
+              startTourOnMount={true}
+            />
+          }
           <AutoUpdater
             onComplete={this.onAutoUpdateCheckComplete}
             check={this.state.updater.shouldCheck}
@@ -2116,9 +2119,12 @@ export default class Creator extends React.Component {
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        <Tour
-          projectsList={this.state.projectsList}
-          envoyClient={this.envoyClient} />
+        {!this.state.tearingDown &&
+          <Tour
+            projectsList={this.state.projectsList}
+            envoyClient={this.envoyClient}
+          />
+        }
         <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <CSSTransition
