@@ -869,7 +869,6 @@ export class Glass extends React.Component {
       children.push({
         elementName: 'line',
         attributes: {
-          key: 'h-' + i,
           x1: '-5000',
           x2: '5000',
           y1: snap.positionWorld,
@@ -884,7 +883,6 @@ export class Glass extends React.Component {
       children.push({
         elementName: 'line',
         attributes: {
-          key: 'v-' + i,
           x1: snap.positionWorld,
           x2: snap.positionWorld,
           y1: '-5000',
