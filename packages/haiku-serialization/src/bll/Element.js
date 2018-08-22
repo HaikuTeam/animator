@@ -986,8 +986,11 @@ class Element extends BaseModel {
     })
   }
 
-  rehydrateRows () {
-    if (process.env.HAIKU_SUBPROCESS !== 'timeline') {
+  rehydrateRows (options = {}) {
+    if (
+      options.superficial ||
+      process.env.HAIKU_SUBPROCESS !== 'timeline'
+    ) {
       return
     }
 
