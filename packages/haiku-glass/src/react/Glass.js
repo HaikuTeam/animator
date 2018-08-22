@@ -1418,7 +1418,7 @@ export class Glass extends React.Component {
           }
           this.getActiveComponent().updateKeyframes({
             [this.getActiveComponent().getCurrentTimelineName()]: {
-              [Element.directlySelected.componentId]: {
+              [Element.directlySelected.attributes['haiku-id']]: {
                 d: {
                   0: {
                     value: SVGPoints.pointsToPath(points),
@@ -1428,7 +1428,7 @@ export class Glass extends React.Component {
             },
           }, {
             setElementLockStatus: {
-              [Element.directlySelected.rootSVG.componentId]: true,
+              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true,
             },
           }, {from: 'glass'}, () => {});
         }
@@ -1438,8 +1438,8 @@ export class Glass extends React.Component {
         const alreadySelected =
           this.state.directSelectionAnchorActivation &&
           this.state.directSelectionAnchorActivation.indices &&
-          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.componentId] &&
-          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.componentId].includes(dataIndex);
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] &&
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']].includes(dataIndex);
 
         if (DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED[Element.directlySelected.type] && (Globals.isShiftKeyDown || alreadySelected)) {
           if (this.state.directSelectionAnchorActivation) {
@@ -1448,24 +1448,24 @@ export class Glass extends React.Component {
             };
           } else {
             indices = {
-              [Element.directlySelected.componentId]: [dataIndex],
+              [Element.directlySelected.attributes['haiku-id']]: [dataIndex],
             };
           }
 
           if (Globals.isShiftKeyDown && alreadySelected) {
             // Remove if already selected
-            indices[Element.directlySelected.componentId] = lodash.pull(indices[Element.directlySelected.componentId], dataIndex);
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.pull(indices[Element.directlySelected.attributes['haiku-id']], dataIndex);
           } else {
             // Add otherwise
-            if (!indices[Element.directlySelected.componentId]) {
-              indices[Element.directlySelected.componentId] = [];
+            if (!indices[Element.directlySelected.attributes['haiku-id']]) {
+              indices[Element.directlySelected.attributes['haiku-id']] = [];
             }
-            indices[Element.directlySelected.componentId].push(dataIndex);
-            indices[Element.directlySelected.componentId] = lodash.uniq(indices[Element.directlySelected.componentId]);
+            indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex);
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']]);
           }
         } else {
           indices = {
-            [Element.directlySelected.componentId]: [dataIndex],
+            [Element.directlySelected.attributes['haiku-id']]: [dataIndex],
           };
         }
         this.directSelectionAnchorActivation({
@@ -1632,7 +1632,7 @@ export class Glass extends React.Component {
 
                 const keyframeOptions = {
                   setElementLockStatus: {
-                    [Element.directlySelected.rootSVG.componentId]: true,
+                    [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true,
                   },
                 };
 
@@ -1648,7 +1648,7 @@ export class Glass extends React.Component {
                   };
                 };
 
-                const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.componentId);
+                const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
                 switch (Element.directlySelected.type) {
                   case 'rect': {
                     const newKeys = this.interpolateAttributesAtKeyframes(originalEl, ['x', 'y', 'rx', 'ry']);
@@ -1668,11 +1668,11 @@ export class Glass extends React.Component {
 
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.componentId]: pathKeys,
+                        [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
                       {
-                        [Element.directlySelected.componentId]: 'path',
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
                       }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
 
                     break;
@@ -1688,11 +1688,11 @@ export class Glass extends React.Component {
                     }
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.componentId]: pathKeys,
+                        [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
                       {
-                        [Element.directlySelected.componentId]: 'path',
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
                       }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
 
                     break;
@@ -1710,11 +1710,11 @@ export class Glass extends React.Component {
 
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.componentId]: pathKeys,
+                        [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
                       {
-                        [Element.directlySelected.componentId]: 'path',
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
                       }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
@@ -1730,11 +1730,11 @@ export class Glass extends React.Component {
                     }
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.componentId]: pathKeys,
+                        [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
                       {
-                        [Element.directlySelected.componentId]: 'path',
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
                       }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
@@ -1775,7 +1775,7 @@ export class Glass extends React.Component {
                     // Adjust the selection state
                     this.directSelectionAnchorActivation({
                       indices: {
-                        [Element.directlySelected.componentId]: [minIdx + 1],
+                        [Element.directlySelected.attributes['haiku-id']]: [minIdx + 1],
                       },
                     });
 
@@ -1786,7 +1786,7 @@ export class Glass extends React.Component {
 
                     this.getActiveComponent().updateKeyframes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.componentId]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
                           points: {
                             [this.getActiveComponent().getCurrentTimelineTime()]: {
                               value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y]))),
@@ -1826,7 +1826,7 @@ export class Glass extends React.Component {
 
                     this.getActiveComponent().updateKeyframes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.componentId]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             [this.getActiveComponent().getCurrentTimelineTime()]: {
                               value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t)),
@@ -2307,36 +2307,32 @@ export class Glass extends React.Component {
             y: transformedCurrent.y - transformedLastDown.y,
           };
 
-          const rootSvgElement = Element.directlySelected.rootSVG;
-          if (!rootSvgElement) {
-            return;
-          }
-
           const keyframeOptions = {
             setElementLockStatus: {
-              [rootSvgElement.componentId]: true,
+              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true,
             },
           };
 
-          const keyframeUpdates = {
-            [rootSvgElement.componentId]: {
-              'style.overflow': {
-                0: {value: 'visible'},
-              },
-            },
-          };
+          // We get SVG root element here so we can update svg overflow to visible
+          const selectedElement = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
+          const rootSvgElement = selectedElement.getParentSvgElement();
 
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
-            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.componentId];
+
+            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']];
             const lastIndex = indices[indices.length - 1];
 
             switch (Element.directlySelected.type) {
               case 'circle': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       r: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)}),
@@ -2361,8 +2357,12 @@ export class Glass extends React.Component {
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       [property]: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value,
@@ -2414,8 +2414,12 @@ export class Glass extends React.Component {
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: x,
@@ -2450,8 +2454,12 @@ export class Glass extends React.Component {
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPolyString(points),
@@ -2476,8 +2484,12 @@ export class Glass extends React.Component {
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: attrUpdate,
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: attrUpdate,
                   },
                 }, keyframeOptions, {from: 'glass'}, () => {});
                 break;
@@ -2545,8 +2557,12 @@ export class Glass extends React.Component {
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.attributes.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPath(points),
@@ -2566,8 +2582,12 @@ export class Glass extends React.Component {
               case 'circle': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       cx: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x,
@@ -2586,8 +2606,12 @@ export class Glass extends React.Component {
               case 'rect': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x,
@@ -2612,8 +2636,12 @@ export class Glass extends React.Component {
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPolyString(points),
@@ -2628,8 +2656,12 @@ export class Glass extends React.Component {
               case 'line': {
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    ...keyframeUpdates,
-                    [Element.directlySelected.componentId]: {
+                    [rootSvgElement.componentId]: {
+                      'style.overflow': {
+                        0: {value: 'visible'},
+                      },
+                    },
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       x1: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x,
@@ -2669,9 +2701,13 @@ export class Glass extends React.Component {
                   }
                 }
                 this.getActiveComponent().updateKeyframes({
-                  ...keyframeUpdates,
+                  [rootSvgElement.componentId]: {
+                    'style.overflow': {
+                      0: {value: 'visible'},
+                    },
+                  },
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [Element.directlySelected.componentId]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPath(points),
@@ -2871,13 +2907,13 @@ export class Glass extends React.Component {
 
     if (Element.directlySelected) {
       // Make sure it's not locked
-      const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.componentId);
+      const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
       if (originalEl && originalEl.isLockedViaParents()) {
         Element.directlySelected = null;
         return overlays;
       }
 
-      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.componentId] : undefined, overlays);
+      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays);
       return overlays;
     }
 
