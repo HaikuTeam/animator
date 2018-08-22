@@ -11,7 +11,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const {Figma} = require('./Figma')
 const Sketch = require('./Sketch')
 const Illustrator = require('./Illustrator')
-const _ = require('lodash')
+const lodash = require('lodash')
 
 const PI_OVER_12 = Math.PI / 12
 
@@ -889,7 +889,7 @@ class ElementSelectionProxy extends BaseModel {
     })
 
     // Execute the sort
-    const elementsSortedByBoundingEdge = _.cloneDeep(this.selection).sort((elemA, elemB) => {
+    const elementsSortedByBoundingEdge = lodash.cloneDeep(this.selection).sort((elemA, elemB) => {
       return elemA._distributeBoundingEdge - elemB._distributeBoundingEdge
     })
 
@@ -1262,6 +1262,7 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {} // no-op
     )
+
     if (overrides && overrides.groupOrigin && overrides.groupOrigin.x !== undefined) {
       this.applyPropertyValue('translation.x', overrides.groupOrigin.x - this.computePropertyValue('offset.x'))
     } else {
@@ -1333,7 +1334,7 @@ class ElementSelectionProxy extends BaseModel {
     const baseProxyBox = Object.assign({}, this._lastProxyBox)
 
     // note an Object.assign({}, ...) doesn't suffice here because computeScalePropertyGroup mutates properties deeply
-    const getBaseTransform = () => _.cloneDeep(this.transformCache.get('CONTROL_ACTIVATION'))
+    const getBaseTransform = () => lodash.cloneDeep(this.transformCache.get('CONTROL_ACTIVATION'))
 
     const baseTransform = getBaseTransform()
 
@@ -1363,7 +1364,7 @@ class ElementSelectionProxy extends BaseModel {
     updatedLayout.scale.y = scalePropertyGroup['scale.y'].value
     updatedLayout.translation.x = scalePropertyGroup['translation.x'].value
     updatedLayout.translation.y = scalePropertyGroup['translation.y'].value
-    let transformedPoints = _.cloneDeep(this._baseBoxPointsNotTransformed)
+    let transformedPoints = lodash.cloneDeep(this._baseBoxPointsNotTransformed)
     ElementSelectionProxy.transformPointsByLayoutInPlace(transformedPoints, updatedLayout)
     // find axis-aligned bounding box; add each edge
     let axisAlignedBbox = [
@@ -2054,7 +2055,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   // Make a copy of inbound points so we can transform them in place.
   const fixedPoint = Object.assign({}, fixedPointIn)
   const translatedPoint = Object.assign({}, translatedPointIn)
-  const delta = _.cloneDeep(deltaIn)
+  const delta = lodash.cloneDeep(deltaIn)
   // We compute the entire scale property group by fixing a point (the *temporary* transform origin) and translating a
   // point (the point being dragged). These are represented by `fixedPoint` and `translatedPoint` respectively.
 

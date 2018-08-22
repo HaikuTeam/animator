@@ -847,6 +847,7 @@ export class Glass extends React.Component {
 
     const horizSnaps = [];
     const vertSnaps = [];
+
     if (
       this.state.isMouseDown &&
       ElementSelectionProxy.snaps.length > 0 &&
@@ -869,7 +870,6 @@ export class Glass extends React.Component {
       children.push({
         elementName: 'line',
         attributes: {
-          key: 'h-' + i,
           x1: '-5000',
           x2: '5000',
           y1: snap.positionWorld,
@@ -884,7 +884,6 @@ export class Glass extends React.Component {
       children.push({
         elementName: 'line',
         attributes: {
-          key: 'v-' + i,
           x1: snap.positionWorld,
           x2: snap.positionWorld,
           y1: '-5000',
@@ -3061,7 +3060,9 @@ export class Glass extends React.Component {
       return;
     }
 
-    overlays.push(defsMana);
+    if (experimentIsEnabled(Experiment.GlassControlPointShadows)) {
+      overlays.push(defsMana);
+    }
 
     const zoom = this.getActiveComponent().getArtboard().getZoom();
     const points = proxy.getBoxPointsTransformed();
@@ -3113,13 +3114,20 @@ export class Glass extends React.Component {
           point,
           index,
           canControlHandles ? 'none' : this.getCursorCssRule(),
+          experimentIsEnabled(Experiment.GlassControlPointShadows),
         ));
       }
     });
 
     if (canRotate && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
       if (!this.pointHasNaN(origin)) {
-        overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()));
+        overlays.push(originMana(
+          scale,
+          origin.x,
+          origin.y,
+          Globals.isSpecialKeyDown(),
+          experimentIsEnabled(Experiment.GlassControlPointShadows),
+        ));
       }
     }
 

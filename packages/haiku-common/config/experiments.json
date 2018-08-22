@@ -33,5 +33,6 @@
   "UserFacingDevTools": false,
   "ControlFlowIf": false,
   "ControlFlowRepeat": false,
-  "ExpandTimelinePropertiesFromStageChanges": true
+  "ExpandTimelinePropertiesFromStageChanges": true,
+  "GlassControlPointShadows": false
 }
