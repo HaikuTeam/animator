@@ -6,8 +6,7 @@
 
 import {LayoutSpec} from '../api';
 import Layout3D from '../Layout3D';
-import mat4Decompose, {DecomposedMat4, round, roundVector, ThreeTuple} from '../vendor/mat4-decompose';
-import {doublesEqual, getEulerAngles} from '../vendor/math3d';
+import mat4Decompose, {DecomposedMat4} from '../vendor/mat4-decompose';
 
 export interface ComposedTransformSpec {
   'translation.x'?: number;
@@ -56,30 +55,6 @@ const cleanInvalidOrOverexplicitProps = (out: ComposedTransformSpec, explicit = 
   });
 };
 
-export const simplify3dTransformations = (out: ComposedTransformSpec, epislon = 1e-3) => {
-  // When our six degrees of freedom might allow us to remove 3D rotation entirely, opt to do so. This might prevent
-  // downstream rendering issues with layout engines that don't support 3D rotation mechanics (e.g. Lottie).
-
-  // If there is any z-rotation, we also have to account for coordinate flips by inverting over the pole.
-  const hasZRotation = !doublesEqual(Math.abs(out['rotation.z']), 0, epislon);
-
-  if (doublesEqual(Math.abs(out['rotation.x']), Math.PI, epislon)) {
-    out['rotation.x'] = 0;
-    out['scale.y'] *= -1;
-    if (hasZRotation) {
-      out['rotation.z'] = round(2 * Math.PI - out['rotation.z']);
-    }
-  }
-
-  if (doublesEqual(Math.abs(out['rotation.y']), Math.PI, epislon)) {
-    out['rotation.y'] = 0;
-    out['scale.x'] *= -1;
-    if (hasZRotation) {
-      out['rotation.z'] = round(2 * Math.PI - out['rotation.z']);
-    }
-  }
-};
-
 /**
  * Normalize rotations as close as possible to the quadrant of origin. Carefully.
  */
@@ -116,14 +91,13 @@ export default (
   out: ComposedTransformSpec,
   matrices,
   explicit = false,
-  epsilon = 1e-3,
   normalizer: LayoutSpec = null,
 ) => {
   // Note the array reversal - to combine matrices we go in the opposite of the transform sequence
   // I.e. if we transform A->B->C, the multiplication order should be CxBxA
   const decomposed = mat4Decompose(Layout3D.multiplyArrayOfMatrices(matrices.reverse()));
 
-  const {translation, scale, shear, quaternion} = decomposed as DecomposedMat4;
+  const {translation, scale, shear, rotation} = decomposed as DecomposedMat4;
   if (scale.indexOf(0) !== -1) {
     // In any dimension and axis of rotation, a single scale factor of 0 vanishes to the horizon. We can pick an
     // arbitrary axis to scale to 0 and use this to describe the layout without loss of effect.
@@ -131,8 +105,6 @@ export default (
       'scale.x': 0,
     };
   }
-
-  const rotation = roundVector<ThreeTuple>(getEulerAngles(quaternion[0], quaternion[1], quaternion[2], quaternion[3]));
 
   out['translation.x'] = translation[0];
   out['translation.y'] = translation[1];
@@ -146,7 +118,7 @@ export default (
   out['shear.xy'] = shear[0];
   out['shear.xz'] = shear[1];
   out['shear.yz'] = shear[2];
-  simplify3dTransformations(out, epsilon);
+
   cleanInvalidOrOverexplicitProps(out, explicit);
   normalizeRotationsInQuadrants(out, normalizer);
 

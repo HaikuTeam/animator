@@ -454,13 +454,6 @@ export interface LayoutSpec {
   sizeDifferential: ThreeDimensionalLayoutProperty;
   sizeAbsolute: ThreeDimensionalLayoutProperty;
 
-  orientation?: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
-
   shear: {
     xy: number;
     xz: number;
@@ -486,12 +479,6 @@ export interface LayoutSpecPartial {
   sizeProportional?: ThreeDimensionalLayoutProperty;
   sizeDifferential?: ThreeDimensionalLayoutProperty;
   sizeAbsolute?: ThreeDimensionalLayoutProperty;
-  orientation?: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
   shear?: {
     xy: number;
     xz: number;
@@ -519,12 +506,6 @@ export interface ComputedLayoutSpecPartial {
   sizeProportional?: ThreeDimensionalLayoutProperty;
   sizeDifferential?: ThreeDimensionalLayoutProperty;
   sizeAbsolute?: ThreeDimensionalLayoutProperty;
-  orientation?: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
   shear?: {
     xy: number;
     xz: number;
