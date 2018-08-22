@@ -156,6 +156,7 @@ export default class Creator extends React.Component {
       // This is a sensible default to avoid flashes of offline warnings.
       // (The Envoy server will protect us from any potential abuse.)
       allowOffline: true,
+      isOnline: true,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -689,6 +690,7 @@ export default class Creator extends React.Component {
         }, () => {
           if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
             this._postAuthCallback();
+            delete this._postAuthCallback;
           } else if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index
@@ -1150,6 +1152,7 @@ export default class Creator extends React.Component {
   authenticationComplete () {
     if (typeof this._postAuthCallback === 'function') {
       this._postAuthCallback();
+      delete this._postAuthCallback;
     }
 
     this.handleEnvoyUserReady();
