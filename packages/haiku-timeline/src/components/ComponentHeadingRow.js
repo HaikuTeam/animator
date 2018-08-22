@@ -364,23 +364,6 @@ export default class ComponentHeadingRow extends React.Component {
                   />
                   : ''}
               </div>
-              <div
-                className="design-sync-button"
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  ...STYLES.actionButton,
-                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none',
-                } : {
-                  width: 16,
-                  position: 'absolute',
-                  left: 50,
-                  top: 0,
-                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none',
-                })}
-                onClick={this.toggleSync.bind(this)}
-                title="Syncing is disabled for this element. Click to revert your changes and reenable syncing."
-              >
-                {SyncIconSVG({color: Palette.RED_DARKER})}
-              </div>
             </div>
           </div>
         </div>
