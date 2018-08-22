@@ -156,6 +156,7 @@ export default class Creator extends React.Component {
       // This is a sensible default to avoid flashes of offline warnings.
       // (The Envoy server will protect us from any potential abuse.)
       allowOffline: true,
+      isOnline: true,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
