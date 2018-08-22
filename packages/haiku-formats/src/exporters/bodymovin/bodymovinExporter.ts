@@ -192,7 +192,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       const inheritable = this.groupHierarchy[parentHaikuId];
       return composeTimelines(
         this.currentNodeSize,
-        this.animationSize,
         timeline,
         this.timelineForId(
           parentHaikuId,

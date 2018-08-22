@@ -1,6 +1,7 @@
 import {BytecodeTimelineProperties, LayoutSpec, ThreeDimensionalLayoutProperty} from '@haiku/core/lib/api';
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/HaikuComponent';
-import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
+import {round} from '@haiku/core/lib/vendor/mat4-decompose';
+import composedTransformsToTimelineProperties, { ComposedTransformSpec } from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
 import Layout3D from '@haiku/core/lib/Layout3D';
 import {initialValueOr} from './timelineUtils';
 
@@ -56,6 +57,33 @@ const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, elemen
   });
 };
 
+const precision = 1e-6;
+
+const doublesEqual = (d1: number, d2: number, epsilon = precision): boolean => Math.abs(d1 - d2) < epsilon;
+
+/**
+ * Private helper method for removing 3D transformations _to the extent possible_.
+ */
+const simplify3dTransformations = (out: ComposedTransformSpec, epislon = 1e-3) => {
+  // Note: the following technique is known to be imperfect, but seems to cover most use cases until Lottie supports
+  // 3D rotation.
+
+  // The demo projects that are fixed with this good-enough approach are:
+  //  - Panda
+  //  - Personality
+  //  - daloading2
+  //  - percy
+  if (doublesEqual(Math.abs(out['rotation.x']), Math.PI, epislon)) {
+    out['rotation.x'] = 0;
+    out['scale.y'] *= -1;
+  }
+
+  if (doublesEqual(Math.abs(out['rotation.y']), Math.PI, epislon)) {
+    out['rotation.y'] = 0;
+    out['scale.x'] *= -1;
+  }
+};
+
 /**
  * Composes a child timeline with a parent timeline.
  *
@@ -85,7 +113,6 @@ const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, elemen
  */
 export const composeTimelines = (
   shapeLayerSize: ThreeDimensionalLayoutProperty,
-  animationSize: ThreeDimensionalLayoutProperty,
   childTimeline: any,
   parentTimeline: any,
 ) => {
@@ -100,7 +127,8 @@ export const composeTimelines = (
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
   const childMatrix = computeMatrix(childPseudoElement.layout, shapeLayerSize);
   const parentMatrix = computeMatrix(parentPseudoElement.layout, shapeLayerSize);
-  const composition = composedTransformsToTimelineProperties({}, [parentMatrix, childMatrix], false, 1e-2);
+  const composition = composedTransformsToTimelineProperties({}, [parentMatrix, childMatrix], true);
+  simplify3dTransformations(composition);
 
   Object.assign(composedTimeline, {
     ...supportedAdditiveLayoutProperties.reduce(

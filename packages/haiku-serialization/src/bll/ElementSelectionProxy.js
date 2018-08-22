@@ -1539,7 +1539,7 @@ class ElementSelectionProxy extends BaseModel {
       // This converts a composition of matrices like [[1,0,0,...],...] into our own
       // transform properties like scale.x, rotation.z, and merges them into the
       // given property group object.
-      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true, 1e-3, element.getLayoutSpec())
+      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true, element.getLayoutSpec())
 
       const offsetX = layoutSpec.offset.x
       const offsetY = layoutSpec.offset.y
@@ -2231,7 +2231,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
     ray.y += layoutSpec.offset.y
   }
   const attributes = {}
-  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix], false, 1e-3, layoutSpec)
+  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix], false, layoutSpec)
 
   // Return directly after offsetting translation by the `fixedPoint`'s coordinates. Note that we are choosing _not_ to
   // change the z-translation, effectively projecting the origin of rotation from the context element onto the z = C
