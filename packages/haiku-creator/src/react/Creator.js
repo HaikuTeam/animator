@@ -504,7 +504,7 @@ export default class Creator extends React.Component {
   }
 
   explorePro = () => {
-    shell.openExternal(getAccountUrl('checkout/'));
+    shell.openExternal(getAccountUrl('checkout'));
   };
 
   isTextInputFocused () {
