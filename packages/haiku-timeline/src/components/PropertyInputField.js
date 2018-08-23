@@ -139,7 +139,7 @@ class PropertyInputFieldValueDisplay extends React.Component {
     const valueDescriptor = this.props.row.getPropertyValueDescriptor();
 
     return (
-      <span>
+      <span style={{whiteSpace: 'nowrap'}}>
         {remapPrettyValue(valueDescriptor.prettyValue)}{' '}
         <span style={{opacity: 0.5}}>{valueDescriptor.valueUnit}</span>
       </span>
