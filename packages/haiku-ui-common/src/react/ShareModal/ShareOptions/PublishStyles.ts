@@ -84,6 +84,6 @@ export const PUBLISH_SHARED = {
   instructionsCol2: {
     width: 'calc(100% - 35px)',
     display: 'inline-block',
-    userSelect: 'initial',
+    userSelect: 'none',
   },
 };

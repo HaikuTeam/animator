@@ -14,6 +14,7 @@ const STYLES: React.CSSProperties = {
     transform: 'translateX(-50%)',
     top: 110,
     margin: 0,
+    userSelect: 'none',
   },
 };
 
