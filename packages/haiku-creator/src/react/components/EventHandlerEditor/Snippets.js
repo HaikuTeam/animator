@@ -8,7 +8,7 @@ const STYLES = {
   wrapper: {
     position: 'absolute',
     top: '0',
-    right: '12px',
+    right: '2px',
     zIndex: 99,
     fontFamily: 'Fira Sans',
   },
@@ -85,13 +85,32 @@ class Snippets extends React.PureComponent {
 
   componentWillReceiveProps (newProps) {
     if (newProps.editor && !this.props.editor) {
-      newProps.editor.domElement
-        .querySelector('.monaco-editor')
-        .appendChild(this._plus);
 
-      newProps.editor.onDidChangeCursorPosition((event, editor) => {
-        this._plus.style.top = `${18 * (event.position.lineNumber - 1)}px`;
-      });
+      // Start snippet button position at line 0
+      const newEditorOffsetTop = newProps.editor.getDomNode().offsetTop;
+      this._plus.style.top = `${newEditorOffsetTop}px`;
+
+      const updateSippetButtonPosition = () => {
+
+        const editorPosition = this.props.editor.getPosition();
+        const visibleRanges = this.props.editor.getVisibleRanges();
+        const cursorIsVisible = visibleRanges.some((range) => range.containsPosition(editorPosition));
+
+        if (cursorIsVisible) {
+          this._plus.style.visibility = 'visible';
+
+          // Snippet button position is monaco editor position + relative cursor scroll position
+          const editorOffsetTop = this.props.editor.getDomNode().offsetTop;
+          const top = this.props.editor.getScrolledVisiblePosition(editorPosition).top;
+          this._plus.style.top = `${top + editorOffsetTop}px`;
+        } else {
+          this._plus.style.visibility = 'hidden';
+        }
+      };
+
+      // On monaco scroll or cursor change, update snippet button position
+      newProps.editor.onDidScrollChange(updateSippetButtonPosition);
+      newProps.editor.onDidChangeCursorPosition(updateSippetButtonPosition);
     }
   }
 

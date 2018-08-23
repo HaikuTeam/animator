@@ -9,7 +9,6 @@ const STYLES = {
     backgroundColor: Palette.SPECIAL_COAL,
     fontFamily: 'Fira Mono',
     fontSize: '11px',
-    padding: '3px 13px',
   },
   preamble: {
     borderTopLeftRadius: 7,
@@ -130,12 +129,11 @@ class Editor extends React.Component {
           style={STYLES.editorContext}
           className="haiku-multiline haiku-dynamic"
         >
+          <Snippets editor={this.editor} />
           <div
             style={STYLES.editorWrapper}
             ref={this.setContextRef}
-          >
-            <Snippets editor={this.editor} />
-          </div>
+          />
         </div>
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
