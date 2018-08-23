@@ -96,10 +96,6 @@ class SideBar extends React.Component {
     window.removeEventListener('resize', this.windowResizeHandler);
   }
 
-  goToDashboard () {
-    this.props.onNavigateToDashboard();
-  }
-
   render () {
     // The State Inspector UI only makes sense in the context of a component,
     // hence the conditional presence-check before rendering it
@@ -112,9 +108,7 @@ class SideBar extends React.Component {
           <button
             id="go-to-dashboard"
             key="dashboard"
-            onClick={() => {
-              this.goToDashboard();
-            }}
+            onClick={this.props.onNavigateToDashboard}
             style={[
               BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, BTN_STYLES.btnText,
               {width: 'auto', position: 'absolute', right: 6},

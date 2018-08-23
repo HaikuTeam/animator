@@ -1,3 +1,4 @@
+import {FadingCircle} from 'better-react-spinkit';
 import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -22,6 +23,7 @@ import Stage from './components/Stage';
 import Timeline from './components/Timeline';
 import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
+import {DASH_STYLES} from './styles/dashShared';
 import AutoUpdater from './components/AutoUpdater';
 import ProjectLoader from './components/ProjectLoader';
 import ProxyHelpScreen from './components/ProxyHelpScreen';
@@ -157,6 +159,7 @@ export default class Creator extends React.Component {
       // (The Envoy server will protect us from any potential abuse.)
       allowOffline: true,
       isOnline: true,
+      areProjectsLoading: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -1160,21 +1163,25 @@ export default class Creator extends React.Component {
     return this.setState({isUserAuthenticated: true});
   }
 
-  loadProjects (cb) {
+  loadProjects (silent, cb) {
     if (!this.envoyProject) {
       return cb(null, []);
     }
 
-    this.envoyProject.getProjectsList().then((projectsList) => {
-      this.setState({projectsList});
-      ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
-      return cb(null, projectsList);
-    }).catch((error) => {
-      mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
-        username: this.state.username,
-        organization: this.state.organizationName,
+    // If "silent", do not show the loading state.
+    this.setState(silent ? {} : {areProjectsLoading: true}, () => {
+      this.envoyProject.getProjectsList().then((projectsList) => {
+        this.setState({areProjectsLoading: false, projectsList});
+        ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
+        return cb(null, projectsList);
+      }).catch((error) => {
+        mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
+          username: this.state.username,
+          organization: this.state.organizationName,
+        });
+        this.setState({areProjectsLoading: false});
+        return cb(error, []);
       });
-      return cb(error, []);
     });
   }
 
@@ -2056,79 +2063,64 @@ export default class Creator extends React.Component {
       return this.renderStartupDefaultScreen();
     }
 
-    if (this.state.dashboardVisible) {
-      return (
-        <div>
-          <ProjectBrowser
-            ref="ProjectBrowser"
-            explorePro={this.explorePro}
-            isOnline={this.state.isOnline}
-            allowOffline={this.state.allowOffline}
-            envoyProject={this.envoyProject}
-            onShowProxySettings={this.boundShowProxySettings}
-            onProjectsList={this.onProjectsList}
-            onShowNewProjectModal={(...args) => {
-              this.showNewProjectModal(...args);
-            }}
-            lastViewedChangelog={this.state.lastViewedChangelog}
-            onShowChangelogModal={this.showChangelogModal}
-            privateProjectLimit={this.state.privateProjectLimit}
-            showChangelogModal={this.state.showChangelogModal}
-            username={this.state.username}
-            softwareVersion={this.state.softwareVersion}
-            organizationName={this.state.organizationName}
-            isAdmin={this.state.isAdmin}
-            loadProjects={this.loadProjects}
-            launchProject={this.launchProject}
-            createNotice={this.createNotice}
-            removeNotice={this.removeNotice}
-            logOut={this.logOut}
-            notices={this.state.notices}
-            envoyClient={this.envoyClient}
-            {...this.props} />
-          {this.renderChangelogModal()}
-          {this.renderOfflineExportUpgradeModal()}
-          {this.renderNewProjectModal()}
-          {!this.state.tearingDown &&
-            <Tour
-              projectsList={this.state.projectsList}
-              envoyClient={this.envoyClient}
-              startTourOnMount={true}
-            />
-          }
-          <AutoUpdater
-            onComplete={this.onAutoUpdateCheckComplete}
-            check={this.state.updater.shouldCheck}
-            skipOptIn={this.state.updater.shouldSkipOptIn}
-            runOnBackground={this.state.updater.shouldRunOnBackground}
-          />
-        </div>
-      );
-    }
-
-    // While doShowProjectLoader is true, we don't have enough state variables to proceed.
-    if (this.state.doShowProjectLoader) {
-      return <ProjectLoader />;
-    }
-
     return (
       <div style={{position: 'relative', width: '100%', height: '100%'}}>
         {this.renderChangelogModal()}
         {this.renderOfflineExportUpgradeModal()}
         {this.renderNewProjectModal()}
+        {!this.state.tearingDown &&
+          <Tour
+            projectsList={this.state.projectsList}
+            envoyClient={this.envoyClient}
+            startTourOnMount={true}
+          />
+        }
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
           check={this.state.updater.shouldCheck}
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        {!this.state.tearingDown &&
-          <Tour
-            projectsList={this.state.projectsList}
-            envoyClient={this.envoyClient}
-          />
+        {this.state.dashboardVisible && <ProjectBrowser
+          ref="ProjectBrowser"
+          explorePro={this.explorePro}
+          areProjectsLoading={this.state.areProjectsLoading}
+          isOnline={this.state.isOnline}
+          allowOffline={this.state.allowOffline}
+          envoyProject={this.envoyProject}
+          onShowProxySettings={this.boundShowProxySettings}
+          onProjectsList={this.onProjectsList}
+          onShowNewProjectModal={(...args) => {
+            this.showNewProjectModal(...args);
+          }}
+          lastViewedChangelog={this.state.lastViewedChangelog}
+          onShowChangelogModal={this.showChangelogModal}
+          privateProjectLimit={this.state.privateProjectLimit}
+          showChangelogModal={this.state.showChangelogModal}
+          username={this.state.username}
+          softwareVersion={this.state.softwareVersion}
+          organizationName={this.state.organizationName}
+          isAdmin={this.state.isAdmin}
+          loadProjects={this.loadProjects}
+          launchProject={this.launchProject}
+          createNotice={this.createNotice}
+          removeNotice={this.removeNotice}
+          logOut={this.logOut}
+          notices={this.state.notices}
+          envoyClient={this.envoyClient}
+          {...this.props} />
         }
-        <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
+        {this.state.areProjectsLoading && (
+          <div style={DASH_STYLES.dashWrap}>
+            <span style={DASH_STYLES.loadingWrap}>
+              <FadingCircle size={52} color={Palette.ROCK_MUTED} />
+            </span>
+          </div>
+        )}
+        <ProjectLoader
+          show={this.state.doShowProjectLoader || this.state.projectLaunching}
+        />
+        {!this.state.dashboardVisible && !this.state.doShowProjectLoader && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <CSSTransition
               classNames="toast"
@@ -2304,9 +2296,8 @@ export default class Creator extends React.Component {
               </div>
             </SplitPanel>
           </div>
-        </div>
-        {this.state.tearingDown && <ProjectLoader message={'Loading....'} />}
-        {this.state.projectLaunching && <ProjectLoader />}
+        </div>}
+        {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
       </div>
     );
   }
