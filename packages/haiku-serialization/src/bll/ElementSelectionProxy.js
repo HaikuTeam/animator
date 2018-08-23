@@ -2228,8 +2228,8 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layoutSpec = element.getLayoutSpec()
   const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation, layoutSpec.shear)
   if (layoutSpec.offset.x !== 0 || layoutSpec.offset.y !== 0) {
-    ray.x += layoutSpec.offset.x
-    ray.y += layoutSpec.offset.y
+    ray.x -= layoutSpec.offset.x
+    ray.y -= layoutSpec.offset.y
   }
   const attributes = {}
   composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix], false, layoutSpec)
