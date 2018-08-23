@@ -3345,9 +3345,11 @@ class ActiveComponent extends BaseModel {
             const element = this.findElementByComponentId(componentId)
             if (element) {
               const row = element.getPropertyRowByPropertyName(propertyName)
-              const keyframe = row.getKeyframeByMs(keyframeMsLeft)
-              if (keyframe) {
-                keyframe.setCurve(newCurve)
+              if (row) {
+                const keyframe = row.getKeyframeByMs(keyframeMsLeft)
+                if (keyframe) {
+                  keyframe.setCurve(newCurve)
+                }
               }
             }
           }
@@ -3391,9 +3393,11 @@ class ActiveComponent extends BaseModel {
             const element = this.findElementByComponentId(componentId)
             if (element) {
               const row = element.getPropertyRowByPropertyName(propertyName)
-              const keyframe = row.getKeyframeByMs(keyframeMs)
-              if (keyframe) {
-                keyframe.setCurve(null)
+              if (row) {
+                const keyframe = row.getKeyframeByMs(keyframeMs)
+                if (keyframe) {
+                  keyframe.setCurve(null)
+                }
               }
             }
           }
