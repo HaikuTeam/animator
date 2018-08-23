@@ -107,7 +107,7 @@ const Q_CREATOR = {alias: 'creator'};
 const Q_MASTER = {alias: 'master'};
 
 const AWAIT_INTERVAL = 100;
-const WAIT_DELAY = 10 * 1000;
+const WAIT_DELAY = 30 * 1000;
 
 const HAIKU_DEFAULTS = {
   socket: {
