@@ -401,8 +401,8 @@ I can selectall/cut/copy/paste text in Expression Input UI (single-line)
 I can selectall/cut/copy/paste text in Expression Input UI (multi-line)
 I can selectall/cut/copy/paste text in Intercom Support Widget
 I can selectall/cut/copy/paste text in Actions UI
-I can selectall/cut/copy/paste text in Publish UI HTML+CDN Embed snippet
-I can selectall/cut/copy/paste text in Publish UI React Embed snippet
+I can cut/copy/paste text in Publish UI HTML+CDN Embed snippet
+I can cut/copy/paste text in Publish UI React Embed snippet
 
 Publishing
 
@@ -417,6 +417,7 @@ Publish results in a share link
 I can copy the share link to clipboard using the clipboard icon
 I can copy the share link using the clipboard icon while an element is selected on stage
 I can select and copy any of the code snippets
+When I click on the code snippets the text is automatically selected.
 Before the share link is ready, the "not-allowed" cursor is shown over the share link
 Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
 As soon as the share link is ready, the web install options become clickable and show correct info
