@@ -94,11 +94,6 @@ class ModuleWrapper extends BaseModel {
     ModuleWrapper.clearHotCache()
   }
 
-  isolatedForceReload (cb) {
-    this.isolatedClearCache()
-    return this.reload(cb)
-  }
-
   basicReload (cb) {
     if (this.exp) {
       return cb(null, this.exp)
