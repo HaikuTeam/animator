@@ -4,7 +4,6 @@ import * as Radium from 'radium';
 import * as Popover from 'react-popover';
 import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
-import {FadingCircle} from 'better-react-spinkit';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Toast from './notifications/Toast';
@@ -35,7 +34,6 @@ class ProjectBrowser extends React.Component {
       username: null,
       error: null,
       projectsList: [],
-      areProjectsLoading: true,
       isPopoverOpen: false,
       showNewProjectModal: false,
       showDeleteModal: false,
@@ -51,7 +49,8 @@ class ProjectBrowser extends React.Component {
   componentWillReceiveProps (nextProps) {
     if (this.props.isOnline ^ nextProps.isOnline) {
       // Value has changed.
-      this.loadProjects();
+      // This reload should be silent iff offline is allowed.
+      this.loadProjects(nextProps.allowOffline);
     }
   }
 
@@ -89,8 +88,8 @@ class ProjectBrowser extends React.Component {
     mixpanel.haikuTrack('creator:project-browser:user-menu-closed');
   }
 
-  loadProjects () {
-    return this.props.loadProjects((error, projectsList) => {
+  loadProjects (silent = false) {
+    return this.props.loadProjects(silent, (error, projectsList) => {
       if (error) {
         switch (error.code) {
           case ProjectError.Unauthorized:
@@ -110,13 +109,10 @@ class ProjectBrowser extends React.Component {
             });
             break;
         }
-        this.setState({error, areProjectsLoading: false});
+        this.setState({error});
         return;
       }
-      this.setState({
-        projectsList,
-        areProjectsLoading: false,
-      });
+      this.setState({projectsList});
       this.props.onProjectsList(projectsList);
     });
   }
@@ -179,7 +175,7 @@ class ProjectBrowser extends React.Component {
         // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
         // the project.
         setTimeout(() => {
-          this.loadProjects();
+          this.loadProjects(true);
         }, 200);
 
         mixpanel.haikuTrack('creator:project:deleted', {
@@ -272,17 +268,10 @@ class ProjectBrowser extends React.Component {
   }
 
   projectsListElement () {
-    if (this.shouldShowOfflineNotice) {
+    if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
     }
     const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
-    if (this.state.areProjectsLoading) {
-      return (
-        <span style={DASH_STYLES.loadingWrap}>
-          <FadingCircle size={52} color={Palette.ROCK_MUTED} />
-        </span>
-      );
-    }
 
     return (
       <div

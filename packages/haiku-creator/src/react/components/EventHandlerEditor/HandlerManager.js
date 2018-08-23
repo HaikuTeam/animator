@@ -8,8 +8,8 @@ const isHandlerEmpty = (handler) => {
   return (
     !handler.body ||
     /^\s*$/.test(handler.body)
-  )
-}
+  );
+};
 
 /*
  * The purpose of this clas is to abstract all the logic related to
@@ -76,7 +76,7 @@ class HandlerManager {
    */
   replaceEvent ({id, event, handler, evaluator}, oldEventName) {
     if (isHandlerEmpty(handler)) {
-      this.delete(event)
+      this.delete(event);
     } else {
       this.appliedEventHandlers.set(event, {id, handler, evaluator});
     }
