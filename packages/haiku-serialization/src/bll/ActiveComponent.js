@@ -2417,15 +2417,6 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  /**
-  * @method reloadBytecodeFromDisk
-  * @description Reloads bytecode from disk. This may be necessary if we want to munge on a copy of bytecode for our
-  * own purposes, e.g. during export to another format.
-  */
-  reloadBytecodeFromDisk (cb) {
-    this.fetchActiveBytecodeFile().mod.isolatedForceReload(cb)
-  }
-
   sleepComponentsOn () {
     HaikuComponent.all().forEach((instance) => {
       instance.sleepOn()
