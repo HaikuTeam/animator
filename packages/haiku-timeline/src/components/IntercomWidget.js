@@ -28,6 +28,23 @@ const STYLES = {
 };
 
 class IntercomWidget extends React.Component {
+  componentDidMount () {
+    this.setListeners();
+  }
+
+  shouldComponentUpdate () {
+    return false;
+  }
+
+  setListeners = () => {
+    if (window.Intercom) {
+      window.Intercom('onShow', this.props.onShow);
+      window.Intercom('onHide', this.props.onHide);
+    } else {
+      setTimeout(this.setListeners, 100);
+    }
+  };
+
   render () {
     if (!this.props.user) {
       return <span />;

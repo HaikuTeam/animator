@@ -418,7 +418,7 @@ class Timeline extends React.Component {
 
         case 'global-menu:cut':
           // Delegate cut only if the user is not editing something here
-          if (!document.hasFocus() || !this.isTextSelected()) {
+          if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
             this.props.websocket.send(relayable);
           }
           break;
@@ -428,7 +428,7 @@ class Timeline extends React.Component {
             this.handleCopyDebounced(relayable);
           } else {
             // Delegate copy only if the user is not editing something here
-            if (!document.hasFocus() || !this.isTextSelected()) {
+            if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
               this.props.websocket.send(relayable);
             }
           }
@@ -440,7 +440,7 @@ class Timeline extends React.Component {
           } else {
             // Delegate paste only if the user is not editing something here
             if (document.hasFocus()) {
-              if (!this.isTextInputFocused()) {
+              if (!this.isTextInputFocused() && !this._isIntercomOpen) {
                 this.props.websocket.send(relayable);
               }
             } else {
@@ -452,7 +452,7 @@ class Timeline extends React.Component {
         case 'global-menu:selectAll':
           // Delegate selectall only if the user is not editing something here
           if (!document.hasFocus()) {
-            if (!this.isTextInputFocused()) {
+            if (!this.isTextInputFocused() && !this._isIntercomOpen) {
               this.props.websocket.send(relayable);
             }
           } else {
@@ -1097,7 +1097,7 @@ class Timeline extends React.Component {
     if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
       // Delegate copy only if the user is not editing something here
       if (document.hasFocus()) {
-        if (this.isTextSelected()) {
+        if (this.isTextSelected() || this._isIntercomOpen) {
           // let electron handle
         } else if (this.getActiveComponent().getFirstSelectedCurve()) {
           this.copySelectedCurve();
@@ -1114,7 +1114,7 @@ class Timeline extends React.Component {
     if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
       // Delegate paste only if the user is not editing something here
       if (document.hasFocus()) {
-        if (this.isTextInputFocused()) {
+        if (this.isTextInputFocused() || this._isIntercomOpen) {
           // let electron handle
         } else if (this._lastCopiedCurve) {
           this.handlePasteDebounced();
@@ -1241,11 +1241,19 @@ class Timeline extends React.Component {
             this.state.canOfflineExport && experimentIsEnabled(Experiment.LocalAssetExport) &&
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
-          <IntercomWidget user={this.state.userDetails} />
+          <IntercomWidget user={this.state.userDetails} onShow={this.setIntercomOpen} onHide={this.setIntercomClosed} />
         </div>
       </div>
     );
   }
+
+  setIntercomOpen = () => {
+    this._isIntercomOpen = true;
+  };
+
+  setIntercomClosed = () => {
+    this._isIntercomOpen = false;
+  };
 
   getCurrentTimelineTime (frameInfo) {
     return Math.round(this.getActiveComponent().getCurrentTimeline().getCurrentFrame() * frameInfo.mspf);
