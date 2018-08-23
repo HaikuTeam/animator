@@ -124,7 +124,7 @@ export default class TransitionBody extends React.Component {
 
     if (what === 'keyframe-ms-set' || what === 'keyframe-neighbor-move') {
       this.forceUpdate(() => {
-        this.storeViewPosition(this[this.props.keyframe.getUniqueKey()]);
+        this.storeViewPosition(this.domRef);
       });
     }
 
@@ -140,9 +140,23 @@ export default class TransitionBody extends React.Component {
     }
   }
 
+  get domRef () {
+    return this[this.props.keyframe.getUniqueKey()];
+  }
+
+  set domRef (domRef) {
+    this[this.props.keyframe.getUniqueKey()] = domRef;
+  }
+
+  componentDidUpdate () {
+    const viewPosition = this.props.keyframe.getViewPosition();
+    if (!viewPosition || !viewPosition.left) {
+      this.storeViewPosition(this.domRef);
+    }
+  }
+
   storeViewPosition = (domElement) => {
-    const uniqueKey = this.props.keyframe.getUniqueKey();
-    this[uniqueKey] = domElement;
+    this.domRef = domElement;
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
       requestAnimationFrame(() => {
         this.props.keyframe.storeViewPosition({
