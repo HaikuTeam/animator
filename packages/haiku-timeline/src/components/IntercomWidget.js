@@ -32,10 +32,6 @@ class IntercomWidget extends React.Component {
     this.setListeners();
   }
 
-  shouldComponentUpdate () {
-    return false;
-  }
-
   setListeners = () => {
     if (window.Intercom) {
       window.Intercom('onShow', this.props.onShow);

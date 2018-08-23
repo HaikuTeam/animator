@@ -451,7 +451,7 @@ class Timeline extends React.Component {
 
         case 'global-menu:selectAll':
           // Delegate selectall only if the user is not editing something here
-          if (!document.hasFocus()) {
+          if (document.hasFocus()) {
             if (!this.isTextInputFocused() && !this._isIntercomOpen) {
               this.props.websocket.send(relayable);
             }
@@ -502,6 +502,10 @@ class Timeline extends React.Component {
 
         case 'assets-changed':
           File.cache.clear();
+          break;
+
+        case 'ui:hide-intercom':
+          window.Intercom('hide');
           break;
       }
     });

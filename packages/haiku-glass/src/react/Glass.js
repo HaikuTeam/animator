@@ -517,6 +517,12 @@ export class Glass extends React.Component {
 
     this.addEmitterListener(window, 'focus', () => {
       resetKeyStates();
+
+      this.props.websocket.send({
+        type: 'broadcast',
+        name: 'ui:hide-intercom',
+        from: 'glass',
+      });
     });
 
     this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false);
