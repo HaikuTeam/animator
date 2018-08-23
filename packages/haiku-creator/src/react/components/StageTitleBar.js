@@ -659,6 +659,8 @@ class StageTitleBar extends React.Component {
         <button
           key="conglomerate-component-button"
           id="conglomerate-component-button"
+          aria-label="Create a new Component"
+          data-tooltip-bottom-right={true}
           onClick={this.handleConglomerateComponent}
           style={[
             BTN_STYLES.btnIcon,
@@ -671,7 +673,8 @@ class StageTitleBar extends React.Component {
           <button
             key="show-event-handlers-editor-button"
             id="show-event-handlers-editor-button"
-            title="Edit element Actions"
+            aria-label="Edit element Actions"
+            data-tooltip-bottom-right={true}
             onClick={this.handleShowEventHandlersEditor}
             style={[
               BTN_STYLES.btnIcon,
@@ -734,7 +737,8 @@ class StageTitleBar extends React.Component {
         <button
           key="save"
           id="publish"
-          title="Publish project"
+          aria-label="Publish project"
+          data-tooltip-bottom={true}
           onClick={this.handleSaveSnapshotClick}
           disabled={!this.props.isTimelineReady && this.state.snapshotSyndicated === false}
           style={[

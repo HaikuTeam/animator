@@ -398,7 +398,7 @@ class ProjectBrowser extends React.Component {
               option: 'show-changelog',
             });
           }}>
-          <span style={DASH_STYLES.popover.icon} title="Show changelog">
+          <span style={DASH_STYLES.popover.icon} aria-label="Show changelog" data-tooltip-bottom={true}>
             <PresentIconSVG />
           </span>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>What's New</span>

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as Radium from 'radium';
 import * as IPreview from '@haiku/taylor-ipreview2/react';
-import {Tooltip} from 'haiku-ui-common/lib/react/Tooltip';
 
 const STYLES = {
   disabled: {
@@ -33,32 +32,32 @@ class Toggle extends React.Component {
 
   render () {
     return (
-      <Tooltip content="Toggle preview" style={this.props.style}>
-        <a
-          href="#"
-          style={[
-            this.props.disabled && STYLES.disabled,
-            this.props.style,
-            {marginTop: -5},
-          ]}
-          onClick={() => {
-            this.onToggle();
-          }}
-        >
-          <div>
-            <IPreview
-              haikuStates={{isOn: {value: this.props.active}}}
-              onHaikuComponentDidMount={(component) => {
-                this.previewHaiku = component;
-              }}
-              onHaikuComponentWillUnmount={(component) => {
-                component.context.destroy();
-              }}
-              contextMenu="disabled"
-            />
-          </div>
-        </a>
-      </Tooltip>
+      <a
+        href="#"
+        aria-label="Toggle preview"
+        data-tooltip-bottom={true}
+        style={[
+          this.props.disabled && STYLES.disabled,
+          this.props.style,
+          {marginTop: -5},
+        ]}
+        onClick={() => {
+          this.onToggle();
+        }}
+      >
+        <div>
+          <IPreview
+            haikuStates={{isOn: {value: this.props.active}}}
+            onHaikuComponentDidMount={(component) => {
+              this.previewHaiku = component;
+            }}
+            onHaikuComponentWillUnmount={(component) => {
+              component.context.destroy();
+            }}
+            contextMenu="disabled"
+          />
+        </div>
+      </a>
     );
   }
 }
