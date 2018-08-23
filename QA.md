@@ -871,8 +871,7 @@ During a code reload due to an on-disk change the timeline does not animate, and
 Release Collateral
 
 I can download and extract the .zip archive of the release
-The CLI installer works (`$ curl http://code.haiku.ai/scripts/cli/installer.js | node`)
-The CLI npm package works (`$ npm install @haiku/cli`)
+The CLI npm package works (`$ yarn global add @haiku/cli`)
 Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js) (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
 Core standalone repo has latest https://github.com/HaikuTeam/core
 Core npm package is up to date https://www.npmjs.com/package/@haiku/core
