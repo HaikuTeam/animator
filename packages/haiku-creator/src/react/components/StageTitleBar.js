@@ -686,17 +686,7 @@ class StageTitleBar extends React.Component {
   }
 
   getEventHandlersEditorButtonColor () {
-    const proxy = this.fetchProxyElementForSelection();
-
-    if (proxy) {
-      if (proxy.doesManageSingleElement() || proxy.hasNothingInSelection()) {
-        const element = this.getProxySelectionElement();
-
-        if (element && element.hasVisibleEventHandlers()) {
-          return Color(Palette.LIGHT_BLUE).lighten(0.37);
-        }
-      }
-    }
+    return Palette.ROCK;
   }
 
   renderMergeConflictResolutionArea () {
