@@ -505,7 +505,9 @@ class Timeline extends React.Component {
           break;
 
         case 'ui:hide-intercom':
-          window.Intercom('hide');
+          if (window.Intercom) {
+            window.Intercom('hide');
+          }
           break;
       }
     });
