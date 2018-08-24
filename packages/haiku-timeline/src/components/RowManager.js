@@ -88,13 +88,11 @@ class RowManager extends React.PureComponent {
   }
 
   isCollapsedAndPreviousExpanded (curr, prev) {
-    if (curr && curr.rows && curr.rows.length && prev && prev.rows && prev.rows.length) {
-      if (!curr.rows[0].isExpanded() && prev.rows[0].isExpanded()) {
-        return true;
-      }
-    }
-
-    return false;
+    return (
+      curr && prev &&
+      prev.rows && prev.rows.length && prev.rows[0].isExpanded() &&
+      curr.rows && curr.rows.length && !curr.rows[0].isExpanded()
+    );
   }
 
   render () {
