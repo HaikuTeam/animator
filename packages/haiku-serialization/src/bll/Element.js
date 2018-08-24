@@ -941,11 +941,16 @@ class Element extends BaseModel {
     }
 
     if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+      const descendants = []
       this.visitDescendants((descendantElement) => {
         if (descendantElement.isTextNode() || !descendantElement.isTreeViewableType()) {
           return
         }
+        descendants.push(descendantElement)
+      })
 
+      const deeprows = []
+      descendants.forEach((descendantElement) => {
         const subrows = descendantElement.getHostedPropertyRows(false).filter((row) => {
           return (
             (row.isProperty() || row.isClusterHeading()) &&
@@ -965,8 +970,14 @@ class Element extends BaseModel {
           subrow.parent = headingRow
         })
 
-        rows.push.apply(rows, subrows)
+        deeprows.push.apply(deeprows, subrows)
       })
+
+      // For super-complex elements that have craploads of inner primitives,
+      // don't include their rows; the user is expected to ungroup the element
+      if (deeprows.length <= 10) {
+        rows.push.apply(rows, deeprows)
+      }
     }
 
     // Hack: Assign the host so that the timeline can identify elements that are listed
