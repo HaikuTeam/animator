@@ -103,7 +103,6 @@ export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, controlP
 };
 
 export const circle = (id, {cx, cy, r}, layoutAncestry, controlPointScale, selectedAnchorIndices) => {
-
   const transform = Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse());
   const transposed = Layout3D.createMatrix();
   transpose(transposed, transform);
@@ -288,7 +287,6 @@ export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorI
 };
 
 export const line = (id, {x1, y1, x2, y2}, layoutAncestry, controlPointScale, selectedAnchorIndices) => {
-
   const transform = Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse());
   transpose(transform, transform);
   const p1 = mat4_multiply_vec4(transform, {x: Number(x1), y: Number(y1), z: 0, w: 1});

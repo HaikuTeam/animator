@@ -2932,7 +2932,8 @@ export class Glass extends React.Component {
         Element.directlySelected,
         this.state.directSelectionAnchorActivation
           ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
-          : undefined, overlays,
+          : undefined,
+        overlays,
       );
 
       return overlays;
