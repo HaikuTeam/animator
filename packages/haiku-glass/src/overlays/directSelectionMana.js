@@ -257,7 +257,7 @@ export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorI
       },
       {
         elementName: 'g',
-        attributes {}, // Don't remove this. Needed to clear stale attributes from previous node.
+        attributes: {}, // Don't remove this. Needed to clear stale attributes from previous node.
         children: [
           ...handles.map((handle) => {
             const anchor = points[handle.handleIndex === 0 ? handle.pointIndex - 1 : handle.pointIndex];
