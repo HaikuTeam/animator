@@ -1657,17 +1657,24 @@ export class Glass extends React.Component {
                 };
 
                 const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
+
                 switch (Element.directlySelected.type) {
                   case 'rect': {
+                    const elSize = Element.directlySelected.size;
+
                     const newKeys = this.interpolateAttributesAtKeyframes(originalEl, ['x', 'y', 'rx', 'ry']);
                     const pathKeys = {d: {}, x: {}, y: {}, rx: {}, ry: {}};
+
                     for (const ms in newKeys.x) {
                       pathKeys.d[ms] = {value: SVGPoints.pointsToPath(SVGPoints.rectToPoints(
-                        Number(newKeys.x[ms]), Number(newKeys.y[ms]),
-                        Element.directlySelected.layout.sizeAbsolute.x,
-                        Element.directlySelected.layout.sizeAbsolute.y,
-                        Number(newKeys.rx[ms]), Number(newKeys.ry[ms]),
+                        Number(newKeys.x[ms]),
+                        Number(newKeys.y[ms]),
+                        elSize.x,
+                        elSize.y,
+                        Number((newKeys.rx && newKeys.rx[ms]) || 0),
+                        Number((newKeys.ry && newKeys.ry[ms]) || 0),
                       ))},
+
                       pathKeys.x[ms] = null;
                       pathKeys.y[ms] = null;
                       pathKeys.rx[ms] = null;
