@@ -379,7 +379,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
               },
               x: (relative ? prevPoint.x : 0) + commandParams.shift(),
               y: (relative ? prevPoint.y : 0) + commandParams.shift(),
-            }, points[points.length - 1]));
+            }, prevPoint));
 
             break;
 
@@ -411,7 +411,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
               },
               x: tx,
               y: ty,
-            }, points[points.length - 1]));
+            }, prevPoint));
 
             break;
         }
