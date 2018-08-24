@@ -126,10 +126,7 @@ pipeline {
                     }
                     steps {
                         setBuildStatus(CONTEXT_BUILD_MAC, 'build started', STATUS_PENDING)
-                        yarnInstallUnixLike()
-                        nodeRun("./scripts/semver.js ${(env.haikuExplicitSemver == '') ? '--non-interactive' : "--explicit=${env.haikuExplicitSemver}"}")
-                        nodeRun('./scripts/distro-configure.js --non-interactive')
-                        nodeRun('./scripts/distro-download-secrets.js')
+                        setupBuild()
                         nodeRun('./scripts/distro-prepare.js')
                         nodeRun('./scripts/distro-build.js')
                         nodeRun('./scripts/distro-upload.js')
@@ -161,8 +158,7 @@ pipeline {
                 timeout(time: 1, unit: 'DAYS') {
                     input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
                     setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
-                    // Note: the pull request is merged in this step.
-                    yarnInstallUnixLike()
+                    setupBuild()
                     nodeRun('./scripts/distro-push.js')
                 }
                 milestone 4
@@ -194,7 +190,7 @@ pipeline {
                 timeout(time: 1, unit: 'DAYS') {
                     input message: 'Syndicate release?', submitter: 'matthew,zack,sasha'
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicating...', STATUS_PENDING)
-                    yarnInstallUnixLike()
+                    setupBuild()
                     nodeRun('./scripts/distro-syndicate.js --non-interactive')
                 }
                 milestone 6
@@ -242,6 +238,13 @@ void setBuildStatus(String context, String message, String state) {
             results: [[$class: 'AnyBuildResult', message: message, state: state]]
         ]
     ])
+}
+
+void setupBuild() {
+    yarnInstallUnixLike()
+    nodeRun("./scripts/semver.js ${(env.haikuExplicitSemver == '') ? '--non-interactive' : "--explicit=${env.haikuExplicitSemver}"}")
+    nodeRun('./scripts/distro-configure.js --non-interactive')
+    nodeRun('./scripts/distro-download-secrets.js')
 }
 
 void yarnInstallUnixLike() {
