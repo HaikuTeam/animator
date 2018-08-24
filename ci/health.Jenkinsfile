@@ -170,9 +170,19 @@ pipeline {
             post {
                 success {
                     setBuildStatus(CONTEXT_PUSH, 'pushed to NPM and CDN', STATUS_SUCCESS)
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'good',
+                        message: ":1up: ${env.ghprbSourceBranch} was pushed to NPM and CDN!"
+                    ])
                 }
                 failure {
                     setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN failed', STATUS_FAILURE)
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'danger',
+                        message: ":-1up: ${env.ghprbSourceBranch} failed during push to NPM and CDN"
+                    ])
                 }
             }
         }
@@ -191,9 +201,19 @@ pipeline {
             }
             post {
                 success {
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'good',
+                        message: ":1up: ${env.ghprbSourceBranch} was syndicated!"
+                    ])
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicated', STATUS_SUCCESS)
                 }
                 failure {
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'danger',
+                        message: ":-1up: ${env.ghprbSourceBranch} failed during syndication!"
+                    ])
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndication failed', STATUS_FAILURE)
                 }
             }
