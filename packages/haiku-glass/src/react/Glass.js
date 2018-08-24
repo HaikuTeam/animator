@@ -3527,8 +3527,8 @@ export class Glass extends React.Component {
             if (publicComponentModel && internalElementModel) {
               const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`);
               window.element = publicElementModel;
-              console.log('element', publicElementModel);
-              console.log('element.target', publicElementModel.target);
+              console.info('element', publicElementModel);
+              console.info('element.target', publicElementModel.target);
             }
           }
         },
