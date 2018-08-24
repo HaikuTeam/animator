@@ -28,7 +28,8 @@ const STYLES = {
     position: 'absolute',
     top: '0px',
     width: '30px',
-    height: '100%',
+    // 10px is the default monaco horizontal scroll bar height
+    height: 'calc(100% - 10px)',
     right: '0px',
     background: `linear-gradient(to right, transparent, ${Palette.DARKEST_COAL} 40%)`,
   },

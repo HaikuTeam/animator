@@ -9,6 +9,7 @@ const STYLES = {
     backgroundColor: Palette.SPECIAL_COAL,
     fontFamily: 'Fira Mono',
     fontSize: '11px',
+    padding: '3px 13px',
   },
   preamble: {
     borderTopLeftRadius: 7,
