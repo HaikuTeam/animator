@@ -7,7 +7,7 @@
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
@@ -17,8 +17,23 @@
  */
 
 import {
-  CurveSpec, ShapeSpec, CircleSpec, EllipseSpec, LineSpec, PathSpec, PolygonSpec, PolylineSpec, RectSpec,
+  CircleSpec, CurveSpec, EllipseSpec, LineSpec, PathSpec, PolygonSpec, PolylineSpec, RectSpec, ShapeSpec,
 } from './types';
+
+const convertQuadraticToCubicBezier = (spec: CurveSpec, prevSpec: CurveSpec): CurveSpec => prevSpec ?
+{
+  curve: {
+    type: 'cubic',
+    x1: prevSpec.x + 2 / 3 * (spec.curve.x1 - prevSpec.x),
+    y1: prevSpec.y + 2 / 3 * (spec.curve.y1 - prevSpec.y),
+    x2: spec.x + 2 / 3 * (spec.curve.x1 - spec.x),
+    y2: spec.y + 2 / 3 * (spec.curve.y1 - spec.y),
+  },
+  x: spec.x,
+  y: spec.y,
+} :
+  // This should never happen, but just return the original spec if we didn't have a starting point.
+  spec;
 
 const toPoints = (spec: ShapeSpec): CurveSpec[] => {
   switch (spec.type) {
@@ -155,12 +170,12 @@ const optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 
 const getCommands = (d: string): string[] => d.match(validCommands);
 
-type Token = {
+interface Token {
   type: string;
   raw: string;
-};
+}
 
-function tokenize(d: string): Token[] {
+function tokenize (d: string): Token[] {
   const tokens = [];
   let chunk = d;
   while (chunk.length > 0) {
@@ -293,8 +308,8 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
             });
 
             for (const k of optionalArcKeys) {
-              if (points[points.length - 1]['curve'][k] === 0) {
-                delete points[points.length - 1]['curve'][k];
+              if (points[points.length - 1].curve[k] === 0) {
+                delete points[points.length - 1].curve[k];
               }
             }
 
@@ -356,7 +371,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
             break;
 
           case 'Q':
-            points.push({
+            points.push(convertQuadraticToCubicBezier({
               curve: {
                 type: 'quadratic',
                 x1: (relative ? prevPoint.x : 0) + commandParams.shift(),
@@ -364,7 +379,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
               },
               x: (relative ? prevPoint.x : 0) + commandParams.shift(),
               y: (relative ? prevPoint.y : 0) + commandParams.shift(),
-            });
+            }, prevPoint));
 
             break;
 
@@ -388,7 +403,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
               ty1 = prevPoint.y;
             }
 
-            points.push({
+            points.push(convertQuadraticToCubicBezier({
               curve: {
                 type: 'quadratic',
                 x1: tx1,
@@ -396,7 +411,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
               },
               x: tx,
               y: ty,
-            });
+            }, prevPoint));
 
             break;
         }

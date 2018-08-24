@@ -1580,7 +1580,8 @@ export class Glass extends React.Component {
               const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false;
               const prevDirectlySelected = Element.directlySelected;
               let clickedItemFound = null;
-              elementTargeted.getHaikuElement().visit((descendant) => {
+              const targetedHaikuElement = elementTargeted.getHaikuElement();
+              targetedHaikuElement.visit((descendant) => {
                 if (descendant.isWrapper() || descendant.isComponent() || descendant.isChildOfDefs) {
                   return;
                 }
@@ -1597,18 +1598,38 @@ export class Glass extends React.Component {
                   }
                 }
 
+                // The default is stroke-width is 1, but the default stroke is none, meriting this relatively
+                // tricky block.
+                let effectiveStrokeWidth = undefined;
                 let hasStroke = false;
                 {
                   let d = descendant;
-                  while (!hasStroke && d) {
-                    hasStroke = (d.attributes.stroke !== undefined &&
-                      d.attributes.stroke !== 'none' &&
-                      d.attributes.strokeWidth !== '0' &&
-                      d.attributes.strokeWidth !== 0 &&
-                      d.attributes.strokeWidth !== 'none');
-                    if (hasStroke) {
+                  while (d && d !== targetedHaikuElement) {
+                    if (!hasStroke) {
+                      if (d.attributes.stroke === 'none') {
+                        break;
+                      }
+
+                      if (d.attributes.stroke !== undefined) {
+                        hasStroke = true;
+                      }
+                    }
+
+                    if (effectiveStrokeWidth === undefined) {
+                      if (d.attributes['stroke-width'] === 'none' || Number(d.attributes['stroke-width']) === 0) {
+                        effectiveStrokeWidth = 0;
+                        break;
+                      }
+
+                      if (d.attributes['stroke-width'] !== undefined) {
+                        effectiveStrokeWidth = Number(d.attributes['stroke-width']);
+                      }
+                    }
+
+                    if (hasStroke && effectiveStrokeWidth !== undefined) {
                       break;
                     }
+
                     d = d.parent;
                   }
                 }
@@ -1617,7 +1638,7 @@ export class Glass extends React.Component {
                   (
                     hasFill && isPointInsidePrimitive(descendant, mouseDownPosition)
                   ) || (
-                    hasStroke && isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                    hasStroke && (effectiveStrokeWidth > 0) && isPointAlongStroke(descendant, mouseDownPosition, effectiveStrokeWidth)
                   )) {
                   clickedItemFound = descendant;
                   if (isDoubleClick && elementTargeted.isSelected()) {
@@ -1839,14 +1860,14 @@ export class Glass extends React.Component {
                     // Calculate t value and surrounding points, and split
                     const t = minIdx % approximationResolution / approximationResolution;
 
-                    const newPoints = splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t);
-                    if (newPoints) {
+                    splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t);
+                    if (points) {
                       this.getActiveComponent().updateKeyframes({
                         [this.getActiveComponent().getCurrentTimelineName()]: {
                           [Element.directlySelected.attributes['haiku-id']]: {
                             d: {
                               [this.getActiveComponent().getCurrentTimelineTime()]: {
-                                value: SVGPoints.pointsToPath(newPoints),
+                                value: SVGPoints.pointsToPath(points),
                               },
                             },
                           },
@@ -2496,12 +2517,12 @@ export class Glass extends React.Component {
                 const attrUpdate = {};
                 const curTime = this.getActiveComponent().getCurrentTimelineTime();
                 if (indices.includes(0)) {
-                  attrUpdate.x1 = {[curTime]: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x};
-                  attrUpdate.y1 = {[curTime]: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y};
+                  attrUpdate.x1 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x}};
+                  attrUpdate.y1 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y}};
                 }
                 if (indices.includes(1)) {
-                  attrUpdate.x2 = {[curTime]: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x};
-                  attrUpdate.y2 = {[curTime]: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y};
+                  attrUpdate.x2 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x}};
+                  attrUpdate.y2 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y}};
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
