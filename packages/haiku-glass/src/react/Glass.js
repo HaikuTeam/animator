@@ -1839,17 +1839,23 @@ export class Glass extends React.Component {
                     // Calculate t value and surrounding points, and split
                     const t = minIdx % approximationResolution / approximationResolution;
 
-                    this.getActiveComponent().updateKeyframes({
-                      [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.attributes['haiku-id']]: {
-                          d: {
-                            [this.getActiveComponent().getCurrentTimelineTime()]: {
-                              value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t)),
+                    const newPoints = splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t);
+                    if (newPoints) {
+                      this.getActiveComponent().updateKeyframes({
+                        [this.getActiveComponent().getCurrentTimelineName()]: {
+                          [Element.directlySelected.attributes['haiku-id']]: {
+                            d: {
+                              [this.getActiveComponent().getCurrentTimelineTime()]: {
+                                value: SVGPoints.pointsToPath(newPoints),
+                              },
                             },
                           },
                         },
-                      },
-                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
+                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
+                    } else {
+                      // #FIXME: this should never happen.
+                      logger.warn('[glass] unable to split points');
+                    }
                     break;
                   }
                 }
