@@ -2928,7 +2928,13 @@ export class Glass extends React.Component {
         return overlays;
       }
 
-      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays);
+      this.renderDirectSelection(
+        Element.directlySelected,
+        this.state.directSelectionAnchorActivation
+          ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
+          : undefined, overlays,
+      );
+
       return overlays;
     }
 
@@ -2966,7 +2972,17 @@ export class Glass extends React.Component {
 
     switch (element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []));
+        overlays.push(directSelectionMana[element.type](
+          element.id,
+          {
+            ...element.attributes,
+            width: element.sizeX,
+            height: element.sizeY,
+          },
+          original.layoutAncestryMatrices,
+          scale,
+          selectedAnchorIndices || [],
+        ));
         break;
       case 'circle':
       case 'ellipse':
@@ -2974,7 +2990,13 @@ export class Glass extends React.Component {
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []));
+        overlays.push(directSelectionMana[element.type](
+          element.id,
+          element.attributes,
+          original.layoutAncestryMatrices,
+          scale,
+          selectedAnchorIndices || [],
+        ));
         break;
       default:
         // ...noop.
