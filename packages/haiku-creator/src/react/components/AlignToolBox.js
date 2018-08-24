@@ -1,4 +1,3 @@
-import * as Radium from 'radium';
 import * as React from 'react';
 import * as Popover from 'react-popover';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
@@ -29,7 +28,7 @@ const STYLES = {
   },
 };
 
-class AlignToolBox extends React.PureComponent {
+export default class AlignToolBox extends React.PureComponent {
   constructor (props) {
     super(props);
 
@@ -86,114 +85,127 @@ class AlignToolBox extends React.PureComponent {
     });
   }
 
+  performAlignVLeft = () => this.performAlign(0);
+  performAlignVMid = () => this.performAlign(.5);
+  performAlignVRight = () => this.performAlign(1);
+  performAlignHTop = () => this.performAlign(undefined, 0);
+  performAlignHMid = () => this.performAlign(undefined, .5);
+  performAlignHBottom = () => this.performAlign(undefined, 1);
+  performDistributeVLeft = () => this.performDistribute(0);
+  performDistributeVMid = () => this.performDistribute(.5);
+  performDistributeVRight = () => this.performDistribute(1);
+  performDistributeHTop = () => this.performDistribute(undefined, 0);
+  performDistributeHMid = () => this.performDistribute(undefined, .5);
+  performDistributeHBottom = () => this.performDistribute(undefined, 1);
+
   get popoverBody () {
     return (
-      <div style={[STYLES.alignPanel]}>
+      <div style={STYLES.alignPanel}>
         <div style={{margin: '0 3px 2px 0'}}>Align:</div>
         <div style={{height: 27}}>
           <button
-            onClick={this.performAlign.bind(this, 0, undefined)}
+            onClick={this.performAlignVLeft}
             key="btn-align-v-left"
-            style={[STYLES.alignDistributeBtn]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
-              <AlignDistributeIcons.AlignVLeft color={this.props.getEventHandlersEditorButtonColor()} />
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.AlignVLeft />
             </span>
           </button>
           <button
-            onClick={this.performAlign.bind(this, .5, undefined)}
+            onClick={this.performAlignVMid}
             key="btn-align-v-mid"
-            style={[STYLES.alignDistributeBtn]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
-              <AlignDistributeIcons.AlignVMid color={this.props.getEventHandlersEditorButtonColor()} />
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.AlignVMid />
             </span>
           </button>
           <button
-            onClick={this.performAlign.bind(this, 1, undefined)}
+            onClick={this.performAlignVRight}
             key="btn-align-v-right"
-            style={[
-              STYLES.alignDistributeBtn,
-              {marginRight: 18},
-            ]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
-              <AlignDistributeIcons.AlignVRight color={this.props.getEventHandlersEditorButtonColor()} />
+            style={{
+              ...STYLES.alignDistributeBtn,
+              marginRight: 18,
+            }}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.AlignVRight />
             </span>
           </button>
           <button
-            onClick={this.performAlign.bind(this, undefined, 0)}
+            onClick={this.performAlignHTop}
             key="btn-align-h-top"
-            style={[STYLES.alignDistributeBtn]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
-              <AlignDistributeIcons.AlignHTop color={this.props.getEventHandlersEditorButtonColor()} />
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.AlignHTop />
             </span>
           </button>
           <button
-            onClick={this.performAlign.bind(this, undefined, .5)}
+            onClick={this.performAlignHMid}
             key="btn-align-h-mid"
-            style={[STYLES.alignDistributeBtn]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
-              <AlignDistributeIcons.AlignHMid color={this.props.getEventHandlersEditorButtonColor()} />
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.AlignHMid />
             </span>
           </button>
           <button
-            onClick={this.performAlign.bind(this, undefined, 1)}
+            onClick={this.performAlignHBottom}
             key="btn-align-h-bottom"
-            style={[STYLES.alignDistributeBtn]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
-              <AlignDistributeIcons.AlignHBottom color={this.props.getEventHandlersEditorButtonColor()} />
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.AlignHBottom />
             </span>
           </button>
         </div>
         <div style={{margin: '5px 3px 2px 0'}}>Distribute:</div>
           <div style={{height: 27}}>
             <button
-              onClick={this.performDistribute.bind(this, undefined, 0)}
+              onClick={this.performDistributeHTop}
               key="btn-dist-v-left"
-              style={[STYLES.alignDistributeBtn]}>
-              <span style={[STYLES.alignDistributeIconWrapper]}>
-                <AlignDistributeIcons.DistributeHTop color={this.props.getEventHandlersEditorButtonColor()} />
+              style={STYLES.alignDistributeBtn}>
+              <span style={STYLES.alignDistributeIconWrapper}>
+                <AlignDistributeIcons.DistributeHTop />
               </span>
             </button>
             <button
-              onClick={this.performDistribute.bind(this, undefined, .5)}
+              onClick={this.performDistributeHMid}
               key="btn-dist-v-mid"
-              style={[STYLES.alignDistributeBtn]}>
-              <span style={[STYLES.alignDistributeIconWrapper]}>
-                <AlignDistributeIcons.DistributeHMid color={this.props.getEventHandlersEditorButtonColor()} />
+              style={STYLES.alignDistributeBtn}>
+              <span style={STYLES.alignDistributeIconWrapper}>
+                <AlignDistributeIcons.DistributeHMid />
               </span>
             </button>
             <button
-              onClick={this.performDistribute.bind(this, undefined, 1)}
+              onClick={this.performDistributeHBottom}
               key="btn-dist-v-right"
-              style={[
-                STYLES.alignDistributeBtn,
-                {marginRight: 18},
-              ]}>
-              <span style={[STYLES.alignDistributeIconWrapper]}>
-                <AlignDistributeIcons.DistributeHBottom color={this.props.getEventHandlersEditorButtonColor()} />
+              style={{
+                ...STYLES.alignDistributeBtn,
+                marginRight: 18,
+              }}>
+              <span style={STYLES.alignDistributeIconWrapper}>
+                <AlignDistributeIcons.DistributeHBottom />
               </span>
             </button>
             <button
-              onClick={this.performDistribute.bind(this, 0, undefined)}
+              onClick={this.performDistributeVLeft}
               key="btn-dist-h-top"
-              style={[STYLES.alignDistributeBtn]}>
-              <span style={[STYLES.alignDistributeIconWrapper]}>
-                <AlignDistributeIcons.DistributeVLeft color={this.props.getEventHandlersEditorButtonColor()} />
+              style={STYLES.alignDistributeBtn}>
+              <span style={STYLES.alignDistributeIconWrapper}>
+                <AlignDistributeIcons.DistributeVLeft />
               </span>
             </button>
             <button
-              onClick={this.performDistribute.bind(this, .5, undefined)}
+              onClick={this.performDistributeVMid}
               key="btn-dist-h-mid"
-              style={[STYLES.alignDistributeBtn]}>
-              <span style={[STYLES.alignDistributeIconWrapper]}>
-                <AlignDistributeIcons.DistributeVMid color={this.props.getEventHandlersEditorButtonColor()} />
+              style={STYLES.alignDistributeBtn}>
+              <span style={STYLES.alignDistributeIconWrapper}>
+                <AlignDistributeIcons.DistributeVMid />
               </span>
             </button>
             <button
-              onClick={this.performDistribute.bind(this, 1, undefined)}
+              onClick={this.performDistributeVRight}
               key="btn-dist-h-bottom"
-              style={[STYLES.alignDistributeBtn]}>
-              <span style={[STYLES.alignDistributeIconWrapper]}>
-                <AlignDistributeIcons.DistributeVRight color={this.props.getEventHandlersEditorButtonColor()} />
+              style={STYLES.alignDistributeBtn}>
+              <span style={STYLES.alignDistributeIconWrapper}>
+                <AlignDistributeIcons.DistributeVRight />
               </span>
             </button>
         </div>
@@ -220,9 +232,9 @@ class AlignToolBox extends React.PureComponent {
             key="show-align-panel-button"
             id="show-align-panel-button"
             onClick={this.clickPopover}
-            style={[STYLES.alignDistributeBtn]}>
-            <span style={[STYLES.alignDistributeIconWrapper, {transform: 'scale(0.5)', opacity: 0.602}]}>
-              <AlignDistributeIcons.AlignVLeft color={this.props.getEventHandlersEditorButtonColor()} />
+            style={STYLES.alignDistributeBtn}>
+            <span style={{...STYLES.alignDistributeIconWrapper, transform: 'scale(0.5)', opacity: 0.602}}>
+              <AlignDistributeIcons.AlignVLeft />
             </span>
           </button>
       </Popover>
@@ -233,7 +245,4 @@ class AlignToolBox extends React.PureComponent {
 AlignToolBox.propTypes = {
   websocket: React.PropTypes.object.isRequired,
   projectModel: React.PropTypes.object.isRequired,
-  getEventHandlersEditorButtonColor: React.PropTypes.object.isRequired,
 };
-
-export default Radium(AlignToolBox);

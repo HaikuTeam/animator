@@ -682,10 +682,10 @@ class StageTitleBar extends React.Component {
         }
 
         {this.isAlignPanelAvailable() && <AlignToolBox
-            websocket={this.props.websocket}
-            projectModel={this.props.projectModel}
-            getEventHandlersEditorButtonColor={this.getEventHandlersEditorButtonColor}
-          />}
+          websocket={this.props.websocket}
+          projectModel={this.props.projectModel}
+          getEventHandlersEditorButtonColor={this.getEventHandlersEditorButtonColor}
+        />}
 
         {experimentIsEnabled(Experiment.CodeEditor) &&
           <div style={STYLES.toggleHolster}>
