@@ -935,7 +935,9 @@ class Timeline extends React.Component {
   }
 
   handleZoom (wheelEvent) {
-    this.getActiveComponent().getCurrentTimeline().zoomBy(wheelEvent.deltaY * 0.01);
+    const maxZoom = 120;
+    const delta = Math.abs(wheelEvent.deltaY) > maxZoom ? Math.sign(wheelEvent.deltaY) * maxZoom : wheelEvent.deltaY;
+    this.getActiveComponent().getCurrentTimeline().zoomBy(delta * 0.01);
   }
 
   handleScroll (scrollEvent) {
