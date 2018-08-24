@@ -1580,7 +1580,8 @@ export class Glass extends React.Component {
               const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false;
               const prevDirectlySelected = Element.directlySelected;
               let clickedItemFound = null;
-              elementTargeted.getHaikuElement().visit((descendant) => {
+              const targetedHaikuElement = elementTargeted.getHaikuElement();
+              targetedHaikuElement.visit((descendant) => {
                 if (descendant.isWrapper() || descendant.isComponent() || descendant.isChildOfDefs) {
                   return;
                 }
@@ -1597,18 +1598,38 @@ export class Glass extends React.Component {
                   }
                 }
 
+                // The default is stroke-width is 1, but the default stroke is none, meriting this relatively
+                // tricky block.
+                let effectiveStrokeWidth = undefined;
                 let hasStroke = false;
                 {
                   let d = descendant;
-                  while (!hasStroke && d) {
-                    hasStroke = (d.attributes.stroke !== undefined &&
-                      d.attributes.stroke !== 'none' &&
-                      d.attributes.strokeWidth !== '0' &&
-                      d.attributes.strokeWidth !== 0 &&
-                      d.attributes.strokeWidth !== 'none');
-                    if (hasStroke) {
+                  while (d && d !== targetedHaikuElement) {
+                    if (!hasStroke) {
+                      if (d.attributes.stroke === 'none') {
+                        break;
+                      }
+
+                      if (d.attributes.stroke !== undefined) {
+                        hasStroke = true;
+                      }
+                    }
+
+                    if (effectiveStrokeWidth === undefined) {
+                      if (d.attributes['stroke-width'] === 'none' || Number(d.attributes['stroke-width']) === 0) {
+                        effectiveStrokeWidth = 0;
+                        break;
+                      }
+
+                      if (d.attributes['stroke-width'] !== undefined) {
+                        effectiveStrokeWidth = Number(d.attributes['stroke-width']);
+                      }
+                    }
+
+                    if (hasStroke && effectiveStrokeWidth !== undefined) {
                       break;
                     }
+
                     d = d.parent;
                   }
                 }
@@ -1617,7 +1638,7 @@ export class Glass extends React.Component {
                   (
                     hasFill && isPointInsidePrimitive(descendant, mouseDownPosition)
                   ) || (
-                    hasStroke && isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                    hasStroke && (effectiveStrokeWidth > 0) && isPointAlongStroke(descendant, mouseDownPosition, effectiveStrokeWidth)
                   )) {
                   clickedItemFound = descendant;
                   if (isDoubleClick && elementTargeted.isSelected()) {
