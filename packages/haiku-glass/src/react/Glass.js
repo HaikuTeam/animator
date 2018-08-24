@@ -940,6 +940,9 @@ export class Glass extends React.Component {
     // Find the value of every attribute at every unique ms
     const uniqueInterpolatedKeys = {};
     for (const i in attributes) {
+      if (!curKeys[attributes[i]]) {
+        continue;
+      }
       uniqueInterpolatedKeys[attributes[i]] = {};
       for (const ms in uniqueMs) {
         uniqueInterpolatedKeys[attributes[i]][ms] = calculateValue(
