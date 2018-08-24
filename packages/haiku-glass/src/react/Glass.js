@@ -2517,12 +2517,12 @@ export class Glass extends React.Component {
                 const attrUpdate = {};
                 const curTime = this.getActiveComponent().getCurrentTimelineTime();
                 if (indices.includes(0)) {
-                  attrUpdate.x1 = {[curTime]: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x};
-                  attrUpdate.y1 = {[curTime]: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y};
+                  attrUpdate.x1 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x}};
+                  attrUpdate.y1 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y}};
                 }
                 if (indices.includes(1)) {
-                  attrUpdate.x2 = {[curTime]: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x};
-                  attrUpdate.y2 = {[curTime]: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y};
+                  attrUpdate.x2 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x}};
+                  attrUpdate.y2 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y}};
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
