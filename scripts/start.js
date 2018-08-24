@@ -78,6 +78,7 @@ const FOLDER_CHOICES = {
   'metapoem2-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/metapoem2'),
   'text-content-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/text-content'),
   'pkey-dupe-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/pkey-dupe'),
+  'coinage-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/coinage'),
 };
 
 // Support:
