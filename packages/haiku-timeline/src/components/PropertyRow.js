@@ -24,11 +24,13 @@ export default class PropertyRow extends React.Component {
 
   componentWillUnmount () {
     this.mounted = false;
+    this.props.row.element.removeListener('update', this.handleUpdate);
     this.props.row.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
     this.mounted = true;
+    this.props.row.element.on('update', this.handleUpdate);
     this.props.row.on('update', this.handleUpdate);
   }
 
@@ -39,7 +41,8 @@ export default class PropertyRow extends React.Component {
     if (
       what === 'row-selected' ||
       what === 'row-deselected' ||
-      what === 'row-set-title'
+      what === 'row-set-title' ||
+      what === 'element-locked-toggle'
      ) {
       this.forceUpdate();
     }

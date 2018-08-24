@@ -242,6 +242,7 @@ class Element extends BaseModel {
 
   toggleLocked (metadata, cb) {
     this.component.setLockedStatusForComponent(this.getComponentId(), !this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE], metadata, cb)
+    this.emit('update', 'element-locked-toggle')
   }
 
   getStaticTemplateNode () {
