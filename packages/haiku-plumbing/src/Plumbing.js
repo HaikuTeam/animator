@@ -474,11 +474,7 @@ export default class Plumbing extends EventEmitter {
 
   methodMessageBeforeLog (message, alias) {
     if (!IGNORED_METHOD_MESSAGES[message.method]) {
-      const paramsLog = METHODS_WITH_SENSITIVE_INFO[message.method]
-        ? message.params.map((param, idx) => METHODS_WITH_SENSITIVE_INFO[message.method].includes(idx) ? 'xxxxx' : param)
-        : message.params;
-
-      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(paramsLog)} --↓`);
+      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} --↓`);
     }
   }
 
@@ -991,7 +987,7 @@ export default class Plumbing extends EventEmitter {
       for (let i = this._methodMessages.length - 1; i >= 0; i--) {
         const message = this._methodMessages[i];
         if (message.folder === folder) {
-          logger.info(`[plumbing] clearing message`, message);
+          logger.info(`[plumbing] clearing message`);
           this._methodMessages.splice(i, 1);
         }
       }

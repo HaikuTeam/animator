@@ -1480,7 +1480,7 @@ class Timeline extends React.Component {
   }
 
   onCommitValue = (committedValue, row, ms) => {
-    logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump());
+    logger.info('commit at', ms, 'on', row.dump());
     this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
     row.createKeyframe(committedValue, ms, {from: 'timeline'});
   };
