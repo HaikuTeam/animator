@@ -940,6 +940,9 @@ export class Glass extends React.Component {
     // Find the value of every attribute at every unique ms
     const uniqueInterpolatedKeys = {};
     for (const i in attributes) {
+      if (!curKeys[attributes[i]]) {
+        continue;
+      }
       uniqueInterpolatedKeys[attributes[i]] = {};
       for (const ms in uniqueMs) {
         uniqueInterpolatedKeys[attributes[i]][ms] = calculateValue(
@@ -1654,17 +1657,24 @@ export class Glass extends React.Component {
                 };
 
                 const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
+
                 switch (Element.directlySelected.type) {
                   case 'rect': {
+                    const elSize = Element.directlySelected.size;
+
                     const newKeys = this.interpolateAttributesAtKeyframes(originalEl, ['x', 'y', 'rx', 'ry']);
                     const pathKeys = {d: {}, x: {}, y: {}, rx: {}, ry: {}};
+
                     for (const ms in newKeys.x) {
                       pathKeys.d[ms] = {value: SVGPoints.pointsToPath(SVGPoints.rectToPoints(
-                        Number(newKeys.x[ms]), Number(newKeys.y[ms]),
-                        Element.directlySelected.layout.sizeAbsolute.x,
-                        Element.directlySelected.layout.sizeAbsolute.y,
-                        Number(newKeys.rx[ms]), Number(newKeys.ry[ms]),
+                        Number(newKeys.x[ms]),
+                        Number(newKeys.y[ms]),
+                        elSize.x,
+                        elSize.y,
+                        Number((newKeys.rx && newKeys.rx[ms]) || 0),
+                        Number((newKeys.ry && newKeys.ry[ms]) || 0),
                       ))},
+
                       pathKeys.x[ms] = null;
                       pathKeys.y[ms] = null;
                       pathKeys.rx[ms] = null;
@@ -2918,7 +2928,14 @@ export class Glass extends React.Component {
         return overlays;
       }
 
-      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays);
+      this.renderDirectSelection(
+        Element.directlySelected,
+        this.state.directSelectionAnchorActivation
+          ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
+          : undefined,
+        overlays,
+      );
+
       return overlays;
     }
 
@@ -2956,7 +2973,17 @@ export class Glass extends React.Component {
 
     switch (element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []));
+        overlays.push(directSelectionMana[element.type](
+          element.id,
+          {
+            ...element.attributes,
+            width: element.sizeX,
+            height: element.sizeY,
+          },
+          original.layoutAncestryMatrices,
+          scale,
+          selectedAnchorIndices || [],
+        ));
         break;
       case 'circle':
       case 'ellipse':
@@ -2964,7 +2991,13 @@ export class Glass extends React.Component {
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []));
+        overlays.push(directSelectionMana[element.type](
+          element.id,
+          element.attributes,
+          original.layoutAncestryMatrices,
+          scale,
+          selectedAnchorIndices || [],
+        ));
         break;
       default:
         // ...noop.
@@ -3494,8 +3527,8 @@ export class Glass extends React.Component {
             if (publicComponentModel && internalElementModel) {
               const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`);
               window.element = publicElementModel;
-              console.log('element', publicElementModel);
-              console.log('element.target', publicElementModel.target);
+              console.info('element', publicElementModel);
+              console.info('element.target', publicElementModel.target);
             }
           }
         },
