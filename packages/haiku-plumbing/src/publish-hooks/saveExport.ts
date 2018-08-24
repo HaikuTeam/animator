@@ -15,7 +15,7 @@ export default (request: ExporterRequest, activeComponent: ActiveComponent, cb: 
   handleExporterSaveRequest(
     request,
     doSnapshot ? Bytecode.snapshot(bytecode) : bytecode,
-    activeComponent.fetchActiveBytecodeFile().getFolder()
+    activeComponent.fetchActiveBytecodeFile().getFolder(),
   )
     .then(cb)
     .catch(cb);

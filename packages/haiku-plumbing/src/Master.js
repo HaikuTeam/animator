@@ -987,7 +987,7 @@ export default class Master extends EventEmitter {
             // Hack: we shouldn't have to do this. This fixes an odd issue where a forked project with no changes
             // does not persist changes from bytecode migration on first publish.
             if (ac.$instance && ac.$instance.bytecode !== ac.getReifiedBytecode()) {
-              ac.handleUpdatedBytecode(ac.$instance.bytecode)
+              ac.handleUpdatedBytecode(ac.$instance.bytecode);
             }
 
             return ac.writeMetadata(
