@@ -1860,14 +1860,14 @@ export class Glass extends React.Component {
                     // Calculate t value and surrounding points, and split
                     const t = minIdx % approximationResolution / approximationResolution;
 
-                    const newPoints = splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t);
-                    if (newPoints) {
+                    splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t);
+                    if (points) {
                       this.getActiveComponent().updateKeyframes({
                         [this.getActiveComponent().getCurrentTimelineName()]: {
                           [Element.directlySelected.attributes['haiku-id']]: {
                             d: {
                               [this.getActiveComponent().getCurrentTimelineTime()]: {
-                                value: SVGPoints.pointsToPath(newPoints),
+                                value: SVGPoints.pointsToPath(points),
                               },
                             },
                           },
