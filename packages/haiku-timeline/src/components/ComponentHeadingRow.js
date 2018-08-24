@@ -49,7 +49,8 @@ export default class ComponentHeadingRow extends React.Component {
     if (
       what === 'drag-group-start' ||
       what === 'drag-group-end' ||
-      what === 'row-rehydrated'
+      what === 'row-rehydrated' ||
+      what === 'element-locked-toggle'
     ) {
       this.forceUpdate();
     }
@@ -126,7 +127,6 @@ export default class ComponentHeadingRow extends React.Component {
   toggleLock () {
     this.props.row.element.toggleLocked({from: 'timeline'}, () => {
       mixpanel.haikuTrack('creator:timeline:layer:lock-toggled');
-      this.forceUpdate();
     });
   }
 
