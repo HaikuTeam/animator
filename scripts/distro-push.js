@@ -22,7 +22,7 @@ cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions);
 cp.execSync('node ./scripts/changelog.js', processOptions);
 cp.execSync('git stash pop', processOptions);
 cp.execSync('git add -u', processOptions);
-cp.execSync('git commit -m "auto: release"', processOptions);
+cp.execSync('git commit --allow-empty -m "auto: release"', processOptions);
 
 // Compile packages.
 cp.execSync('yarn install --frozen-lockfile', processOptions);
