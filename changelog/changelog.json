@@ -7387,5 +7387,257 @@
       "message": "include Figma frames in the import (#550)"
     }
   },
-  "3.5.1": {}
+  "3.5.1": {},
+  "3.5.2": {
+    "8f43d2e0e498c318b365b7fbee39b7b52129e843": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure build syndication steps can be idempotent"
+    },
+    "3f05c30b54ce97edc6681205b2ed4d4266da356e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "notify property rows when their element is locked"
+    },
+    "0ee1a4c6e90fe6217bf160d5ca5caed89c641dca": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "restore ability to insert vertices with Cmd+click"
+    },
+    "f7d1893430976a416ead1e52fcecc8d0e5640567": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "enable vertex translation for line elements."
+    },
+    "5f52b850381cc9d76837a3a2d320765a2a2b76c7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "convert quadratic beziers to cubic beziers to unlock some direct selection edge cases."
+    },
+    "08b4cb63310e3235a3e80def726aa8f977fb32f0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "warn instead of carshing when splitSegmentInSVGPoints returns undefined."
+    },
+    "320b75146c09086f1bf409df52273215c56cf726": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure direct selection vertices appear in correct place immediately after selection"
+    },
+    "a395cfc9022aea22ee3d758489cfcf3532dfa715": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent direct selection crash caused by assuming existence of optional attributes and regression after sizeAbsolute was removed from svg descendants"
+    },
+    "0183e75d3274359818038565eb94ae3a68671ce3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent direct selection crash symptom"
+    },
+    "ca8ab278b415bb4a0a27a42f95830efc305f78cd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix timeline freeze, sigh (780055919770455)"
+    },
+    "3fd9edb438e9a326671273e41a3d0834e61b0b57": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use a better conditional"
+    },
+    "e780e8b5bcbfb2c56f3c91e2ade4050a81aff268": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "retire ActiveComponent#reloadBytecodeFromDisk and buggy friends."
+    },
+    "5e24e2eb82d234c4d97c523549c1e40ef1265ee9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent buggy interactions when zooming in the timeline"
+    },
+    "48fb89ea3edadebfbb214de9245756a3f6ba4603": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add an extra pixel to special cased rows"
+    },
+    "5de76dd7fb034a58666df1393c4e8d54a5064cb5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "cascade group properties during ungroup SVG correctly."
+    },
+    "d4cec303d3c5d4fea2f5eb55781dd25cf32a9ee3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for (multi-)rotate borked on legacy projects."
+    },
+    "9b037213c180c7482ed8d0d6300720f9a29aa092": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure during publish reified bytecode and component work bytecode are the same thing."
+    },
+    "79a637b3d895904ade063da08afc4cc212b03d23": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not select constant segments directly during marquee"
+    },
+    "2f9f00e527b5be687a734a4c7db5d555a43f975e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure 'px' label doesn't wrap under (792303516188611)"
+    },
+    "11a14ee060ab57beeca925c6836edf55cb3eefb0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't call row when they aren't hydrated"
+    },
+    "741f7012c85c4994666eb39d326e78931e472ead": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if Intercom is defined before hiding."
+    },
+    "bc36cc7b088d234365c01d580cdcc8574ce8c1fa": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "DELETE /billing/plan sends 200, not 204, on success."
+    },
+    "be1ce8fb2753126392c2b8f16023234e03ffc8f4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "address edge case interactions between intercom and glass"
+    },
+    "bbf5e0b67afc56522089c5cc9b526b6eb4df5675": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't allow headings to be selected on Publish UI"
+    },
+    "71293da74911c7341bf9c4ceb27ea5bc99e396c0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "address copy paste issues with intercom widget"
+    },
+    "7d4eca4127b30e7f7560aa655798862f5ba48af1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "during marquee, only set the body selected of keyframes with body"
+    },
+    "5e11a2b179a31d8d928a5c1e864cd8f31dcaeece": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent keyframe viewPositions from getting outdated"
+    },
+    "6ff2ed6bc40f21a22a187ac790edc4236f5d6d77": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure x264-compatible dimensions."
+    },
+    "f3cc0051b56a486c69205ddc3062a12afd274519": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set elements as no selectable"
+    },
+    "adac7b7ccdb7258c35f4295e4dc0dccaaa6d7ebe": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update the width of the post max keyframe area according to the max frame"
+    },
+    "9d35e5f767af6b75e8bd2e30865bdb21fa6cf9ea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not keep forking the same project over and over again."
+    },
+    "f8f4fb660e89807b8ee4c3bff8e39294db585e74": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "HaikuStaticExporter should preserve curves."
+    },
+    "9cba4e8d98f12b2e6881fc5c748bf3b63049044b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Seeing \"flash\" of offline screen after login screen"
+    },
+    "0e54cd1c669028310803e805b7e09a2df583733c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hide the tour while tearing down master"
+    },
+    "780b41f1e598db834087dbaa426e5d754a1efc8a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "simplify TransformCache and compute scale property layout explicitly."
+    },
+    "8629a445dac523f628ab9671d478b2ca906ab549": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "increase the z-index of the timeline blocker during preview mode"
+    },
+    "cd105b00201d7e92b9cda2f91a389455016a8bba": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "coerce a functional ffmpeg binary (hackily)"
+    },
+    "9f381c74344f63f59f7c3221a4e0b09cdb8d4ce2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "put in missing nodeRun for unified pipeline."
+    },
+    "3ccc7f73e9af9ce0e7a89ad6f00f461f19d8c686": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "auto-scroll to rows in the timeline when the z-index is changed in Glass"
+    },
+    "dcf5bfb39d2d12b9c108657fba311274d7e6814e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Have to refresh app for it to \"learn\" that I deleted a project"
+    },
+    "b40eef48e5ce856764c0758905282c7442a07ee7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use localhost for HAIKU_PLUMBING_URL in config."
+    },
+    "767f71977d725df5d128454f4febc0fd9ac7166f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "adjust the position and the color of the post max keyframe area"
+    },
+    "4fdc964ac9f818671e6466889afd30e021109e42": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use the correct logic to show the sync icon on timeline"
+    },
+    "4ded0eef684d30668f56ebfe6e7950f544321dc2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "clean states related to event handler editors when tearing down master"
+    },
+    "3710f17a700358402cab7606dc7f9d9caa6349e9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure palette is actually used in GIF export."
+    },
+    "ad0d9664f5a3fbe2305669dfc842f9e88727bac0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "try to do our best to open the Illustrator file before import"
+    },
+    "94fe6ca6417b8f92ab83b6f60d3d06147b081f4a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "adjust the position of the keyframes to line with frame lines"
+    },
+    "1ba13359a4531d13bd2146e844416e89c5d42c87": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "change the position of the PostMaxKeyframeArea so it doesn't break expressions"
+    },
+    "4f2034e45c941a959dccb461fd01d46a29d7ebc3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "unhack mergeDesigns emission from Master->UI now that we have a real websocket."
+    },
+    "fee4479a3ba17a0a4e2bc2dad7e295a8d801ae9e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not thrash envoy with project list requests when offline."
+    }
+  }
 }
