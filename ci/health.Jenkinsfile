@@ -190,7 +190,7 @@ pipeline {
                 milestone 5
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Syndicate release?', submitter: 'matthew,zack,sasha'
+                    input message: 'Syndicate release?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicating...', STATUS_PENDING)
                     setupBuild()
                     nodeRun('./scripts/distro-syndicate.js --non-interactive')
