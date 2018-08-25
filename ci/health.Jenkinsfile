@@ -151,39 +151,39 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Push') {
-            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
-            steps {
-                milestone 3
-                notifyAdvancementRequest()
-                timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
-                    setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
-                    setupBuild()
-                    sh """echo "//registry.npmjs.org/:_authToken=${env.NPM_AUTH_TOKEN}" > ~/.npmrc"""
-                    nodeRun('./scripts/distro-push.js')
-                }
-                milestone 4
-            }
-            post {
-                success {
-                    setBuildStatus(CONTEXT_PUSH, 'pushed to NPM and CDN', STATUS_SUCCESS)
-                    slackSend([
-                        channel: 'engineering-feed',
-                        color: 'good',
-                        message: ":1up: ${env.ghprbSourceBranch} was pushed to NPM and CDN!"
-                    ])
-                }
-                failure {
-                    setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN failed', STATUS_FAILURE)
-                    slackSend([
-                        channel: 'engineering-feed',
-                        color: 'danger',
-                        message: ":-1up: ${env.ghprbSourceBranch} failed during push to NPM and CDN"
-                    ])
-                }
-            }
-        }
+        // stage('Push') {
+        //     when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+        //     steps {
+        //         milestone 3
+        //         notifyAdvancementRequest()
+        //         timeout(time: 1, unit: 'DAYS') {
+        //             input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
+        //             setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
+        //             setupBuild()
+        //             sh """echo "//registry.npmjs.org/:_authToken=${env.NPM_AUTH_TOKEN}" > ~/.npmrc"""
+        //             nodeRun('./scripts/distro-push.js')
+        //         }
+        //         milestone 4
+        //     }
+        //     post {
+        //         success {
+        //             setBuildStatus(CONTEXT_PUSH, 'pushed to NPM and CDN', STATUS_SUCCESS)
+        //             slackSend([
+        //                 channel: 'engineering-feed',
+        //                 color: 'good',
+        //                 message: ":1up: ${env.ghprbSourceBranch} was pushed to NPM and CDN!"
+        //             ])
+        //         }
+        //         failure {
+        //             setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN failed', STATUS_FAILURE)
+        //             slackSend([
+        //                 channel: 'engineering-feed',
+        //                 color: 'danger',
+        //                 message: ":-1up: ${env.ghprbSourceBranch} failed during push to NPM and CDN"
+        //             ])
+        //         }
+        //     }
+        // }
         stage('Syndicate') {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             steps {
