@@ -15,6 +15,14 @@ const processOptions = {cwd: ROOT, stdio: 'inherit'};
 // Stash semver changes.
 cp.execSync('git stash', processOptions);
 cp.execSync('git fetch', processOptions);
+
+try {
+  // Make sure we reset our local branch, but allow this step to fail if we don't have one.
+  cp.execSync(`git branch -D ${branch}`, processOptions);
+} catch (err) {
+  // ...
+}
+
 cp.execSync(`git checkout ${branch}`, processOptions);
 // Pull standalone remotes.
 cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions);
