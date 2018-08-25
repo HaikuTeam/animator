@@ -328,7 +328,8 @@ export default class ComponentHeadingRow extends React.Component {
                 }
               </div>
               <div
-                title="Edit element Actions"
+                aria-label="Edit element Actions"
+                data-tooltip-right={true}
                 className="event-handler-triggerer-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   ...STYLES.actionButton,
@@ -348,7 +349,8 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
               <div
-                title="Add property"
+                aria-label="Add property"
+                data-tooltip-right={true}
                 className="property-manager-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   ...STYLES.actionButton,

@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@haiku/core": "3.5.2",
+    "balloon-css": "^0.5.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",
     "color": "^2.0.1",

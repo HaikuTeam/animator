@@ -20,6 +20,7 @@ import CreateComponentModal from './modals/CreateComponentModal';
 import * as Comments from './Comments';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import TooltipStyles from 'haiku-ui-common/lib/react/TooltipStyles';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import originMana from '../overlays/originMana';
@@ -3906,6 +3907,7 @@ export class Glass extends React.Component {
             </div>
             : ''}
         </div>
+        <TooltipStyles />
       </div>
     );
   }
