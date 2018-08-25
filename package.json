@@ -180,5 +180,8 @@
       "!node_modules/@haiku/core/src${/*}",
       "!node_modules/@haiku/core/test${/*}"
     ]
+  },
+  "resolutions": {
+    "@haiku/core": "^4.0.0"
   }
 }
