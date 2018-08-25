@@ -1,6 +1,61 @@
 # Changelog
 
 
+## 3.5.2
+
+### Bug Fixes
+
+ * ensure build syndication steps can be idempotent
+ * notify property rows when their element is locked
+ * restore ability to insert vertices with Cmd+click
+ * enable vertex translation for line elements.
+ * convert quadratic beziers to cubic beziers to unlock some direct selection edge cases.
+ * warn instead of carshing when splitSegmentInSVGPoints returns undefined.
+ * Ensure direct selection vertices appear in correct place immediately after selection
+ * Prevent direct selection crash caused by assuming existence of optional attributes and regression after sizeAbsolute was removed from svg descendants
+ * Prevent direct selection crash symptom
+ * Fix timeline freeze, sigh (780055919770455)
+ * use a better conditional
+ * retire ActiveComponent#reloadBytecodeFromDisk and buggy friends.
+ * prevent buggy interactions when zooming in the timeline
+ * add an extra pixel to special cased rows
+ * cascade group properties during ungroup SVG correctly.
+ * for (multi-)rotate borked on legacy projects.
+ * ensure during publish reified bytecode and component work bytecode are the same thing.
+ * do not select constant segments directly during marquee
+ * Ensure 'px' label doesn't wrap under (792303516188611)
+ * Don't call row when they aren't hydrated
+ * check if Intercom is defined before hiding.
+ * DELETE /billing/plan sends 200, not 204, on success.
+ * address edge case interactions between intercom and glass
+ * don't allow headings to be selected on Publish UI
+ * address copy paste issues with intercom widget
+ * during marquee, only set the body selected of keyframes with body
+ * prevent keyframe viewPositions from getting outdated
+ * ensure x264-compatible dimensions.
+ * set elements as no selectable
+ * update the width of the post max keyframe area according to the max frame
+ * do not keep forking the same project over and over again.
+ * HaikuStaticExporter should preserve curves.
+ * for Seeing "flash" of offline screen after login screen
+ * hide the tour while tearing down master
+ * simplify TransformCache and compute scale property layout explicitly.
+ * increase the z-index of the timeline blocker during preview mode
+ * coerce a functional ffmpeg binary (hackily)
+ * put in missing nodeRun for unified pipeline.
+ * auto-scroll to rows in the timeline when the z-index is changed in Glass
+ * for Have to refresh app for it to "learn" that I deleted a project
+ * use localhost for HAIKU_PLUMBING_URL in config.
+ * adjust the position and the color of the post max keyframe area
+ * use the correct logic to show the sync icon on timeline
+ * clean states related to event handler editors when tearing down master
+ * ensure palette is actually used in GIF export.
+ * try to do our best to open the Illustrator file before import
+ * adjust the position of the keyframes to line with frame lines
+ * change the position of the PostMaxKeyframeArea so it doesn't break expressions
+ * unhack mergeDesigns emission from Master->UI now that we have a real websocket.
+ * do not thrash envoy with project list requests when offline.
+
 ## 3.5.1
 
 ## 3.5.0
