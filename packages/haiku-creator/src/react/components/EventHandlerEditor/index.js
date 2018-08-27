@@ -196,6 +196,11 @@ class EventHandlerEditor extends React.PureComponent {
     });
   }
 
+  doCloseIgnoringErrors () {
+    // Hide and close without checking for errors (this.state.editorWithErrors)
+    this.setState({currentEvent: null}, this.props.close);
+  }
+
   doSave () {
     if (!this.state.editorWithErrors && this.state.currentEvent) {
       this.handlerManager.replaceEvent(
@@ -380,7 +385,7 @@ class EventHandlerEditor extends React.PureComponent {
             <ModalFooter>
               <EditorActions
                 onCancel={() => {
-                  this.doClose();
+                  this.doCloseIgnoringErrors();
                 }}
                 onSave={() => {
                   this.doSave();
