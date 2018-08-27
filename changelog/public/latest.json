@@ -4,6 +4,8 @@
     "What's new": [
       "Creating a component with the + sign now always creates an empty component."
     ],
-    "Fixes": []
+    "Fixes": [
+      "@haiku/cli now uses configured proxy settings."
+    ]
   }
 }
