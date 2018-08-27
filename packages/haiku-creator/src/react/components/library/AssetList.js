@@ -23,6 +23,7 @@ class AssetList extends React.Component {
               onAskForFigmaAuth={this.props.onAskForFigmaAuth}
               onImportFigmaAsset={this.props.onImportFigmaAsset}
               onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
+              conglomerateComponent={this.props.conglomerateComponent}
               />
           );
         })}

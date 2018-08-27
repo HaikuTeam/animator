@@ -58,13 +58,8 @@ class ComponentMenu extends React.Component {
     return tabs.filter((tab) => tab.scenename !== 'main');
   }
 
-  showNewComponentDialog = () => {
-    this.props.websocket.send({
-      type: 'broadcast',
-      from: 'creator',
-      folder: this.props.projectModel.getFolder(),
-      name: 'conglomerate-component',
-    });
+  conglomerateComponent = () => {
+    this.props.conglomerateComponent({isBlankComponent: true});
   };
 
   render () {
@@ -92,7 +87,7 @@ class ComponentMenu extends React.Component {
           );
         }))}
         {this.props.showGlass &&
-          <button style={STYLES.newComponentButton} onClick={this.showNewComponentDialog}>
+          <button style={STYLES.newComponentButton} onClick={this.conglomerateComponent}>
             +
           </button>
         }

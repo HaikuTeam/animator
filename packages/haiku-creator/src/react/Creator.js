@@ -2031,6 +2031,16 @@ export default class Creator extends React.Component {
     this.showProxySettings();
   };
 
+  conglomerateComponent = ({isBlankComponent} = {isBlankComponent: false}) => {
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.state.projectModel.getFolder(),
+      name: 'conglomerate-component',
+      isBlankComponent,
+    });
+  };
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -2168,6 +2178,7 @@ export default class Creator extends React.Component {
                     onDragStart={this.onLibraryDragStart}
                     createNotice={this.createNotice}
                     removeNotice={this.removeNotice}
+                    conglomerateComponent={this.conglomerateComponent}
                     visible={this.state.activeNav === 'library'} />
                   <StateInspector
                     projectModel={this.state.projectModel}
@@ -2241,6 +2252,7 @@ export default class Creator extends React.Component {
                     setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                     showEventHandlerEditor={this.state.showEventHandlerEditor}
+                    conglomerateComponent={this.conglomerateComponent}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0}} />
