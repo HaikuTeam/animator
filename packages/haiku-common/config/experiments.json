@@ -20,7 +20,7 @@
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": true,
   "AllowBitmapImages": true,
-  "AllowWebfontAssets": true,
+  "AllowWebfontAssets": false,
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
   "Snapping": true,
