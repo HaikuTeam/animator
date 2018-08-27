@@ -28,6 +28,13 @@ export type HaikuDotEnv = {
   [key in string]: string;
 };
 
+const applyEnv = (env: HaikuDotEnv) => {
+  Object.assign(global.process.env, env);
+  if (env.HAIKU_API) {
+    inkstone.setConfig({baseUrl: env.HAIKU_API});
+  }
+};
+
 export namespace client {
 
   export const verboselyLog =  (message: string, ...args: any[]) => {
@@ -84,24 +91,16 @@ export namespace client {
       }
 
       const env = dotenv.parse(fs.readFileSync(FILE_PATHS.DOTENV));
-      Object.assign(global.process.env, env);
-      if (env.HAIKU_API) {
-        inkstone.setConfig({baseUrl: env.HAIKU_API});
-      }
-
+      applyEnv(env);
       return env;
     }
 
     static setenv (environmentVariables: HaikuDotEnv): HaikuDotEnv {
-      Object.assign(global.process.env, environmentVariables);
-      if (environmentVariables.HAIKU_API) {
-        inkstone.setConfig({baseUrl: environmentVariables.HAIKU_API});
-      }
-
       const newenv = Object.assign(client.config.getenv(), environmentVariables);
+      applyEnv(newenv);
       fs.writeFileSync(
         FILE_PATHS.DOTENV,
-        Object.entries(Object.assign(client.config.getenv(), environmentVariables))
+        Object.entries(newenv)
           .reduce(
             (accumulator, [key, value]) => accumulator + `${key}="${value}"\n`,
             '',
