@@ -31,6 +31,7 @@ export enum Experiment {
   LocalAssetExport = 'LocalAssetExport',
   UserConsole = 'UserConsole',
   AllowBitmapImages = 'AllowBitmapImages',
+  AllowWebfontAssets = 'AllowWebfontAssets',
   SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
   CopyPasteTweens = 'CopyPasteTweens',
   CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',

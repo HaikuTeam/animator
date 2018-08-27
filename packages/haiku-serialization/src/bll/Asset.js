@@ -65,7 +65,8 @@ class Asset extends BaseModel {
     return (
       (this.isComponent() && this.isComponentOtherThanMain()) ||
       this.isVector() ||
-      this.isImage()
+      this.isImage() ||
+      this.isFont()
     )
   }
 
@@ -356,6 +357,10 @@ class Asset extends BaseModel {
     return !!this.relpath.match(FRAMES_REGEX)
   }
 
+  isFont () {
+    return Asset.isFont(this.relpath)
+  }
+
   isPhony () {
     return this.relpath.includes(PHONY_FIGMA_FILE)
   }
@@ -409,6 +414,7 @@ Asset.KINDS = {
   FIGMA: 'figma',
   ILLUSTRATOR: 'ai',
   IMAGE: 'image',
+  FONT: 'font',
   VECTOR: 'vector',
   COMPONENT: 'component',
   OTHER: 'other',
@@ -446,6 +452,18 @@ Asset.ingestAssets = (project, dict) => {
     children: [
       // The artboardsFolderAsset and slicesFolderAsset will live at the top, if needed
     ],
+    dtModified: Date.now()
+  })
+
+  const fontFolderAsset = Asset.upsert({
+    uid: path.join(project.getFolder(), 'fonts'),
+    type: Asset.TYPES.CONTAINER,
+    kind: Asset.KINDS.FOLDER,
+    proximity: Asset.PROXIMITIES.LOCAL,
+    project,
+    relpath: 'fonts',
+    displayName: 'Fonts',
+    children: [],
     dtModified: Date.now()
   })
 
@@ -544,6 +562,29 @@ Asset.ingestAssets = (project, dict) => {
       })
 
       designFolderAsset.insertChild(imageAsset)
+    } else if (
+      FONT_ASSET_EXTNAMES[extname] &&
+      experimentIsEnabled(Experiment.AllowWebfontAssets)
+    ) {
+      const fontAsset = Asset.upsert({
+        uid: path.join(project.getFolder(), relpath),
+        type: Asset.TYPES.FILE,
+        kind: Asset.KINDS.FONT,
+        proximity: Asset.PROXIMITIES.LOCAL,
+        project,
+        relpath,
+        displayName: path.basename(relpath, extname),
+        children: [],
+        dtModified: dict[relpath].dtModified
+      })
+
+      fontFolderAsset.insertChild(fontAsset)
+    }
+  }
+
+  if (experimentIsEnabled(Experiment.AllowWebfontAssets)) {
+    if (fontFolderAsset.children.length > 0) {
+      rootAssets.push(fontFolderAsset)
     }
   }
 
@@ -640,9 +681,20 @@ const IMAGE_ASSET_EXTNAMES = {
   '.gif': true
 }
 
+const FONT_ASSET_EXTNAMES = {
+  '.ttf': true,
+  '.oft': true,
+  '.woff': true
+}
+
 Asset.isImage = (filepath) => {
   const extname = path.extname(filepath).toLowerCase()
   return IMAGE_ASSET_EXTNAMES[extname]
+}
+
+Asset.isFont = (filepath) => {
+  const extname = path.extname(filepath).toLowerCase()
+  return FONT_ASSET_EXTNAMES[extname]
 }
 
 Asset.isDesignAsset = (abspath) => {
@@ -652,7 +704,8 @@ Asset.isDesignAsset = (abspath) => {
     Sketch.isSketchFile(abspath) ||
     Illustrator.isIllustratorFile(abspath) ||
     extname === '.svg' ||
-    Asset.isImage(abspath)
+    Asset.isImage(abspath) ||
+    Asset.isFont(abspath)
   )
 }
 

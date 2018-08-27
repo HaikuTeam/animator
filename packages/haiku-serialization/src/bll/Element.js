@@ -847,6 +847,17 @@ class Element extends BaseModel {
     return !!this.getHostedComponentBytecode()
   }
 
+  isNonRenderedComponent () {
+    const bytecode = this.getHostedComponentBytecode()
+    if (!bytecode) { // Not even a component
+      return false
+    }
+    if (!bytecode.metadata) {
+      return false
+    }
+    return !!bytecode.metadata.nonrendered
+  }
+
   isExternalComponent () {
     if (!this.isComponent()) return false
     return !this.isLocalComponent()
@@ -1300,6 +1311,10 @@ class Element extends BaseModel {
   //   }
   // ]
   getJITPropertyOptions () {
+    if (this.isNonRenderedComponent()) {
+      return []
+    }
+
     const exclusions = this.getExcludedAddressableProperties()
 
     // Because of bad code, I have to explicitly collect addressable properties for
