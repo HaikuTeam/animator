@@ -771,7 +771,7 @@ export class Glass extends React.Component {
           break;
 
         case 'conglomerate-component':
-          this.launchComponentNameModal();
+          this.launchComponentNameModal({isBlankComponent: message.isBlankComponent});
           break;
 
         case 'perform-align':
@@ -1094,7 +1094,13 @@ export class Glass extends React.Component {
     }
   };
 
-  launchComponentNameModal () {
+  launchComponentNameModal ({isBlankComponent} = {isBlankComponent: false}) {
+    if (isBlankComponent) {
+      Element.unselectAllElements({
+        component: this.getActiveComponent(),
+      }, {from: 'glass'});
+    }
+
     this.setState({
       isCreateComponentModalOpen: true,
     });

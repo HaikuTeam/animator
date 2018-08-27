@@ -93,14 +93,7 @@ class FileImporter extends React.PureComponent {
         <div style={STYLES.popover.item}>
           <div
             style={STYLES.popover.text}
-            onClick={() => {
-              this.props.websocket.send({
-                type: 'broadcast',
-                from: 'creator',
-                folder: this.props.projectModel.getFolder(),
-                name: 'conglomerate-component',
-              });
-            }}
+            onClick={this.props.conglomerateComponent}
           >
             Create Component
           </div>

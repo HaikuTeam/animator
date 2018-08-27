@@ -585,12 +585,7 @@ class StageTitleBar extends React.Component {
         folder: this.props.projectModel.getFolder(), // required when sent via Creator
       });
     } else {
-      this.props.websocket.send({
-        type: 'broadcast',
-        from: 'creator',
-        name: 'conglomerate-component',
-        folder: this.props.projectModel.getFolder(), // required when sent via Creator
-      });
+      this.props.conglomerateComponent();
     }
   }
 
