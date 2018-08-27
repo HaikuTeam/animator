@@ -8,7 +8,9 @@ module.exports = function requestElementCoordinates (
   if (currentWebview !== requestedWebview) return
 
   // if the loading screen is present, wait 300ms and try again
-  if (document.getElementById('js-helper-project-loader')) {
+  const loader = document.getElementById('js-helper-project-loader')
+  // When the loader transform style is "none", that means it's visible.
+  if (loader && loader.style.transform === 'none') {
     return setTimeout(() => {
       requestElementCoordinates.apply(this, [
         ...arguments,

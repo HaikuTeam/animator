@@ -228,101 +228,83 @@ const computeMatrix = (
   const originY = layoutSpec.origin.y * targetSize.y;
   const originZ = layoutSpec.origin.z * targetSize.z;
 
-  layoutSpec.orientation = computeOrientationFlexibly(
-    layoutSpec.rotation.x,
-    layoutSpec.rotation.y,
-    layoutSpec.rotation.z,
-  );
+  // We represent the matrix in column-major order, a convention in graphics programming.
+  const m = createMatrix();
 
-  const wx = layoutSpec.orientation.w * layoutSpec.orientation.x;
-  const wy = layoutSpec.orientation.w * layoutSpec.orientation.y;
-  const wz = layoutSpec.orientation.w * layoutSpec.orientation.z;
-  const xx = layoutSpec.orientation.x * layoutSpec.orientation.x;
-  const yy = layoutSpec.orientation.y * layoutSpec.orientation.y;
-  const zz = layoutSpec.orientation.z * layoutSpec.orientation.z;
-  const xy = layoutSpec.orientation.x * layoutSpec.orientation.y;
-  const xz = layoutSpec.orientation.x * layoutSpec.orientation.z;
-  const yz = layoutSpec.orientation.y * layoutSpec.orientation.z;
+  // Only if necessary, apply rotation from Euler angles in order: Z then Y then X.
+  if (layoutSpec.rotation.x || layoutSpec.rotation.y || layoutSpec.rotation.z) {
+    const sx = Math.sin(layoutSpec.rotation.x);
+    const sy = Math.sin(layoutSpec.rotation.y);
+    const sz = Math.sin(layoutSpec.rotation.z);
+    const cx = Math.cos(layoutSpec.rotation.x);
+    const cy = Math.cos(layoutSpec.rotation.y);
+    const cz = Math.cos(layoutSpec.rotation.z);
+    const cxcz = cx * cz;
+    const cxsz = cx * sz;
+    const sxcz = sx * cz;
+    const sxsz = sx * sz;
 
-  let rs0 = (1 - 2 * (yy + zz));
-  let rs1 = 2 * (xy + wz);
-  let rs2 = 2 * (xz - wy);
-  let rs3 = 2 * (xy - wz);
-  let rs4 = (1 - 2 * (xx + zz));
-  let rs5 = 2 * (yz + wx);
-  let rs6 = 2 * (xz + wy);
-  let rs7 = 2 * (yz - wx);
-  let rs8 = (1 - 2 * (xx + yy));
+    m[0] = cy * cz;
+    m[4] = sy * sxcz - cxsz;
+    m[8] = sy * cxcz + sxsz;
+    m[1] = cy * sz;
+    m[5] = sy * sxsz + cxcz;
+    m[9] = sy * cxsz - sxcz;
+    m[2] = -sy;
+    m[6] = cy * sx;
+    m[10] = cy * cx;
+  }
 
+  // Only if necessary, apply shear.
   if (layoutSpec.shear.xy || layoutSpec.shear.xz || layoutSpec.shear.yz) {
     const shearXzProxy = layoutSpec.shear.xy * layoutSpec.shear.yz + layoutSpec.shear.xz;
-    rs6 += layoutSpec.shear.yz * rs3 + shearXzProxy * rs0;
-    rs7 += layoutSpec.shear.yz * rs4 + shearXzProxy * rs1;
-    rs8 += layoutSpec.shear.yz * rs5 + shearXzProxy * rs2;
-    rs3 += layoutSpec.shear.xy * rs0;
-    rs4 += layoutSpec.shear.xy * rs1;
-    rs5 += layoutSpec.shear.xy * rs2;
+    m[8] += layoutSpec.shear.yz * m[4] + shearXzProxy * m[0];
+    m[9] += layoutSpec.shear.yz * m[5] + shearXzProxy * m[1];
+    m[10] += layoutSpec.shear.yz * m[6] + shearXzProxy * m[2];
+    m[4] += layoutSpec.shear.xy * m[0];
+    m[5] += layoutSpec.shear.xy * m[1];
+    m[6] += layoutSpec.shear.xy * m[2];
   }
 
-  rs0 *= layoutSpec.scale.x;
-  rs1 *= layoutSpec.scale.x;
-  rs2 *= layoutSpec.scale.x;
-  rs3 *= layoutSpec.scale.y;
-  rs4 *= layoutSpec.scale.y;
-  rs5 *= layoutSpec.scale.y;
-  rs6 *= layoutSpec.scale.z;
-  rs7 *= layoutSpec.scale.z;
-  rs8 *= layoutSpec.scale.z;
-  const tx =
+  // Multiply nontrivial scale through.
+  if (layoutSpec.scale.x !== 1) {
+    m[0] *= layoutSpec.scale.x;
+    m[1] *= layoutSpec.scale.x;
+    m[2] *= layoutSpec.scale.x;
+  }
+
+  if (layoutSpec.scale.y !== 1) {
+    m[4] *= layoutSpec.scale.y;
+    m[5] *= layoutSpec.scale.y;
+    m[6] *= layoutSpec.scale.y;
+  }
+
+  if (layoutSpec.scale.z !== 1) {
+    m[8] *= layoutSpec.scale.z;
+    m[9] *= layoutSpec.scale.z;
+    m[10] *= layoutSpec.scale.z;
+  }
+
+  m[12] =
     layoutSpec.offset.x +
     layoutSpec.translation.x -
-    (rs0 * originX + rs3 * originY + rs6 * originZ);
-  const ty =
+    (m[0] * originX + m[4] * originY + m[8] * originZ);
+  m[13] =
     layoutSpec.offset.y +
     layoutSpec.translation.y -
-    (rs1 * originX + rs4 * originY + rs7 * originZ);
-  const tz =
+    (m[1] * originX + m[5] * originY + m[9] * originZ);
+  m[14] =
     layoutSpec.offset.z +
     layoutSpec.translation.z -
-    (rs2 * originX + rs5 * originY + rs8 * originZ);
+    (m[2] * originX + m[6] * originY + m[10] * originZ);
 
-  return [rs0, rs1, rs2, 0, rs3, rs4, rs5, 0, rs6, rs7, rs8, 0, tx, ty, tz, 1];
-};
-
-const computeOrientationFlexibly = (x: number, y: number, z: number) => {
-  if (x === 0 && y === 0 && z === 0) {
-    return {x, y, z, w: 1};
-  }
-
-  const hx = x * 0.5;
-  const hy = y * 0.5;
-  const hz = z * 0.5;
-
-  const sx = Math.sin(hx);
-  const sy = Math.sin(hy);
-  const sz = Math.sin(hz);
-  const cx = Math.cos(hx);
-  const cy = Math.cos(hy);
-  const cz = Math.cos(hz);
-
-  const sysz = sy * sz;
-  const cysz = cy * sz;
-  const sycz = sy * cz;
-  const cycz = cy * cz;
-
-  return {
-    x: sx * cycz + cx * sysz,
-    y: cx * sycz - sx * cysz,
-    z: cx * cysz + sx * sycz,
-    w: cx * cycz - sx * sysz,
-  };
+  return m;
 };
 
 export default {
   multiplyArrayOfMatrices,
   clone,
   computeMatrix,
-  computeOrientationFlexibly,
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,
   createLayoutSpec,

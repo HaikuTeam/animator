@@ -1,3 +1,4 @@
+import {FadingCircle} from 'better-react-spinkit';
 import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -22,6 +23,7 @@ import Stage from './components/Stage';
 import Timeline from './components/Timeline';
 import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
+import {DASH_STYLES} from './styles/dashShared';
 import AutoUpdater from './components/AutoUpdater';
 import ProjectLoader from './components/ProjectLoader';
 import ProxyHelpScreen from './components/ProxyHelpScreen';
@@ -49,7 +51,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
-import {getUrl} from 'haiku-common/lib/environments';
+import {getAccountUrl} from 'haiku-common/lib/environments';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -146,9 +148,9 @@ export default class Creator extends React.Component {
         shouldRunOnBackground: true,
         shouldSkipOptIn: true,
       },
-      doShowBackToDashboardButton: false,
       doShowProjectLoader: false,
       projectLaunching: false,
+      tearingDown: false,
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
@@ -156,6 +158,8 @@ export default class Creator extends React.Component {
       // This is a sensible default to avoid flashes of offline warnings.
       // (The Envoy server will protect us from any potential abuse.)
       allowOffline: true,
+      isOnline: true,
+      areProjectsLoading: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -503,7 +507,7 @@ export default class Creator extends React.Component {
   }
 
   explorePro = () => {
-    shell.openExternal(getUrl('pricing/'));
+    shell.openExternal(getAccountUrl('checkout'));
   };
 
   isTextInputFocused () {
@@ -689,6 +693,7 @@ export default class Creator extends React.Component {
         }, () => {
           if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
             this._postAuthCallback();
+            delete this._postAuthCallback;
           } else if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index
@@ -931,8 +936,8 @@ export default class Creator extends React.Component {
       this._projectStates[folder][what] &&
       this._projectStates[folder][what].creator === value &&
       this._projectStates[folder][what].glass === value &&
-      this._projectStates[folder][what].timeline === value
-      // this._projectStates[folder][what].master === value // happens too fast?
+      this._projectStates[folder][what].timeline === value &&
+      this._projectStates[folder][what].master === value
     );
   }
 
@@ -1150,6 +1155,7 @@ export default class Creator extends React.Component {
   authenticationComplete () {
     if (typeof this._postAuthCallback === 'function') {
       this._postAuthCallback();
+      delete this._postAuthCallback;
     }
 
     this.handleEnvoyUserReady();
@@ -1157,21 +1163,25 @@ export default class Creator extends React.Component {
     return this.setState({isUserAuthenticated: true});
   }
 
-  loadProjects (cb) {
+  loadProjects (silent, cb) {
     if (!this.envoyProject) {
       return cb(null, []);
     }
 
-    this.envoyProject.getProjectsList().then((projectsList) => {
-      this.setState({projectsList});
-      ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
-      return cb(null, projectsList);
-    }).catch((error) => {
-      mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
-        username: this.state.username,
-        organization: this.state.organizationName,
+    // If "silent", do not show the loading state.
+    this.setState(silent ? {} : {areProjectsLoading: true}, () => {
+      this.envoyProject.getProjectsList().then((projectsList) => {
+        this.setState({areProjectsLoading: false, projectsList});
+        ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
+        return cb(null, projectsList);
+      }).catch((error) => {
+        mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
+          username: this.state.username,
+          organization: this.state.organizationName,
+        });
+        this.setState({areProjectsLoading: false});
+        return cb(error, []);
       });
-      return cb(error, []);
     });
   }
 
@@ -1187,7 +1197,7 @@ export default class Creator extends React.Component {
     });
   }
 
-  onProjectDeleted = (projectsList) => {
+  onProjectsList = (projectsList) => {
     ipcRenderer.send('topmenu:update', {projectsList});
   };
 
@@ -1227,7 +1237,6 @@ export default class Creator extends React.Component {
 
     this.setState({
       doShowProjectLoader: true,
-      doShowBackToDashboardButton: false,
       dashboardVisible: false,
     });
 
@@ -1425,16 +1434,15 @@ export default class Creator extends React.Component {
       }
     });
 
-    // Hide loading screens, re-enable navigating back to dashboard but only after a
-    // delay since we've seen race-related crashes when people nav back too early.
     // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
-    // in the context of whatever the current component is
-    return setTimeout(() => {
-      return this.setState({
-        projectLaunching: false,
-        doShowBackToDashboardButton: true,
+    // in the context of whatever the current component is.
+    if (this.state.projectFolder) {
+      this.awaitAllProjectModelsState(this.state.projectFolder, 'component:mounted', true, () => {
+        this.setState({
+          projectLaunching: false,
+        });
       });
-    }, 1000);
+    }
   }
 
   mountHaikuComponent () {
@@ -1442,6 +1450,12 @@ export default class Creator extends React.Component {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
       freeze: true, // No display means no need for overflow settings, etc
+    }, () => {
+      this.handleConnectedProjectModelStateChange({
+        from: 'creator',
+        folder: this.state.projectFolder,
+        what: 'component:mounted',
+      });
     });
     logger.timeEnd('mountHaikuComponent');
   }
@@ -1612,6 +1626,8 @@ export default class Creator extends React.Component {
   }
 
   onNavigateToDashboard () {
+    // Redundant with a future call, but ensures we will show the loading spinner ASAP.
+    this.setState({tearingDown: true});
     this.user.load().then(({user, organization}) => {
       this.setState({
         readyForAuth: true,
@@ -1699,6 +1715,7 @@ export default class Creator extends React.Component {
   }
 
   teardownMaster ({shouldFinishTour}, cb) {
+    this.setState({tearingDown: true});
     // Delete identifier not found notice on teardown
     this.deleteIdentifierNotFoundNotice();
 
@@ -1710,7 +1727,7 @@ export default class Creator extends React.Component {
       {method: 'teardownMaster', params: [this.state.projectModel.getFolder()]},
       () => {
         logger.info('[creator] master torn down');
-        this.setState({dashboardVisible: true});
+        this.setState({dashboardVisible: true, tearingDown: false});
         this.onTimelineUnmounted();
 
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready');
@@ -2014,6 +2031,16 @@ export default class Creator extends React.Component {
     this.showProxySettings();
   };
 
+  conglomerateComponent = ({isBlankComponent} = {isBlankComponent: false}) => {
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.state.projectModel.getFolder(),
+      name: 'conglomerate-component',
+      isBlankComponent,
+    });
+  };
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -2046,73 +2073,64 @@ export default class Creator extends React.Component {
       return this.renderStartupDefaultScreen();
     }
 
-    if (this.state.dashboardVisible) {
-      return (
-        <div>
-          <ProjectBrowser
-            ref="ProjectBrowser"
-            explorePro={this.explorePro}
-            isOnline={this.state.isOnline}
-            allowOffline={this.state.allowOffline}
-            envoyProject={this.envoyProject}
-            onShowProxySettings={this.boundShowProxySettings}
-            onProjectDeleted={this.onProjectDeleted}
-            onShowNewProjectModal={(...args) => {
-              this.showNewProjectModal(...args);
-            }}
-            lastViewedChangelog={this.state.lastViewedChangelog}
-            onShowChangelogModal={this.showChangelogModal}
-            privateProjectLimit={this.state.privateProjectLimit}
-            showChangelogModal={this.state.showChangelogModal}
-            username={this.state.username}
-            softwareVersion={this.state.softwareVersion}
-            organizationName={this.state.organizationName}
-            isAdmin={this.state.isAdmin}
-            loadProjects={this.loadProjects}
-            launchProject={this.launchProject}
-            createNotice={this.createNotice}
-            removeNotice={this.removeNotice}
-            logOut={this.logOut}
-            notices={this.state.notices}
-            envoyClient={this.envoyClient}
-            {...this.props} />
-          {this.renderChangelogModal()}
-          {this.renderOfflineExportUpgradeModal()}
-          {this.renderNewProjectModal()}
-          <Tour
-            projectsList={this.state.projectsList}
-            envoyClient={this.envoyClient}
-            startTourOnMount={true} />
-          <AutoUpdater
-            onComplete={this.onAutoUpdateCheckComplete}
-            check={this.state.updater.shouldCheck}
-            skipOptIn={this.state.updater.shouldSkipOptIn}
-            runOnBackground={this.state.updater.shouldRunOnBackground}
-          />
-        </div>
-      );
-    }
-
-    // While doShowProjectLoader is true, we don't have enough state variables to proceed.
-    if (this.state.doShowProjectLoader) {
-      return <ProjectLoader />;
-    }
-
     return (
       <div style={{position: 'relative', width: '100%', height: '100%'}}>
         {this.renderChangelogModal()}
         {this.renderOfflineExportUpgradeModal()}
         {this.renderNewProjectModal()}
+        {!this.state.tearingDown &&
+          <Tour
+            projectsList={this.state.projectsList}
+            envoyClient={this.envoyClient}
+            startTourOnMount={true}
+          />
+        }
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
           check={this.state.updater.shouldCheck}
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        <Tour
-          projectsList={this.state.projectsList}
-          envoyClient={this.envoyClient} />
-        <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
+        {this.state.dashboardVisible && <ProjectBrowser
+          ref="ProjectBrowser"
+          explorePro={this.explorePro}
+          areProjectsLoading={this.state.areProjectsLoading}
+          isOnline={this.state.isOnline}
+          allowOffline={this.state.allowOffline}
+          envoyProject={this.envoyProject}
+          onShowProxySettings={this.boundShowProxySettings}
+          onProjectsList={this.onProjectsList}
+          onShowNewProjectModal={(...args) => {
+            this.showNewProjectModal(...args);
+          }}
+          lastViewedChangelog={this.state.lastViewedChangelog}
+          onShowChangelogModal={this.showChangelogModal}
+          privateProjectLimit={this.state.privateProjectLimit}
+          showChangelogModal={this.state.showChangelogModal}
+          username={this.state.username}
+          softwareVersion={this.state.softwareVersion}
+          organizationName={this.state.organizationName}
+          isAdmin={this.state.isAdmin}
+          loadProjects={this.loadProjects}
+          launchProject={this.launchProject}
+          createNotice={this.createNotice}
+          removeNotice={this.removeNotice}
+          logOut={this.logOut}
+          notices={this.state.notices}
+          envoyClient={this.envoyClient}
+          {...this.props} />
+        }
+        {this.state.areProjectsLoading && (
+          <div style={DASH_STYLES.dashWrap}>
+            <span style={DASH_STYLES.loadingWrap}>
+              <FadingCircle size={52} color={Palette.ROCK_MUTED} />
+            </span>
+          </div>
+        )}
+        <ProjectLoader
+          show={this.state.doShowProjectLoader || this.state.projectLaunching}
+        />
+        {!this.state.dashboardVisible && !this.state.doShowProjectLoader && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <CSSTransition
               classNames="toast"
@@ -2125,7 +2143,6 @@ export default class Creator extends React.Component {
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
-                  doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
@@ -2161,6 +2178,7 @@ export default class Creator extends React.Component {
                     onDragStart={this.onLibraryDragStart}
                     createNotice={this.createNotice}
                     removeNotice={this.removeNotice}
+                    conglomerateComponent={this.conglomerateComponent}
                     visible={this.state.activeNav === 'library'} />
                   <StateInspector
                     projectModel={this.state.projectModel}
@@ -2234,6 +2252,7 @@ export default class Creator extends React.Component {
                     setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                     showEventHandlerEditor={this.state.showEventHandlerEditor}
+                    conglomerateComponent={this.conglomerateComponent}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0}} />
@@ -2289,8 +2308,8 @@ export default class Creator extends React.Component {
               </div>
             </SplitPanel>
           </div>
-        </div>
-        {this.state.projectLaunching && <ProjectLoader />}
+        </div>}
+        {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
       </div>
     );
   }

@@ -348,6 +348,13 @@ class Timeline extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange(...args);
           break;
+        case 'zMoveToBack':
+        case 'zMoveToFront':
+        case 'zMoveForward':
+        case 'zMoveBackward':
+          const row = Row.findByComponentAndHaikuId(this.getActiveComponent(), args[1]);
+          this.scrollToRow(row);
+          break;
       }
     });
 
@@ -411,7 +418,7 @@ class Timeline extends React.Component {
 
         case 'global-menu:cut':
           // Delegate cut only if the user is not editing something here
-          if (!document.hasFocus() || !this.isTextSelected()) {
+          if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
             this.props.websocket.send(relayable);
           }
           break;
@@ -421,7 +428,7 @@ class Timeline extends React.Component {
             this.handleCopyDebounced(relayable);
           } else {
             // Delegate copy only if the user is not editing something here
-            if (!document.hasFocus() || !this.isTextSelected()) {
+            if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
               this.props.websocket.send(relayable);
             }
           }
@@ -433,7 +440,7 @@ class Timeline extends React.Component {
           } else {
             // Delegate paste only if the user is not editing something here
             if (document.hasFocus()) {
-              if (!this.isTextInputFocused()) {
+              if (!this.isTextInputFocused() && !this._isIntercomOpen) {
                 this.props.websocket.send(relayable);
               }
             } else {
@@ -444,8 +451,8 @@ class Timeline extends React.Component {
 
         case 'global-menu:selectAll':
           // Delegate selectall only if the user is not editing something here
-          if (!document.hasFocus()) {
-            if (!this.isTextInputFocused()) {
+          if (document.hasFocus()) {
+            if (!this.isTextInputFocused() && !this._isIntercomOpen) {
               this.props.websocket.send(relayable);
             }
           } else {
@@ -495,6 +502,12 @@ class Timeline extends React.Component {
 
         case 'assets-changed':
           File.cache.clear();
+          break;
+
+        case 'ui:hide-intercom':
+          if (window.Intercom) {
+            window.Intercom('hide');
+          }
           break;
       }
     });
@@ -922,7 +935,9 @@ class Timeline extends React.Component {
   }
 
   handleZoom (wheelEvent) {
-    this.getActiveComponent().getCurrentTimeline().zoomBy(wheelEvent.deltaY * 0.01);
+    const maxZoom = 120;
+    const delta = Math.abs(wheelEvent.deltaY) > maxZoom ? Math.sign(wheelEvent.deltaY) * maxZoom : wheelEvent.deltaY;
+    this.getActiveComponent().getCurrentTimeline().zoomBy(delta * 0.01);
   }
 
   handleScroll (scrollEvent) {
@@ -1090,7 +1105,7 @@ class Timeline extends React.Component {
     if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
       // Delegate copy only if the user is not editing something here
       if (document.hasFocus()) {
-        if (this.isTextSelected()) {
+        if (this.isTextSelected() || this._isIntercomOpen) {
           // let electron handle
         } else if (this.getActiveComponent().getFirstSelectedCurve()) {
           this.copySelectedCurve();
@@ -1107,7 +1122,7 @@ class Timeline extends React.Component {
     if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
       // Delegate paste only if the user is not editing something here
       if (document.hasFocus()) {
-        if (this.isTextInputFocused()) {
+        if (this.isTextInputFocused() || this._isIntercomOpen) {
           // let electron handle
         } else if (this._lastCopiedCurve) {
           this.handlePasteDebounced();
@@ -1234,11 +1249,19 @@ class Timeline extends React.Component {
             this.state.canOfflineExport && experimentIsEnabled(Experiment.LocalAssetExport) &&
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
-          <IntercomWidget user={this.state.userDetails} />
+          <IntercomWidget user={this.state.userDetails} onShow={this.setIntercomOpen} onHide={this.setIntercomClosed} />
         </div>
       </div>
     );
   }
+
+  setIntercomOpen = () => {
+    this._isIntercomOpen = true;
+  };
+
+  setIntercomClosed = () => {
+    this._isIntercomOpen = false;
+  };
 
   getCurrentTimelineTime (frameInfo) {
     return Math.round(this.getActiveComponent().getCurrentTimeline().getCurrentFrame() * frameInfo.mspf);
@@ -1457,7 +1480,7 @@ class Timeline extends React.Component {
   }
 
   onCommitValue = (committedValue, row, ms) => {
-    logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump());
+    logger.info('commit at', ms, 'on', row.dump());
     this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
     row.createKeyframe(committedValue, ms, {from: 'timeline'});
   };
@@ -1619,7 +1642,7 @@ class Timeline extends React.Component {
                         return (
                           <div style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {minWidth}}>
                             <div
-                              className="droppable-wrapper unselectable-during-marquee"
+                              className="droppable-wrapper no-select"
                               ref={providedDraggable.innerRef}
                               {...providedDraggable.draggableProps}
                               style={{
@@ -1756,6 +1779,7 @@ class Timeline extends React.Component {
         <PostMaxKeyframeArea
           propertiesPixelWidth={propertiesPixelWidth}
           timeline={timeline}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
         />
       </div>
     );

@@ -24,11 +24,13 @@ export default class PropertyRow extends React.Component {
 
   componentWillUnmount () {
     this.mounted = false;
+    this.props.row.element.removeListener('update', this.handleUpdate);
     this.props.row.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
     this.mounted = true;
+    this.props.row.element.on('update', this.handleUpdate);
     this.props.row.on('update', this.handleUpdate);
   }
 
@@ -39,7 +41,8 @@ export default class PropertyRow extends React.Component {
     if (
       what === 'row-selected' ||
       what === 'row-deselected' ||
-      what === 'row-set-title'
+      what === 'row-set-title' ||
+      what === 'element-locked-toggle'
      ) {
       this.forceUpdate();
     }
@@ -65,7 +68,7 @@ export default class PropertyRow extends React.Component {
     }
     return (
       <div
-        className="family-label-for-property unselectable-during-marquee"
+        className="family-label-for-property no-select"
         style={{
           position: 'absolute',
           top: 4,
@@ -143,7 +146,7 @@ export default class PropertyRow extends React.Component {
             {this.maybeRenderFamilyLabel()}
             <div
               draggable="false"
-              className="property-row-label no-select unselectable-during-marquee"
+              className="property-row-label no-select"
               style={{
                 right: 0,
                 width: this.props.timeline.getPropertiesPixelWidth() - 120,

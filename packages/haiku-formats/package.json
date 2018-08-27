@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "3.5.2",
+  "version": "4.0.0",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -24,14 +24,14 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
-    "@haiku/core": "3.5.2",
+    "@haiku/core": "4.0.0",
     "bezier-easing": "^2.0.3",
     "ffmpeg-static": "^2.3.0",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^4.0.2",
-    "haiku-common": "3.5.2",
-    "haiku-sdk-creator": "3.5.2",
-    "haiku-serialization": "3.5.2",
+    "haiku-common": "4.0.0",
+    "haiku-sdk-creator": "4.0.0",
+    "haiku-serialization": "4.0.0",
     "image-size": "^0.6.3",
     "lodash": "^4.17.4"
   },
@@ -55,7 +55,7 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.2",
+    "haiku-testing": "4.0.0",
     "lottie-web": "5.1.20",
     "nodemon": "1.11.0",
     "ts-loader": "^4.4.2",

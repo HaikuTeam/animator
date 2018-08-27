@@ -6,6 +6,8 @@ const Project = require('./../../src/bll/Project')
 const Timeline = require('./../../src/bll/Timeline')
 
 tape('Timeline#frameInfo', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS
+  process.env.HAIKU_SUBPROCESS = 'timeline'
   // Start fresh.
   while (Timeline.count() > 0) {
     const timeline = Timeline.find()
@@ -76,6 +78,7 @@ tape('Timeline#frameInfo', (t) => {
       }
     )
 
+    process.env.HAIKU_SUBPROCESS = subproc
     done(t.end)
   })
 })

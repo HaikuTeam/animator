@@ -1,6 +1,6 @@
 {
   "name": "haiku-glass",
-  "version": "3.5.2",
+  "version": "4.0.0",
   "private": true,
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -8,13 +8,13 @@
     "Taylor Poe <taylor@haiku.ai>"
   ],
   "dependencies": {
-    "@haiku/core": "3.5.2",
+    "@haiku/core": "4.0.0",
     "color": "^2.0.1",
     "cst": "^0.4.10",
-    "haiku-common": "3.5.2",
-    "haiku-fs-extra": "3.5.2",
-    "haiku-serialization": "3.5.2",
-    "haiku-ui-common": "3.5.2",
+    "haiku-common": "4.0.0",
+    "haiku-fs-extra": "4.0.0",
+    "haiku-serialization": "4.0.0",
+    "haiku-ui-common": "4.0.0",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
     "prettier": "^0.22.0",
@@ -39,7 +39,7 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.2",
+    "haiku-testing": "4.0.0",
     "jsdom": "^11.1.0",
     "prop-types": "^15.6.0"
   },

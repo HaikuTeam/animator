@@ -87,6 +87,14 @@ class RowManager extends React.PureComponent {
     return null;
   }
 
+  isCollapsedAndPreviousExpanded (curr, prev) {
+    return (
+      curr && prev &&
+      prev.rows && prev.rows.length && prev.rows[0].isExpanded() &&
+      curr.rows && curr.rows.length && !curr.rows[0].isExpanded()
+    );
+  }
+
   render () {
     const {group, prevGroup} = this.props;
 
@@ -102,7 +110,11 @@ class RowManager extends React.PureComponent {
         return this.renderComponentRow(row, Boolean(prevRow));
       });
 
-    return <div>{elements}</div>;
+    return (
+      <div style={{paddingTop: this.isCollapsedAndPreviousExpanded(group, prevGroup) ? 1 : undefined}}>
+        {elements}
+      </div>
+    );
   }
 }
 

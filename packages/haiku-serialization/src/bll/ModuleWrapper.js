@@ -94,19 +94,6 @@ class ModuleWrapper extends BaseModel {
     ModuleWrapper.clearHotCache()
   }
 
-  reloadExtantModule (cb) {
-    if (this.hasLoadedAtLeastOnce()) {
-      return this.reload(cb)
-    }
-    // This may not work if the file doesn't seem to exist on disk yet, but will only warn
-    return this.isolatedForceReload(cb)
-  }
-
-  isolatedForceReload (cb) {
-    this.isolatedClearCache()
-    return this.reload(cb)
-  }
-
   basicReload (cb) {
     if (this.exp) {
       return cb(null, this.exp)

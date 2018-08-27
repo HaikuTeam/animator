@@ -269,6 +269,10 @@ class Stage extends React.Component {
     this.refs.codeeditor.saveCodeFromEditorToDisk();
   }
 
+  assignStageRef = (element) => {
+    this.mount = element;
+  };
+
   render () {
     const interactionModeColor = isPreviewMode(this.props.interactionMode)
       ? Palette.LIGHTEST_PINK
@@ -307,6 +311,7 @@ class Stage extends React.Component {
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
             showEventHandlerEditor={this.props.showEventHandlerEditor}
+            conglomerateComponent={this.props.conglomerateComponent}
           />
           <ComponentMenu
             ref="component-menu"
@@ -315,12 +320,11 @@ class Stage extends React.Component {
             nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
             tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
             websocket={this.props.websocket}
+            conglomerateComponent={this.props.conglomerateComponent}
           />
           <div
             id="stage-mount"
-            ref={(element) => {
-              this.mount = element;
-            }}
+            ref={this.assignStageRef}
             style={[{
               position: 'absolute',
               overflow: 'auto',

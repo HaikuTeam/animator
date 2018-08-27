@@ -48,7 +48,7 @@ function _safeStringify (obj) {
 
 mixpanel.haikuTrack = function haikuTrack (eventName, eventPayload) {
   const finalPayload = _getPayload(eventName, eventPayload)
-  logger.info('[mixpanel]', eventName, finalPayload)
+  logger.info('[mixpanel]', eventName)
   return mixpanel.track(eventName, finalPayload)
 }
 

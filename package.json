@@ -5,7 +5,7 @@
     "packages/@haiku/*",
     "packages/haiku-*"
   ],
-  "version": "3.5.2",
+  "version": "4.0.0",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -36,21 +36,21 @@
     "node-abi": "2.4.1"
   },
   "dependencies": {
-    "@haiku/cli": "3.5.2",
-    "@haiku/core": "3.5.2",
+    "@haiku/cli": "4.0.0",
+    "@haiku/core": "4.0.0",
     "@haiku/player": "^3.0.4",
-    "@haiku/sdk-client": "3.5.2",
-    "@haiku/sdk-inkstone": "3.5.2",
-    "haiku-common": "3.5.2",
-    "haiku-creator": "3.5.2",
-    "haiku-formats": "3.5.2",
-    "haiku-fs-extra": "3.5.2",
-    "haiku-glass": "3.5.2",
-    "haiku-plumbing": "3.5.2",
-    "haiku-sdk-creator": "3.5.2",
-    "haiku-serialization": "3.5.2",
-    "haiku-timeline": "3.5.2",
-    "haiku-ui-common": "3.5.2"
+    "@haiku/sdk-client": "4.0.0",
+    "@haiku/sdk-inkstone": "4.0.0",
+    "haiku-common": "4.0.0",
+    "haiku-creator": "4.0.0",
+    "haiku-formats": "4.0.0",
+    "haiku-fs-extra": "4.0.0",
+    "haiku-glass": "4.0.0",
+    "haiku-plumbing": "4.0.0",
+    "haiku-sdk-creator": "4.0.0",
+    "haiku-serialization": "4.0.0",
+    "haiku-timeline": "4.0.0",
+    "haiku-ui-common": "4.0.0"
   },
   "devDependencies": {
     "async": "^2.5.0",
@@ -137,12 +137,12 @@
       ]
     },
     "asar": true,
-    "asarUnpack": [
-      "node_modules/haiku-plumbing/bins/*",
-      "node_modules/ffmpeg-static/bin/*"
-    ],
     "extraResources": [
-      "app/index.js"
+      "app/index.js",
+      {
+        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
+        "to": ""
+      }
     ],
     "files": [
       "package.json",
@@ -160,8 +160,7 @@
       "!node_modules/proxyquire",
       "!node_modules/sinon",
       "!node_modules/table",
-      "!node_modules/ffmpeg-static/bin",
-      "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
+      "!node_modules/ffmpeg-static",
       "!node_modules/nodegit/vendor",
       "!node_modules/haiku-plumbing/dev${/*}",
       "!node_modules/haiku-plumbing/docs${/*}",
@@ -181,5 +180,8 @@
       "!node_modules/@haiku/core/src${/*}",
       "!node_modules/@haiku/core/test${/*}"
     ]
+  },
+  "resolutions": {
+    "@haiku/core": "^4.0.0"
   }
 }

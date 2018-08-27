@@ -58,13 +58,8 @@ class ComponentMenu extends React.Component {
     return tabs.filter((tab) => tab.scenename !== 'main');
   }
 
-  showNewComponentDialog = () => {
-    this.props.websocket.send({
-      type: 'broadcast',
-      from: 'creator',
-      folder: this.props.projectModel.getFolder(),
-      name: 'conglomerate-component',
-    });
+  conglomerateComponent = () => {
+    this.props.conglomerateComponent({isBlankComponent: true});
   };
 
   render () {
@@ -93,9 +88,9 @@ class ComponentMenu extends React.Component {
         }))}
         {this.props.showGlass &&
           <button
-            title="Create component from selected elements"
+            title="Create blank component"
             style={STYLES.newComponentButton}
-            onClick={this.showNewComponentDialog}>
+            onClick={this.conglomerateComponent}>
             +
           </button>
         }

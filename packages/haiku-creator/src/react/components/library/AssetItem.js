@@ -20,6 +20,7 @@ import {
   TrashIconSVG,
   ComponentIconSVG,
   SyncIconSVG,
+  FontIconSVG,
 } from 'haiku-ui-common/lib/react/OtherIcons';
 
 import ControlImage from 'haiku-ui-common/lib/react/icons/ControlImage';
@@ -185,15 +186,6 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently();
   }
 
-  handleCreateComponent () {
-    this.props.websocket.send({
-      type: 'broadcast',
-      from: 'creator',
-      folder: this.props.projectModel.getFolder(),
-      name: 'conglomerate-component',
-    });
-  }
-
   renderChevy () {
     if (this.props.asset.getChildAssets().length < 1) {
       // An 'invisible' chevron; I don't recall why we do this
@@ -237,7 +229,7 @@ class AssetItem extends React.Component {
       items.push({
         label: 'Create Component',
         icon: ComponentIconSVG,
-        onClick: this.handleCreateComponent.bind(this),
+        onClick: this.props.conglomerateComponent,
       });
     }
 
@@ -333,7 +325,8 @@ class AssetItem extends React.Component {
       this.isFigmaAndCanBeOpened() ||
       this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
-      this.props.asset.isComponentOtherThanMain()
+      this.props.asset.isComponentOtherThanMain() ||
+      this.props.asset.isFont()
     ) {
       return (
         <span
@@ -425,6 +418,16 @@ class AssetItem extends React.Component {
           className="folder-icon-container"
           style={STYLES.cardIcon}>
           <FolderIconSVG />
+        </span>
+      );
+    }
+
+    if (this.props.asset.kind === Asset.KINDS.FONT) {
+      return (
+        <span
+          className="font-icon-container"
+          style={STYLES.cardIcon}>
+          <FontIconSVG />
         </span>
       );
     }

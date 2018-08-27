@@ -11,6 +11,16 @@ export const DASH_STYLES = {
     height: '100%',
     backgroundColor: Palette.GRAY,
   },
+  dashOverlay: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: Palette.COAL,
+    zIndex: 999,
+    userSelect: 'none',
+    mouseEvents: 'none',
+    opacity: 0.6,
+  },
   frame: {
     position: 'absolute',
     top: 0,

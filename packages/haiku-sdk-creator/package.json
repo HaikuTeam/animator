@@ -1,6 +1,6 @@
 {
   "name": "haiku-sdk-creator",
-  "version": "3.5.2",
+  "version": "4.0.0",
   "description": "SDK into Haiku",
   "main": "lib/index.js",
   "directories": {
@@ -22,9 +22,9 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
-    "@haiku/sdk-client": "3.5.2",
-    "@haiku/sdk-inkstone": "3.5.2",
-    "haiku-serialization": "3.5.2",
+    "@haiku/sdk-client": "4.0.0",
+    "@haiku/sdk-inkstone": "4.0.0",
+    "haiku-serialization": "4.0.0",
     "qs": "6.4.0",
     "ws": "3.2.0"
   },
@@ -41,6 +41,6 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.2"
+    "haiku-testing": "4.0.0"
   }
 }

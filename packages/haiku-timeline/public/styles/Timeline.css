@@ -280,12 +280,6 @@ input[type=number]::-webkit-outer-spin-button {
   stroke: var(--rock);
 }
 
-.marquee-selection-active,
-.marquee-selection-active .unselectable-during-marquee {
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
 /* Debugging utilities, uncomment to use */
 
 /*

@@ -59,5 +59,7 @@ export class Registry {
 
   deleteConfig (key: string) {
     delete this.config[key];
+    // TODO: should we debounce or delay writing to disk?
+    this.flushConfig();
   }
 }

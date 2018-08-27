@@ -401,8 +401,8 @@ I can selectall/cut/copy/paste text in Expression Input UI (single-line)
 I can selectall/cut/copy/paste text in Expression Input UI (multi-line)
 I can selectall/cut/copy/paste text in Intercom Support Widget
 I can selectall/cut/copy/paste text in Actions UI
-I can selectall/cut/copy/paste text in Publish UI HTML+CDN Embed snippet
-I can selectall/cut/copy/paste text in Publish UI React Embed snippet
+I can cut/copy/paste text in Publish UI HTML+CDN Embed snippet
+I can cut/copy/paste text in Publish UI React Embed snippet
 
 Publishing
 
@@ -417,6 +417,7 @@ Publish results in a share link
 I can copy the share link to clipboard using the clipboard icon
 I can copy the share link using the clipboard icon while an element is selected on stage
 I can select and copy any of the code snippets
+When I click on the code snippets the text is automatically selected.
 Before the share link is ready, the "not-allowed" cursor is shown over the share link
 Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
 As soon as the share link is ready, the web install options become clickable and show correct info
@@ -870,8 +871,7 @@ During a code reload due to an on-disk change the timeline does not animate, and
 Release Collateral
 
 I can download and extract the .zip archive of the release
-The CLI installer works (`$ curl http://code.haiku.ai/scripts/cli/installer.js | node`)
-The CLI npm package works (`$ npm install @haiku/cli`)
+The CLI npm package works (`$ yarn global add @haiku/cli`)
 Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js) (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
 Core standalone repo has latest https://github.com/HaikuTeam/core
 Core npm package is up to date https://www.npmjs.com/package/@haiku/core

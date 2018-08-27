@@ -5,6 +5,7 @@ const Differ = require('./Differ')
 const Transport = require('winston-transport')
 const EventEmitter = require('events')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
+const {isProduction} = require('haiku-common/lib/environments')
 
 require('colors') // TODO: use non-string-extending module
 
@@ -48,6 +49,8 @@ const DEFAULTS = {
 
 const MAX_DIFF_LOG_LEN = 10000
 
+const useAdvancedLoggingFeatures = experimentIsEnabled(Experiment.SendLogMessagesToPlumbing)
+
 class LogForwarderTransport extends Transport {
   constructor (opts) {
     super(opts)
@@ -64,10 +67,7 @@ class LogForwarderTransport extends Transport {
 
   // We send to pumbling so we can log to pumbing console in a nice way
   sendToPlumbing (message) {
-    if (
-      experimentIsEnabled(Experiment.SendLogMessagesToPlumbing) &&
-      this.websocket
-    ) {
+    if (useAdvancedLoggingFeatures && this.websocket) {
       this.websocket.send({
         type: 'log',
         from: message.view,
@@ -108,15 +108,20 @@ class Logger extends EventEmitter {
       }))
     }
 
-    transports.push(new winston.transports.Console({
-      format: winston.format.combine(
-        haikuFormat
-      )
-    }))
+    // In prod, we don't really benefit from sending logs to the dev console.
+    if (!isProduction()) {
+      transports.push(new winston.transports.Console({
+        format: winston.format.combine(
+          haikuFormat
+        )
+      }))
+    }
 
-    // In the future this logForwarder will also send log to plumbing
-    this.logForwarderTransport = new LogForwarderTransport()
-    transports.push(this.logForwarderTransport)
+    if (useAdvancedLoggingFeatures) {
+      // In the future this logForwarder will also send log to plumbing
+      this.logForwarderTransport = new LogForwarderTransport()
+      transports.push(this.logForwarderTransport)
+    }
 
     this.logger = winston.createLogger({
       format: winston.format.combine(
@@ -130,7 +135,9 @@ class Logger extends EventEmitter {
   }
 
   setWebsocket (websocket) {
-    this.logForwarderTransport.setWebsocket(websocket)
+    if (useAdvancedLoggingFeatures) {
+      this.logForwarderTransport.setWebsocket(websocket)
+    }
   }
 
   raw (jsonMessage) {

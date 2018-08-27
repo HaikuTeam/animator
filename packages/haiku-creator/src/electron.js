@@ -170,6 +170,7 @@ function createWindow () {
       browserWindow.webContents.send('haiku', haiku);
       if (global.process.env.HAIKU_INITIAL_URL) {
         handleUrl(global.process.env.HAIKU_INITIAL_URL);
+        delete global.process.env.HAIKU_INITIAL_URL;
       }
     });
   });

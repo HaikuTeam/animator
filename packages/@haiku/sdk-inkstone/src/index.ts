@@ -1020,7 +1020,7 @@ export namespace inkstone {
     ) => {
       newDeleteRequest()
         .withEndpoint(Endpoints.BillingPlanResource)
-        .callWithCallback(cb, 204);
+        .callWithCallback(cb);
     };
   }
 }

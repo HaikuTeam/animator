@@ -294,7 +294,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
 
     this.helpers.now = () => {
-      if (isLiveMode(this.config.interactionMode)) {
+      if (this.isLiveMode()) {
         return (this.config.timestamp || 1) + (this.helpers.data.lastTimelineTime || 1);
       }
 
@@ -302,7 +302,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     };
 
     this.helpers.rand = () => {
-      if (isLiveMode(this.config.interactionMode)) {
+      if (this.isLiveMode()) {
         const scopeKey = [
           this.helpers.data.lastTimelineName,
           this.helpers.data.lastTimelineTime,
@@ -385,6 +385,14 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       return virtualElement.__horizon;
     }
     return false;
+  }
+
+  isLiveMode (): boolean {
+    return isLiveMode(this.config.interactionMode);
+  }
+
+  isEditMode (): boolean {
+    return !this.isLiveMode();
   }
 
   registerGuest (subcomponent: HaikuComponent) {
@@ -973,7 +981,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // i.e., not currently being edited inside the Haiku authoring environment
     // However, some components rely on specific event hooks firing in Edit mode, too — they can
     // whitelist their "edit mode" event names through `options`
-    if (!isLiveMode(this.config.interactionMode) &&
+    if (!this.isLiveMode() &&
       !(this.bytecode.options &&
           this.bytecode.options.editModeEvents &&
           this.bytecode.options.editModeEvents[eventName])) {
@@ -3732,7 +3740,7 @@ INJECTABLES.$tree = {
 INJECTABLES.$user = {
   schema: {},
   summon (injectees, component: HaikuComponent, node) {
-    if (isLiveMode(component.config.interactionMode)) {
+    if (component.isLiveMode()) {
       injectees.$user = component.context.getGlobalUserState();
 
       // If we're inside another component, produce mouse coords in terms

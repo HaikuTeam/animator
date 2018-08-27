@@ -6,8 +6,6 @@ import * as tape from 'tape';
 tape(
   'SVGPoints.pathToPoints',
   (t) => {
-    t.plan(5);
-
     const ps1 = SVGPoints.pathToPoints('M250,100L400,400L100,400Z');
     t.equal(
       JSON.stringify(ps1),
@@ -37,5 +35,25 @@ tape(
       JSON.stringify(ps5),
       '[{"x":296.3,"y":73.5,"moveTo":true},{"curve":{"type":"cubic","x1":296.3,"y1":73.5,"x2":397.35,"y2":33},"x":429.67,"y":88.5},{"curve":{"type":"cubic","x1":461.99,"y1":144,"x2":513,"y2":201},"x":457.48,"y":222},{"curve":{"type":"cubic","x1":401.96000000000004,"y1":243,"x2":218.99,"y2":307.5},"x":244.48000000000002,"y":255},{"curve":{"type":"cubic","x1":269.97,"y1":202.5,"x2":392.83000000000004,"y2":141},"x":353.91,"y":130.49},{"curve":{"type":"cubic","x1":314.99,"y1":119.98000000000002,"x2":279.11,"y2":121.49000000000001},"x":296.3,"y":73.5,"closed":true}]',
     );
+
+    const ps6 = SVGPoints.pathToPoints('M20,230 Q40,205 50,230 T90,230');
+    t.deepEqual(
+      ps6,
+      [
+        {x: 20, y: 230, moveTo: true},
+        {
+          curve: {type: 'cubic', x1: 33.33333333333333, y1: 213.33333333333334, x2: 43.333333333333336, y2: 213.33333333333334},
+          x: 50,
+          y: 230,
+        },
+        {
+          curve: {type: 'cubic', x1: 50, y1: 230, x2: 63.333333333333336, y2: 230},
+          x: 90,
+          y: 230,
+        },
+      ],
+    );
+
+    t.end();
   },
 );

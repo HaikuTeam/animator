@@ -242,6 +242,7 @@ class Element extends BaseModel {
 
   toggleLocked (metadata, cb) {
     this.component.setLockedStatusForComponent(this.getComponentId(), !this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE], metadata, cb)
+    this.emit('update', 'element-locked-toggle')
   }
 
   getStaticTemplateNode () {
@@ -722,25 +723,31 @@ class Element extends BaseModel {
   }
 
   getOriginNotTransformed () {
-    const layout = this.getComputedLayout()
-    return {
-      x: layout.size.x * layout.origin.x,
-      y: layout.size.y * layout.origin.y,
-      z: layout.size.z * layout.origin.z
-    }
+    return this.cache.fetch('getOriginNotTransformed', () => {
+      const layout = this.getComputedLayout()
+      return {
+        x: layout.size.x * layout.origin.x,
+        y: layout.size.y * layout.origin.y,
+        z: layout.size.z * layout.origin.z
+      }
+    })
   }
 
   getOriginTransformed () {
-    return HaikuElement.transformPointInPlace(
-      this.getOriginNotTransformed(),
-      this.getOriginOffsetComposedMatrix()
-    )
+    return this.cache.fetch('getOriginTransformed', () => {
+      return HaikuElement.transformPointInPlace(
+        this.getOriginNotTransformed(),
+        this.getOriginOffsetComposedMatrix()
+      )
+    })
   }
 
   getOriginOffsetComposedMatrix () {
-    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
-      (layout) => layout.matrix
-    ))
+    return this.cache.fetch('getOriginOffsetComposedMatrix', () => {
+      return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+        (layout) => layout.matrix
+      ))
+    })
   }
 
   getAncestry () {
@@ -840,6 +847,17 @@ class Element extends BaseModel {
     return !!this.getHostedComponentBytecode()
   }
 
+  isNonRenderedComponent () {
+    const bytecode = this.getHostedComponentBytecode()
+    if (!bytecode) { // Not even a component
+      return false
+    }
+    if (!bytecode.metadata) {
+      return false
+    }
+    return !!bytecode.metadata.nonrendered
+  }
+
   isExternalComponent () {
     if (!this.isComponent()) return false
     return !this.isLocalComponent()
@@ -935,11 +953,16 @@ class Element extends BaseModel {
     }
 
     if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+      const descendants = []
       this.visitDescendants((descendantElement) => {
         if (descendantElement.isTextNode() || !descendantElement.isTreeViewableType()) {
           return
         }
+        descendants.push(descendantElement)
+      })
 
+      const deeprows = []
+      descendants.forEach((descendantElement) => {
         const subrows = descendantElement.getHostedPropertyRows(false).filter((row) => {
           return (
             (row.isProperty() || row.isClusterHeading()) &&
@@ -959,8 +982,14 @@ class Element extends BaseModel {
           subrow.parent = headingRow
         })
 
-        rows.push.apply(rows, subrows)
+        deeprows.push.apply(deeprows, subrows)
       })
+
+      // For super-complex elements that have craploads of inner primitives,
+      // don't include their rows; the user is expected to ungroup the element
+      if (deeprows.length <= 10) {
+        rows.push.apply(rows, deeprows)
+      }
     }
 
     // Hack: Assign the host so that the timeline can identify elements that are listed
@@ -986,7 +1015,14 @@ class Element extends BaseModel {
     })
   }
 
-  rehydrateRows () {
+  rehydrateRows (options = {}) {
+    if (
+      options.superficial ||
+      process.env.HAIKU_SUBPROCESS !== 'timeline'
+    ) {
+      return
+    }
+
     const existingRows = this.getAllRows()
     existingRows.forEach((row) => row.mark())
 
@@ -1275,6 +1311,10 @@ class Element extends BaseModel {
   //   }
   // ]
   getJITPropertyOptions () {
+    if (this.isNonRenderedComponent()) {
+      return []
+    }
+
     const exclusions = this.getExcludedAddressableProperties()
 
     // Because of bad code, I have to explicitly collect addressable properties for
@@ -1588,6 +1628,17 @@ class Element extends BaseModel {
     return HaikuElement.findOrCreateByNode(this.getLiveRenderedNode())
   }
 
+  getParentSvgElement () {
+    let currElem = this
+    while (currElem) {
+      if (currElem.getNameString() === 'svg') {
+        return currElem
+      }
+      currElem = currElem.parent
+    }
+    return null
+  }
+
   getUngroupables () {
     const haikuElement = this.getHaikuElement()
     switch (haikuElement.tagName) {
@@ -1740,136 +1791,135 @@ class Element extends BaseModel {
       }
     })
 
-    svgElement.children.forEach((haikuElement) => {
+    ungroupables.forEach((descendantHaikuElement) => {
       const mergedAttributes = {}
-      haikuElement.visit((descendantHaikuElement) => {
-        if (ungroupables.indexOf(descendantHaikuElement) === -1) {
-          if (Element.nodeIsGrouper(descendantHaikuElement.node)) {
-            for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${descendantHaikuElement.getComponentId()}`]) {
-              mergedAttributes[propertyName] = descendantHaikuElement.getComponentId()
-            }
-          }
-          return
-        }
-
-        const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
-          if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
-            accumulator[propertyName] = this.component.getComputedPropertyValue(
-              descendantHaikuElement.node,
-              mergedAttributes[propertyName],
-              this.component.getCurrentTimelineName(),
-              this.component.getCurrentTimelineTime(),
-              propertyName,
-              undefined
-            )
-          }
-          return accumulator
-        }, {})
-
-        // Note the implementation details of HaikuElement#target, which actually returns
-        // the most recently added target - one of a list of possible DOM targets shared by each
-        // render node
-        const boundingBox = descendantHaikuElement.target.getBBox()
-
-        // The fallbacks here ensure nonzero width/height by any means necessary. SVG getBBox() (and DOM cousins)
-        // all fail to account for stroke, clipping masks, etc.
-        if (boundingBox.width === 0) {
-          boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
-        }
-
-        if (boundingBox.height === 0) {
-          boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
-        }
-
-        const originX = boundingBox.width / 2
-        const originY = boundingBox.height / 2
-        const layoutMatrix = descendantHaikuElement.layoutMatrix
-        layoutMatrix[12] += (boundingBox.x + originX) * layoutMatrix[0] + (boundingBox.y + originY) * layoutMatrix[4]
-        layoutMatrix[13] += (boundingBox.x + originX) * layoutMatrix[1] + (boundingBox.y + originY) * layoutMatrix[5]
-        const layoutAncestryMatrices = descendantHaikuElement.layoutAncestryMatrices
-        if (layoutAncestryMatrices[layoutAncestryMatrices.length - 1] !== layoutMatrix) {
-          layoutAncestryMatrices.push(layoutMatrix)
-        }
-        descendantHaikuElement.visit((subHaikuElement) => {
-          // Clean out the computed layout so we can hoist it to the parent SVG element.
-          delete subHaikuElement.node.layout
-        })
-
-        const parentAttributes = {
-          width: boundingBox.width,
-          height: boundingBox.height,
-          // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
-          // is clipped.
-          style: {
-            overflow: 'visible'
-          },
-          [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
-          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
-        }
-
-        composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
-
-        // The following ensures that width/height receivers we might encounter inside an SVG (rect, image, use, etc.)
-        // won't lose their sizing.
-        if (descendantHaikuElement.layout) {
-          if (descendantHaikuElement.layout.sizeAbsolute.x > 0) {
-            descendantHaikuElement.attributes.width = descendantHaikuElement.layout.sizeAbsolute.x
-          }
-
-          if (descendantHaikuElement.layout.sizeAbsolute.y) {
-            descendantHaikuElement.attributes.height = descendantHaikuElement.layout.sizeAbsolute.y
+      let parent = descendantHaikuElement.parent
+      while (parent && parent !== svgElement && parent.node.elementName === 'g') {
+        for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${parent.componentId}`]) {
+          if (!mergedAttributes.hasOwnProperty(propertyName)) {
+            mergedAttributes[propertyName] = parent.componentId
           }
         }
+        parent = parent.parent
+      }
 
-        // In this very special mana construct, we:
-        //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
-        //     to bypass otherwise necessary recomputation of things like path vertices in a new coordinate system.
-        //   - Transclude the children of our descendant node to ensure any existing timeline properties are
-        //     preserved.
-        const node = Template.cleanMana({
-          elementName: 'svg',
-          attributes: parentAttributes,
-          children: [{
-            elementName: 'g',
-            attributes: Object.assign(
-              attributes,
-              {
-                transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
-              }
-            ),
-            children: [Object.assign(
-              {},
-              descendantHaikuElement.node,
-              {
-                attributes: Object.assign(
-                  {
-                    'haiku-transclude': descendantHaikuElement.getComponentId()
-                  },
-                  descendantHaikuElement.attributes
-                ),
-                children: []
-              }
-            )]
-          }]
-        }, {resetIds: true})
-
-        if (defs.length > 0) {
-          node.children.unshift(
-            Template.cleanMana(
-              {
-                elementName: 'defs',
-                attributes: {},
-                children: defs.map(lodash.cloneDeep)
-              },
-              // Note: by resetting IDs here, we willfully destroy any animations that are inside defs. Since this is an atypical
-              // construct which can only be achieved by editing bytecode directly today, it's "acceptable".
-              {resetIds: true}
-            )
+      const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
+        if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
+          accumulator[propertyName] = this.component.getComputedPropertyValue(
+            descendantHaikuElement.node,
+            mergedAttributes[propertyName],
+            this.component.getCurrentTimelineName(),
+            this.component.getCurrentTimelineTime(),
+            propertyName,
+            undefined
           )
         }
+        return accumulator
+      }, {})
 
-        nodes.push(node)
+      // Note the implementation details of HaikuElement#target, which actually returns
+      // the most recently added target - one of a list of possible DOM targets shared by each
+      // render node
+      const boundingBox = descendantHaikuElement.target.getBBox()
+
+      // The fallbacks here ensure nonzero width/height by any means necessary. SVG getBBox() (and DOM cousins)
+      // all fail to account for stroke, clipping masks, etc.
+      if (boundingBox.width === 0) {
+        boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+      }
+
+      if (boundingBox.height === 0) {
+        boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+      }
+
+      const originX = boundingBox.width / 2
+      const originY = boundingBox.height / 2
+      const layoutMatrix = descendantHaikuElement.layoutMatrix
+      layoutMatrix[12] += (boundingBox.x + originX) * layoutMatrix[0] + (boundingBox.y + originY) * layoutMatrix[4]
+      layoutMatrix[13] += (boundingBox.x + originX) * layoutMatrix[1] + (boundingBox.y + originY) * layoutMatrix[5]
+      const layoutAncestryMatrices = descendantHaikuElement.layoutAncestryMatrices
+      if (layoutAncestryMatrices[layoutAncestryMatrices.length - 1] !== layoutMatrix) {
+        layoutAncestryMatrices.push(layoutMatrix)
+      }
+      descendantHaikuElement.visit((subHaikuElement) => {
+        // Clean out the computed layout so we can hoist it to the parent SVG element.
+        delete subHaikuElement.node.layout
       })
+
+      const parentAttributes = {
+        width: boundingBox.width,
+        height: boundingBox.height,
+        // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
+        // is clipped.
+        style: {
+          overflow: 'visible'
+        },
+        [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
+        [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
+      }
+
+      composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
+
+      // The following ensures that width/height receivers we might encounter inside an SVG (rect, image, use, etc.)
+      // won't lose their sizing.
+      if (descendantHaikuElement.layout) {
+        if (descendantHaikuElement.layout.sizeAbsolute.x > 0) {
+          descendantHaikuElement.attributes.width = descendantHaikuElement.layout.sizeAbsolute.x
+        }
+
+        if (descendantHaikuElement.layout.sizeAbsolute.y) {
+          descendantHaikuElement.attributes.height = descendantHaikuElement.layout.sizeAbsolute.y
+        }
+      }
+
+      // In this very special mana construct, we:
+      //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
+      //     to bypass otherwise necessary recomputation of things like path vertices in a new coordinate system.
+      //   - Transclude the children of our descendant node to ensure any existing timeline properties are
+      //     preserved.
+      const node = Template.cleanMana({
+        elementName: 'svg',
+        attributes: parentAttributes,
+        children: [{
+          elementName: 'g',
+          attributes: Object.assign(
+            attributes,
+            {
+              transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
+            }
+          ),
+          children: [Object.assign(
+            {},
+            descendantHaikuElement.node,
+            {
+              attributes: Object.assign(
+                {
+                  'haiku-transclude': descendantHaikuElement.getComponentId()
+                },
+                descendantHaikuElement.attributes
+              ),
+              children: []
+            }
+          )]
+        }]
+      }, {resetIds: true})
+
+      if (defs.length > 0) {
+        node.children.unshift(
+          Template.cleanMana(
+            {
+              elementName: 'defs',
+              attributes: {},
+              children: defs.map(lodash.cloneDeep)
+            },
+            // Note: by resetting IDs here, we willfully destroy any animations that are inside defs. Since this is an atypical
+            // construct which can only be achieved by editing bytecode directly today, it's "acceptable".
+            {resetIds: true}
+          )
+        )
+      }
+
+      nodes.push(node)
     })
   }
 

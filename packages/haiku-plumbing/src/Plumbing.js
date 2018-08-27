@@ -29,8 +29,6 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
-import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir';
-import * as Project from 'haiku-serialization/src/bll/Project';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
@@ -43,8 +41,6 @@ import {duplicateProject} from './project-folder/duplicateProject';
 import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
-
-const {HOMEDIR_PATH} = HaikuHomeDir;
 
 global.eval = () => {
   // noop: eval is forbidden
@@ -98,6 +94,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
 const METHOD_MESSAGES_TIMEOUT = 15000;
 const METHODS_TO_AWAIT_FOREVER = {
   bootstrapProject: true,
+  setCurrentActiveComponent: true,
   startProject: true,
   initializeFolder: true,
   saveProject: true,
@@ -110,7 +107,7 @@ const Q_CREATOR = {alias: 'creator'};
 const Q_MASTER = {alias: 'master'};
 
 const AWAIT_INTERVAL = 100;
-const WAIT_DELAY = 10 * 1000;
+const WAIT_DELAY = 30 * 1000;
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -477,11 +474,7 @@ export default class Plumbing extends EventEmitter {
 
   methodMessageBeforeLog (message, alias) {
     if (!IGNORED_METHOD_MESSAGES[message.method]) {
-      const paramsLog = METHODS_WITH_SENSITIVE_INFO[message.method]
-        ? message.params.map((param, idx) => METHODS_WITH_SENSITIVE_INFO[message.method].includes(idx) ? 'xxxxx' : param)
-        : message.params;
-
-      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(paramsLog)} --↓`);
+      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} --↓`);
     }
   }
 
@@ -736,7 +729,7 @@ export default class Plumbing extends EventEmitter {
       return this.sendClientMethod(client, method, params, (error, response) => {
         responseReceived = true;
 
-        if (!timedOut) {
+        if (!timedOut || METHODS_TO_AWAIT_FOREVER[method]) {
           if (error) {
             this.sentryError(method, error, {tags: query});
             return cb(error);
@@ -994,7 +987,7 @@ export default class Plumbing extends EventEmitter {
       for (let i = this._methodMessages.length - 1; i >= 0; i--) {
         const message = this._methodMessages[i];
         if (message.folder === folder) {
-          logger.info(`[plumbing] clearing message`, message);
+          logger.info(`[plumbing] clearing message`);
           this._methodMessages.splice(i, 1);
         }
       }
