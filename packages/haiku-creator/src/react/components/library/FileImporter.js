@@ -125,7 +125,8 @@ class FileImporter extends React.PureComponent {
         body={this.popoverBody}
       >
         <button
-          title="Import file"
+          aria-label="Import file"
+          data-tooltip-bottom={true}
           style={STYLES.button}
           onClick={() => {
             this.showPopover();

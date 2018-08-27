@@ -242,6 +242,8 @@ export default class AlignToolBox extends React.PureComponent {
       >
         <button
             key="show-align-panel-button"
+            aria-label="Show align options"
+            data-tooltip-bottom-right={true}
             id="show-align-panel-button"
             onClick={this.clickPopover}
             style={STYLES.alignDistributeBtn}>

@@ -42,6 +42,7 @@ import {
   isPreviewMode,
 } from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
+import TooltipStyles from 'haiku-ui-common/lib/react/TooltipStyles';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
@@ -2310,6 +2311,7 @@ export default class Creator extends React.Component {
           </div>
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
+        <TooltipStyles />
       </div>
     );
   }

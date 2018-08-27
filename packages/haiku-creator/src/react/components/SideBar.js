@@ -125,13 +125,13 @@ class SideBar extends React.Component {
             this.props.activeNav === 'state_inspector' && STYLES.activeSecond,
             this.props.activeNav === 'component_info_inspector' && STYLES.activeThird,
           ]} />
-          <div key="library" title="Show Library panel"
+          <div key="library" aria-label="Show Library panel" data-tooltip-right={true}
             style={[STYLES.btnNav, this.props.activeNav === 'library' && STYLES.activeBtnNav]}
             onClick={() => this.props.switchActiveNav('library')}>
             <LibraryIconSVG color={Palette.ROCK} />
           </div>
           {(activeComponent)
-            ? <div id="state-inspector" key="state_inspector" title="Show State Inspector panel"
+            ? <div id="state-inspector" key="state_inspector" aria-label="Show State Inspector panel" data-tooltip-right={true}
               style={[STYLES.btnNav, this.props.activeNav === 'state_inspector' && STYLES.activeBtnNav]}
               onClick={() => this.props.switchActiveNav('state_inspector')}>
               <StateInspectorIconSVG color={Palette.ROCK} />
