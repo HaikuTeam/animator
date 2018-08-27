@@ -97,7 +97,7 @@ class NewProjectModal extends React.PureComponent {
               (!this.state.recordedNewProjectName || this.state.newProjectError) && BTN_STYLES.btnDisabled,
               {marginRight: 0},
             ]}>
-            {duplicate ? 'Duplicate Project' : 'Name Project'}
+            {duplicate ? 'Duplicate Project' : 'Create Project'}
           </button>
           <span style={[DASH_STYLES.upcase, BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
             onClick={() => {
