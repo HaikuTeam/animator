@@ -29,7 +29,6 @@
     "async": "^2.5.0",
     "chokidar": "^1.7.0",
     "dedent": "^0.7.0",
-    "dotenv": "^5.0.1",
     "fs-extra": "^4.0.2",
     "haiku-common": "4.0.0",
     "haiku-formats": "4.0.0",

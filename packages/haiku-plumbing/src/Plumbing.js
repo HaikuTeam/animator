@@ -1,8 +1,6 @@
 /* tslint:disable:no-parameter-reassignment no-shadowed-variable max-line-length */
 import * as path from 'path';
 import * as async from 'async';
-import * as dotenv from 'dotenv';
-import * as fse from 'haiku-fs-extra';
 import * as lodash from 'lodash';
 import * as find from 'lodash.find';
 import * as merge from 'lodash.merge';
@@ -912,30 +910,11 @@ export default class Plumbing extends EventEmitter {
   }
 
   getenv (cb) {
-    if (!fse.existsSync(FILE_PATHS.DOTENV)) {
-      return cb(null, {});
-    }
-
-    return cb(null, dotenv.parse(fse.readFileSync(FILE_PATHS.DOTENV)));
+    return cb(null, sdkClient.config.getenv());
   }
 
   setenv (environmentVariables, cb) {
-    Object.assign(global.process.env, environmentVariables);
-    this.getenv((error, fullEnvironmentVariables) => {
-      // This should never happen.
-      if (error) {
-        return cb(error);
-      }
-
-      Object.assign(fullEnvironmentVariables, environmentVariables);
-      fse.writeFileSync(FILE_PATHS.DOTENV, Object.entries(fullEnvironmentVariables)
-        .reduce((accumulator, [key, value]) => {
-          accumulator += `${key}="${value}"\n`;
-          return accumulator;
-        }, ''));
-
-      return cb(null, fullEnvironmentVariables);
-    });
+    return cb(null, sdkClient.config.setenv(environmentVariables));
   }
 
   duplicateProject (destinationProject, sourceProject, cb) {
