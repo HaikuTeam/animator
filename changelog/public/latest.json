@@ -4,6 +4,8 @@
     "What's new": [
       "Creating a component with the + sign now always creates an empty component."
     ],
-    "Fixes": []
+    "Fixes": [
+      "Fix action editor cancel button not working with syntax errors."
+    ]
   }
 }

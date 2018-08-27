@@ -1,3 +1,4 @@
+import * as Radium from 'radium';
 import * as React from 'react';
 import * as Popover from 'react-popover';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
@@ -28,7 +29,7 @@ const STYLES = {
   },
 };
 
-export default class AlignToolBox extends React.PureComponent {
+class AlignToolBox extends React.PureComponent {
   constructor (props) {
     super(props);
 
@@ -246,3 +247,5 @@ AlignToolBox.propTypes = {
   websocket: React.PropTypes.object.isRequired,
   projectModel: React.PropTypes.object.isRequired,
 };
+
+export default Radium(AlignToolBox);
