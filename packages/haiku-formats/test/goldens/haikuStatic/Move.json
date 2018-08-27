@@ -242,7 +242,8 @@
             "curve": "linear"
           },
           "550": {
-            "value": -6.28
+            "value": -6.28,
+            "curve": "easeOutCubic"
           },
           "750": {
             "value": -9.7,

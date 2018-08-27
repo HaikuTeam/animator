@@ -43,13 +43,9 @@ export default class ConstantBody extends React.Component {
       return null;
     }
 
-    if (what === 'keyframe-ms-set' || what === 'keyframe-neighbor-move') {
-      this.forceUpdate(() => {
-        this.storeViewPosition(this[this.props.keyframe.getUniqueKey()]);
-      });
-    }
-
     if (
+      what === 'keyframe-ms-set' ||
+      what === 'keyframe-neighbor-move' ||
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
       what === 'keyframe-selected' ||
@@ -61,18 +57,16 @@ export default class ConstantBody extends React.Component {
     }
   }
 
-  storeViewPosition = (domElement) => {
-    const uniqueKey = this.props.keyframe.getUniqueKey();
-    this[uniqueKey] = domElement;
+  get domRef () {
+    return this[this.props.keyframe.getUniqueKey()];
+  }
 
-    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
-      setTimeout(() => {
-        this.props.keyframe.storeViewPosition({
-          rect: domElement.getBoundingClientRect(),
-          offset: this.props.timeline.getScrollLeft(),
-        });
-      });
-    }
+  set domRef (domRef) {
+    this[this.props.keyframe.getUniqueKey()] = domRef;
+  }
+
+  storeViewPosition = (domElement) => {
+    this.domRef = domElement;
   };
 
   render () {

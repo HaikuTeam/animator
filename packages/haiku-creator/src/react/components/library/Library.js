@@ -369,7 +369,7 @@ class Library extends React.Component {
     );
   }
 
-  handleFileDrop (filePaths) {
+  handleFileDrop = (filePaths) => {
     this.setState({isLoading: true});
 
     this.props.projectModel.bulkLinkAssets(
@@ -380,7 +380,7 @@ class Library extends React.Component {
         }
       },
     );
-  }
+  };
 
   shouldDisplayAssetCreator () {
     const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
@@ -416,9 +416,8 @@ class Library extends React.Component {
             onImportFigmaAsset={this.importFigmaAsset}
             onAskForFigmaAuth={this.askForFigmaAuth}
             figma={this.state.figma}
-            onFileDrop={(filePaths) => {
-              this.handleFileDrop(filePaths);
-            }}
+            conglomerateComponent={this.props.conglomerateComponent}
+            onFileDrop={this.handleFileDrop}
           />
         </div>
         <div
@@ -448,6 +447,7 @@ class Library extends React.Component {
                   deleteAsset={this.handleAssetDeletion}
                   indent={0}
                   assets={this.state.assets}
+                  conglomerateComponent={this.props.conglomerateComponent}
                 />
               )}
             </div>

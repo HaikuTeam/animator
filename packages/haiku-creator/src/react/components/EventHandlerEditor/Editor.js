@@ -130,12 +130,11 @@ class Editor extends React.Component {
           style={STYLES.editorContext}
           className="haiku-multiline haiku-dynamic"
         >
+          <Snippets editor={this.editor} />
           <div
             style={STYLES.editorWrapper}
             ref={this.setContextRef}
-          >
-            <Snippets editor={this.editor} />
-          </div>
+          />
         </div>
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}

@@ -6,7 +6,7 @@
  * @param isDraggable
  * @returns {*}
  */
-export default (scale, x, y, isDraggable) => isDraggable
+export default (scale, x, y, isDraggable, doUseFilters) => isDraggable
   ? {
     elementName: 'g',
     attributes: {
@@ -22,7 +22,7 @@ export default (scale, x, y, isDraggable) => isDraggable
         attributes: {
           d: 'M13 12h3.5a.5.5 0 0 1 0 1H13v3.5a.5.5 0 0 1-1 0V13h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 1 0v3.5z',
           fill: '#000',
-          filter: 'url(#b)',
+          filter: (doUseFilters) ? 'url(#b)' : undefined,
         },
       },
       {
@@ -39,7 +39,7 @@ export default (scale, x, y, isDraggable) => isDraggable
           cy: 12.5,
           r: 2.5,
           fill: '#000',
-          filter: 'url(#a)',
+          filter: (doUseFilters) ? 'url(#a)' : undefined,
         },
       },
       {
@@ -79,7 +79,7 @@ export default (scale, x, y, isDraggable) => isDraggable
         attributes: {
           d: 'M6 5h3.5a.5.5 0 0 1 0 1H6v3.5a.5.5 0 0 1-1 0V6h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 1 0v3.5z',
           fill: '#000',
-          filter: 'url(#b)',
+          filter: (doUseFilters) ? 'url(#b)' : undefined,
         },
       },
       {

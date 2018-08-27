@@ -14,6 +14,7 @@ const FIGMA_URL = 'https://www.figma.com/'
 const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh'
 const IS_FIGMA_FILE_RE = /\.figma$/
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
+
 const VALID_TYPES = {
   SLICE: 'SLICE',
   GROUP: 'GROUP',
@@ -28,6 +29,13 @@ const FOLDERS = {
 }
 
 const MAX_ITEMS_TO_IMPORT = 100
+
+const PRIORITY_TO_IMPORT = [
+  VALID_TYPES.SLICE,
+  VALID_TYPES.GROUP,
+  VALID_TYPES.FRAME,
+  VALID_TYPES.COMPONENT
+]
 
 const uniqueNameResolver = {}
 
@@ -70,6 +78,7 @@ class Figma {
     return this.createFolders(assetBaseFolder)
       .then(() => this.fetchDocument(id))
       .then((document) => this.findInstantiableElements(document, id))
+      .then((elements) => this.sortElementsByPriorityToImport(elements))
       .then((elements) => this.getSVGLinks(elements, id))
       .then((elements) => this.getSVGContents(elements))
       .then((elements) => this.writeSVGInDisk(elements, assetBaseFolder))
@@ -199,6 +208,10 @@ class Figma {
         })
         .catch(reject)
     })
+  }
+
+  sortElementsByPriorityToImport (arr) {
+    return arr.sort((a, b) => PRIORITY_TO_IMPORT.indexOf(a.type) - PRIORITY_TO_IMPORT.indexOf(b.type))
   }
 
   findItems (arr, fileId) {

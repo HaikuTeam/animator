@@ -3,6 +3,11 @@ import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {newFfmpegCommand} from '../ffmpeg';
 
+/**
+ * Returns an x264-compatible dimensions by rounding down to the nearest positive multiple of 2.
+ */
+const x264Dimension = (size: number) => Math.max(Math.floor(size) - (Math.floor(size) % 2), 2);
+
 export class VideoExporter extends BaseExporter implements ExporterInterface {
   /**
    * Interface method to write binary output out to a file.
@@ -21,7 +26,7 @@ export class VideoExporter extends BaseExporter implements ExporterInterface {
           '-vf',
           `fps=${framerate}`,
           '-vf',
-          `scale=${componentSize.x}:${componentSize.y}`,
+          `scale=${x264Dimension(componentSize.x)}:${x264Dimension(componentSize.y)}`,
           '-pix_fmt',
           'yuv420p',
         ])

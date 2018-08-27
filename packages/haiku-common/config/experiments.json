@@ -20,6 +20,7 @@
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": true,
   "AllowBitmapImages": true,
+  "AllowWebfontAssets": false,
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
   "Snapping": true,
@@ -33,5 +34,6 @@
   "UserFacingDevTools": false,
   "ControlFlowIf": false,
   "ControlFlowRepeat": false,
-  "ExpandTimelinePropertiesFromStageChanges": true
+  "ExpandTimelinePropertiesFromStageChanges": true,
+  "GlassControlPointShadows": false
 }

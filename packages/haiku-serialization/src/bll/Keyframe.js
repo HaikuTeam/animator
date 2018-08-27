@@ -938,14 +938,18 @@ Keyframe.marqueeSelect = ({
   }).forEach((keyframe) => {
     if (!selected.has(keyframe.getUniqueKey())) {
       keyframe.deselect()
-      keyframe.unsetBodySelected()
+      if (keyframe.isConstantSegment() || keyframe.isTransitionSegment()) {
+        keyframe.unsetBodySelected()
+      }
       keyframe.updateActivationStatesInRow()
     }
   })
 
   selected.forEach((keyframe) => {
     keyframe.select()
-    keyframe.setBodySelected()
+    if (keyframe.isConstantSegment() || keyframe.isTransitionSegment()) {
+      keyframe.setBodySelected()
+    }
     keyframe.updateActivationStatesInRow()
   })
 }

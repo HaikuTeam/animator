@@ -49,7 +49,8 @@ export default class ComponentHeadingRow extends React.Component {
     if (
       what === 'drag-group-start' ||
       what === 'drag-group-end' ||
-      what === 'row-rehydrated'
+      what === 'row-rehydrated' ||
+      what === 'element-locked-toggle'
     ) {
       this.forceUpdate();
     }
@@ -126,7 +127,6 @@ export default class ComponentHeadingRow extends React.Component {
   toggleLock () {
     this.props.row.element.toggleLocked({from: 'timeline'}, () => {
       mixpanel.haikuTrack('creator:timeline:layer:lock-toggled');
-      this.forceUpdate();
     });
   }
 
@@ -139,7 +139,7 @@ export default class ComponentHeadingRow extends React.Component {
       <div
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
-        className="component-heading-row no-select unselectable-during-marquee js-avoid-marquee-init"
+        className="component-heading-row no-select js-avoid-marquee-init"
         onMouseOver={this.hoverRow}
         onMouseOut={this.unhoverRow}
         style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
@@ -328,7 +328,8 @@ export default class ComponentHeadingRow extends React.Component {
                 }
               </div>
               <div
-                title="Edit element Actions"
+                aria-label="Edit element Actions"
+                data-tooltip-right={true}
                 className="event-handler-triggerer-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   ...STYLES.actionButton,
@@ -348,7 +349,8 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
               <div
-                title="Add property"
+                aria-label="Add property"
+                data-tooltip-right={true}
                 className="property-manager-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   ...STYLES.actionButton,
@@ -363,23 +365,6 @@ export default class ComponentHeadingRow extends React.Component {
                     element={this.props.row.element}
                   />
                   : ''}
-              </div>
-              <div
-                className="design-sync-button"
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  ...STYLES.actionButton,
-                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none',
-                } : {
-                  width: 16,
-                  position: 'absolute',
-                  left: 50,
-                  top: 0,
-                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none',
-                })}
-                onClick={this.toggleSync.bind(this)}
-                title="Syncing is disabled for this element. Click to revert your changes and reenable syncing."
-              >
-                {SyncIconSVG({color: Palette.RED_DARKER})}
               </div>
             </div>
           </div>

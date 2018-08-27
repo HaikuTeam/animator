@@ -4,7 +4,6 @@ import * as Radium from 'radium';
 import * as Popover from 'react-popover';
 import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
-import {FadingCircle} from 'better-react-spinkit';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Toast from './notifications/Toast';
@@ -35,7 +34,6 @@ class ProjectBrowser extends React.Component {
       username: null,
       error: null,
       projectsList: [],
-      areProjectsLoading: true,
       isPopoverOpen: false,
       showNewProjectModal: false,
       showDeleteModal: false,
@@ -51,7 +49,8 @@ class ProjectBrowser extends React.Component {
   componentWillReceiveProps (nextProps) {
     if (this.props.isOnline ^ nextProps.isOnline) {
       // Value has changed.
-      this.loadProjects();
+      // This reload should be silent iff offline is allowed.
+      this.loadProjects(nextProps.allowOffline);
     }
   }
 
@@ -89,8 +88,8 @@ class ProjectBrowser extends React.Component {
     mixpanel.haikuTrack('creator:project-browser:user-menu-closed');
   }
 
-  loadProjects () {
-    return this.props.loadProjects((error, projectsList) => {
+  loadProjects (silent = false) {
+    return this.props.loadProjects(silent, (error, projectsList) => {
       if (error) {
         switch (error.code) {
           case ProjectError.Unauthorized:
@@ -110,13 +109,11 @@ class ProjectBrowser extends React.Component {
             });
             break;
         }
-        this.setState({error, areProjectsLoading: false});
+        this.setState({error});
         return;
       }
-      this.setState({
-        projectsList,
-        areProjectsLoading: false,
-      });
+      this.setState({projectsList});
+      this.props.onProjectsList(projectsList);
     });
   }
 
@@ -157,7 +154,6 @@ class ProjectBrowser extends React.Component {
   performDeleteProject () {
     const projectsList = this.state.projectsList;
     const projectToDelete = projectsList.find((project) => project.projectName === this.state.projToDelete);
-    const deleteStart = Date.now();
     projectToDelete.isDeleted = true;
     this.setState({projectsList}, () => {
       this.requestDeleteProject(projectToDelete, (deleteError) => {
@@ -171,23 +167,22 @@ class ProjectBrowser extends React.Component {
           });
           // Oops, we actually didn't delete this project. Let's put it back.
           projectToDelete.isDeleted = false;
-          this.setState({projectsList});
+          this.setState({projectsList}, () => {
+          });
           return;
         }
+
+        // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
+        // the project.
+        setTimeout(() => {
+          this.loadProjects(true);
+        }, 200);
 
         mixpanel.haikuTrack('creator:project:deleted', {
           username: this.props.username,
           project: projectToDelete.projectName,
           organization: this.props.organizationName,
         });
-
-        // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
-        // the project.
-        setTimeout(() => {
-          const newList = projectsList.filter((project) => project.projectName !== projectToDelete.projectName);
-          this.setState({projectsList: newList});
-          this.props.onProjectDeleted(newList);
-        }, Math.min(200, Date.now() - deleteStart));
       });
     });
   }
@@ -301,17 +296,10 @@ class ProjectBrowser extends React.Component {
   }
 
   projectsListElement () {
-    if (this.shouldShowOfflineNotice) {
+    if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
     }
     const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
-    if (this.state.areProjectsLoading) {
-      return (
-        <span style={DASH_STYLES.loadingWrap}>
-          <FadingCircle size={52} color={Palette.ROCK_MUTED} />
-        </span>
-      );
-    }
 
     return (
       <div
@@ -439,7 +427,7 @@ class ProjectBrowser extends React.Component {
               option: 'show-changelog',
             });
           }}>
-          <span style={DASH_STYLES.popover.icon} title="Show changelog">
+          <span style={DASH_STYLES.popover.icon} aria-label="Show changelog" data-tooltip-bottom={true}>
             <PresentIconSVG />
           </span>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>What's New</span>

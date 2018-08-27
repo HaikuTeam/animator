@@ -11,7 +11,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const {Figma} = require('./Figma')
 const Sketch = require('./Sketch')
 const Illustrator = require('./Illustrator')
-const _ = require('lodash')
+const lodash = require('lodash')
 
 const PI_OVER_12 = Math.PI / 12
 
@@ -160,9 +160,9 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   pushCachedTransform (key) {
-    this.transformCache.push(key)
+    this.transformCache.set(key)
     this.selection.forEach((element) => {
-      element.transformCache.push(key)
+      element.transformCache.set(key)
     })
   }
 
@@ -889,7 +889,7 @@ class ElementSelectionProxy extends BaseModel {
     })
 
     // Execute the sort
-    const elementsSortedByBoundingEdge = _.cloneDeep(this.selection).sort((elemA, elemB) => {
+    const elementsSortedByBoundingEdge = lodash.cloneDeep(this.selection).sort((elemA, elemB) => {
       return elemA._distributeBoundingEdge - elemB._distributeBoundingEdge
     })
 
@@ -1262,6 +1262,7 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {} // no-op
     )
+
     if (overrides && overrides.groupOrigin && overrides.groupOrigin.x !== undefined) {
       this.applyPropertyValue('translation.x', overrides.groupOrigin.x - this.computePropertyValue('offset.x'))
     } else {
@@ -1333,7 +1334,7 @@ class ElementSelectionProxy extends BaseModel {
     const baseProxyBox = Object.assign({}, this._lastProxyBox)
 
     // note an Object.assign({}, ...) doesn't suffice here because computeScalePropertyGroup mutates properties deeply
-    const getBaseTransform = () => _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
+    const getBaseTransform = () => lodash.cloneDeep(this.transformCache.get('CONTROL_ACTIVATION'))
 
     const baseTransform = getBaseTransform()
 
@@ -1363,7 +1364,7 @@ class ElementSelectionProxy extends BaseModel {
     updatedLayout.scale.y = scalePropertyGroup['scale.y'].value
     updatedLayout.translation.x = scalePropertyGroup['translation.x'].value
     updatedLayout.translation.y = scalePropertyGroup['translation.y'].value
-    let transformedPoints = _.cloneDeep(this._baseBoxPointsNotTransformed)
+    let transformedPoints = lodash.cloneDeep(this._baseBoxPointsNotTransformed)
     ElementSelectionProxy.transformPointsByLayoutInPlace(transformedPoints, updatedLayout)
     // find axis-aligned bounding box; add each edge
     let axisAlignedBbox = [
@@ -1519,7 +1520,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.selection.forEach((element) => {
       // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
-      const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
+      const layoutSpec = element.transformCache.get('CONTROL_ACTIVATION')
       if (!layoutSpec) {
         return
       }
@@ -1539,7 +1540,7 @@ class ElementSelectionProxy extends BaseModel {
       // This converts a composition of matrices like [[1,0,0,...],...] into our own
       // transform properties like scale.x, rotation.z, and merges them into the
       // given property group object.
-      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], false, 1e-3, element.getLayoutSpec())
+      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true, element.getLayoutSpec())
 
       const offsetX = layoutSpec.offset.x
       const offsetY = layoutSpec.offset.y
@@ -2054,7 +2055,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   // Make a copy of inbound points so we can transform them in place.
   const fixedPoint = Object.assign({}, fixedPointIn)
   const translatedPoint = Object.assign({}, translatedPointIn)
-  const delta = _.cloneDeep(deltaIn)
+  const delta = lodash.cloneDeep(deltaIn)
   // We compute the entire scale property group by fixing a point (the *temporary* transform origin) and translating a
   // point (the point being dragged). These are represented by `fixedPoint` and `translatedPoint` respectively.
 
@@ -2227,11 +2228,11 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layoutSpec = element.getLayoutSpec()
   const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation, layoutSpec.shear)
   if (layoutSpec.offset.x !== 0 || layoutSpec.offset.y !== 0) {
-    ray.x += layoutSpec.offset.x
-    ray.y += layoutSpec.offset.y
+    ray.x -= layoutSpec.offset.x
+    ray.y -= layoutSpec.offset.y
   }
   const attributes = {}
-  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix], false, 1e-3, layoutSpec)
+  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix], false, layoutSpec)
 
   // Return directly after offsetting translation by the `fixedPoint`'s coordinates. Note that we are choosing _not_ to
   // change the z-translation, effectively projecting the origin of rotation from the context element onto the z = C

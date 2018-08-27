@@ -4,18 +4,10 @@ class TransformCache {
     this.cache = {}
   }
 
-  ensureCacheKey (key) {
-    if (!this.cache[key]) {
-      this.cache[key] = []
-    }
-  }
-
   /**
-   * @method push
+   * @method set
    * @description
-   *   Tracks the current transform in a stack, allowing values
-   *   to be recalled on demand. Keeps individual stacks indexed by key,
-   *   so different tools can use distinct stacks.
+   *   Tracks the current transform, allowing values to be recalled on demand.
    *
    *   Use-case:
    *      - shift-dragging an element needs to keep track of the element's
@@ -25,23 +17,16 @@ class TransformCache {
    *        logic should be able to piggyback on this
    *      - alt-dragging to duplicate an element
    */
-  push (key) {
-    this.ensureCacheKey(key)
+  set (key) {
     const transform = this.host.getComputedLayout()
     if (this.host.getOriginOffsetComposedMatrix) {
       transform.originOffsetComposedMatrix = this.host.getOriginOffsetComposedMatrix()
     }
-    this.cache[key].push(transform)
+    this.cache[key] = transform
   }
 
-  peek (key) {
-    this.ensureCacheKey(key)
-    return this.cache[key][this.cache[key].length - 1]
-  }
-
-  pop (key) {
-    this.ensureCacheKey(key)
-    return this.cache[key].pop()
+  get (key) {
+    return this.cache[key]
   }
 }
 

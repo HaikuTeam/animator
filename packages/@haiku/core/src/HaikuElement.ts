@@ -1244,7 +1244,6 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
       origin: layoutSpec.origin,
       translation: layoutSpec.translation,
       rotation: layoutSpec.rotation,
-      orientation: layoutSpec.orientation,
       scale: layoutSpec.scale,
       shear: layoutSpec.shear,
       sizeMode: layoutSpec.sizeMode,

@@ -32,6 +32,15 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
+"@haiku/core@^3.1.32":
+  version "4.0.0"
+
+"@haiku/core@^3.2.16":
+  version "4.0.0"
+
+"@haiku/core@^3.4.6":
+  version "4.0.0"
+
 "@haiku/player@^3.0.4":
   version "3.0.4"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
@@ -1557,6 +1566,10 @@ babylon@6.18.0, babylon@^6.1.21, babylon@^6.18.0, babylon@^6.8.0, babylon@^6.8.1
 balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
+
+balloon-css@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/balloon-css/-/balloon-css-0.5.0.tgz#6a3c065efab9ea5f509a95d4315df00aae114fa3"
 
 base64-js@1.2.0:
   version "1.2.0"
@@ -6537,7 +6550,7 @@ no-case@^2.2.0:
   dependencies:
     lower-case "^1.1.1"
 
-node-abi@2.4.1, node-abi@^2.0.0:
+node-abi@^2.0.0:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-2.4.1.tgz#7628c4d4ec4e9cd3764ceb3652f36b2e7f8d4923"
   dependencies:

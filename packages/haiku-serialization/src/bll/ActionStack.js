@@ -385,7 +385,7 @@ class ActionStack extends BaseModel {
             `[action stack] inversion :::`,
             metadata.cursor,
             inverter.method,
-            inverter.params,
+            // inverter.params, // Big/circular objects cause total process lockup
             this.getUndoables().length, '<~u|r~>', this.getRedoables().length
           )
         }

@@ -87,6 +87,10 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
     mkdirpSync(outputDirectory);
 
     const snap = (sender: any, payload: any, attemptNumber: number) => {
+      if (browserWindow.isDestroyed()) {
+        return finish();
+      }
+
       browserWindow.capturePage((image) => {
         const data = image.toPNG();
         if (data.byteLength === 0) {

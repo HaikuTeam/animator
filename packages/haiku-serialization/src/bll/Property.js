@@ -535,6 +535,19 @@ const IF_DEFINED = (name, element, property, keyframes) => {
   return keyframes && Object.keys(keyframes).length > 0
 }
 
+const IF_NOT_NONE = (name, element, property, keyframes) => {
+  if (!keyframes) {
+    return false
+  }
+
+  if (keyframes.length > 1) {
+    return true
+  }
+
+  const value = keyframes && keyframes[0] && keyframes[0].value
+  return value !== 'none'
+}
+
 const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => {
   return wasChangedFromPrepopValue(name, keyframes)
 }
@@ -686,32 +699,32 @@ Property.DISPLAY_RULES = {
   'translation.z': {jit: [NEVER], add: [NON_ROOT_ONLY]},
   'width': {jit: [NEVER], add: [NEVER]},
   // Primitives
-  'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'cx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'cy': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'd': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fill': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fillOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fillRule': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fill': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED, IF_NOT_NONE]},
+  'fillOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'fillRule': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'fontFamily': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fontSize': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fontStyle': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fontVariant': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fontWeight': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontSize': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'fontStyle': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'fontVariant': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'fontWeight': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'href': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'kerning': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'letterSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'offset': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'kerning': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'letterSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'offset': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'points': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'r': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'rx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'ry': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'stopColor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'stroke': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'strokeOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'strokeWidth': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'textAnchor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'wordSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'stopColor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'stroke': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED, IF_NOT_NONE]},
+  'strokeOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'strokeWidth': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'textAnchor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
+  'wordSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'x': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'y': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'x1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
@@ -774,6 +787,11 @@ Property.buildFilterObject = (
   // If the property is a component state (exposed property), we absolutely want it.
   if (propertyObject.type === 'state') {
     filtered[propertyName] = propertyObject
+    return
+  }
+
+  // For non-rendered components, the *only* thing we want are exposed properties (above)
+  if (hostElement.isNonRenderedComponent()) {
     return
   }
 

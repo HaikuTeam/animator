@@ -984,6 +984,12 @@ export default class Master extends EventEmitter {
               return next(err);
             }
 
+            // Hack: we shouldn't have to do this. This fixes an odd issue where a forked project with no changes
+            // does not persist changes from bytecode migration on first publish.
+            if (ac.$instance && ac.$instance.bytecode !== ac.getReifiedBytecode()) {
+              ac.handleUpdatedBytecode(ac.$instance.bytecode);
+            }
+
             return ac.writeMetadata(
               userconfig,
               this.project.getMetadata(),
@@ -1134,7 +1140,10 @@ export default class Master extends EventEmitter {
       });
     });
 
-    this.emit('project-state-change', {what: 'project-ready'});
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'project:ready',
+    });
   }
 
   handleActiveComponentReady () {
@@ -1165,9 +1174,9 @@ export default class Master extends EventEmitter {
         instance.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
       });
 
-      this.emit('project-state-change', {
+      this.project.broadcastPayload({
+        name: 'project-state-change',
         what: 'component:mounted',
-        scenename: this.getActiveComponent().getSceneName(),
       });
     });
   }
