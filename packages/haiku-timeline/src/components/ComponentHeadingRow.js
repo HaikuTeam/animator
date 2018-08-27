@@ -323,7 +323,7 @@ export default class ComponentHeadingRow extends React.Component {
               >
                 {
                   this.props.row.element.isLocked()
-                    ? LockIconSVG({color: Palette.DARK_ROCK})
+                    ? LockIconSVG({color: Palette.LIGHT_BLUE})
                     : UnlockIconSVG({color: Palette.DARK_ROCK})
                 }
               </div>
