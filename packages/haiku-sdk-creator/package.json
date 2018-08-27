@@ -24,6 +24,7 @@
   "dependencies": {
     "@haiku/sdk-client": "4.0.0",
     "@haiku/sdk-inkstone": "4.0.0",
+    "haiku-common": "4.0.0",
     "haiku-serialization": "4.0.0",
     "qs": "6.4.0",
     "ws": "3.2.0"

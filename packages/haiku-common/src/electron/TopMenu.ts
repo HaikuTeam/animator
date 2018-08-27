@@ -42,6 +42,17 @@ export default class TopMenu {
     this.sender.send(`global-menu:${eventName}`);
   }
 
+  private emitExportRequest (extension: string, framerate: number) {
+    this.sender.send(
+      'global-menu:save-as',
+      extension,
+      {
+        framerate,
+        outlet: 'timeline',
+      },
+    );
+  }
+
   /**
    * @method update
    * @description Like create, but may optimize and not update if no changes
@@ -238,10 +249,24 @@ export default class TopMenu {
         {
           label: 'Export…',
           enabled: this.options.isProjectOpen,
-          accelerator: 'CmdOrCtrl+E',
-          click: () => {
-            this.sender.send('global-menu:save-as');
-          },
+          submenu: [
+            {
+              label: 'Video',
+              click: () => this.emitExportRequest('mp4', 30),
+            },
+            {
+              label: 'GIF (medium quality)',
+              click: () => this.emitExportRequest('gif', 15),
+            },
+            {
+              label: 'GIF (high quality)',
+              click: () => this.emitExportRequest('gif', 30),
+            },
+            {
+              label: 'Lottie',
+              click: () => this.emitExportRequest('json', 60),
+            },
+          ],
         },
       );
     }
