@@ -32,9 +32,14 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
-"@haiku/core@^3.1.32", "@haiku/core@^3.2.16", "@haiku/core@^3.4.6":
-  version "3.5.1"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fcore/-/core-3.5.1.tgz#f3d0fbda7b8523559f056705a92ccaeed2e2e87a"
+"@haiku/core@^3.1.32":
+  version "4.0.0"
+
+"@haiku/core@^3.2.16":
+  version "4.0.0"
+
+"@haiku/core@^3.4.6":
+  version "4.0.0"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
