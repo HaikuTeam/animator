@@ -352,7 +352,7 @@ class ProjectBrowser extends React.Component {
   }
 
   handleProjectLaunch (projectObject) {
-    if (this.tourChannel) {
+    if      (this.tourChannel) {
       this.tourChannel.hide();
     }
 
