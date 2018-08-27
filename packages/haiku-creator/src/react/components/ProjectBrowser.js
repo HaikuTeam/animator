@@ -281,7 +281,6 @@ class ProjectBrowser extends React.Component {
         <div
           key="scrim"
           className="js-utility-project-launcher"
-          title="Create new project"
           style={Object.assign(
             {},
             DASH_STYLES.scrimAsButton,
