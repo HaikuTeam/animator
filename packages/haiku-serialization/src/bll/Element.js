@@ -1824,12 +1824,12 @@ class Element extends BaseModel {
 
       // The fallbacks here ensure nonzero width/height by any means necessary. SVG getBBox() (and DOM cousins)
       // all fail to account for stroke, clipping masks, etc.
-      if (boundingBox.width === 0) {
-        boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+      if (boundingBox.width < 1) {
+        boundingBox.width = Math.max(descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 1, 1)
       }
 
-      if (boundingBox.height === 0) {
-        boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+      if (boundingBox.height < 1) {
+        boundingBox.height = Math.max(descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 1, 1)
       }
 
       const originX = boundingBox.width / 2

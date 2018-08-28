@@ -5,7 +5,8 @@
       "Creating a component with the + sign now always creates an empty component."
     ],
     "Fixes": [
-      "Fix action editor cancel button not working with syntax errors."
+      "Fixed an issue where the cancel button did not always close the action editor.",
+      "Fixed an issue where small elements might disappear when ungrouped."
     ]
   }
 }
