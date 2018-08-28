@@ -5,6 +5,7 @@
       "Creating a component with the + sign now always creates an empty component."
     ],
     "Fixes": [
+      "@haiku/cli now uses configured proxy settings.",
       "Fix action editor cancel button not working with syntax errors."
     ]
   }

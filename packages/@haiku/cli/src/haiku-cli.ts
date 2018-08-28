@@ -35,17 +35,7 @@ const cli = new Nib({
   description: 'The Haiku CLI — developer utilities for automating Haiku actions and performing local and' +
     ' server-enabled actions without requiring the desktop app.',
   preAction (context: IContext) {
-    if (context.flags.api) {
-      inkstone.setConfig({
-        baseUrl: context.flags.api,
-      });
-    }
-
-    if (context.flags.share) {
-      inkstone.setConfig({
-        baseShareUrl: context.flags.share,
-      });
-    }
+    client.config.getenv();
   },
   commands: [
     {

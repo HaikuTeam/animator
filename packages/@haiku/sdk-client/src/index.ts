@@ -1,5 +1,7 @@
 // tslint:disable:no-namespace class-name
+import {inkstone} from '@haiku/sdk-inkstone';
 import {execSync} from 'child_process';
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as mkdirp from 'mkdirp';
@@ -22,17 +24,28 @@ export const ensureHomeFolder = () => {
   ensureFolder(HAIKU_HOME);
 };
 
+export type HaikuDotEnv = {
+  [key in string]: string;
+};
+
+const applyEnv = (env: HaikuDotEnv) => {
+  Object.assign(global.process.env, env);
+  if (env.HAIKU_API) {
+    inkstone.setConfig({baseUrl: env.HAIKU_API});
+  }
+};
+
 export namespace client {
 
-  export function verboselyLog (message: string, ...args: any[]) {
+  export const verboselyLog =  (message: string, ...args: any[]) => {
     if (clientConfig.verbose) {
       console.log(message, ...args);
     }
-  }
+  };
 
-  export function error (err: any) {
+  export const error = (err: any) => {
     // TODO: elegantly handle errors
-  }
+  };
 
   export class npm {
     static readPackageJson (pathIn: string = global.process.cwd() + '/package.json'): any {
@@ -71,6 +84,32 @@ export namespace client {
   }
 
   export class config {
+
+    static getenv (): HaikuDotEnv {
+      if (!fs.existsSync(FILE_PATHS.DOTENV)) {
+        return {};
+      }
+
+      const env = dotenv.parse(fs.readFileSync(FILE_PATHS.DOTENV));
+      applyEnv(env);
+      return env;
+    }
+
+    static setenv (environmentVariables: HaikuDotEnv): HaikuDotEnv {
+      const newenv = Object.assign(client.config.getenv(), environmentVariables);
+      applyEnv(newenv);
+      fs.writeFileSync(
+        FILE_PATHS.DOTENV,
+        Object.entries(newenv)
+          .reduce(
+            (accumulator, [key, value]) => accumulator + `${key}="${value}"\n`,
+            '',
+          ),
+      );
+
+      return newenv;
+    }
+
     static getAuthToken (): string {
       if (fs.existsSync(FILE_PATHS.AUTH_TOKEN)) {
         const token = fs.readFileSync(FILE_PATHS.AUTH_TOKEN).toString();
