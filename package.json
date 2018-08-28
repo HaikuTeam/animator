@@ -28,8 +28,7 @@
     "test-all": "node ./scripts/test-all.js",
     "watch-all": "node ./scripts/watch-all.js",
     "lint-report": "node ./scripts/lint-report.js",
-    "test-report": "node ./scripts/test-report.js",
-    "repl": "electron ./HaikuHelper.js --folder=./packages/haiku-glass/test/projects/primitives --mode=headless --repl"
+    "test-report": "node ./scripts/test-report.js"
   },
   "resolutions": {
     "@types/node": "8.9.4",
