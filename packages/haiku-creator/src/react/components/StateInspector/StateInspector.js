@@ -53,6 +53,11 @@ const STYLES = {
     color: Palette.DARKER_ROCK2,
     padding: '0 14px',
   },
+  howToDeleteMessage: {
+    lineHeight: '16px',
+    color: Palette.DARKER_ROCK2,
+    padding: '0 14px',
+  },
 };
 
 class StateInspector extends React.Component {
