@@ -1767,6 +1767,10 @@ class Element extends BaseModel {
       // Ensure SVGs have overflow: visible.
       if (haikuElement.tagName === 'svg') {
         attributes.style = {overflow: 'visible'}
+        // (1 of 3) opacity is "special". Make sure it is preserved.
+        if (haikuElement.layout.opacity !== 1) {
+          attributes.opacity = haikuElement.layout.opacity
+        }
       }
 
       attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
@@ -1809,7 +1813,8 @@ class Element extends BaseModel {
       }
 
       const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
-        if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
+        // (2 of 3) opacity is "special". Make sure it is preserved.
+        if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName) || propertyName === 'opacity') {
           accumulator[propertyName] = this.component.getComputedPropertyValue(
             descendantHaikuElement.node,
             mergedAttributes[propertyName],
@@ -1821,6 +1826,11 @@ class Element extends BaseModel {
         }
         return accumulator
       }, {})
+
+      // (3 of 3) opacity is "special". Make sure it is preserved.
+      if (typeof descendantHaikuElement.opacity === 'number' && descendantHaikuElement.opacity !== 1) {
+        attributes.opacity = descendantHaikuElement.opacity
+      }
 
       // Note the implementation details of HaikuElement#target, which actually returns
       // the most recently added target - one of a list of possible DOM targets shared by each
