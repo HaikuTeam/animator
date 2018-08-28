@@ -2,12 +2,17 @@
   "date": "September 3, 2018",
   "sections": {
     "What's new": [
-      "Creating a component with the + sign now always creates an empty component."
+      "Creating a component with the + sign now always creates an empty component.",
+      "Reduced the footprint of @haiku/core by 30KB (3KB minified and gzipped)."
     ],
     "Fixes": [
       "Fixed an issue where the cancel button did not always close the action editor.",
       "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped.",
-      "@haiku/cli now uses configured proxy settings."
+      "@haiku/cli now uses configured proxy settings.",
+      "In @haiku/core, fixed a regression affecting ID-based selectors in bytecode."
+    ],
+    "Breaking changes": [
+      "String templates are officially deprecated. This is not expected to affect any Haiku users."
     ]
   }
 }
