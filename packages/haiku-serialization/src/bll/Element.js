@@ -608,12 +608,27 @@ class Element extends BaseModel {
       const bbox = targetElement.target.getBBox()
       const targetSize = { x: bbox.width, y: bbox.height, z: 0 }
 
+      console.log(`bbox ${JSON.stringify(bbox)}`)
+      console.log(`t offset ${JSON.stringify(targetRenderedNode.layout)} `)
+      console.log(`p ${JSON.stringify(parentLayout)}`)
+      
+      // const targetLayout = {...targetRenderedNode.layout}
+      // targetLayout.offset.x = targetLayout.offset.x - bbox.x;
+      // targetLayout.offset.y = targetLayout.offset.y - bbox.y;
+      // targetLayout.translation.x = targetLayout.translation.x - bbox.x;
+      // targetLayout.translation.y = targetLayout.translation.y - bbox.y;
+
       const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetRenderedNode.layout, parentLayout)
       const targetMatrixWithParentOffset = Layout3D.computeMatrix(targetLayoutWithParentOffset, targetSize)
+
+      // targetMatrixWithParentOffset[12] = targetMatrixWithParentOffset[12] - bbox.x;
+      // targetMatrixWithParentOffset[13] = targetMatrixWithParentOffset[13] - bbox.y;
+
 
       // Update computed layout with values from runtime BB
       layout.size = targetSize
       layout.matrix = targetMatrixWithParentOffset
+      layout.bbOffset = {x: bbox.x, y: bbox.y};
     }
 
     return layout
@@ -724,10 +739,11 @@ class Element extends BaseModel {
     const layout = this.getComputedLayout()
     const w = layout.size.x
     const h = layout.size.y
+    const bb = layout.bbOffset? layout.bbOffset : {x:0, y:0};
     return [
-      {x: 0, y: 0, z: 0}, {x: w / 2, y: 0, z: 0}, {x: w, y: 0, z: 0},
-      {x: 0, y: h / 2, z: 0}, {x: w / 2, y: h / 2, z: 0}, {x: w, y: h / 2, z: 0},
-      {x: 0, y: h, z: 0}, {x: w / 2, y: h, z: 0}, {x: w, y: h, z: 0}
+      {x: 0+bb.x, y: 0+bb.y, z: 0}, {x: w / 2+bb.x, y: 0+bb.y, z: 0}, {x: w+bb.x, y: 0+bb.y, z: 0},
+      {x: 0+bb.x, y: h / 2+bb.y, z: 0}, {x: w / 2+bb.x, y: h / 2+bb.y, z: 0}, {x: w+bb.x, y: h / 2+bb.y, z: 0},
+      {x: 0+bb.x, y: h+bb.y, z: 0}, {x: w / 2+bb.x, y: h+bb.y, z: 0}, {x: w+bb.x, y: h+bb.y, z: 0}
     ]
   }
 
