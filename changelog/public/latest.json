@@ -2,7 +2,8 @@
   "date": "September 3, 2018",
   "sections": {
     "What's new": [
-      "Creating a component with the + sign now always creates an empty component."
+      "Creating a component with the + sign now always creates an empty component.",
+      "We added some helpful tooltips throughout the app."
     ],
     "Fixes": [
       "Fixed an issue where the cancel button did not always close the action editor.",
