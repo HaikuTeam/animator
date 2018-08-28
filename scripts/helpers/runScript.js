@@ -1,11 +1,13 @@
-var cp = require('child_process')
-var path = require('path')
-var ROOT = global.process.cwd()
+let cp = require('child_process');
+let path = require('path');
+let ROOT = global.process.cwd();
 
 module.exports = function runScript (name, args, cb) {
-  var child = cp.fork(path.join(__dirname, '..', name + '.js'), args || [], { stdio: 'inherit', cwd: ROOT })
-  child.on('close', function (code) {
-    if (code !== 0) return cb(new Error('Error in ' + name))
-    return cb()
-  })
-}
+  const child = cp.fork(path.join(__dirname, '..', name + '.js'), args || [], {stdio: 'inherit', cwd: ROOT});
+  child.on('close', (code) => {
+    if (code !== 0) {
+      return cb(new Error('Error in ' + name));
+    }
+    return cb();
+  });
+};
