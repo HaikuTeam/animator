@@ -226,7 +226,10 @@ class StateInspector extends React.Component {
       }}>
         <div style={STYLES.sectionHeader}>
           {this.getHeadingText()}
-          <button id="add-state-button" style={STYLES.button}
+          <button
+            id="add-state-button"
+            style={STYLES.button}
+            title="Add state"
             onClick={this.openNewStateForm}>
             +
           </button>
@@ -266,10 +269,12 @@ class StateInspector extends React.Component {
           }
           {this.shouldDisplayEmptyMessage() &&
             <p style={STYLES.emptyMessage}>
-              You have no states yet! Click on the plus sign above to add one.<br /><br />
-              States can be referenced by name in property input fields
+              Click the + button to add a state.
             </p>
           }
+          <p style={STYLES.howToDeleteMessage}>
+            To delete a state, delete its name and press Enter.
+          </p>
         </div>
       </div>
     );

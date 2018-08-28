@@ -4,7 +4,7 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@common/*": ["src/*"]
+      "@sdk-client/*": ["src/*"]
     }
   },
   "include": [

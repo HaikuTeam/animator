@@ -1,4 +1,3 @@
-const {inkstone} = require('@haiku/sdk-inkstone');
 const {default: Plumbing} = require('haiku-plumbing/lib/Plumbing');
 const {default: ReplBase} = require('haiku-plumbing/lib/ReplBase');
 const {default: envInfo} = require('haiku-plumbing/lib/envInfo');
@@ -62,11 +61,7 @@ function go () {
       // Before we launch, read .env from ~/.haiku with extreme prejudice, overwriting any environment variables set
       // earlier during bootstrapping.
       if (!error) {
-        Object.assign(global.process.env, dotenv);
         Object.assign(haiku, {dotenv});
-        if (dotenv.HAIKU_API) {
-          inkstone.setConfig({baseUrl: dotenv.HAIKU_API});
-        }
       }
       plumbing.launch(haiku, () => {
         logger.info('Haiku plumbing running');

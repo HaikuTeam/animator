@@ -26,7 +26,7 @@ export class ExternalLink extends React.PureComponent<ExternalLinkProps> {
       <a
         target="_blank"
         rel="noopener noreferrer"
-        title={this.props.title}
+        aria-label={this.props.title}
         style={this.props.style}
         onClick={this.boundOnClick}
       >

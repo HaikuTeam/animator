@@ -475,10 +475,35 @@ class AssetItem extends React.Component {
     return this.props.asset.getRelpath() === this.props.projectModel.getCurrentActiveComponentRelpath();
   }
 
+  getAssetHoverTitleText () {
+    if (this.props.asset.isIllustratorFile()) {
+      return 'Double click to open in Illustrator';
+    }
+
+    if (this.props.asset.isSketchFile()) {
+      return 'Double click to open in Sketch';
+    }
+
+    if (this.props.asset.isComponentsHostFolder()) {
+      return 'Your components — create using the + button above the Stage';
+    }
+
+    if (this.props.asset.isDesignsHostFolder()) {
+      return 'Your design assets — import from Sketch, Figma, or Illustrator';
+    }
+
+    if (this.props.asset.isDraggable()) {
+      return 'Drag and drop to place on Stage';
+    }
+
+    return null;
+  }
+
   renderDisplayName () {
     const displayName = (
       <span
         className="display-name-container"
+        title={this.getAssetHoverTitleText()}
         onDoubleClick={this.handleAssetDoubleClick}
         onContextMenu={this.launchPopoverMenu}
         style={[STYLES.displayName, this.isAssetOfActiveComponent() && STYLES.displayName.active]}>
@@ -506,28 +531,28 @@ class AssetItem extends React.Component {
     if (this.props.asset.isIllustratorFile()) {
       return `
         ⇧ Double click to open this file in Illustrator.
-        Every artboard will be synced here when you save.
+        Artboards will sync when you save.
       `;
     }
 
     if (this.props.asset.isSketchFile()) {
       return `
         ⇧ Double click to open this file in Sketch.
-        Every slice and artboard will be synced here when you save.
+        Slices and artboards will sync when you save.
       `;
     }
 
     if (this.props.asset.isComponentsHostFolder()) {
       return `
-        To create a component, select elements on stage and choose
-        "Create Component" from the element menu.
+        To create a component, select some elements on stage,
+        then click the + button above the stage.
       `;
     }
 
     if (this.props.asset.isDesignsHostFolder()) {
       return `
-        To import a new design file, click on the + sign above and choose "Import from
-        file" from the menu options.
+        To import a new design file, click the + sign above
+        and choose "Import from file".
       `;
     }
 

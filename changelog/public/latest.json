@@ -6,7 +6,8 @@
     ],
     "Fixes": [
       "Fixed an issue where the cancel button did not always close the action editor.",
-      "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped."
+      "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped.",
+      "@haiku/cli now uses configured proxy settings."
     ]
   }
 }

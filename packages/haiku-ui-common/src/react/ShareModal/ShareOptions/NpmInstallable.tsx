@@ -34,7 +34,7 @@ export class NpmInstallable extends React.PureComponent<NpmInstallableProps> {
           </div>
           <div style={PUBLISH_SHARED.instructionsCol2}>
             <div style={{marginTop: 19}}>
-              Run the following from your project folder: <br />
+              Run these commands in your codebase: <br />
             </div>
           </div>
         </div>
@@ -58,7 +58,7 @@ export class NpmInstallable extends React.PureComponent<NpmInstallableProps> {
           </div>
           <div style={PUBLISH_SHARED.instructionsCol2}>
             <div style={{marginTop: 19}}>
-              Example use: <br />
+              Example usage: <br />
             </div>
           </div>
         </div>

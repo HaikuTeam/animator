@@ -87,7 +87,10 @@ class ComponentMenu extends React.Component {
           );
         }))}
         {this.props.showGlass &&
-          <button style={STYLES.newComponentButton} onClick={this.conglomerateComponent}>
+          <button
+            title="Create blank component"
+            style={STYLES.newComponentButton}
+            onClick={this.conglomerateComponent}>
             +
           </button>
         }

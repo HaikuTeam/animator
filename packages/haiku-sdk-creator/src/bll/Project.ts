@@ -457,29 +457,20 @@ export class ProjectHandler extends EnvoyHandler {
         framerate: 60,
         outlet: 'cdn',
       },
+      {
+        format: ExporterFormat.AnimatedGif,
+        filename: path.join(project.projectPath, 'animation.gif'),
+        framerate: 15,
+        outlet: 'cdn',
+      },
     ];
 
     if (this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
       requests.push(
         {
-          format: ExporterFormat.AnimatedGif,
-          filename: path.join(project.projectPath, 'animation.gif'),
-          framerate: 30,
-          outlet: 'cdn',
-        },
-        {
           format: ExporterFormat.Video,
           filename: path.join(project.projectPath, 'animation.mp4'),
           framerate: 30,
-          outlet: 'cdn',
-        },
-      );
-    } else {
-      requests.push(
-        {
-          format: ExporterFormat.AnimatedGif,
-          filename: path.join(project.projectPath, 'animation.gif'),
-          framerate: 15,
           outlet: 'cdn',
         },
       );
