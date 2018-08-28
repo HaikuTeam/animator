@@ -97,11 +97,13 @@ export interface BytecodeSummonable {
  */
 export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
 
+export type BytecodeNodeStyle = {
+  [key in string]: PrimitiveType;
+};
+
 export interface BytecodeNodeAttributes {
   [attribute: string]: any;
-  style?: {
-    [key in string]: PrimitiveType;
-    };
+  style?: BytecodeNodeStyle;
   /**
    * @deprecated
    */
@@ -158,7 +160,7 @@ export interface BytecodeNode {
   attributes: BytecodeNodeAttributes;
   isRootNode?: boolean;
   layout?: LayoutSpec;
-  children: (BytecodeNode|string)[];
+  children?: (BytecodeNode|string)[];
   __memory?: BytecodeNodeMemoryObject;
 
   /**

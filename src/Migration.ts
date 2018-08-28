@@ -3,7 +3,7 @@
  */
 
 import {BytecodeNode, IHaikuComponent} from './api';
-import {visitManaTree, xmlToMana} from './HaikuNode';
+import {visitManaTree} from './HaikuNode';
 import compareSemver from './helpers/compareSemver';
 import migrateAutoSizing from './helpers/migrateAutoSizing';
 import {SVG_SIZEABLES} from './layout/applyCssLayout';
@@ -33,10 +33,6 @@ const areKeyframesDefined = (keyframeGroup) => {
     keyframeGroup &&
     Object.keys(keyframeGroup).length > 0
   );
-};
-
-const isStringTemplate = (template: string|BytecodeNode): template is string => {
-  return typeof template === STRING_TYPE;
 };
 
 export interface MigrationOptions {
@@ -140,11 +136,6 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
         handler: eventHandlerSpec.handler,
       };
     }
-  }
-
-  // Convert a string template into our internal object format
-  if (isStringTemplate(bytecode.template)) {
-    bytecode.template = xmlToMana(bytecode.template);
   }
 
   if (bytecode.timelines) {

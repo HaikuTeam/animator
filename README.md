@@ -36,7 +36,7 @@ Haiku for Mac turns your designs into components and Haiku Core renders them. Si
 </p>
 <br>
 
-Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge. Its current footprint is 46kb gzipped.
+Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge. Its current footprint is ~50K gzipped.
 
 <br>
 
@@ -97,7 +97,7 @@ For our full documentation (a work in progress), please see [docs.haiku.ai](http
 Simple:
 
     import HaikuCore from "@haiku/core/dom";
-    const definition = { template: `<div>Hello Haiku!</div>` };
+    const definition = {template: {elementName: 'div', children: ['Hello Haiku!']}};
     const factory = HaikuCore(definition);
     const component = factory(document.getElementById("mount"));
 
@@ -118,9 +118,11 @@ Animated:
           },
         },
       },
-      template: `
-        <div id="box">Hello Animation!</div>
-      `,
+      template: {
+        elementName: 'div',
+        attributes: {id: 'box'},
+        children: ['Hello Animation!'],
+      },
     };
     const factory = HaikuCore(definition);
     const component = factory(document.getElementById("mount"));
@@ -165,9 +167,10 @@ Interactive:
           },
         },
       },
-      template: `
-        <div id="box"></div>
-      `,
+      template: {
+        elementName: 'div',
+        attributes: {id: 'box'},
+      },
     };
     const factory = HaikuCore(definition);
     const component = factory(document.getElementById("mount"));
