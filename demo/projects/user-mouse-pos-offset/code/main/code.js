@@ -1,4 +1,4 @@
-var Haiku = require('@haiku/core')
+let Haiku = require('@haiku/core');
 module.exports = {
   states: {
     clicks: {
@@ -6,45 +6,44 @@ module.exports = {
     },
   },
   eventHandlers: {
-    "#box": {
-      "click": {
-        handler: function () {
-          this.state.clicks += 1
-        }
+    '#box': {
+      click: {
+        handler () {
+          this.state.clicks += 1;
+        },
       },
     },
   },
   timelines: {
     Default: {
-      "#box": {
-        "content": { 0: { 
-          value: function (state) {
-            return state.clicks + ""
+      '#box': {
+        content: { 0: {
+          value (state) {
+            return state.clicks + '';
           },
         }},
-        "style.width": { 0: { value: "100px" }},
-        "style.height": { 0: { value: "100px" }},
-        "style.backgroundColor": { 0: { value: "red" }},
-        "translation.x": {
+        'style.width': {0: {value: '100px'}},
+        'style.height': {0: {value: '100px'}},
+        'style.backgroundColor': {0: {value: 'red'}},
+        'translation.x': {
           0: {
-            value: Haiku.inject(function($user) {
-              return $user.mouse.x
-            })
-          }
+            value: Haiku.inject(function ($user) {
+              return $user.mouse.x;
+            }),
+          },
         },
-        "translation.y": {
+        'translation.y': {
           0: {
-            value: Haiku.inject(function($user) {
-              return $user.mouse.y
-            })
-          }
-        }
+            value: Haiku.inject(function ($user) {
+              return $user.mouse.y;
+            }),
+          },
+        },
       },
     },
   },
-  template: `
-    <div id="top">
-      <div id="box"></div>
-    </div>
-  `,
-}
+  template: { elementName: 'div',
+    attributes: {id: 'top'},
+    children:
+   [{elementName: 'div', attributes: {id: 'box'}, children: []}] },
+};

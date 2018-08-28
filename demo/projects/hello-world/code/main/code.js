@@ -1,29 +1,3 @@
-// module.exports = {
-//   // timelines: {},
-//   // eventHandlers: {},
-//   // states: {},
-//   template: '<div>Hello World!</div>'
-// }
-
-// module.exports = {
-//   timelines: {
-//     Default: {
-//       "#box": {
-//         "style.width": { 0: { value: "100px" }},
-//         "style.height": { 0: { value: "100px" }},
-//         "style.backgroundColor": { 0: { value: "red" }},
-//         "rotation.z": {
-//           0: { value: 0, curve: "linear" },
-//           1000: { value: 3.14159 },
-//         },
-//       },
-//     },
-//   },
-//   template: `
-//     <div id="box"></div>
-//   `,
-// }
-
 module.exports = {
   options: {
     autoplay: false,
@@ -34,34 +8,32 @@ module.exports = {
     },
   },
   eventHandlers: {
-    "#box": {
-      "click": {
-        handler: function () {
-          this.state.clicks += 1
-          this.getTimeline("Default").play()
-        }
+    '#box': {
+      click: {
+        handler () {
+          this.state.clicks += 1;
+          this.getTimeline('Default').play();
+        },
       },
     },
   },
   timelines: {
     Default: {
-      "#box": {
-        "content": { 0: { 
-          value: function (state) {
-            return state.clicks + ""
+      '#box': {
+        content: { 0: {
+          value (state) {
+            return state.clicks + '';
           },
         }},
-        "style.width": { 0: { value: "100px" }},
-        "style.height": { 0: { value: "100px" }},
-        "style.backgroundColor": { 0: { value: "red" }},
-        "rotation.z": {
-          0: { value: 0, curve: "linear" },
-          1000: { value: 3.14159 },
+        'style.width': {0: {value: '100px'}},
+        'style.height': {0: {value: '100px'}},
+        'style.backgroundColor': {0: {value: 'red'}},
+        'rotation.z': {
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 3.14159},
         },
       },
     },
   },
-  template: `
-    <div id="box"></div>
-  `,
-}
+  template: {elementName: 'div', attributes: {id: 'box'}, children: []},
+};
