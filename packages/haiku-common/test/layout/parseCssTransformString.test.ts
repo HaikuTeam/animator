@@ -6,7 +6,7 @@ import parseCssTransformString from '@common/layout/parseCssTransformString';
 tape(
   'layout.parseCssTransformString',
   (test) => {
-    const data = [
+    const data: [string, {}][] = [
       [
         null,
         {},
