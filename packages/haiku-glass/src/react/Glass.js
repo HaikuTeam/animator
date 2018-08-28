@@ -137,6 +137,7 @@ export class Glass extends React.Component {
       isEventHandlerEditorOpen: false,
       isCreateComponentModalOpen: false,
       isConfirmGroupUngroupPopupOpen: false,
+      conglomerateComponentOptions: {},
     };
 
     this.didAlreadyWarnAboutTextNodes = false;
@@ -772,7 +773,14 @@ export class Glass extends React.Component {
           break;
 
         case 'conglomerate-component':
-          this.launchComponentNameModal({isBlankComponent: message.isBlankComponent});
+          this.setState({
+            conglomerateComponentOptions: {
+              isBlankComponent: message.isBlankComponent,
+              skipInstantiateInHost: message.skipInstantiateInHost,
+            },
+          }, () => {
+            this.launchComponentNameModal();
+          });
           break;
 
         case 'perform-align':
@@ -1095,8 +1103,8 @@ export class Glass extends React.Component {
     }
   };
 
-  launchComponentNameModal ({isBlankComponent} = {isBlankComponent: false}) {
-    if (isBlankComponent) {
+  launchComponentNameModal () {
+    if (this.state.conglomerateComponentOptions.isBlankComponent) {
       Element.unselectAllElements({
         component: this.getActiveComponent(),
       }, {from: 'glass'});
@@ -1107,7 +1115,7 @@ export class Glass extends React.Component {
     });
   }
 
-  conglomerateComponentFromSelectedElementsWithTitle (title) {
+  conglomerateComponentFromSelectedElementsWithTitle (title, options = {}) {
     const proxy = this.fetchProxyElementForSelection();
 
     // Our selection becomes invalid as soon as we call this since we're changing
@@ -1160,14 +1168,15 @@ export class Glass extends React.Component {
         'origin.x': 0.5,
         'origin.y': 0.5,
       },
+      options,
       {from: 'glass'},
-      (err, mana) => {
+      (err, nc) => {
         if (err) {
           logger.error(err);
           return;
         }
 
-        this.editComponent(mana.attributes[HAIKU_SOURCE_ATTRIBUTE]);
+        this.editComponent(`./${nc.getRelpath()}`);
       },
     );
   }
@@ -3646,17 +3655,23 @@ export class Glass extends React.Component {
 
         {!this.isPreviewMode() && this.state.isCreateComponentModalOpen &&
           <CreateComponentModal
+            options={this.state.conglomerateComponentOptions}
             isOpen={this.state.isCreateComponentModalOpen}
             existingComponentNames={this.project.getExistingComponentNames()}
-            onSubmit={(componentName) => {
+            onSubmit={(componentName, options) => {
               this.setState({
+                conglomerateComponentOptions: {},
                 isCreateComponentModalOpen: false,
               }, () => {
-                this.conglomerateComponentFromSelectedElementsWithTitle(componentName);
+                this.conglomerateComponentFromSelectedElementsWithTitle(
+                  componentName,
+                  options,
+                );
               });
             }}
             onCancel={() => {
               this.setState({
+                conglomerateComponentOptions: {},
                 isCreateComponentModalOpen: false,
               });
             }}

@@ -15,7 +15,7 @@ export default class CreateComponentModal extends React.Component {
   }
 
   submitForm () {
-    this.props.onSubmit(this.state.componentName);
+    this.props.onSubmit(this.state.componentName, this.props.options);
   }
 
   cancelForm () {
@@ -126,6 +126,7 @@ const isLetter = (c) => {
 };
 
 CreateComponentModal.propTypes = {
+  options: React.PropTypes.object.isRequired,
   existingComponentNames: React.PropTypes.object.isRequired,
   onSubmit: React.PropTypes.func.isRequired,
   onCancel: React.PropTypes.func.isRequired,

@@ -2015,13 +2015,22 @@ export default class Creator extends React.Component {
     this.showProxySettings();
   };
 
-  conglomerateComponent = ({isBlankComponent} = {isBlankComponent: false}) => {
+  conglomerateComponent = (
+    {
+      isBlankComponent,
+      skipInstantiateInHost,
+    } = {
+      isBlankComponent: false,
+      skipInstantiateInHost: false,
+    },
+  ) => {
     this.props.websocket.send({
       type: 'broadcast',
       from: 'creator',
       folder: this.state.projectModel.getFolder(),
       name: 'conglomerate-component',
       isBlankComponent,
+      skipInstantiateInHost,
     });
   };
 

@@ -1011,6 +1011,7 @@ class ActiveComponent extends BaseModel {
     translation,
     coords,
     propertiesSerial,
+    options = {},
     metadata,
     cb
   ) {
@@ -1028,9 +1029,10 @@ class ActiveComponent extends BaseModel {
         translation,
         coords,
         Bytecode.serializeValue(properties),
+        options,
         metadata,
         (fire) => {
-          const finish = (err, mana) => {
+          const finish = (err, ac) => {
             if (err) {
               release()
               logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -1044,9 +1046,8 @@ class ActiveComponent extends BaseModel {
               }
             }, null, () => {
               release()
-              fire(null, mana)
-              this.selectElement(mana.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {})
-              return cb(null, mana)
+              fire()
+              return cb(null, ac)
             })
           }
 
@@ -1057,6 +1058,7 @@ class ActiveComponent extends BaseModel {
             translation,
             coords,
             properties,
+            options,
             metadata,
             finish
           )
@@ -1072,12 +1074,17 @@ class ActiveComponent extends BaseModel {
     translation,
     coords,
     properties,
+    options = {},
     metadata,
     cb
   ) {
+    let activeComponentToReturn
+
     return this.performComponentWork((hostBytecode, hostTemplate, done) => {
       return this.project.upsertSceneByName(name, (err, newActiveComponent) => {
         if (err) return done(err)
+
+        activeComponentToReturn = newActiveComponent
 
         // Give the new component the passed-in properties, which includes its size
         const newBytecode = newActiveComponent.getReifiedBytecode()
@@ -1178,6 +1185,12 @@ class ActiveComponent extends BaseModel {
           const relpath = `./${newActiveComponent.getRelpath()}`
           const identifier = ModuleWrapper.modulePathToIdentifierName(relpath)
 
+          // In some cases, e.g. clicking the '+' sign, we don't want to instantiate
+          // the component in the child which causes UX confusion
+          if (options.skipInstantiateInHost) {
+            return done()
+          }
+
           // Finally we instantiate the created component on our own stage
           return this.instantiateReference(
             newActiveComponent, // subcomponent
@@ -1208,9 +1221,11 @@ class ActiveComponent extends BaseModel {
         })
       })
     }, (err) => {
-      if (err) return cb(err)
-      const insertion = this.getReifiedBytecode().template.children[0]
-      return cb(null, insertion)
+      if (err) {
+        return cb(err)
+      }
+
+      return cb(null, activeComponentToReturn)
     })
   }
 
