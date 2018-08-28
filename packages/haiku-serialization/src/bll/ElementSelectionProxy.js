@@ -856,15 +856,7 @@ class ElementSelectionProxy extends BaseModel {
     yEdge,
     toStage
   ) {
-    if (!this.selection) {
-      return
-    }
-
-    if (!toStage && this.selection.length < 2) {
-      return
-    }
-
-    if (toStage && !this.selection.length) {
+    if (!this.selection || this.selection.length < 2) {
       return
     }
 
