@@ -3,14 +3,12 @@
  */
 
 import {BytecodeNode, IHaikuComponent} from './api';
-import {visitManaTree, xmlToMana} from './HaikuNode';
+import {visitManaTree} from './HaikuNode';
 import compareSemver from './helpers/compareSemver';
 import migrateAutoSizing from './helpers/migrateAutoSizing';
 import {SVG_SIZEABLES} from './layout/applyCssLayout';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
-
-const STRING_TYPE = 'string';
 
 const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
@@ -33,10 +31,6 @@ const areKeyframesDefined = (keyframeGroup) => {
     keyframeGroup &&
     Object.keys(keyframeGroup).length > 0
   );
-};
-
-const isStringTemplate = (template: string|BytecodeNode): template is string => {
-  return typeof template === STRING_TYPE;
 };
 
 export interface MigrationOptions {
@@ -140,11 +134,6 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
         handler: eventHandlerSpec.handler,
       };
     }
-  }
-
-  // Convert a string template into our internal object format
-  if (isStringTemplate(bytecode.template)) {
-    bytecode.template = xmlToMana(bytecode.template);
   }
 
   if (bytecode.timelines) {
@@ -298,10 +287,17 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     // Although not ideal, it's likely beneficial to do another pass through the timelines to fill in
     // reference uniqueness. This may allow us to avoid a rerender below.
     for (const timelineName in bytecode.timelines) {
-      for (const selector in bytecode.timelines[timelineName]) {
+      for (let selector in bytecode.timelines[timelineName]) {
         if (needsOmnibusUpgrade) {
           // Migrate auto-sizing.
           migrateAutoSizing(bytecode.timelines[timelineName][selector]);
+        }
+
+        // Ensure ID-based selectors like #box work.
+        if (referencesToUpdate[selector]) {
+          bytecode.timelines[timelineName][referencesToUpdate[selector]] = bytecode.timelines[timelineName][selector];
+          delete bytecode.timelines[timelineName][selector];
+          selector = referencesToUpdate[selector];
         }
 
         for (const propertyName in bytecode.timelines[timelineName][selector]) {

@@ -1,9 +1,9 @@
-var mime = require('mime-types')
+let mime = require('mime-types');
 
-var DEFAULT_MIME_TYPE = 'application/octet-stream'
+let DEFAULT_MIME_TYPE = 'application/octet-stream';
 
 function getMimeType (str) {
-  return mime.lookup(str) || DEFAULT_MIME_TYPE
+  return mime.lookup(str) || DEFAULT_MIME_TYPE;
 }
 
-module.exports = getMimeType
+module.exports = getMimeType;

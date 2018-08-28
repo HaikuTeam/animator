@@ -1,15 +1,15 @@
-const getPackages = require('./packages')
-const openSourceProjects = require('./openSourceProjects')
+const getPackages = require('./packages');
+const openSourceProjects = require('./openSourceProjects');
 
 // Pull in the set of dependencies recursively.
-const openSourcePackages = getPackages(Array.from(openSourceProjects))
-const processedDependencies = new Set()
-let foundNewDeps
+const openSourcePackages = getPackages(Array.from(openSourceProjects));
+const processedDependencies = new Set();
+let foundNewDeps;
 do {
-  foundNewDeps = false
+  foundNewDeps = false;
   openSourcePackages.forEach((pack) => {
     if (processedDependencies.has(pack.name)) {
-      return
+      return;
     }
 
     if (pack.deps.size > 0) {
@@ -19,14 +19,14 @@ do {
         if (
           openSourcePackages.find((exisitingPackage) => exisitingPackage.name === openSourcePackage.name) === undefined
         ) {
-          openSourcePackages.push(openSourcePackage)
-          foundNewDeps = true
+          openSourcePackages.push(openSourcePackage);
+          foundNewDeps = true;
         }
-      })
+      });
     }
 
-    processedDependencies.add(pack.name)
-  })
-} while (foundNewDeps)
+    processedDependencies.add(pack.name);
+  });
+} while (foundNewDeps);
 
-module.exports = openSourcePackages
+module.exports = openSourcePackages;
