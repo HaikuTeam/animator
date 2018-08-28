@@ -4,12 +4,6 @@ const fse = require('haiku-fs-extra')
 const async = require('async')
 
 const Project = require('./../../src/bll/Project')
-const File = require('./../../src/bll/File')
-const Element = require('./../../src/bll/Element')
-const Row = require('./../../src/bll/Row')
-
-const HaikuContext = require('@haiku/core/lib/HaikuContext').default
-const HaikuHTMLRenderer = require('@haiku/core/lib/renderers/html').default
 
 tape('ActiveComponent.removals[1]', (t) => {
   t.plan(4)

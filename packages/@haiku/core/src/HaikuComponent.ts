@@ -21,7 +21,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
-import {ascend, cssMatchOne, cssQueryList, manaFlattenTree, visit, xmlToMana} from './HaikuNode';
+import {ascend, cssMatchOne, cssQueryList, manaFlattenTree, visit} from './HaikuNode';
 import HaikuTimeline, {PlaybackFlag, TimeUnit} from './HaikuTimeline';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -140,10 +140,6 @@ export interface ClearCacheOptions {
   clearStates?: boolean;
 }
 
-const templateIsString = (
-  template: BytecodeNode|string,
-): template is string => typeof template === STRING_TYPE;
-
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement implements IHaikuComponent {
   isDeactivated;
@@ -186,12 +182,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     container,
   ) {
     super();
-
-    // We provide rudimentary support for passing the `template` as an XML string.
-    if (templateIsString(bytecode.template)) {
-      console.warn('[haiku core] converting template xml string to object');
-      bytecode.template = xmlToMana(bytecode.template);
-    }
 
     if (!bytecode.template) {
       console.warn('[haiku core] adding missing template object');
