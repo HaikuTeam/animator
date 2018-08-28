@@ -6,7 +6,7 @@
     ],
     "Fixes": [
       "Fixed an issue where the cancel button did not always close the action editor.",
-      "Fixed an issue where small elements might disappear when ungrouped."
+      "Fixed an issue where small elements might disappear or become distored when ungrouped."
     ]
   }
 }

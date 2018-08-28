@@ -1764,6 +1764,11 @@ class Element extends BaseModel {
       const originX = layout.size.x * layout.origin.x
       const originY = layout.size.y * layout.origin.y
 
+      // Ensure SVGs have overflow: visible.
+      if (haikuElement.tagName === 'svg') {
+        attributes.style = {overflow: 'visible'}
+      }
+
       attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
       attributes['translation.y'] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
       nodes.push({
