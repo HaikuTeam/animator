@@ -10,8 +10,6 @@ import {SVG_SIZEABLES} from './layout/applyCssLayout';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
 
-const STRING_TYPE = 'string';
-
 const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
   TimelineDefaultFrames = '3.2.23',
@@ -289,10 +287,17 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     // Although not ideal, it's likely beneficial to do another pass through the timelines to fill in
     // reference uniqueness. This may allow us to avoid a rerender below.
     for (const timelineName in bytecode.timelines) {
-      for (const selector in bytecode.timelines[timelineName]) {
+      for (let selector in bytecode.timelines[timelineName]) {
         if (needsOmnibusUpgrade) {
           // Migrate auto-sizing.
           migrateAutoSizing(bytecode.timelines[timelineName][selector]);
+        }
+
+        // Ensure ID-based selectors like #box work.
+        if (referencesToUpdate[selector]) {
+          bytecode.timelines[timelineName][referencesToUpdate[selector]] = bytecode.timelines[timelineName][selector];
+          delete bytecode.timelines[timelineName][selector];
+          selector = referencesToUpdate[selector];
         }
 
         for (const propertyName in bytecode.timelines[timelineName][selector]) {
