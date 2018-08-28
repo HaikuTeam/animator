@@ -13,6 +13,7 @@ import * as Keyframe from 'haiku-serialization/src/bll/Keyframe';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Palette from 'haiku-ui-common/lib/Palette';
+import TooltipStyles from 'haiku-ui-common/lib/react/TooltipStyles';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import ControlsArea from './ControlsArea';
 import ExpressionInput from './ExpressionInput';
@@ -1250,6 +1251,7 @@ class Timeline extends React.Component {
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
           <IntercomWidget user={this.state.userDetails} onShow={this.setIntercomOpen} onHide={this.setIntercomClosed} />
+          <TooltipStyles />
         </div>
       </div>
     );

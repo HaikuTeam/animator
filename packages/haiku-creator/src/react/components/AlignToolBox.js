@@ -107,6 +107,7 @@ class AlignToolBox extends React.PureComponent {
           <button
             onClick={this.performAlignVLeft}
             key="btn-align-v-left"
+            title="Align vertical-left"
             style={STYLES.alignDistributeBtn}>
             <span style={STYLES.alignDistributeIconWrapper}>
               <AlignDistributeIcons.AlignVLeft />
@@ -115,6 +116,7 @@ class AlignToolBox extends React.PureComponent {
           <button
             onClick={this.performAlignVMid}
             key="btn-align-v-mid"
+            title="Align vertical-center"
             style={STYLES.alignDistributeBtn}>
             <span style={STYLES.alignDistributeIconWrapper}>
               <AlignDistributeIcons.AlignVMid />
@@ -123,6 +125,7 @@ class AlignToolBox extends React.PureComponent {
           <button
             onClick={this.performAlignVRight}
             key="btn-align-v-right"
+            title="Align vertical-right"
             style={{
               ...STYLES.alignDistributeBtn,
               marginRight: 18,
@@ -134,6 +137,7 @@ class AlignToolBox extends React.PureComponent {
           <button
             onClick={this.performAlignHTop}
             key="btn-align-h-top"
+            title="Align horizontal top"
             style={STYLES.alignDistributeBtn}>
             <span style={STYLES.alignDistributeIconWrapper}>
               <AlignDistributeIcons.AlignHTop />
@@ -142,6 +146,7 @@ class AlignToolBox extends React.PureComponent {
           <button
             onClick={this.performAlignHMid}
             key="btn-align-h-mid"
+            title="Align horizontal middle"
             style={STYLES.alignDistributeBtn}>
             <span style={STYLES.alignDistributeIconWrapper}>
               <AlignDistributeIcons.AlignHMid />
@@ -150,6 +155,7 @@ class AlignToolBox extends React.PureComponent {
           <button
             onClick={this.performAlignHBottom}
             key="btn-align-h-bottom"
+            title="Align horizontal bottom"
             style={STYLES.alignDistributeBtn}>
             <span style={STYLES.alignDistributeIconWrapper}>
               <AlignDistributeIcons.AlignHBottom />
@@ -161,6 +167,7 @@ class AlignToolBox extends React.PureComponent {
             <button
               onClick={this.performDistributeHTop}
               key="btn-dist-v-left"
+              title="Distribute vertical-left"
               style={STYLES.alignDistributeBtn}>
               <span style={STYLES.alignDistributeIconWrapper}>
                 <AlignDistributeIcons.DistributeHTop />
@@ -169,6 +176,7 @@ class AlignToolBox extends React.PureComponent {
             <button
               onClick={this.performDistributeHMid}
               key="btn-dist-v-mid"
+              title="Distribute vertical-center"
               style={STYLES.alignDistributeBtn}>
               <span style={STYLES.alignDistributeIconWrapper}>
                 <AlignDistributeIcons.DistributeHMid />
@@ -177,6 +185,7 @@ class AlignToolBox extends React.PureComponent {
             <button
               onClick={this.performDistributeHBottom}
               key="btn-dist-v-right"
+              title="Distribute vertical-right"
               style={{
                 ...STYLES.alignDistributeBtn,
                 marginRight: 18,
@@ -188,6 +197,7 @@ class AlignToolBox extends React.PureComponent {
             <button
               onClick={this.performDistributeVLeft}
               key="btn-dist-h-top"
+              title="Distribute horizontal-top"
               style={STYLES.alignDistributeBtn}>
               <span style={STYLES.alignDistributeIconWrapper}>
                 <AlignDistributeIcons.DistributeVLeft />
@@ -196,6 +206,7 @@ class AlignToolBox extends React.PureComponent {
             <button
               onClick={this.performDistributeVMid}
               key="btn-dist-h-mid"
+              title="Distribute horizontal-middle"
               style={STYLES.alignDistributeBtn}>
               <span style={STYLES.alignDistributeIconWrapper}>
                 <AlignDistributeIcons.DistributeVMid />
@@ -204,6 +215,7 @@ class AlignToolBox extends React.PureComponent {
             <button
               onClick={this.performDistributeVRight}
               key="btn-dist-h-bottom"
+              title="Distribute horizontal-bottom"
               style={STYLES.alignDistributeBtn}>
               <span style={STYLES.alignDistributeIconWrapper}>
                 <AlignDistributeIcons.DistributeVRight />
@@ -231,6 +243,8 @@ class AlignToolBox extends React.PureComponent {
       >
         <button
             key="show-align-panel-button"
+            aria-label="Show align options"
+            data-tooltip-bottom-right={true}
             id="show-align-panel-button"
             onClick={this.clickPopover}
             style={STYLES.alignDistributeBtn}>

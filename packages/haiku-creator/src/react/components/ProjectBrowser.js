@@ -248,6 +248,7 @@ class ProjectBrowser extends React.Component {
                 BTN_STYLES.btnPrimary,
                 DASH_STYLES.btn,
               ]}
+              title="Upgrade to Haiku Pro"
               onClick={this.props.explorePro}>Go Pro
               <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
                 <ExternalLinkSVG color={Palette.SUNSTONE}/>
@@ -267,6 +268,33 @@ class ProjectBrowser extends React.Component {
     );
   }
 
+  renderNewProjectBoxorama () {
+    return (
+      <div
+        style={DASH_STYLES.cardAsButton}
+        key="wrap">
+        <div
+          key="scrim"
+          className="js-utility-project-launcher"
+          style={Object.assign(
+            {},
+            DASH_STYLES.scrimAsButton,
+            {opacity: 1},
+          )}
+          onClick={() => this.showNewProjectModal()}>
+          <span
+            style={{
+              marginTop: 30,
+              marginLeft: -10,
+              display: 'inline-block',
+            }}>
+            + NEW PROJECT
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   projectsListElement () {
     if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
@@ -283,6 +311,7 @@ class ProjectBrowser extends React.Component {
           this.tourChannel.updateLayout();
         }, 50)}
       >
+        {this.renderNewProjectBoxorama()}
         {this.state.projectsList.map((projectObject) => (
           <ProjectThumbnail
             key={projectObject.projectName}
@@ -310,7 +339,7 @@ class ProjectBrowser extends React.Component {
   }
 
   handleProjectLaunch (projectObject) {
-    if (this.tourChannel) {
+    if      (this.tourChannel) {
       this.tourChannel.hide();
     }
 
@@ -398,7 +427,7 @@ class ProjectBrowser extends React.Component {
               option: 'show-changelog',
             });
           }}>
-          <span style={DASH_STYLES.popover.icon} title="Show changelog">
+          <span style={DASH_STYLES.popover.icon} aria-label="Show changelog" data-tooltip-bottom={true}>
             <PresentIconSVG />
           </span>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>What's New</span>
@@ -491,7 +520,10 @@ class ProjectBrowser extends React.Component {
                 <span>/</span>
                 <strong>{this.props.privateProjectLimit}</strong>
                 <span>&nbsp; private projects in use</span>
-                <span style={DASH_STYLES.bannerNotice} onClick={this.props.explorePro}>
+                <span
+                  title="Upgrade to Haiku Pro"
+                  style={DASH_STYLES.bannerNotice}
+                  onClick={this.props.explorePro}>
                   Go Pro
                   <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
                     <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>
@@ -508,6 +540,7 @@ class ProjectBrowser extends React.Component {
           <button
             id="haiku-button-show-new-project-modal"
             key="new_proj"
+            title="Create new Haiku project"
             onClick={() => this.showNewProjectModal()}
             style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
           >
@@ -525,6 +558,7 @@ class ProjectBrowser extends React.Component {
             <button
               id="haiku-button-show-account-popover"
               key="user"
+              title="Account info and settings"
               onClick={this.openPopover}
               style={[
                 BTN_STYLES.btnIcon,

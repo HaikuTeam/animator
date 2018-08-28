@@ -47,9 +47,12 @@ class NotificationExplorer extends React.PureComponent {
     }
 
     return (
-      <div style={STYLES.wrapper} onClick={() => {
-        this.showChangelogModal();
-      }}>
+      <div
+        style={STYLES.wrapper}
+        title="Learn about the latest Haiku updates"
+        onClick={() => {
+          this.showChangelogModal();
+        }}>
         <span style={STYLES.dot} />
         <PresentIconSVG size={16} />
       </div>

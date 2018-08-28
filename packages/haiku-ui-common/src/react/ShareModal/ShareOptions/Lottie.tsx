@@ -61,7 +61,9 @@ export default class Lottie extends React.PureComponent<LottieProps> {
           href="https://airbnb.design/lottie/"
         >
           Lottie
-        </ExternalLink>.
+        </ExternalLink>.{' '}
+        (Note: Lottie does not yet support dynamic/scripted behavior
+        provided by Haiku, such as Actions, Expressions, and States.)
       </div>
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1}>
