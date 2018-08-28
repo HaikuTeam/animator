@@ -88,12 +88,6 @@ tape(
           z: 0,
           // w: 0,
         },
-        orientation: {
-          x: 0,
-          y: 0,
-          z: 0,
-          w: 0,
-        },
         scale: {
           x: 1,
           y: 1,

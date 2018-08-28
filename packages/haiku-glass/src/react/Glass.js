@@ -2366,7 +2366,7 @@ export class Glass extends React.Component {
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
 
-            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']];
+            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.componentId];
             const lastIndex = indices[indices.length - 1];
 
             switch (Element.directlySelected.type) {
@@ -2669,8 +2669,7 @@ export class Glass extends React.Component {
           }
 
           // We get SVG root element here so we can update svg overflow to visible
-          const selectedElement = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
-          const rootSvgElement = selectedElement.getParentSvgElement();
+          const rootSvgElement = Element.directlySelected.rootSVG;
 
           // Mark root svg as overflow visible
           if (rootSvgElement) {
