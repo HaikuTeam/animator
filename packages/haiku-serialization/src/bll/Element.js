@@ -1764,6 +1764,15 @@ class Element extends BaseModel {
       const originX = layout.size.x * layout.origin.x
       const originY = layout.size.y * layout.origin.y
 
+      // Ensure SVGs have overflow: visible.
+      if (haikuElement.tagName === 'svg') {
+        attributes.style = {overflow: 'visible'}
+        // (1 of 3) opacity is "special". Make sure it is preserved.
+        if (haikuElement.layout.opacity !== 1) {
+          attributes.opacity = haikuElement.layout.opacity
+        }
+      }
+
       attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
       attributes['translation.y'] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
       nodes.push({
@@ -1804,7 +1813,8 @@ class Element extends BaseModel {
       }
 
       const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
-        if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
+        // (2 of 3) opacity is "special". Make sure it is preserved.
+        if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName) || propertyName === 'opacity') {
           accumulator[propertyName] = this.component.getComputedPropertyValue(
             descendantHaikuElement.node,
             mergedAttributes[propertyName],
@@ -1817,6 +1827,11 @@ class Element extends BaseModel {
         return accumulator
       }, {})
 
+      // (3 of 3) opacity is "special". Make sure it is preserved.
+      if (typeof descendantHaikuElement.opacity === 'number' && descendantHaikuElement.opacity !== 1) {
+        attributes.opacity = descendantHaikuElement.opacity
+      }
+
       // Note the implementation details of HaikuElement#target, which actually returns
       // the most recently added target - one of a list of possible DOM targets shared by each
       // render node
@@ -1824,12 +1839,12 @@ class Element extends BaseModel {
 
       // The fallbacks here ensure nonzero width/height by any means necessary. SVG getBBox() (and DOM cousins)
       // all fail to account for stroke, clipping masks, etc.
-      if (boundingBox.width === 0) {
-        boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+      if (boundingBox.width < 1) {
+        boundingBox.width = Math.max(descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 1, 1)
       }
 
-      if (boundingBox.height === 0) {
-        boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+      if (boundingBox.height < 1) {
+        boundingBox.height = Math.max(descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 1, 1)
       }
 
       const originX = boundingBox.width / 2
