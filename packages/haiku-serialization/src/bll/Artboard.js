@@ -144,8 +144,8 @@ class Artboard extends BaseModel {
       const w2 = this._mountWidth
       const h2 = this._mountHeight
 
-      const mountX = (w1 - w2) / 2
-      const mountY = (h1 - h2) / 2
+      const mountX = Math.round((w1 - w2) / 2)
+      const mountY = Math.round((h1 - h2) / 2)
 
       const cw = Math.max(w1, w2)
       const ch = Math.max(h1, h2)
