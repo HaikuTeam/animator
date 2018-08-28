@@ -805,23 +805,30 @@ export default class Creator extends React.Component {
     this.envoyClient = new EnvoyClient(this.envoyOptions);
 
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
-      // #FIXME: ideally this should be passed down to the share modal to provide the assets to the user as soon as they're ready.
       this.envoyExporter = exporterChannel;
-      ipcRenderer.on('global-menu:save-as', () => {
+      ipcRenderer.on('global-menu:save-as', (_, extension, request) => {
         exporterChannel.checkOfflinePrivileges().then((allowOffline) => {
           if (!allowOffline) {
             this.setState({showOfflineExportUpgradeModal: true});
             return;
           }
 
+          switch (extension) {
+            case 'gif':
+              request.format = ExporterFormat.AnimatedGif;
+              break;
+            case 'mp4':
+              request.format = ExporterFormat.Video;
+              break;
+            case 'json':
+              request.format = ExporterFormat.Bodymovin;
+              break;
+          }
+
           dialog.showSaveDialog(undefined, {
             defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
             filters: [{
-              name: 'Animated GIF', extensions: ['gif'],
-            }, {
-              name: 'Video', extensions: ['mp4'],
-            }, {
-              name: 'Lottie', extensions: ['json'],
+              name: request.format, extensions: [extension],
             }],
           },
             (filename) => {
@@ -829,32 +836,8 @@ export default class Creator extends React.Component {
                 return;
               }
 
-              switch (path.extname(filename)) {
-                case '.gif':
-                  exporterChannel.save({
-                    filename,
-                    format: ExporterFormat.AnimatedGif,
-                    framerate: 30,
-                    outlet: 'timeline',
-                  });
-                  break;
-                case '.mp4':
-                  exporterChannel.save({
-                    filename,
-                    format: ExporterFormat.Video,
-                    framerate: 30,
-                    outlet: 'timeline',
-                  });
-                  break;
-                case '.json':
-                  exporterChannel.save({
-                    filename,
-                    format: ExporterFormat.Bodymovin,
-                    framerate: 6,
-                    outlet: 'timeline',
-                  });
-                  break;
-              }
+              request.filename = filename;
+              exporterChannel.save(request);
             });
         });
       });
