@@ -19,7 +19,7 @@ for (const pack of allPackages) {
   lintProcess.command = pack.pkg.scripts.fix || pack.pkg.scripts.lint;
   if (lintProcess.command) {
     lintProcess.output = '';
-    lintProcess.cp = cp.spawn(lintProcess.command, {cwd: pack.abspath, shell: true, env : {FORCE_COLOR: true}});
+    lintProcess.cp = cp.spawn(lintProcess.command, {cwd: pack.abspath, shell: true, env: {...global.process.env, FORCE_COLOR: true}});
 
     lintProcess.cp.stdout.on('data', (data) => {
       lintProcess.output = lintProcess.output.concat(data);
