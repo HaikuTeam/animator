@@ -585,7 +585,10 @@ class StageTitleBar extends React.Component {
         folder: this.props.projectModel.getFolder(), // required when sent via Creator
       });
     } else {
-      this.props.conglomerateComponent();
+      this.props.conglomerateComponent({
+        isBlankComponent: true,
+        skipInstantiateInHost: true,
+      });
     }
   }
 

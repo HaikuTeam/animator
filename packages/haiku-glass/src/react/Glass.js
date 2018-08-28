@@ -3354,10 +3354,20 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Create Component',
-      // If a single element is already a component, we don't let it be created as one
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
-        this.launchComponentNameModal();
+        if (proxy.hasNothingInSelection()) {
+          this.setState({
+            conglomerateComponentOptions: {
+              isBlankComponent: true,
+              skipInstantiateInHost: true,
+            },
+          }, () => {
+            this.launchComponentNameModal();
+          });
+        } else {
+          this.launchComponentNameModal();
+        }
       },
     });
 
