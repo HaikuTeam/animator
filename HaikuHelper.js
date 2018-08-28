@@ -1,5 +1,4 @@
 const {default: Plumbing} = require('haiku-plumbing/lib/Plumbing');
-const {default: ReplBase} = require('haiku-plumbing/lib/ReplBase');
 const {default: envInfo} = require('haiku-plumbing/lib/envInfo');
 const {default: haikuInfo} = require('haiku-plumbing/lib/haikuInfo');
 const path = require('path');
@@ -40,34 +39,22 @@ function go () {
 
   const plumbing = new Plumbing();
 
-  if (flags.repl) {
-    startEmUp(plumbing, haiku, (_, folder) => {
-      // A quick-and-dirty 'REPL' mainly for testing the plumbing, but open to all
-      const repl = new ReplBase();
-      const prompt = 'haiku';
-      const opts = {
-        me: plumbing,
-        folder,
-      };
-      repl.start(prompt, opts);
-    });
-  } else {
-    if (haiku.folder) {
-      if (haiku.folder[0] !== path.sep) {
-        haiku.folder = path.join(global.process.cwd(), haiku.folder);
-      }
+  if (haiku.folder) {
+    if (haiku.folder[0] !== path.sep) {
+      haiku.folder = path.join(global.process.cwd(), haiku.folder);
     }
-    plumbing.getenv((error, dotenv) => {
-      // Before we launch, read .env from ~/.haiku with extreme prejudice, overwriting any environment variables set
-      // earlier during bootstrapping.
-      if (!error) {
-        Object.assign(haiku, {dotenv});
-      }
-      plumbing.launch(haiku, () => {
-        logger.info('Haiku plumbing running');
-      });
-    });
   }
+
+  plumbing.getenv((error, dotenv) => {
+    // Before we launch, read .env from ~/.haiku with extreme prejudice, overwriting any environment variables set
+    // earlier during bootstrapping.
+    if (!error) {
+      Object.assign(haiku, {dotenv});
+    }
+    plumbing.launch(haiku, () => {
+      logger.info('Haiku plumbing running');
+    });
+  });
 }
 
 function startEmUp (plumbing, haiku, cb) {

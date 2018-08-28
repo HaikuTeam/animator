@@ -39,7 +39,6 @@ tape('ModuleWrapper', (t) => {
             // Force a cache miss in ModuleWrapper so we do a full reload
             delete require.cache[path.join(folder, 'code', 'main', 'code.js')]
 
-            // Call a method that calls ModuleWrapper#monkeypatch
             const keyframeUpdates = {Default: {}}
             const selector = `haiku:${mana.attributes['haiku-id']}`
             keyframeUpdates.Default[selector] = {}
