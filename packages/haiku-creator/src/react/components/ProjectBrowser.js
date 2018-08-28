@@ -276,7 +276,6 @@ class ProjectBrowser extends React.Component {
         <div
           key="scrim"
           className="js-utility-project-launcher"
-          title="Create new project"
           style={Object.assign(
             {},
             DASH_STYLES.scrimAsButton,
@@ -340,7 +339,7 @@ class ProjectBrowser extends React.Component {
   }
 
   handleProjectLaunch (projectObject) {
-    if (this.tourChannel) {
+    if      (this.tourChannel) {
       this.tourChannel.hide();
     }
 
