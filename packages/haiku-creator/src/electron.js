@@ -141,7 +141,7 @@ function createWindow () {
     topmenu.update(nextTopmenuOptions);
   });
 
-  // Emitted by Creator during project bootstrapping, this ensures image URLs like web+haiku://assets/designs/…
+  // Emitted by Creator during project bootstrapping, this ensures image URLs like web+haikuroot://assets/designs/…
   // display correctly in thumbnails.
   ipcMain.on('protocol:register', (_, projectPath) => {
     protocol.registerFileProtocol('web+haikuroot', (request, cb) => {

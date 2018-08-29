@@ -61,7 +61,7 @@ tape('Element.ungroup', (suite) => {
               test.is(node.children[1].elementName, 'g', `shim group was created to shim layout (${index})`)
             })
             test.deepEqual(
-              bytecode.timelines.Default['haiku:Group-c6645371d4ed1ea3'],
+              defaultTimeline[`haiku:${template.children[0].children[1].attributes['haiku-id']}`],
               {'translation.x': {0: {value: -100}}},
               'shim group was offset by the expected amount'
             )
