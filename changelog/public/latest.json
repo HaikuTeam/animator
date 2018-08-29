@@ -7,7 +7,8 @@
       "We added some helpful tooltips throughout the app."
     ],
     "Fixes": [
-      "Greatly improved the performance of Haiku when working with SVGs containing large raster images.",
+      "Greatly improved the performance of Haiku when working with large or complex SVGs.",
+      "Fixed several app stability issues affecting the ability to merge in design changes from Sketch/Illustrator/Figma.",
       "Fixed an issue where the cancel button did not always close the action editor.",
       "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped.",
       "@haiku/cli now uses configured proxy settings.",
