@@ -293,14 +293,6 @@ ModuleWrapper.getScenenameFromRelpath = (relpath) => {
 }
 
 /**
- * @function identifierToLocalModpath
- * @description Given an identifier, return the path to the code module
- */
-ModuleWrapper.identifierToLocalModpath = (identifier) => {
-  return path.join('code', identifier, 'code.js')
-}
-
-/**
  * @function getHaikuKnownImportMatch
  * @description Convert a known import path to an application local installation
  */

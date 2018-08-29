@@ -49,7 +49,7 @@ const KEYFRAME_ZERO = 0;
 const OBJECT = 'object';
 const MAX_INT = 2147483646;
 const SCOPE_STRATA = {div: 'div', svg: 'svg'};
-const CDN_ROOT_STR = 'HAIKU|CDN|PROJECT|ROOT'; // Split to avoid server-side munging
+const CDN_ROOT_STR = 'HAIKU|CDN|PROJECT|ROOT'.split('|').join('_'); // Split to avoid server-side munging
 
 // HACK: Required until DOM subtree-hydration race is fixed
 const ALWAYS_UPDATED_PROPERTIES = {'controlFlow.placeholder': true};
@@ -1371,7 +1371,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                   computedValue = this.maybeRewriteString(
                     computedValue,
                     propertyName,
-                    matchingElement,
                   );
                 }
 
@@ -1395,7 +1394,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
   }
 
-  maybeRewriteString (computedValue: string, propertyName: string, matchingElement): string {
+  private maybeRewriteString (computedValue: string, propertyName: string): string {
     if (
       propertyName === 'src' ||
       propertyName === 'xlink:href' ||
@@ -1403,7 +1402,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     ) {
       const subst = this.getProjectRootPathWithTerminatingSlash();
       return computedValue.replace(
-        'HAIKU_LOCAL_PROJECT_ROOT:',
+        'web+haikuroot://',
         subst,
       );
     }
@@ -1411,16 +1410,12 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return computedValue;
   }
 
-  getCdnRootStr (): string {
-    return CDN_ROOT_STR.split('|').join('_');
-  }
-
-  getProjectRootPathWithTerminatingSlash (): string {
+  private getProjectRootPathWithTerminatingSlash (): string {
     const metadata = this.getBytecodeMetadata();
 
     // If root is set and is not precisely this known magic string,
     // assume the root actually defines a root path somewhere on the web we can resolve to.
-    if (metadata && metadata.root && metadata.root !== this.getCdnRootStr()) {
+    if (metadata && metadata.root && metadata.root !== CDN_ROOT_STR) {
       return metadata.root;
     }
 

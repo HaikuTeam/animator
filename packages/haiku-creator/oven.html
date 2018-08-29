@@ -14,18 +14,19 @@
      * This file is bootstrapped by Electron for the purpose of collecting a PNG sequence for export.
      */
     const {ipcRenderer} = require('electron');
+    const {requireFromFile} = require('haiku-serialization/src/bll/ModuleWrapper');
+    const {default: HaikuDOMAdapter} = require('@haiku/core/lib/adapters/dom/HaikuDOMAdapter');
+    const ensureTrailingSlash = require('haiku-serialization/src/utils/ensureTrailingSlash');
 
     try {
       const abspath = window.location.hash.slice(1);
-      const {requireFromFile} = require('haiku-serialization/src/bll/ModuleWrapper');
-      const {default: HaikuDOMAdapter} = require('@haiku/core/lib/adapters/dom/HaikuDOMAdapter');
       const bytecode = requireFromFile(abspath);
       let position = 0;
       let frameDuration;
 
       const component = HaikuDOMAdapter(bytecode)(
         document.getElementById('mount'),
-        {freeze: true}
+        {freeze: true, folder: ensureTrailingSlash(bytecode.metadata.folder)}
       );
       let duration = component.getDefaultTimeline().duration();
       component.visitGuestHierarchy((subcomponent) => {

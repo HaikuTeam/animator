@@ -211,6 +211,7 @@ export function createProjectFiles (
       fse.outputFileSync(path.join(projectOptions.projectPath, '.gitignore'), dedent`
         .DS_Store
         code/*/png-*/
+        designs/**/*.processed
         still.png
         animation.gif
         animation.mp4
