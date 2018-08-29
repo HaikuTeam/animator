@@ -25,7 +25,19 @@ module.exports = {
       },
       unhover: {
         handler: function(component, element, target, event) {
-          console.llog("UNHOVER DEF");
+          console.log("UNHOVER DEF");
+        }
+      }
+    },
+    "haiku:20ada7bb2d6d": {
+      hover: {
+        handler: function(component, element, target, event) {
+          console.log("HOVER CIRC");
+        }
+      },
+      unhover: {
+        handler: function(component, element, target, event) {
+          console.log("UNHOVER CIRC");
         }
       }
     }

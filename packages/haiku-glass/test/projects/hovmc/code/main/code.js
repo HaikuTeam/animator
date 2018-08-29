@@ -46,6 +46,7 @@ module.exports = {
   timelines: {
     Default: {
       "haiku:Main-03757d2ca1026e0a": {
+        "style.border": "1px solid black",
         "style.WebkitTapHighlightColor": "rgba(0,0,0,0)",
         "style.position": "relative",
         "style.overflowX": "hidden",
