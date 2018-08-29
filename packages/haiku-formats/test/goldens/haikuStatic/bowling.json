@@ -13,9 +13,6 @@
   },
   "options": {},
   "states": {},
-  "eventHandlers": {
-    "haiku:c6dc6f364fd7": {}
-  },
   "timelines": {
     "Default": {
       "haiku:e4a9e4d8baa7": {
