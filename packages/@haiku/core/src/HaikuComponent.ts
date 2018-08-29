@@ -1011,6 +1011,19 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.emitWithoutBubbling(eventNameGiven, ...eventArgs);
   }
 
+  routeEventToHandlerAndEmitWithoutBubblingAndWithoutGlobalHandlers (
+    eventSelectorGiven: string,
+    eventNameGiven: string,
+    eventArgs: any,
+  ) {
+    if (this.isDeactivated) {
+      return;
+    }
+    this.routeEventToHandler(eventSelectorGiven, eventNameGiven, eventArgs);
+    this.emitToListeners(eventNameGiven, eventArgs);
+    this.emitToGenericListeners(eventNameGiven, eventArgs);
+  }
+
   /**
    * @description A more expressive form of `emit` that allows the user to route
    * events to specific collections of elements/components in the tree using labels,

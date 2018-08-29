@@ -17,6 +17,7 @@ export interface IHaikuElement extends HaikuBase {
   getComponentId: () => string;
   getNearestDefinedNonZeroAncestorSizeX: () => number;
   getNearestDefinedNonZeroAncestorSizeY: () => number;
+  isHovered: boolean;
 }
 
 export interface IHaikuComponent extends IHaikuElement {
@@ -42,6 +43,9 @@ export interface IHaikuComponent extends IHaikuElement {
     eventArgs: any,
   ) => void;
   getTimelineDescriptor: (timelineName: string) => BytecodeTimeline;
+  lastHoveredElement: IHaikuElement;
+  isDeactivated: boolean;
+  routeEventToHandlerAndEmitWithoutBubblingAndWithoutGlobalHandlers: (...args: any[]) => void;
 }
 
 export interface MountLayout {
