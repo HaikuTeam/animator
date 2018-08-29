@@ -43,14 +43,21 @@ try {
 } catch (err) {
   // Attempt automatic conflict resolution.
   const statusLines = cp.execSync('git status', {cwd: ROOT}).toString().split('\n').map((line) => line.trim());
+  let hitUnmergedPaths = false;
   statusLines.forEach((line) => {
+    if (!hitUnmergedPaths && line !== 'Unmerged paths:') {
+      return;
+    }
+
+    hitUnmergedPaths = true;
+
     if (!/:\s/.test(line)) {
       return;
     }
 
-    if (/^both modified:/.test(line)) {
+    if (/^both modified:/.test(line) || /^both added:/.test(line)) {
       cp.execSync(`git checkout --ours ${line.split(':')[1]}`, {cwd: ROOT, stdio: 'inherit'});
-    } else if (/^deleted by us:/.test(line)) {
+    } else if (/^deleted by us:/.test(line) || /^both deleted:/.test(line)) {
       cp.execSync(`git rm ${line.split(':')[1]}`, {cwd: ROOT, stdio: 'inherit'});
     } else {
       throw new Error(`Unable to process line: ${line}`);
