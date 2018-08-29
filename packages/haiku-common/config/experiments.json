@@ -3,7 +3,6 @@
   "ShowSubElementsInJitMenu": true,
   "HideInstantiatedElementUntilTimeInstantiated": false,
   "MergeDesignChangesAtCurrentTime": false,
-  "CommentsOnStage": false,
   "AsyncClientActions": false,
   "NormalizeSvgContent": false,
   "BaseModelQueryCache": false,
@@ -31,9 +30,9 @@
   "OutliningElementsOnStageFromStage": false,
   "CopyPasteTweens": false,
   "CopyPasteTweensWithAccelerators": false,
-  "UserFacingDevTools": false,
-  "ControlFlowIf": false,
-  "ControlFlowRepeat": false,
+  "UserFacingDevTools": true,
+  "ControlFlowIf": true,
+  "ControlFlowRepeat": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "GlassControlPointShadows": false
 }

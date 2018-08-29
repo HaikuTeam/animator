@@ -79,6 +79,11 @@ const FOLDER_CHOICES = {
   'text-content-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/text-content'),
   'pkey-dupe-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/pkey-dupe'),
   'coinage-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/coinage'),
+  'hovmc-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/hovmc'),
+  'indexif-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/indexif'),
+  'overr-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/overr'),
+  'playstate-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/playstate'),
+  'substate-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/substate'),
 };
 
 // Support:
