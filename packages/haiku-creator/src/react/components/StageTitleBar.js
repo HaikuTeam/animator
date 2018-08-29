@@ -163,8 +163,6 @@ class StageTitleBar extends React.Component {
 
     this.handleConnectionClick = this.handleConnectionClick.bind(this);
     this.handleSaveSnapshotClick = this.handleSaveSnapshotClick.bind(this);
-    this.handleMergeResolveOurs = this.handleMergeResolveOurs.bind(this);
-    this.handleMergeResolveTheirs = this.handleMergeResolveTheirs.bind(this);
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this);
     this.handleConglomerateComponent = this.handleConglomerateComponent.bind(this);
     this.handleShowProjectLocationToast = this.handleShowProjectLocationToast.bind(this);
@@ -177,7 +175,6 @@ class StageTitleBar extends React.Component {
     this.state = {
       snapshotSaveResolutionStrategyName: 'normal',
       isSnapshotSaveInProgress: false,
-      snapshotMergeConflicts: null,
       snapshotSaveConfirmed: null,
       snapshotSaveError: null,
       showSharePopover: false,
@@ -348,9 +345,6 @@ class StageTitleBar extends React.Component {
     if (this.state.isSnapshotSaveInProgress) {
       return void (0);
     }
-    if (this.state.snapshotMergeConflicts) {
-      return void (0);
-    }
 
     mixpanel.haikuTrack('install-options', {
       from: 'app',
@@ -463,11 +457,10 @@ class StageTitleBar extends React.Component {
               logger.warn('[creator] merge conflicts found');
               this.props.createNotice({
                 type: 'warning',
-                title: 'Merge conflicts!',
-                message: 'We couldn\'t merge your changes. 😢 You\'ll need to decide how to merge your changes before continuing.',
+                title: 'Problem saving!',
+                message: 'We couldn\'t save your changes. 😢 Please contact Haiku Support.',
               });
               return this.setState({
-                snapshotMergeConflicts: snapshotData.conflicts,
                 showSharePopover: false,
               });
             }
@@ -534,22 +527,7 @@ class StageTitleBar extends React.Component {
     if (this.state.snapshotSaveError) {
       return <div style={{height: 18, marginRight: -5}}><DangerIconSVG fill="transparent" /></div>;
     }
-    if (this.state.snapshotMergeConflicts) {
-      return <div style={{height: 19, marginRight: 0, marginTop: -2}}><WarningIconSVG fill="transparent" color={Palette.ORANGE} /></div>;
-    }
     return <PublishSnapshotSVG />;
-  }
-
-  handleMergeResolveOurs () {
-    this.setState({snapshotMergeConflicts: null, snapshotSaveResolutionStrategyName: 'ours'}, () => {
-      return this.performProjectSave();
-    });
-  }
-
-  handleMergeResolveTheirs () {
-    this.setState({snapshotMergeConflicts: null, snapshotSaveResolutionStrategyName: 'theirs'}, () => {
-      return this.performProjectSave();
-    });
   }
 
   getActiveComponent () {
@@ -631,19 +609,6 @@ class StageTitleBar extends React.Component {
 
   getEventHandlersEditorButtonColor () {
     return Palette.ROCK;
-  }
-
-  renderMergeConflictResolutionArea () {
-    if (!this.state.snapshotMergeConflicts) {
-      return '';
-    }
-    return (
-      <div style={{position: 'absolute', left: 0, right: 150, top: 4, padding: 5, borderRadius: 4, color: Palette.ROCK, textAlign: 'right', overflow: 'hidden'}}>
-        Conflict found!{' '}
-        <a onClick={this.handleMergeResolveOurs} style={{cursor: 'pointer', textDecoration: 'underline', color: Palette.GREEN}}>Force your changes</a>{' '}
-        or <a onClick={this.handleMergeResolveTheirs} style={{cursor: 'pointer', textDecoration: 'underline', color: Palette.RED}}>discard yours &amp; accept theirs</a>?
-      </div>
-    );
   }
 
   render () {
@@ -757,11 +722,6 @@ class StageTitleBar extends React.Component {
           disabled={!this.props.isTimelineReady}
           active={isPreviewMode(this.props.interactionMode)}
         />
-
-        {this.renderMergeConflictResolutionArea()}
-        <button onClick={this.handleConnectionClick} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, STYLES.hide]} key="connect">
-          <ConnectionIconSVG />
-        </button>
 
         {this.state.showPublicPrivateOptInModal && !this.props.isPreviewMode &&
           <PublicPrivateOptInModal
