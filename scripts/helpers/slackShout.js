@@ -1,19 +1,21 @@
-var slack = require('slack')
-var log = require('./log')
-var deploy = require('./../deploy')
+let slack = require('slack');
+let log = require('./log');
+let deploy = require('./../deploy');
 
 module.exports = function shout (options, text, cb) {
   if (options && options.shout) {
     return slack.chat.postMessage({
-      text: text,
+      text,
       token: deploy.slack.legacy,
       channel: 'releases',
       username: 'Haiku Distro',
-      icon_emoji: ':jenkins:'
-    }, function (err) {
-      if (err) log.err(err)
-      return cb()
-    })
+      icon_emoji: ':jenkins:',
+    }, (err) => {
+      if (err) {
+        log.err(err);
+      }
+      return cb();
+    });
   }
-  return cb()
-}
+  return cb();
+};

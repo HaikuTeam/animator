@@ -15,6 +15,7 @@
     "haiku-fs-extra": "4.0.0",
     "haiku-serialization": "4.0.0",
     "haiku-ui-common": "4.0.0",
+    "haiku-vendor-legacy": "4.0.0",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
     "prettier": "^0.22.0",

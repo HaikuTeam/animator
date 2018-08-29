@@ -5,8 +5,8 @@ const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
 const {default: Layout3D} = require('@haiku/core/lib/Layout3D')
 const {default: HaikuElement} = require('@haiku/core/lib/HaikuElement')
-const {default: composedTransformsToTimelineProperties} = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties')
-const {default: invertMatrix} = require('@haiku/core/lib/vendor/gl-mat4/invert')
+const {default: composedTransformsToTimelineProperties} = require('haiku-common/lib/layout/composedTransformsToTimelineProperties')
+const {default: invertMatrix} = require('haiku-vendor-legacy/lib/gl-mat4/invert')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const {Figma} = require('./Figma')
 const Sketch = require('./Sketch')
@@ -856,15 +856,7 @@ class ElementSelectionProxy extends BaseModel {
     yEdge,
     toStage
   ) {
-    if (!this.selection) {
-      return
-    }
-
-    if (!toStage && this.selection.length < 2) {
-      return
-    }
-
-    if (toStage && !this.selection.length) {
+    if (!this.selection || this.selection.length < 2) {
       return
     }
 

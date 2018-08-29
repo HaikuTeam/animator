@@ -1,4 +1,4 @@
-var N = null
+let N = null;
 module.exports = {
   states: {},
   eventHandlers: {},
@@ -6,62 +6,81 @@ module.exports = {
     Default: {
       '#title': {
         'translation.x': {
-          0: { value: 0, curve: 'linear' },
-          1000: { value: 100 }
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 100},
         },
-        'sizeProportional.y': { 0: { value: 0.1 } }
+        'sizeProportional.y': {0: {value: 0.1}},
       },
       '#subti': {
         'translation.x': {
-          0: { value: 0, curve: 'linear' },
-          1000: { value: 120 }
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 120},
         },
-        'sizeProportional.y': { 0: { value: 0.1 } }
+        'sizeProportional.y': {0: {value: 0.1}},
       },
       '#box1': {
         'translation.x': {
-          0: { value: 0, curve: 'linear' },
-          1000: { value: 150 }
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 150},
         },
-        'sizeProportional.y': { 0: { value: 0.1 } },
-        'controlFlow.placeholder': { 0: { value: 2 } }
+        'sizeProportional.y': {0: {value: 0.1}},
+        'controlFlow.placeholder': {0: {value: 2}},
       },
       '#box2': {
         'translation.x': {
-          0: { value: 0, curve: 'linear' },
-          1000: { value: 60 }
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 60},
         },
-        'sizeProportional.y': { 0: { value: 0.1 } },
-        'controlFlow.placeholder': { 0: { value: 1 } }
+        'sizeProportional.y': {0: {value: 0.1}},
+        'controlFlow.placeholder': {0: {value: 1}},
       },
       '#box3': {
         'translation.x': {
-          0: { value: 0, curve: 'linear' },
-          1000: { value: 200 }
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 200},
         },
-        'sizeProportional.y': { 0: { value: 0.1 } },
-        'controlFlow.placeholder': { 0: { value: N } }
+        'sizeProportional.y': {0: {value: 0.1}},
+        'controlFlow.placeholder': {0: {value: N}},
       },
       '#box4': {
         'translation.x': {
-          0: { value: 0, curve: 'linear' },
-          1000: { value: 103 }
+          0: {value: 0, curve: 'linear'},
+          1000: {value: 103},
         },
-        'sizeProportional.y': { 0: { value: 0.1 } },
-        'controlFlow.placeholder': { 0: { value: 0 } }
-      }
-    }
+        'sizeProportional.y': {0: {value: 0.1}},
+        'controlFlow.placeholder': {0: {value: 0}},
+      },
+    },
   },
-  template: `
-    <div>
-      <span id="title"><strong>Run me in react-dom mode for checking correct behavior</strong></span>
-      <span id="box1">box1 - this should become "chirp chirp"</span>
-      <span id="box2">box2 - this should become "Thing..."</span>
-      <span id="box3"><em>box3 - this should NOT be replaced</em></span>
-      <span>
-        <span id="subti"><strong>Hullo</strong></span>
-        <span id="box4">box4 - this should become "Meow meow"</span>
-      </span>
-    </div>
-  `
-}
+  template: { elementName: 'div',
+    attributes: {},
+    children:
+    [{ elementName: 'span',
+      attributes: {id: 'title'},
+      children:
+      [{ elementName: 'strong',
+        attributes: {},
+        children: ['Run me in react-dom mode for checking correct behavior'] }] },
+    { elementName: 'span',
+      attributes: {id: 'box1'},
+      children: ['box1 - this should become "chirp chirp"'] },
+    { elementName: 'span',
+      attributes: {id: 'box2'},
+      children: ['box2 - this should become "Thing..."'] },
+    { elementName: 'span',
+      attributes: {id: 'box3'},
+      children:
+      [{ elementName: 'em',
+        attributes: {},
+        children: ['box3 - this should NOT be replaced'] }] },
+    { elementName: 'span',
+      attributes: {},
+      children:
+      [{ elementName: 'span',
+        attributes: {id: 'subti'},
+        children:
+             [{elementName: 'strong', attributes: {}, children: ['Hullo']}] },
+      { elementName: 'span',
+        attributes: {id: 'box4'},
+        children: ['box4 - this should become "Meow meow"'] }] }] },
+};

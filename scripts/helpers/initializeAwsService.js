@@ -1,19 +1,19 @@
-var AWS = require('aws-sdk')
+let AWS = require('aws-sdk');
 
 function initializeAwsService (serviceName, awsRegion, awsAccessKeyId, awsSecretAccessKey, env) {
-  var credentials = new AWS.Credentials({
+  let credentials = new AWS.Credentials({
     accessKeyId: awsAccessKeyId || (env && env.AWS_ACCESS_KEY_ID),
-    secretAccessKey: awsSecretAccessKey || (env && env.AWS_SECRET_ACCESS_KEY)
-  })
+    secretAccessKey: awsSecretAccessKey || (env && env.AWS_SECRET_ACCESS_KEY),
+  });
 
-  var instance = new AWS[serviceName]({
+  let instance = new AWS[serviceName]({
     region: awsRegion,
-    credentials: credentials,
+    credentials,
     apiVersion: 'latest',
-    sslEnabled: true
-  })
+    sslEnabled: true,
+  });
 
-  return instance
+  return instance;
 }
 
-module.exports = initializeAwsService
+module.exports = initializeAwsService;

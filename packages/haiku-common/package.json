@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@haiku/core": "4.0.0",
-    "haiku-sdk-creator": "4.0.0"
+    "haiku-sdk-creator": "4.0.0",
+    "haiku-vendor-legacy": "4.0.0"
   }
 }

@@ -6,9 +6,9 @@ import HaikuElement from '@haiku/core/lib/HaikuElement';
 import {distance, Vec2} from '@haiku/core/lib/helpers/PathUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import Layout3D from '@haiku/core/lib/Layout3D';
-import create from '@haiku/core/lib/vendor/gl-mat4/create';
-import invert from '@haiku/core/lib/vendor/gl-mat4/invert';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
+import create from 'haiku-vendor-legacy/lib/gl-mat4/create';
+import invert from 'haiku-vendor-legacy/lib/gl-mat4/invert';
 
 // Number of pixels allowance for a line to be selected
 export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
