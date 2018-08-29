@@ -280,9 +280,16 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       if (lastMoveTarget !== mouseEvent.target) {
         lastMoveTarget = mouseEvent.target;
 
-        const element = this.getHaikuElementFromTarget(mouseEvent.target);
-        if (element) {
-          element.triggerHover();
+        let moveElement;
+        // If the move has taken us outside of our component, use the mount
+        if (this.mount.contains(mouseEvent.target)) {
+          moveElement = this.getHaikuElementFromTarget(mouseEvent.target);
+        } else {
+          moveElement = this.getHaikuElementFromTarget(this.mount);
+        }
+
+        if (moveElement) {
+          moveElement.triggerHover(mouseEvent);
         }
       }
     });
