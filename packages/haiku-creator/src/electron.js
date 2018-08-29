@@ -5,13 +5,14 @@ import * as path from 'path';
 import {parse} from 'url';
 import {inherits} from 'util';
 
-import {BrowserWindow, app, ipcMain, systemPreferences, session} from 'electron';
+import {BrowserWindow, app, ipcMain, protocol, systemPreferences, session} from 'electron';
 import * as ElectronProxyAgent from 'electron-proxy-agent';
 import * as qs from 'qs';
 
 import {isProxied, ProxyType} from 'haiku-common/lib/proxies';
 import TopMenu from 'haiku-common/lib/electron/TopMenu';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {isMac} from 'haiku-common/lib/environments/os';
 
@@ -136,8 +137,21 @@ function createWindow () {
 
   topmenu.create(topmenuOptions);
 
-  ipcMain.on('topmenu:update', (ipcEvent, nextTopmenuOptions) => {
+  ipcMain.on('topmenu:update', (_, nextTopmenuOptions) => {
     topmenu.update(nextTopmenuOptions);
+  });
+
+  // Emitted by Creator during project bootstrapping, this ensures image URLs like web+haikuroot://assets/designs/…
+  // display correctly in thumbnails.
+  ipcMain.on('protocol:register', (_, projectPath) => {
+    protocol.registerFileProtocol('web+haikuroot', (request, cb) => {
+      cb(ensureTrailingSlash(projectPath) + request.url.substr(16));
+    });
+  });
+
+  // We also need to be able to tear down the protocol when a project is shut down.
+  ipcMain.on('protocol:unregister', () => {
+    protocol.unregisterProtocol('web+haikuroot');
   });
 
   browserWindow.setTitle('Haiku');

@@ -459,10 +459,10 @@ class AssetItem extends React.Component {
             isOpen={this.state.isHovered && !this.state.isDragging}
             style={STYLES.cardPreview}
             preferPlace={'right'}
-            body={<img src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
+            body={<embed src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
             tipSize={0.01}
           >
-            <img style={STYLES.cardImage} src={`file://${imageSrc}`} />
+            <embed style={STYLES.cardImage} src={`file://${imageSrc}`} />
           </Popover>
         </span>
       );

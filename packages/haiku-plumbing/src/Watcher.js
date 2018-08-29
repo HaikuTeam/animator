@@ -8,7 +8,7 @@ const WRITE_WAIT_DELAY = 1000;
 const SEPARATOR = sep === '\\' ? '\\\\' : sep;
 
 const IGNORE_PATTERN = new RegExp(
-  `(node_modules|bower_components|jspm_modules|\\.git|~\\.sketch|code${SEPARATOR}.+${SEPARATOR}png-\\d+${SEPARATOR})`,
+  `(node_modules|bower_components|jspm_modules|\\.git|~\\.sketch|\\.processed|code${SEPARATOR}.+${SEPARATOR}png-\\d+${SEPARATOR})`,
 );
 
 export default class Watcher extends EventEmitter {

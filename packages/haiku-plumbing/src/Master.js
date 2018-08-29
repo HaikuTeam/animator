@@ -33,6 +33,7 @@ import {
   getHaikuCoreVersion,
   fetchProjectConfigInfo,
 } from './project-folder/ProjectDefinitions';
+import {dumpBase64Images} from './project-folder/AssetUtils';
 
 Sketch.findAndUpdateInstallPath();
 
@@ -91,18 +92,18 @@ const GITIGNORED_BASENAMES = {
   'still.png': true,
 };
 
-function _isFileSignificant (relpath) {
-  if (UNWATCHABLE_RELPATHS[relpath]) {
-    return false;
-  }
-  if (UNWATCHABLE_BASENAMES[path.basename(relpath)]) {
-    return false;
-  }
-  if (!WATCHABLE_EXTNAMES[path.extname(relpath).toLowerCase()]) {
-    return false;
-  }
-  return true;
-}
+const DESIGN_ASSETS_RELPATH_STEM = path.join('assets', 'designs');
+
+const isFileSignificant = (relpath) => (
+  !UNWATCHABLE_RELPATHS[relpath] &&
+  !UNWATCHABLE_BASENAMES[path.basename(relpath)] &&
+  WATCHABLE_EXTNAMES[path.extname(relpath).toLowerCase()]
+);
+
+const doSkipFile = (relpath) => (
+  GITIGNORED_BASENAMES[relpath] ||
+  relpath.startsWith(DESIGN_ASSETS_RELPATH_STEM)
+);
 
 export default class Master extends EventEmitter {
   constructor (folder, fileOptions = {}, envoyOptions = {}, envoyHandlers) {
@@ -203,6 +204,10 @@ export default class Master extends EventEmitter {
       WebSocket,
       process.env.HAIKU_WS_SECURITY_TOKEN,
     );
+
+    fetchProjectConfigInfo(this.folder, (_, userconfig) => {
+      this.initialUserconfig = userconfig;
+    });
   }
 
   handleBroadcast (message) {
@@ -402,7 +407,7 @@ export default class Master extends EventEmitter {
    */
   handleFileChangeBlacklisted (abspath) {
     const relpath = path.relative(this.folder, abspath);
-    if (GITIGNORED_BASENAMES[relpath]) {
+    if (doSkipFile(relpath)) {
       return;
     }
     return this.waitForSaveToComplete(() => {
@@ -412,13 +417,14 @@ export default class Master extends EventEmitter {
 
   handleFileChange (abspath) {
     const relpath = path.relative(this.folder, abspath);
-    if (GITIGNORED_BASENAMES[relpath]) {
+    if (doSkipFile(relpath)) {
       return;
     }
     const extname = path.extname(relpath);
     const basename = path.basename(relpath, extname);
 
     if (Asset.isDesignAsset(abspath)) {
+      dumpBase64Images(abspath, relpath, this.folder, this._watcher, true);
       this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -428,7 +434,7 @@ export default class Master extends EventEmitter {
 
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {
-        if (!_isFileSignificant(relpath)) {
+        if (!isFileSignificant(relpath)) {
           return;
         }
 
@@ -459,13 +465,14 @@ export default class Master extends EventEmitter {
 
   handleFileAdd (abspath) {
     const relpath = path.relative(this.folder, abspath);
-    if (GITIGNORED_BASENAMES[relpath]) {
+    if (doSkipFile(relpath)) {
       return;
     }
 
     const extname = path.extname(relpath);
 
     if (Asset.isDesignAsset(abspath)) {
+      dumpBase64Images(abspath, relpath, this.folder, this._watcher, true);
       this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -475,7 +482,7 @@ export default class Master extends EventEmitter {
 
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Added ${relpath}`), () => {
-        if (!_isFileSignificant(relpath)) {
+        if (!isFileSignificant(relpath)) {
           return;
         }
 
@@ -503,7 +510,7 @@ export default class Master extends EventEmitter {
 
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Removed ${relpath}`), () => {
-        if (!_isFileSignificant(relpath)) {
+        if (!isFileSignificant(relpath)) {
           return;
         }
 
@@ -582,11 +589,15 @@ export default class Master extends EventEmitter {
         return cb(err);
       }
       entries.forEach((entry) => {
+        const relpath = path.normalize(path.relative(this.folder, entry.path));
+        if (doSkipFile(relpath)) {
+          return;
+        }
         const extname = path.extname(entry.path);
         const basename = path.basename(entry.path);
-        const relpath = path.normalize(path.relative(this.folder, entry.path));
         const parts = relpath.split(path.sep);
         if (DESIGN_EXTNAMES[extname]) {
+          dumpBase64Images(entry.path, relpath, this.folder, this._watcher);
           this._knownLibraryAssets[relpath] = {relpath, abspath: entry.path, dtModified: Date.now()};
         } else if (parts[0] === 'code' && basename === 'code.js') { // Component bytecode file
           this._knownLibraryAssets[relpath] = {relpath, abspath: entry.path, dtModified: Date.now()};
