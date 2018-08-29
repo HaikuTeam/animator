@@ -35,5 +35,6 @@
   "ControlFlowIf": false,
   "ControlFlowRepeat": false,
   "ExpandTimelinePropertiesFromStageChanges": true,
-  "GlassControlPointShadows": false
+  "GlassControlPointShadows": false,
+  "DumpBase64Images": true
 }

@@ -44,6 +44,7 @@ export enum Experiment {
   ControlFlowRepeat = 'ControlFlowRepeat',
   ExpandTimelinePropertiesFromStageChanges = 'ExpandTimelinePropertiesFromStageChanges',
   GlassControlPointShadows = 'GlassControlPointShadows',
+  DumpBase64Images = 'DumpBase64Images',
 }
 
 /**

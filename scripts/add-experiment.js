@@ -12,7 +12,7 @@ if (args.length !== 1) {
 
 const experimentName = args[0];
 
-if (!/^([A-Z][a-z]*)+$/.test(experimentName)) {
+if (!/^([A-Z][a-z]*)+([A-Z0-9][a-z]*)+$/.test(experimentName)) {
   log.warn(`Invalid experiment name: ${experimentName}. Experiment names should be in StudlyCase.`);
   global.process.exit(1);
 }

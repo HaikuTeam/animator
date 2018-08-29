@@ -1,4 +1,5 @@
 import {ensureFileSync, existsSync, mkdirpSync, readFileSync, writeFileSync} from 'fs-extra';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 // @ts-ignore
 import {LOCKS} from 'haiku-serialization/src/bll/Lock';
 import * as path from 'path';
@@ -9,6 +10,8 @@ const BASE64_DELIMITER = ';base64,';
 const ASCII_ENCODING = 'ascii';
 const BASE64_ENCODING = 'base64';
 
+const doDumpBase64Images = experimentIsEnabled(Experiment.DumpBase64Images);
+
 export const dumpBase64Images = (
   abspath: string,
   relpath: string,
@@ -17,7 +20,7 @@ export const dumpBase64Images = (
   force = false,
 ) => {
   // Nothing to do if we're not looking at an SVG file.
-  if (path.extname(relpath) !== '.svg') {
+  if (!doDumpBase64Images || path.extname(relpath) !== '.svg') {
     return;
   }
 
