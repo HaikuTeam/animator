@@ -381,7 +381,7 @@ File.readMana = (folder, relpath, cb) => {
         const manaOptimized = xmlToMana(contents.data)
 
         if (!manaOptimized) {
-          return done(new Error(`We couldn't load the contents of ${relpath}`))
+          throw new Error(`We couldn't load the contents of ${relpath}`)
         }
 
         if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
