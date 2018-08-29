@@ -35,7 +35,6 @@ class RowManager extends React.PureComponent {
   renderComponentRow (row, prev) {
     // Cluster rows only display if collapsed, otherwise we show their properties
     const activeComponent = this.props.getActiveComponent();
-
     if (row.isClusterHeading() && !row.isExpanded()) {
       return (
         <ClusterRow

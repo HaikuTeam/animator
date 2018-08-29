@@ -166,6 +166,10 @@ class Element extends BaseModel {
     return this._isHovered
   }
 
+  isShimElement () {
+    return this.getSource() === '<shim>'
+  }
+
   select (metadata, softly = false) {
     if (this.isLocked()) return
 
@@ -900,6 +904,10 @@ class Element extends BaseModel {
     return elementName
   }
 
+  hasTitleAttribute () {
+    return !!this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE]
+  }
+
   getTitle () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
     return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || `<${this.getNameString()}>`
@@ -948,13 +956,12 @@ class Element extends BaseModel {
     const rows = []
 
     const headingRow = this.getHeadingRow()
-
     if (headingRow) {
       rows.push(headingRow)
 
       if (headingRow.children) {
         headingRow.children.forEach((childRow) => {
-          if (childRow.isClusterHeading() || childRow.isProperty()) {
+          if (childRow.isCluster() || childRow.isProperty()) {
             rows.push(childRow)
 
             if (childRow.children) {
@@ -970,41 +977,46 @@ class Element extends BaseModel {
     if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
       const descendants = []
       this.visitDescendants((descendantElement) => {
-        if (descendantElement.isTextNode() || !descendantElement.isTreeViewableType()) {
+        if (descendantElement.isTextNode() || !descendantElement.isTreeViewableType() || descendantElement.isShimElement()) {
           return
         }
         descendants.push(descendantElement)
       })
+      // debugger
 
       const deeprows = []
+      let currentParent = headingRow
       descendants.forEach((descendantElement) => {
-        const subrows = descendantElement.getHostedPropertyRows(false).filter((row) => {
-          return (
-            (row.isProperty() || row.isClusterHeading()) &&
-            Property.includeInAddressables(
-              row.getPropertyNameString(),
-              descendantElement,
-              row.property,
-              row.getKeyframesDescriptor()
-            )
-          )
-        })
+        const subrows = descendantElement
+          .getHostedPropertyRows(false)
+          .filter((row) => {
+            if (row.isHeading() && descendantElement.hasTitleAttribute()) {
+              currentParent = row
+              row.parent = headingRow
+              return true
+            }
 
-        // Hack: This ensures that the row displays according to its psuedo-parent's
-        // expand/collapse setting by ensuring that Row#isWithinCollapsedPropertyRows
-        // evaluates to true
-        subrows.forEach((subrow) => {
-          subrow.parent = headingRow
-        })
+            if (row.isCluster()) {
+              return true
+            }
+
+            if (
+              Property.includeInAddressables(
+                row.getPropertyNameString(),
+                descendantElement,
+                row.property,
+                row.getKeyframesDescriptor()
+              )
+            ) {
+              row.parent = currentParent
+              return true
+            }
+          })
 
         deeprows.push.apply(deeprows, subrows)
       })
 
-      // For super-complex elements that have craploads of inner primitives,
-      // don't include their rows; the user is expected to ungroup the element
-      if (deeprows.length <= 10) {
-        rows.push.apply(rows, deeprows)
-      }
+      rows.push.apply(rows, deeprows)
     }
 
     // Hack: Assign the host so that the timeline can identify elements that are listed
@@ -1149,6 +1161,7 @@ class Element extends BaseModel {
   }
 
   rehydrateChildren ({maxRehydrationDepth}) {
+    console.log('===== rehydrateChildren')
     const node = this.getStaticTemplateNode()
 
     if (typeof node.elementName === 'object') {
@@ -1916,30 +1929,29 @@ class Element extends BaseModel {
       const node = Template.cleanMana({
         elementName: 'svg',
         attributes: parentAttributes,
-        children: [
-          {
-            elementName: 'g',
-            attributes: Object.assign(
-              attributes,
-              {
-                transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
-              }
-            ),
-            children: [Object.assign(
-              {},
-              descendantHaikuElement.node,
-              {
-                attributes: Object.assign(
-                  {
-                    'haiku-transclude': descendantHaikuElement.getComponentId()
-                  },
-                  descendantHaikuElement.attributes
-                ),
-                children: []
-              }
-            )]
-          }
-        ]
+        children: [{
+          elementName: 'g',
+          attributes: Object.assign(
+            attributes,
+            {
+              transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`,
+              [HAIKU_SOURCE_ATTRIBUTE]: '<shim>'
+            }
+          ),
+          children: [Object.assign(
+            {},
+            descendantHaikuElement.node,
+            {
+              attributes: Object.assign(
+                {
+                  'haiku-transclude': descendantHaikuElement.getComponentId()
+                },
+                descendantHaikuElement.attributes
+              ),
+              children: []
+            }
+          )]
+        }]
       }, {resetIds: true})
 
       if (defs.length > 0) {

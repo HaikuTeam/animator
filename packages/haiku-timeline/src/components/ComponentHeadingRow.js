@@ -46,11 +46,13 @@ export default class ComponentHeadingRow extends React.Component {
     if (!this.mounted) {
       return null;
     }
+
     if (
       what === 'drag-group-start' ||
       what === 'drag-group-end' ||
       what === 'row-rehydrated' ||
-      what === 'element-locked-toggle'
+      what === 'element-locked-toggle' ||
+      what === 'row-expanded'
     ) {
       this.forceUpdate();
     }
@@ -61,7 +63,8 @@ export default class ComponentHeadingRow extends React.Component {
       (this.props.isExpanded ^ nextProps.isExpanded) ||
       (this.props.isHidden ^ nextProps.isHidden) ||
       (this.props.isSelected ^ nextProps.isSelected) ||
-      (this.props.hasAttachedActions ^ nextProps.hasAttachedActions)
+      (this.props.hasAttachedActions ^ nextProps.hasAttachedActions) ||
+      (this.props.timelinePropertiesWidth ^ nextProps.timelinePropertiesWidth)
     );
   }
 
@@ -117,23 +120,25 @@ export default class ComponentHeadingRow extends React.Component {
     }
   }
 
-  toggleSync () {
+  toggleSync = () => {
     const locked = !this.props.row.element.isSyncLocked();
     this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
       this.forceUpdate();
     });
-  }
+  };
 
-  toggleLock () {
+  toggleLock = () => {
     this.props.row.element.toggleLocked({from: 'timeline'}, () => {
       mixpanel.haikuTrack('creator:timeline:layer:lock-toggled');
     });
-  }
+  };
 
   render () {
     const componentId = this.props.row.element.getComponentId();
     const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK;
     const propertiesPixelWidth = this.props.timeline.getPropertiesPixelWidth();
+    const depth = this.props.row.getDepthAmongRows();
+    const backgroundColor = depth > 1 || this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY;
 
     return (
       <div
@@ -149,8 +154,8 @@ export default class ComponentHeadingRow extends React.Component {
           position: this.props.isExpanded ? 'sticky' : 'relative',
           float: this.props.isExpanded ? 'left' : undefined,
           width: this.props.isExpanded ? 100 : undefined,
-          left: this.props.isExpanded ? 4 : undefined,
-          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
+          left: 0,
+          backgroundColor,
           opacity: this.props.isHidden ? 0.75 : 1.0,
           zIndex: this.props.isExpanded ? zIndex.headingRowExpanded.base : undefined,
         }}>
@@ -161,10 +166,10 @@ export default class ComponentHeadingRow extends React.Component {
           left: 0,
           paddingLeft: this.props.row.isRootRow() ? (this.props.isExpanded ? 0 : 7) : (this.props.isExpanded ? 35 : 15),
           width: propertiesPixelWidth,
-          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
+          backgroundColor,
           zIndex: zIndex.headingRow.base,
         }}>
-          {!this.props.row.isRootRow() && !this.props.isExpanded &&
+          {!this.props.row.isRootRow() && !this.props.isExpanded && !depth > 1 &&
             <div
               style={{
                 marginTop: 3,
@@ -189,6 +194,7 @@ export default class ComponentHeadingRow extends React.Component {
               backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column',
+              paddingLeft: depth > 0 ? (27 * this.props.row.getDepthAmongRows()) : 0,
             }}>
             <div
               className="component-heading-row-inner-r1"
@@ -227,6 +233,7 @@ export default class ComponentHeadingRow extends React.Component {
                 onExpand={this.expandAndSelect}
               />
             </div>
+            {!depth > 1 &&
             <div
               className="component-heading-row-inner-r2"
               style={{
@@ -288,6 +295,7 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
             </div>
+          }
           </div>
         </div>
         {!this.props.isExpanded &&
@@ -302,7 +310,9 @@ export default class ComponentHeadingRow extends React.Component {
               component={this.props.component}
               timeline={this.props.timeline}
               rowHeight={this.props.rowHeight}
-              row={this.props.row} />
+              row={this.props.row}
+              backgroundColor={backgroundColor}
+              isNested={this.isNested}/>
           : ''}
         </div>
       }

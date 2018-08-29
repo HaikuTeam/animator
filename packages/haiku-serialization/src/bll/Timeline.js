@@ -357,6 +357,11 @@ class Timeline extends BaseModel {
     return this
   }
 
+  setPropertiesPixelWidth (value) {
+    this._propertiesPixelWidth = value
+    this.cache.unset('frameInfo')
+  }
+
   getPropertiesPixelWidth () {
     return this._propertiesPixelWidth
   }

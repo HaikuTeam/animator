@@ -486,25 +486,6 @@ class Row extends BaseModel {
     return this.property && this.property.type === 'state'
   }
 
-  isFirstRowOfSubElementSet () {
-    if (this.isHeading()) return true
-    const prev = this.prev()
-    if (!prev) return true
-    if (prev.element !== this.element) return true
-    if (prev.isHeading()) return true
-    if (prev.isClusterHeading()) {
-      return prev.isFirstRowOfSubElementSet()
-    }
-    return false
-  }
-
-  isLastRowOfSubElementSet () {
-    const next = this.next()
-    if (!next) return true
-    if (next.element !== this.element) return true
-    return false
-  }
-
   isFirstRowOfPropertyCluster () {
     return this.cluster && this.property && this.getIndexWithinParentRow() === 0
   }

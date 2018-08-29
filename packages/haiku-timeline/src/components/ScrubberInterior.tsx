@@ -40,7 +40,7 @@ export default class ScrubberInterior extends React.Component<ScrubberInteriorPr
       this.forceUpdate();
     } else if (what === 'time-display-mode-change') {
       this.forceUpdate();
-    } else if (what === 'timeline-scroll' || 'timeline-scroll-from-scrollbar') {
+    } else if (what === 'timeline-scroll' || what === 'timeline-scroll-from-scrollbar') {
       this.forceUpdate();
     }
   };
@@ -60,7 +60,8 @@ export default class ScrubberInterior extends React.Component<ScrubberInteriorPr
           marginTop: -45,
           zIndex: zIndex.scrubber.base,
           fontSize: 10,
-        }}>
+        }}
+      >
         <div
           style={{
             position: 'absolute',
@@ -124,7 +125,8 @@ export default class ScrubberInterior extends React.Component<ScrubberInteriorPr
             pointerEvents: 'none',
             willChange: 'transform',
             transform: `translate3D(${translation}px, 0, 0)`,
-          }} />
+          }}
+        />
       </div>
     );
   }
