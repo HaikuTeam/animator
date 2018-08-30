@@ -110,7 +110,7 @@ pipeline {
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'HOURS') {
                     script {
-                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
+                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: (env.ghprbSourceBranch =~ /^rc-\d+\.\d+\.\d+P$/) ? env.ghprbSourceBranch.replace('rc-', '') : '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
                     }
                     setBuildStatus(CONTEXT_BUILD, 'builds started', STATUS_PENDING)
                 }
