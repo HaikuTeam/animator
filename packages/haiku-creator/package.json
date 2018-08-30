@@ -2,7 +2,7 @@
   "name": "haiku-creator",
   "productName": "Haiku",
   "private": true,
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Haiku Creator UI",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@babel/parser": "^7.0.0",
-    "@haiku/core": "4.1.0",
+    "@haiku/core": "4.1.1",
     "@haiku/taylor-creatorintro": "^0.0.5",
     "@haiku/taylor-hai": "^0.0.7",
     "@haiku/taylor-ipreview2": "^0.0.2",
@@ -32,12 +32,12 @@
     "event-emitter": "^0.3.5",
     "fs-extra": "^4.0.2",
     "fast-safe-stringify": "^2.0.4",
-    "haiku-common": "4.1.0",
-    "haiku-glass": "4.1.0",
-    "haiku-sdk-creator": "4.1.0",
-    "haiku-serialization": "4.1.0",
-    "haiku-timeline": "4.1.0",
-    "haiku-ui-common": "4.1.0",
+    "haiku-common": "4.1.1",
+    "haiku-glass": "4.1.1",
+    "haiku-sdk-creator": "4.1.1",
+    "haiku-serialization": "4.1.1",
+    "haiku-timeline": "4.1.1",
+    "haiku-ui-common": "4.1.1",
     "inline-style-prefixer": "2.0.5",
     "lodash": "^4.17.4",
     "lodash.assign": "^4.2.0",
@@ -81,6 +81,6 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "4.1.0"
+    "haiku-testing": "4.1.1"
   }
 }

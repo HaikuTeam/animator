@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 4.1.0
+
+### Bug Fixes
+
+ * git-subtree-push without errors.
+ * actually disable tooltips on actions submit button
+ * disable tooltips on actions editor submit button
+
 ## 4.0.0
 
 ### Bug Fixes
