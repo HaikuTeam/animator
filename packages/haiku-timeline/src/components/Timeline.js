@@ -1776,11 +1776,6 @@ class Timeline extends React.Component {
           onNavigateRequested={(navDir, doFocus) => {
             this.getActiveComponent().focusSelectNext(navDir, doFocus, {from: 'timeline'});
           }} />
-        <PostMaxKeyframeArea
-          propertiesPixelWidth={propertiesPixelWidth}
-          timeline={timeline}
-          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
-        />
       </div>
     );
   }
