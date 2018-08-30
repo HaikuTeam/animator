@@ -62,10 +62,13 @@ openSourcePackages.forEach((pack) => {
 });
 cp.execSync('node ./scripts/git-subtree-push.js --package=changelog', processOptions);
 // Pull standalone remotes once more, so that we don't hit conflicts the next time we have to pull.
+cp.execSync('git clean -df', processOptions);
+cp.execSync('git reset --hard', processOptions);
 cp.execSync('node ./scripts/git-subtree-pull.js --package=all', processOptions);
 
 // If we got this far, everything worked and we should close this pull request. If any of these steps fail,
 // we may need to roll back subtree splits.
 cp.execSync('git checkout master', processOptions);
-cp.execSync(`git merge ${branch}`, processOptions);
+cp.execSync('git pull', processOptions);
+cp.execSync(`git merge ${branch} -m 'auto: merge'`, processOptions);
 cp.execSync('git push -u origin master --tags', processOptions);
