@@ -4,7 +4,8 @@
     "What's new": [
       "Creating a component with the + sign now always creates an empty component.",
       "Reduced the footprint of @haiku/core by 30KB (3KB minified and gzipped).",
-      "We added some helpful tooltips throughout the app."
+      "We added some helpful tooltips throughout the app.",
+      "Generally improved app performance and stability for large projects."
     ],
     "Fixes": [
       "Greatly improved the performance of Haiku when working with large or complex SVGs.",
@@ -13,7 +14,8 @@
       "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped.",
       "@haiku/cli now uses configured proxy settings.",
       "In @haiku/core, fixed a regression affecting ID-based selectors in bytecode.",
-      "Fixed action button color when element has action"
+      "Fixed action button color when element has action",
+      "Action editor auto completer got smarter and now replaces correct text."
     ],
     "Breaking changes": [
       "String templates are officially deprecated. This is not expected to affect any Haiku users."

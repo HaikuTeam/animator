@@ -506,7 +506,10 @@ export default class Creator extends React.Component {
     }
   }
 
-  explorePro = () => {
+  explorePro = (source) => {
+    if (source) {
+      mixpanel.haikuTrack(`creator:upgrade-cta-click:${source}`);
+    }
     shell.openExternal(getAccountUrl('checkout'));
   };
 
@@ -808,7 +811,13 @@ export default class Creator extends React.Component {
       ipcRenderer.on('global-menu:save-as', (_, extension, request) => {
         exporterChannel.checkOfflinePrivileges().then((allowOffline) => {
           if (!allowOffline) {
-            this.setState({showOfflineExportUpgradeModal: true});
+            this.setState({
+              showOfflineExportUpgradeModal: true,
+              offlineExportUpgradeModalMetadata: {
+                extension,
+                framerate: request.framerate,
+              },
+            });
             return;
           }
 
@@ -1075,7 +1084,7 @@ export default class Creator extends React.Component {
   setInteractionMode (interactionMode) {
     if (this.state.projectModel) {
       logger.time('projectModel.setInteractionMode');
-      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
+      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator', integrity: false}, () => {
         logger.timeEnd('projectModel.setInteractionMode');
       });
     }
@@ -1832,6 +1841,7 @@ export default class Creator extends React.Component {
           this.setState({showOfflineExportUpgradeModal: false});
         }}
         explorePro={this.explorePro}
+        metadata={this.state.offlineExportUpgradeModalMetadata}
       />
     ) : null;
   }

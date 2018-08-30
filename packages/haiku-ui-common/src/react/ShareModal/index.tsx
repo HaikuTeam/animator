@@ -33,7 +33,7 @@ export interface ShareModalProps {
   folder: string;
   mixpanel: any;
   urls: HaikuShareUrls;
-  explorePro: () => void;
+  explorePro: (source?: string) => void;
   privateProjectCount: number;
   privateProjectLimit: number;
   supportOfflineExport: boolean;
@@ -122,6 +122,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
     }
 
     if (this.shouldDisablePrivate) {
+      this.props.mixpanel.haikuTrack('creator:upgrade-cta-shown:publish-modal-toggle');
       this.setState({shouldShowPrivateWarning: true});
       return;
     }

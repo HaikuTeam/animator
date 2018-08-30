@@ -18,7 +18,10 @@ function buildRequireStatement (identifier, modpath) {
         },
         arguments: [{
           type: 'StringLiteral',
-          value: modpath
+          value: modpath,
+          extra: {
+            raw: `"${modpath}"`
+          }
         }]
       }
     }]
@@ -48,6 +51,8 @@ module.exports = function bytecodeObjectToAST (
     program: {
       type: 'Program',
       directives: [],
+      sourceType: 'module',
+      interpreter: null,
       body: buildRequireStatementsFromImports(imports)
         .concat(frontMatterNodes)
         .concat([

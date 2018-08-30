@@ -1,3 +1,5 @@
+// @ts-ignore
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
@@ -79,14 +81,16 @@ export interface PublicPrivateOptInModalProps {
   onToggle: () => void;
   onContinue: () => void;
   onClose: () => void;
-  explorePro: () => void;
+  explorePro: (source?: string) => void;
   privateProjectCount: number;
   privateProjectLimit: number;
 }
 
+const SOURCE = 'public-private-opt-in-modal';
+
 export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOptInModalProps> {
   private initiallyPrivate = false;
-  get shouldDisablePrivate () {
+  private get shouldDisablePrivate () {
     return !this.initiallyPrivate &&
       this.props.privateProjectLimit !== null &&
       this.props.privateProjectCount >= this.props.privateProjectLimit;
@@ -95,6 +99,16 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
   constructor (props: PublicPrivateOptInModalProps) {
     super(props);
     this.initiallyPrivate = !props.isPublic;
+  }
+
+  private explorePro = () => {
+    this.props.explorePro(SOURCE);
+  };
+
+  componentDidMount () {
+    if (this.shouldDisablePrivate) {
+      mixpanel.haikuTrack(`creator:upgrade-cta-shown:${SOURCE}`);
+    }
   }
 
   render () {
@@ -151,7 +165,7 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
                 </span>
               </div>
               <div>Upgrade for unlimited private projects and pro features.</div>
-              <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
+              <span onClick={this.explorePro} style={STYLES.btnSecondary}>Go Pro
                   <span
                     style={{
                       width: 11,

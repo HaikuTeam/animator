@@ -4,7 +4,6 @@ const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').defa
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const parseCode = require('./../ast/parseCode')
-const generateCode = require('./../ast/generateCode')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
@@ -57,7 +56,15 @@ class AST extends BaseModel {
   }
 
   toCode () {
-    return prettier.format(generateCode(this.obj))
+    // Prettier doesn't expose a public API that would allow us to "cheat" elegantly, but…
+    return prettier.format(
+      // …as long as we pass in some nonempty string…
+      '()=>{}',
+      {
+        // …we can bypass an extra AST parse step from generated code and return our AST direcetly.
+        parser: () => this.obj
+      }
+    )
   }
 }
 

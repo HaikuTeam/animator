@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Parser} from 'cst';
+import {parse} from '@babel/parser';
 import {EVALUATOR_STATES} from './constants';
 import Palette from 'haiku-ui-common/lib/Palette';
 
@@ -34,16 +34,18 @@ class SyntaxEvaluator extends React.PureComponent {
 
   componentWillUpdate ({evaluate}) {
     const evaluator = this.getDefaultEvaluator();
-    const parser = new Parser({
-      sourceType: 'script',
-      strictMode: true,
-      allowReturnOutsideFunction: true,
-    });
 
     try {
       // Force strict mode on the block of code to be evaluated
       const strictEvaluate = '"use strict";' + evaluate;
-      parser._parseAst(strictEvaluate);
+      parse(
+        strictEvaluate,
+        {
+          sourceType: 'script',
+          strictMode: true,
+          allowReturnOutsideFunction: true,
+        },
+      );
     } catch (exception) {
       evaluator.text = exception.message;
       evaluator.state = EVALUATOR_STATES.ERROR;

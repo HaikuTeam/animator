@@ -1,10 +1,9 @@
-var babylon = require('babylon')
+const {parse} = require('@babel/parser')
 
 function parseCode (code, options) {
   try {
-    var parsed = babylon.parse(code, options || {
-      sourceType: 'module',
-      plugins: ['jsx']
+    var parsed = parse(code, options || {
+      sourceType: 'module'
     })
     return parsed
   } catch (exception) {

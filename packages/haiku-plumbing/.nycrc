@@ -3,7 +3,8 @@
     ".ts"
   ],
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.js"
   ],
   "reporter": [
     "istanbul-reporter-cobertura-haiku",
