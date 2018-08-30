@@ -763,7 +763,7 @@ class Timeline extends BaseModel {
     )
   }
 
-  zoomByLeftAndRightEndpoints (left, right) {
+  zoomByLeftAndRightEndpoints (left, right, fromScrollbar = false) {
     const frameInfo = this.getFrameInfo()
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
@@ -778,7 +778,13 @@ class Timeline extends BaseModel {
     }
 
     this.setVisibleFrameRange(leftTotal, rightTotal)
-    this.setScrollLeft(leftTotal * this.getFrameInfo().pxpf)
+
+    const scrollValue = leftTotal * frameInfo.pxpf
+    if (fromScrollbar) {
+      this.setScrollLeftFromScrollbar(scrollValue)
+    } else {
+      this.setScrollLeft(scrollValue)
+    }
   }
 
   changeVisibleFrameRange (xl, xr) {
