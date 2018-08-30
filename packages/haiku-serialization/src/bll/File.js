@@ -119,7 +119,6 @@ class File extends BaseModel {
   }
 
   updateContents (contents) {
-    this.previous = this.contents
     this.contents = contents
   }
 
@@ -135,7 +134,7 @@ class File extends BaseModel {
   }
 
   flushContent () {
-    this.trackContentsAndGetCode() // <~ Populates this.contents and this.previous
+    this.trackContentsAndGetCode() // <~ Populates this.contents
 
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
@@ -144,16 +143,13 @@ class File extends BaseModel {
 
     this.assertContents(this.contents)
 
-    // Assumes this.trackContentsAndGetCode() set this.previous!
-    this.maybeLogDiff(this.previous, this.contents)
-
     return this.write((err) => {
       if (err) throw err
     })
   }
 
   flushContentForceSync () {
-    this.trackContentsAndGetCode() // <~ Populates this.contents and this.previous
+    this.trackContentsAndGetCode() // <~ Populates this.contents
 
     this.writeSync()
   }
@@ -182,18 +178,6 @@ class File extends BaseModel {
     // Returns truthy for "", " ", "   \n ", etc.
     if (contents.match(/^\s*$/)) {
       throw new Error(`Code was blank ${this.getAbspath()}`)
-    }
-  }
-
-  maybeLogDiff (previous, contents) {
-    if (!this.options.skipDiffLogging) {
-      if (this.isCode()) {
-        // Diffs of 'snapshots' or bundled code are usually fairly useless to show and too long anyway.
-        // These files are written as part of the save process
-        if (!_looksLikeMassiveFile(this.relpath)) {
-          logger.diff(previous, contents, { relpath: this.relpath })
-        }
-      }
     }
   }
 
@@ -381,7 +365,7 @@ File.readMana = (folder, relpath, cb) => {
         const manaOptimized = xmlToMana(contents.data)
 
         if (!manaOptimized) {
-          return done(new Error(`We couldn't load the contents of ${relpath}`))
+          throw new Error(`We couldn't load the contents of ${relpath}`)
         }
 
         if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
@@ -407,10 +391,6 @@ File.readMana = (folder, relpath, cb) => {
 
 const _isFileCode = (relpath) => {
   return path.extname(relpath) === '.js'
-}
-
-const _looksLikeMassiveFile = (relpath) => {
-  return relpath.match(/\.(standalone|bundle|embed)\.(js|html)$/)
 }
 
 module.exports = File

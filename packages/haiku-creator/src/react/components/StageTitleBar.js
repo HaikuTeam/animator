@@ -608,7 +608,17 @@ class StageTitleBar extends React.Component {
   }
 
   getEventHandlersEditorButtonColor () {
-    return Palette.ROCK;
+    const proxy = this.fetchProxyElementForSelection();
+
+    if (proxy) {
+      if (proxy.doesManageSingleElement() || proxy.hasNothingInSelection()) {
+        const element = this.getProxySelectionElement();
+
+        if (element && element.hasVisibleEventHandlers()) {
+          return Color(Palette.LIGHT_BLUE).lighten(0.37);
+        }
+      }
+    }
   }
 
   render () {
@@ -650,7 +660,6 @@ class StageTitleBar extends React.Component {
         {this.isAlignPanelAvailable() && <AlignToolBox
           websocket={this.props.websocket}
           projectModel={this.props.projectModel}
-          getEventHandlersEditorButtonColor={this.getEventHandlersEditorButtonColor}
         />}
 
         {experimentIsEnabled(Experiment.CodeEditor) &&

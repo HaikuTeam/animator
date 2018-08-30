@@ -7,10 +7,13 @@
       "We added some helpful tooltips throughout the app."
     ],
     "Fixes": [
+      "Greatly improved the performance of Haiku when working with large or complex SVGs.",
+      "Fixed several app stability issues affecting the ability to merge in design changes from Sketch/Illustrator/Figma.",
       "Fixed an issue where the cancel button did not always close the action editor.",
       "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped.",
       "@haiku/cli now uses configured proxy settings.",
-      "In @haiku/core, fixed a regression affecting ID-based selectors in bytecode."
+      "In @haiku/core, fixed a regression affecting ID-based selectors in bytecode.",
+      "Fixed action button color when element has action"
     ],
     "Breaking changes": [
       "String templates are officially deprecated. This is not expected to affect any Haiku users."

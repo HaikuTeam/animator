@@ -13,11 +13,6 @@
   },
   "options": {},
   "states": {},
-  "eventHandlers": {
-    "haiku:e4a9e4d8baa7": {
-      "timeline:Default:360": {}
-    }
-  },
   "timelines": {
     "Default": {
       "haiku:e4a9e4d8baa7": {

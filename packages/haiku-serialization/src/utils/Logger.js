@@ -1,7 +1,6 @@
 const path = require('path')
 const winston = require('winston')
 const jsonStringify = require('fast-safe-stringify')
-const Differ = require('./Differ')
 const Transport = require('winston-transport')
 const EventEmitter = require('events')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
@@ -47,8 +46,6 @@ const DEFAULTS = {
   colorize: true
 }
 
-const MAX_DIFF_LOG_LEN = 10000
-
 const useAdvancedLoggingFeatures = experimentIsEnabled(Experiment.SendLogMessagesToPlumbing)
 
 class LogForwarderTransport extends Transport {
@@ -84,8 +81,6 @@ class LogForwarderTransport extends Transport {
 class Logger extends EventEmitter {
   constructor (folder, relpath, options = {}) {
     super(options)
-
-    this.differ = new Differ()
 
     const config = Object.assign({}, DEFAULTS, options)
 
@@ -162,28 +157,6 @@ class Logger extends EventEmitter {
 
   error (...args) {
     this.logger.error(args, {view: this.view})
-  }
-
-  diff (previous, current, options = {}) {
-    if (!previous || previous.length < 1) {
-      this.info(`[differ] ${options.relpath}: no previous content`.grey)
-    } else if (!current || current.length < 1) {
-      this.info(`[differ] ${options.relpath}: no current content`.grey)
-    } else if (current === previous) {
-      this.info(`[differ] ${options.relpath}: current equal`.grey)
-    } else {
-      this.info(`[differ] ${options.relpath}:\n`.grey)
-      this.differ.set(previous, current)
-      const deltas = this.differ.deltas()
-      deltas.forEach((delta) => {
-        if (delta.value.length <= MAX_DIFF_LOG_LEN) {
-          let color = (delta.added) ? 'green' : ((delta.removed) ? 'red' : 'grey')
-          if (color !== 'grey') this.logger.info(delta.value[color], {view: this.view, noFormat: true})
-        } else {
-          this.info(`[differ] delta too long`.grey)
-        }
-      })
-    }
   }
 
   /**

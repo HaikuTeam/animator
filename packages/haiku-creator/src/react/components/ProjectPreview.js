@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as fs from 'fs';
 import * as Module from 'module';
 import * as React from 'react';
@@ -176,12 +177,6 @@ class ProjectPreview extends React.Component {
     );
   }
 }
-
-const ensureTrailingSlash = (str) => {
-  return (str[str.length - 1] === '/')
-    ? str
-    : `${str}/`;
-};
 
 ProjectPreview.propTypes = {
   bytecodePath: React.PropTypes.string.isRequired,

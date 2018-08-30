@@ -65,10 +65,6 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   masterHeartbeat: true,
 };
 
-// Use for any methods whose parameters expose sensitive info in the logs, use keys
-// for method names and values for the list of param indices you don't want to log.
-const METHODS_WITH_SENSITIVE_INFO = {};
-
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   masterHeartbeat: true,

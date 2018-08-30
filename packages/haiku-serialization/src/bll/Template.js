@@ -33,7 +33,6 @@ const TEMPLATE_METADATA_ATTRIBUTES = {
   standalone: true,
   xmlns: true,
   'xmlns:xlink': true,
-  'xlink:href': true, // A recent addition. Better kept in tree, or as property?
   lang: true,
   charset: true,
   content: true,
@@ -257,73 +256,6 @@ Template.manaWithOnlyStandardProps = (mana, doOmitSubcomponentBytecode = true, r
   } else if (typeof mana === 'string') {
     return mana
   }
-}
-
-Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
-  const referenceRandomizer = `${identifier}-${modpath.replace(/\W+/g, '-')}`
-
-  const timelines = Template.prepareManaAndBuildTimelinesObject(
-    mana,
-    referenceRandomizer,
-    'Default',
-    0,
-    {
-      doHashWork: true,
-      title: options.title
-    }
-  )
-
-  const states = {}
-
-  Timeline.eachTimelineKeyframeDescriptor(timelines, (keyframeDescriptor, keyframeMs, propertyName, componentSelector, timelineName) => {
-    const elementNode = Element.querySelectorAll(componentSelector, mana)[0]
-
-    if (Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE[propertyName]) {
-      // We don't need to do anything - the property is already in the timeline!
-    } else {
-      // For certain hidden elements we don't want to hoist the content, since it's just metadata/noise
-      if (propertyName === 'content') {
-        if (!Property.TEXT_FRIENDLY_SVG_ELEMENTS[elementNode.elementName] && !Property.TEXT_FRIENDLY_HTML_ELEMENTS[elementNode.elementName]) {
-          return null
-        }
-      }
-
-      // If a coloration is listed as 'none', it's probably not worth exposing due to noise
-      if (propertyName === 'fill' || propertyName === 'stroke') {
-        if (keyframeDescriptor.value === 'none') {
-          return null
-        }
-      }
-
-      const stateName = State.buildStateNameFromElementPropertyName(0, states, elementNode, propertyName)
-
-      const stateDescriptor = State.recast({
-        value: Template.fixKeyframeValue(elementNode, propertyName, keyframeDescriptor.value),
-        access: Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE[propertyName] ? 'private' : 'public'
-      })
-
-      states[stateName] = stateDescriptor
-
-      keyframeDescriptor.value = Expression.buildStateInjectorFunction(stateName)
-    }
-  })
-
-  const bytecode = {
-    metadata: {
-      uuid: 'HAIKU_SHARE_UUID',
-      root: 'HAIKU_CDN_PROJECT_ROOT',
-      type: 'haiku',
-      name: identifier,
-      relpath: modpath
-    },
-    options: {},
-    states,
-    eventHandlers: {},
-    timelines,
-    template: mana
-  }
-
-  return bytecode
 }
 
 Template.manaTreeToDepthFirstArray = function manaTreeToDepthFirstArray (arr, mana) {
@@ -1135,7 +1067,3 @@ module.exports = Template
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Element = require('./Element')
-const Expression = require('./Expression')
-const Property = require('./Property')
-const State = require('./State')
-const Timeline = require('./Timeline')

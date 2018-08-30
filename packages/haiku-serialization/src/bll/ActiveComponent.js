@@ -15,6 +15,7 @@ const Layout3D = require('@haiku/core/lib/Layout3D')
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
 const CryptoUtils = require('./../utils/CryptoUtils')
+const ensureTrailingSlash = require('../utils/ensureTrailingSlash')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
@@ -1730,13 +1731,22 @@ class ActiveComponent extends BaseModel {
       return cb()
     }
 
+    // Check which sources are actually being used in instantiated components.
+    const usedSources = new Set()
+    Template.visitWithoutDescendingIntoSubcomponents(bytecode.template, (existingNode) => {
+      // Only merge into any that match our source design path
+      if (existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+        usedSources.add(existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE])
+      }
+    })
+
     // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
     return async.eachSeries(designsAsArray, (relpath, next) => {
-      if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
+      if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath) && usedSources.has(path.posix.normalize(relpath))) {
         return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
           // There may be a race where a file is removed before this gets called;
           // and in that case we need to skip this whole subroutine (simply don't
-          // touch whatever designs may have been instantiated
+          // touch whatever designs may have been instantiated).
           if (err || !mana) {
             return next()
           }
@@ -1747,7 +1757,7 @@ class ActiveComponent extends BaseModel {
           return next()
         })
       } else {
-        return next(new Error(`Problem merging ${relpath}`))
+        return next()
       }
     }, (err, out) => {
       if (err) return cb(err)
@@ -4681,12 +4691,6 @@ ActiveComponent.buildPrimaryKey = (folder, scenename) => {
   // The ideal solution would be use something else to buildPrimaryKey such as
   // organizationName + projectName + scenename
   return folder.replace(/\\/g, '/') + '::' + scenename
-}
-
-const ensureTrailingSlash = (str) => {
-  return (str[str.length - 1] === '/')
-    ? str
-    : `${str}/`
 }
 
 module.exports = ActiveComponent

@@ -22,33 +22,6 @@
       "value": false
     }
   },
-  "eventHandlers": {
-    "haiku:cf0a91dca2c6": {
-      "click": {}
-    },
-    "haiku:4359f1252d70": {
-      "click": {},
-      "timeline:Default:32": {},
-      "timeline:Default:132": {},
-      "timeline:Default:297": {}
-    },
-    "haiku:e2107692c018": {
-      "mouseup": {}
-    },
-    "haiku:9ea8d8a2afa6": {
-      "mouseup": {}
-    },
-    "haiku:7618d3f02ab2": {
-      "mouseup": {}
-    },
-    "haiku:266a4c737675": {
-      "mouseup": {}
-    },
-    "haiku:8e12c31048ec": {
-      "timeline:Default:130": {},
-      "timeline:Default:409": {}
-    }
-  },
   "timelines": {
     "Default": {
       "haiku:8e12c31048ec": {

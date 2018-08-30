@@ -36,7 +36,6 @@
     "cst": "^0.4.10",
     "decamelize": "^1.2.0",
     "dedent": "^0.7.0",
-    "diff": "3.2.0",
     "es-strip-semicolons": "1.0.9",
     "esformatter": "0.10.0",
     "esformatter-jsx": "7.4.1",

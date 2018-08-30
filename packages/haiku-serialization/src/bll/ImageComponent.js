@@ -27,7 +27,7 @@ class ImageComponent extends BaseModel {
   }
 
   getLocalHref () {
-    return `HAIKU_LOCAL_PROJECT_ROOT:${path.normalize(this.relpath)}`
+    return `web+haikuroot://${path.normalize(this.relpath)}`
   }
 
   queryImageSize (cb) {

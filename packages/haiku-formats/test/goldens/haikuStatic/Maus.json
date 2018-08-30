@@ -5,10 +5,6 @@
   },
   "options": {},
   "states": {},
-  "eventHandlers": {
-    "haiku:03757d2ca102": {},
-    "haiku:4e06e78c9bf1": {}
-  },
   "timelines": {
     "Default": {
       "haiku:03757d2ca102": {

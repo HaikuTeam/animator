@@ -1245,6 +1245,9 @@ export default class Creator extends React.Component {
       organization: this.state.organizationName,
     });
 
+    // Async: ensure our web+haikuroot:// URLs work as expected.
+    ipcRenderer.send('protocol:register', projectObject.projectPath);
+
     return this.props.websocket.request({method: 'bootstrapProject', params: [projectObject]}, (err) => {
       if (err) {
         return this.onProjectLaunchError();
@@ -1698,6 +1701,7 @@ export default class Creator extends React.Component {
   }
 
   teardownMaster ({shouldFinishTour}, cb) {
+    ipcRenderer.send('protocol:unregister');
     this.setState({tearingDown: true});
     // Delete identifier not found notice on teardown
     this.deleteIdentifierNotFoundNotice();

@@ -18,6 +18,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * Essentially replaces all non-scalar timeline values with the equivalent scalar value of edit mode.
    */
   private parseBytecode () {
+    delete this.bytecode.eventHandlers;
     this.visitAllTimelineProperties((timeline, property) => {
       const timelineProperty = timeline[property];
       for (const keyframe in timelineProperty) {
