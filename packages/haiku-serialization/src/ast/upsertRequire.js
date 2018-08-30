@@ -40,7 +40,7 @@ module.exports = function upsertRequire (ast, identifierName, modulePath) {
             type: 'StringLiteral',
             value: modulePath,
             extra: {
-              raw: `"${modulePath}"`
+              raw: JSON.stringify(modulePath)
             }
           }
         ]

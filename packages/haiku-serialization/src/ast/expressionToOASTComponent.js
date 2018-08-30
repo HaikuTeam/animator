@@ -17,7 +17,7 @@ function expressionToOASTComponent (exp, key, keyChain) {
       type: 'StringLiteral',
       value: exp,
       extra: {
-        raw: `"${exp.replace('"', '\\"')}"`
+        raw: JSON.stringify(exp)
       }
     }
   }

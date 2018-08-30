@@ -20,7 +20,7 @@ function buildRequireStatement (identifier, modpath) {
           type: 'StringLiteral',
           value: modpath,
           extra: {
-            raw: `"${modpath}"`
+            raw: JSON.stringify(modpath)
           }
         }]
       }

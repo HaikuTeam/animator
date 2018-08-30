@@ -26,7 +26,7 @@ module.exports = function wrapInHaikuInject (node) {
         // but we still want to refer to its original name in the injectees list
         value,
         extra: {
-          raw: `"${value}"`
+          raw: JSON.stringify(value)
         }
       }
     }))
