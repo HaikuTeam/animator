@@ -426,8 +426,7 @@ class EventHandlerEditor extends React.PureComponent {
                   this.doSave();
                   this.doClose();
                 }}
-                data-tooltip={true}
-                aria-label={
+                title={
                   this.state.editorWithErrors
                     ? 'an event handler has a syntax error'
                     : ''
