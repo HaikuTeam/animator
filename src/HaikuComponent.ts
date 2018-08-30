@@ -1380,7 +1380,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                   )
                 )
               ) {
-                if (typeof computedValue === 'string') {
+                if (typeof computedValue === 'string' && !this.config.hotEditingMode) {
                   computedValue = this.maybeRewriteString(
                     computedValue,
                     propertyName,
