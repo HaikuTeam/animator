@@ -400,7 +400,14 @@ class ActiveComponent extends BaseModel {
 
   htmlSnapshot (cb) {
     const html = this.getMountHTML()
-    return cb(null, pretty(html))
+    return cb(
+      null,
+      // Hack: when we exit hot editing mode, ensure that URLs will display correctly on the local machine.
+      pretty(html).replace(
+        /web\+haikuroot:\/\//g,
+        ensureTrailingSlash(this.project.getFolder())
+      )
+    )
   }
 
   setCurrentTimelineFrameValue (frame) {
