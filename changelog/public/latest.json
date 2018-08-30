@@ -19,7 +19,10 @@
       "Creating a component using the Toolbar or Library menus now creates an empty component.",
       "When creating a component, only the states used by expressions applied to its elements are cloned to the subcomponent.",
       "Fixed bugs with Hover/Unhover Actions when attached across nested component instances.",
-      "Fixed a bug preventing the States panel from updating when double clicking to edit a component."
+      "Fixed a bug preventing the States panel from updating when double clicking to edit a component.",
+      "Fixed action button color when element has action",
+      "Action editor auto completer got smarter and now replaces correct text.",
+      "Fixed issues related to timeline scroll"
     ],
     "Breaking changes": [
       "String templates are officially deprecated. This is not expected to affect any Haiku users."
