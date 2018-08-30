@@ -726,8 +726,8 @@ class Timeline extends BaseModel {
         const frameInfo = this.getFrameInfo()
         const pixelsToMove = 40
         const framesToMove = pixelsToMove / frameInfo.pxpf
-        this.setMaxFrame(this.getMaxFrame() + framesToMove)
         this._scrollLeft = maxScrollValue
+        this.setMaxFrame(this.getMaxFrame() + framesToMove)
       } else {
         this._scrollLeft = scrollValue
       }

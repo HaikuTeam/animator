@@ -994,6 +994,7 @@ export default class ExpressionInput extends React.Component {
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
       zIndex: zIndex.expressionInput.base,
+      marginRight: 0,
     });
 
     if (this.props.component.getFocusedRow()) {
