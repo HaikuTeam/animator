@@ -7639,5 +7639,142 @@
       "label": "fix",
       "message": "do not thrash envoy with project list requests when offline."
     }
+  },
+  "4.0.0": {
+    "fcf1df0861b6d96f1d84c52d8d1c519451760d38": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not rewrite strings in hot editing mode"
+    },
+    "84abe0bebfbb2a2ba36dca6976191e7e648f6b4e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash app when fileFromDropEvent.getAsFile() returns null"
+    },
+    "28ce75a6ea17acf651751d5b7e490ec1e18b6120": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not hang publish in bodymovin export."
+    },
+    "5cedebb182ad359c70dd06131cacc09ec2fb6916": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not bork AST on StringLiterals."
+    },
+    "f1f626e299d6e4a8ab39784bc48cd1d893697712": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "parse event handlers correctly."
+    },
+    "ad3d10385c4741b26bfd5d59e78df1afa3375750": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not use an invisible chevron to add extra indentation"
+    },
+    "7e49cd4c232181858ee7a0cd9bd30b379ffc4682": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use 'data-tooltip' instead of 'aria-label' for tooltips"
+    },
+    "ad1e4c9ca024718659bc6bb83e615f5bbec1d2f7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove extra elements causing overflow issues on timeline"
+    },
+    "623f8678abd9dc03e46de2ee6858de6723b87f40": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent scrolling when zooming from timeline range scrollbar"
+    },
+    "16fe35bee85abfe2e516c024664b475624f4a16f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "handle more automatic conflict resolution edge cases."
+    },
+    "94d9895abe0b3685b109120b8629b929f50f9efd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "strip eventHandlers during HaikuStatic export to ensure we can stringify the result."
+    },
+    "861129487cf34f279a0963be2c0668ee7e00edfe": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "support large raster images by hoisting to assets/CDN"
+    },
+    "ed6461cf3053169b73af6c661e756051334cc6c0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure state panel switches when switching ac context from stage (791902428772121)"
+    },
+    "406a6215ba4af6959d9248d3e5eab4db9b92dfc3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure hover/unhover work correctly through nested components"
+    },
+    "df8ebb9d0ac7e2e28467d370ccd23cc27c10625f": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "When creating subcopmonents, only states used by the elements are copied to the subcomponent"
+    },
+    "542a9ea0d317d678580607baa13ab1e3d382b504": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure ID-based selectors work in migration path."
+    },
+    "5540815dbc586e375db160f09cd3fbb4bd9337c4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable distributing single elements"
+    },
+    "f63deda520006be634e31d885d533767d0a5ad64": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure lint command preserves original env."
+    },
+    "553cf6a6a8204fc6a654e388d87af39a641f936e": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "The button to create a blank component no longer automatically instantiates the new component in the host component"
+    },
+    "efeeee93742e8ddf527c5029bf127d405bd5cf88": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure opacity is preserved in ungroup edge cases"
+    },
+    "bc52d3e3be62c5f1e7dacb3cdae2ea7c96b7d9dd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure SVGs have overflow"
+    },
+    "5f3853187d4d47c49b85baa89301459b166956f0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure tiny elements remain visible upon ungroup."
+    },
+    "a3e7c0f3cf47060a8c8299f168ae0f4cbd204bcc": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "allow manual high-quality GIF export for pro users via TopMenu."
+    },
+    "af5d4d3b0c60f1aac038d4d1b52a8728a64aa5ba": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure @haiku/cli reads from ~/.haiku/.env."
+    },
+    "3439d3ab40d5f2b69d9477a34162a38f8fe06e25": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "unselect all elements before creating a component from the + sign"
+    },
+    "0944b1bbe8dd20fb34c35edb818e2c0a9a1cc076": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "convert quadratic beziers to cubic beziers to unlock some direct selection edge cases."
+    },
+    "dfe5b738d1b57eefc887c3909815368a61ec2637": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "DELETE /billing/plan sends 200, not 204, on success."
+    }
   }
 }
