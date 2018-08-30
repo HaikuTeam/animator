@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-inkstone",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Haiku SDK for Inkstone",
   "main": "lib/index.js",
   "scripts": {
@@ -36,6 +36,6 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "4.0.0"
+    "haiku-testing": "4.1.0"
   }
 }
