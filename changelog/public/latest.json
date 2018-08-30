@@ -1,5 +1,5 @@
 {
-  "date": "September 3, 2018",
+  "date": "August 30, 2018",
   "sections": {
     "What's new": [
       "Creating a component with the + sign now always creates an empty component.",
@@ -14,12 +14,12 @@
       "Fixed several issues where some elements might disappear, lose opacity, or become distored when ungrouped.",
       "@haiku/cli now uses configured proxy settings.",
       "In @haiku/core, fixed a regression affecting ID-based selectors in bytecode.",
-      "Fixed action button color when element has action",
-      "Action editor auto completer got smarter and now replaces correct text.",
-      "Creating a component using the Toolbar or Library menus now behaves as expected.",
+      "Fixed a regression where we no longer highlighted the stage title bar action button when a selected element has an action",
+      "Made various improvements to the action editor autocompleter.",
+      "Creating a component using the Toolbar or Library menus now creates an empty component.",
       "When creating a component, only the states used by expressions applied to its elements are cloned to the subcomponent.",
       "Fixed bugs with Hover/Unhover Actions when attached across nested component instances.",
-      "Fixed bug preventing the States panel from updating when double clicking to edit a component."
+      "Fixed a bug preventing the States panel from updating when double clicking to edit a component."
     ],
     "Breaking changes": [
       "String templates are officially deprecated. This is not expected to affect any Haiku users."
