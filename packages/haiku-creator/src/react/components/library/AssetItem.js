@@ -186,14 +186,17 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently();
   }
 
+  isLeafAsset () {
+    return this.props.asset.getChildAssets().length < 1;
+  }
+
+  get indent () {
+    return this.isLeafAsset() ? this.props.indent + 1 : this.props.indent;
+  }
+
   renderChevy () {
-    if (this.props.asset.getChildAssets().length < 1) {
-      // An 'invisible' chevron; I don't recall why we do this
-      return (
-        <span style={STYLES.chevy}>
-          <CollapseChevronDownSVG color="transparent" />
-        </span>
-      );
+    if (this.isLeafAsset()) {
+      return null;
     }
 
     if (this.state.isOpened) {
@@ -643,7 +646,7 @@ class AssetItem extends React.Component {
           style={[STYLES.row]}>
           <div
             className="asset-item-header"
-            style={[STYLES.header, {paddingLeft: this.props.indent * 23}]}>
+            style={[STYLES.header, {paddingLeft: this.indent * 23}]}>
             {this.renderChevy()}
             {draggablePart}
             {this.renderSyncMenu()}
