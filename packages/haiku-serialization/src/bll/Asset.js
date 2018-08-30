@@ -661,7 +661,11 @@ Asset.isSketchFile = (fileFromDropEvent) => {
 }
 
 Asset.isValidFile = (fileFromDropEvent) => {
-  const abspath = fileFromDropEvent.getAsFile().name
+  const file = fileFromDropEvent.getAsFile()
+  if (!file) {
+    return false
+  }
+  const abspath = file.name
   return (
     fileFromDropEvent.type === 'image/svg+xml' ||
     Asset.isSketchFile(fileFromDropEvent) ||
