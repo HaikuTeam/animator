@@ -1,6 +1,41 @@
 # Changelog
 
 
+## 4.0.0
+
+### Bug Fixes
+
+ * do not rewrite strings in hot editing mode
+ * do not crash app when fileFromDropEvent.getAsFile() returns null
+ * do not hang publish in bodymovin export.
+ * do not bork AST on StringLiterals.
+ * parse event handlers correctly.
+ * do not use an invisible chevron to add extra indentation
+ * use 'data-tooltip' instead of 'aria-label' for tooltips
+ * remove extra elements causing overflow issues on timeline
+ * prevent scrolling when zooming from timeline range scrollbar
+ * handle more automatic conflict resolution edge cases.
+ * strip eventHandlers during HaikuStatic export to ensure we can stringify the result.
+ * Ensure state panel switches when switching ac context from stage (791902428772121)
+ * Ensure hover/unhover work correctly through nested components
+ * ensure ID-based selectors work in migration path.
+ * disable distributing single elements
+ * ensure lint command preserves original env.
+ * ensure opacity is preserved in ungroup edge cases
+ * ensure SVGs have overflow
+ * ensure tiny elements remain visible upon ungroup.
+ * ensure @haiku/cli reads from ~/.haiku/.env.
+ * unselect all elements before creating a component from the + sign
+ * convert quadratic beziers to cubic beziers to unlock some direct selection edge cases.
+ * DELETE /billing/plan sends 200, not 204, on success.
+
+### Features
+
+ * support large raster images by hoisting to assets/CDN
+ * When creating subcopmonents, only states used by the elements are copied to the subcomponent
+ * The button to create a blank component no longer automatically instantiates the new component in the host component
+ * allow manual high-quality GIF export for pro users via TopMenu.
+
 ## 3.5.2
 
 ### Bug Fixes
