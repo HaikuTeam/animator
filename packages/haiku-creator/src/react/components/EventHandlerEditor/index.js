@@ -124,14 +124,48 @@ class EventHandlerEditor extends React.PureComponent {
       allowNonTsExtensions: true,
     });
 
-    // Define our own autocompletion items
+  // Define our own autocompletion items
     this.completionDisposer = monaco.languages.registerCompletionItemProvider('javascript', {
       provideCompletionItems (model, position) {
-        return AUTOCOMPLETION_ITEMS.map((option) =>
-          Object.assign(option, {
+
+        // Get text from whole line until autocomplete position
+        const textUntilPosition = model.getValueInRange(
+          {
+            startLineNumber: position.lineNumber,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          });
+        // According to monaco docs, "Defaults to a range from the start of the [current word]",
+        // so we use a regex to calculate a range consisting not current word, but text containing folowing regex
+        const currentWord = textUntilPosition.match(/[a-z|A-Z|.]+$/);
+
+        const completionItems = [];
+        for (const completion of AUTOCOMPLETION_ITEMS) {
+
+          const completionEntry = {
+            ...completion,
             kind: monaco.languages.CompletionItemKind.Function,
-          }),
-        );
+            range: {
+              startLineNumber: position.lineNumber,
+              startColumn: position.column - (currentWord ? currentWord[0].length : 0),
+              endLineNumber: position.lineNumber,
+              endColumn: position.column,
+            },
+          };
+
+          // Here we duplicate the previous entry, but set label as insert text,
+          // so for example, "this.getDef", can suggest "this.getDefaultTimeline().start()"
+          const completionEntryWithInsertText = {
+            ...completionEntry,
+            label: completionEntry.insertText || completionEntry.label,
+          };
+
+          completionItems.push(completionEntry);
+          completionItems.push(completionEntryWithInsertText);
+        }
+
+        return completionItems;
       },
     });
   }

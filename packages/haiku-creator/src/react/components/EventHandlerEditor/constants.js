@@ -66,6 +66,7 @@ export const AUTOCOMPLETION_ITEMS = [
   },
   {
     detail: 'Returns default timeline.',
-    label: 'this.getDefaultTimeline()',
+    label: 'getDefaultTimeline',
+    insertText: 'this.getDefaultTimeline()',
   },
 ];
