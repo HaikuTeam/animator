@@ -22,7 +22,7 @@
       "Fixed a bug preventing the States panel from updating when double clicking to edit a component.",
       "Fixed action button color when element has action",
       "Action editor auto completer got smarter and now replaces correct text.",
-      "Fixed issues related to timeline scroll"
+      "Fixed issues related to timeline scrolling."
     ],
     "Breaking changes": [
       "String templates are officially deprecated. This is not expected to affect any Haiku users."
