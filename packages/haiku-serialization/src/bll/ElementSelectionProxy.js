@@ -592,16 +592,14 @@ class ElementSelectionProxy extends BaseModel {
         { // targetNode
           layout: this.getLayoutSpec()
         },
-        { // parentNode
-          layout: {
-            computed: {
-              bounds,
-              matrix: Layout3D.createMatrix(),
-              size: {
-                x: width,
-                y: height,
-                z: 0
-              }
+        { // parentLayout
+          computed: {
+            bounds,
+            matrix: Layout3D.createMatrix(),
+            size: {
+              x: width,
+              y: height,
+              z: 0
             }
           }
         }

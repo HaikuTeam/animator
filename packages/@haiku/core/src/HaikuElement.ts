@@ -848,7 +848,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
       this.getRawBoundingBoxPoints(),
       HaikuElement.computeLayout(
         this.node as BytecodeNode,
-        null, // parentNode; none available here
+        null, // parentLayout; none available here
       ).matrix,
     );
   }
@@ -1133,33 +1133,16 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     );
   };
 
-  static computeLayout = (
-    targetNode: BytecodeNode,
-    parentNode: BytecodeNode,
-  ): ComputedLayoutSpec => {
-    const layoutSpec = targetNode.layout;
-
-    const targetSize = {
-      x: null,
-      y: null,
-      z: null,
-    };
+  static computeLayoutWithParentOffset = (
+    targetLayout: LayoutSpec,
+    parentLayout: LayoutSpec,
+  ) => {
 
     const parentBounds = (
-      parentNode &&
-      parentNode.layout &&
-      parentNode.layout.computed &&
-      parentNode.layout.computed.bounds
+      parentLayout &&
+      parentLayout.computed &&
+      parentLayout.computed.bounds
     );
-
-    const targetBounds = {
-      left: null,
-      top: null,
-      right: null,
-      bottom: null,
-      front: null,
-      back: null,
-    };
 
     let leftOffset = 0;
     let topOffset = 0;
@@ -1174,21 +1157,50 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
       }
     }
 
-    const targetElement = HaikuElement.findOrCreateByNode(targetNode);
+    return {
+      ...targetLayout,
+      offset: {
+        x: targetLayout.offset.x - leftOffset,
+        y: targetLayout.offset.y - topOffset,
+        z: targetLayout.offset.z,
+      },
+    };
+  };
+
+  static computeLayout = (
+    targetNode: BytecodeNode,
+    parentLayout: LayoutSpec,
+  ): ComputedLayoutSpec => {
+    const targetLayout = targetNode.layout;
+
+    const targetSize = {
+      x: null,
+      y: null,
+      z: null,
+    };
+
+    const targetBounds = {
+      left: null,
+      top: null,
+      right: null,
+      bottom: null,
+      front: null,
+      back: null,
+    };
 
     // We'll define this later if any axes are requesting SIZE_PROPORTIONAL. It isn't needed for SIZE_ABSOLUTE.
     let parentsizeAbsolute;
 
+    // Calculate targetSize and additionaly targetBounds when useAutoSizing
     for (let i = 0; i < SIZING_AXES.length; i++) {
       const sizeAxis = SIZING_AXES[i] as AxisString;
-      switch (layoutSpec.sizeMode[sizeAxis]) {
+      switch (targetLayout.sizeMode[sizeAxis]) {
         case SIZE_PROPORTIONAL:
           if (!parentsizeAbsolute) {
             parentsizeAbsolute = (
-              parentNode &&
-              parentNode.layout &&
-              parentNode.layout.computed &&
-              parentNode.layout.computed.size
+              parentLayout &&
+              parentLayout.computed &&
+              parentLayout.computed.size
             ) || {x: 0, y: 0, z: 0};
             if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
               parentsizeAbsolute.z = DEFAULT_DEPTH;
@@ -1207,15 +1219,16 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
           }
 
           // Size is calculated as: parentSizeValue * sizeProportional + sizeProportional.
-          targetSize[sizeAxis] = parentsizeAbsolute[sizeAxis] * layoutSpec.sizeProportional[sizeAxis] +
-            layoutSpec.sizeDifferential[sizeAxis];
+          targetSize[sizeAxis] = parentsizeAbsolute[sizeAxis] * targetLayout.sizeProportional[sizeAxis] +
+            targetLayout.sizeDifferential[sizeAxis];
           break;
 
         case SIZE_ABSOLUTE:
-          const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
+          const givenValue = targetLayout.sizeAbsolute[sizeAxis];
 
           // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
           if (HaikuElement.useAutoSizing(givenValue)) {
+            const targetElement = HaikuElement.findOrCreateByNode(targetNode);
             targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
             Object.assign(targetBounds, targetElement.computeBoundsForAxis(sizeAxis));
           } else {
@@ -1226,32 +1239,25 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
       }
     }
 
-    const virtualSpec = {
-      ...layoutSpec,
-      offset: {
-        x: layoutSpec.offset.x - leftOffset,
-        y: layoutSpec.offset.y - topOffset,
-        z: layoutSpec.offset.z,
-      },
-    };
+    const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetLayout, parentLayout);
 
-    const targetMatrix = Layout3D.computeMatrix(virtualSpec, targetSize);
+    const targetMatrixWithParentOffset = Layout3D.computeMatrix(targetLayoutWithParentOffset, targetSize);
 
     return {
-      shown: layoutSpec.shown,
-      opacity: layoutSpec.opacity,
-      offset: layoutSpec.offset,
-      origin: layoutSpec.origin,
-      translation: layoutSpec.translation,
-      rotation: layoutSpec.rotation,
-      scale: layoutSpec.scale,
-      shear: layoutSpec.shear,
-      sizeMode: layoutSpec.sizeMode,
-      sizeProportional: layoutSpec.sizeProportional,
-      sizeDifferential: layoutSpec.sizeDifferential,
-      sizeAbsolute: layoutSpec.sizeAbsolute,
+      shown: targetLayout.shown,
+      opacity: targetLayout.opacity,
+      offset: targetLayout.offset,
+      origin: targetLayout.origin,
+      translation: targetLayout.translation,
+      rotation: targetLayout.rotation,
+      scale: targetLayout.scale,
+      shear: targetLayout.shear,
+      sizeMode: targetLayout.sizeMode,
+      sizeProportional: targetLayout.sizeProportional,
+      sizeDifferential: targetLayout.sizeDifferential,
+      sizeAbsolute: targetLayout.sizeAbsolute,
       size: targetSize,
-      matrix: targetMatrix,
+      matrix: targetMatrixWithParentOffset,
       bounds: targetBounds,
     };
   };

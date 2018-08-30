@@ -2395,7 +2395,7 @@ const computeAndApplyLayout = (node, parent) => {
   if (node.layout) {
     node.layout.computed = HaikuElement.computeLayout(
       node,
-      parent,
+      parent ? parent.layout : null,
     );
   }
 };

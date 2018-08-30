@@ -2361,34 +2361,23 @@ export class Glass extends React.Component {
             },
           };
 
-          // We get SVG root element here so we can update svg overflow to visible
-          const selectedElement = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
-          const rootSvgElement = selectedElement.getParentSvgElement();
+          let serializedDataToUpdate = null;
 
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
 
-            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']];
+            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.componentId];
             const lastIndex = indices[indices.length - 1];
 
             switch (Element.directlySelected.type) {
               case 'circle': {
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      r: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)}),
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  r: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)}),
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                }};
                 break;
               }
               case 'ellipse': {
@@ -2403,22 +2392,14 @@ export class Glass extends React.Component {
                   value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy));
                 }
 
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      [property]: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value,
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  [property]: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value,
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                }};
+
                 break;
               }
               case 'rect': {
@@ -2460,37 +2441,28 @@ export class Glass extends React.Component {
                   y = Number(this.selectedOriginalClickState.attributes.y);
                 }
 
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      x: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: x,
-                        },
-                      },
-                      y: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: y,
-                        },
-                      },
-                      width: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: width,
-                        },
-                      },
-                      height: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: height,
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  x: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: x,
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                  y: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: y,
+                    },
+                  },
+                  width: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: width,
+                    },
+                  },
+                  height: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: height,
+                    },
+                  },
+                }};
                 break;
               }
               case 'polyline':
@@ -2500,22 +2472,13 @@ export class Glass extends React.Component {
                   points[indices[i]][0] += transformedTotalDelta.x;
                   points[indices[i]][1] += transformedTotalDelta.y;
                 }
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      points: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: SVGPoints.pointsToPolyString(points),
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  points: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: SVGPoints.pointsToPolyString(points),
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                }};
                 break;
               }
 
@@ -2530,16 +2493,7 @@ export class Glass extends React.Component {
                   attrUpdate.x2 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x}};
                   attrUpdate.y2 = {[curTime]: {value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y}};
                 }
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: attrUpdate,
-                  },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                serializedDataToUpdate = {[Element.directlySelected.attributes['haiku-id']]: attrUpdate};
                 break;
               }
 
@@ -2602,23 +2556,13 @@ export class Glass extends React.Component {
                     }
                   }
                 }
-
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      d: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: SVGPoints.pointsToPath(points),
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  d: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: SVGPoints.pointsToPath(points),
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                }};
                 break;
               }
             }
@@ -2628,51 +2572,33 @@ export class Glass extends React.Component {
             switch (Element.directlySelected.type) {
               case 'ellipse':
               case 'circle': {
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      cx: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x,
-                        },
-                      },
-                      cy: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.cy) + transformedTotalDelta.y,
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  cx: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x,
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                  cy: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.cy) + transformedTotalDelta.y,
+                    },
+                  },
+                }};
                 break;
               }
               case 'rect': {
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      x: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x,
-                        },
-                      },
-                      y: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.y) + transformedTotalDelta.y,
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  x: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x,
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                  y: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.y) + transformedTotalDelta.y,
+                    },
+                  },
+                }};
                 break;
               }
               case 'polyline':
@@ -2682,57 +2608,39 @@ export class Glass extends React.Component {
                   points[i][0] += transformedTotalDelta.x;
                   points[i][1] += transformedTotalDelta.y;
                 }
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      points: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: SVGPoints.pointsToPolyString(points),
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  points: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: SVGPoints.pointsToPolyString(points),
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                }};
                 break;
               }
 
               case 'line': {
-                this.getActiveComponent().updateKeyframes({
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [rootSvgElement.componentId]: {
-                      'style.overflow': {
-                        0: {value: 'visible'},
-                      },
-                    },
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      x1: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x,
-                        },
-                      },
-                      y1: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y,
-                        },
-                      },
-                      x2: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x,
-                        },
-                      },
-                      y2: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y,
-                        },
-                      },
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  x1: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x,
                     },
                   },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                  y1: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y,
+                    },
+                  },
+                  x2: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x,
+                    },
+                  },
+                  y2: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y,
+                    },
+                  },
+                }};
                 break;
               }
 
@@ -2748,26 +2656,38 @@ export class Glass extends React.Component {
                     points[i].curve.y2 += transformedTotalDelta.y;
                   }
                 }
-                this.getActiveComponent().updateKeyframes({
-                  [rootSvgElement.componentId]: {
-                    'style.overflow': {
-                      0: {value: 'visible'},
+                serializedDataToUpdate = { [Element.directlySelected.attributes['haiku-id']]: {
+                  d: {
+                    [this.getActiveComponent().getCurrentTimelineTime()]: {
+                      value: SVGPoints.pointsToPath(points),
                     },
                   },
-                  [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [Element.directlySelected.attributes['haiku-id']]: {
-                      d: {
-                        [this.getActiveComponent().getCurrentTimelineTime()]: {
-                          value: SVGPoints.pointsToPath(points),
-                        },
-                      },
-                    },
-                  },
-                }, keyframeOptions, {from: 'glass'}, () => {});
+                }};
                 break;
               }
             }
           }
+
+          // We get SVG root element here so we can update svg overflow to visible
+          const rootSvgElement = Element.directlySelected.rootSVG;
+
+          // Mark root svg as overflow visible
+          if (rootSvgElement) {
+            serializedDataToUpdate[rootSvgElement.componentId] = {
+              'style.overflow': {
+                0: {value: 'visible'},
+              },
+            };
+          }
+
+          this.getActiveComponent().updateKeyframes({
+            [this.getActiveComponent().getCurrentTimelineName()]: serializedDataToUpdate,
+          }, keyframeOptions, {from: 'glass'}, () => {
+            // Make sure bouding boxes are reinitialized
+            const proxy = this.fetchProxyElementForSelection();
+            proxy.reinitializeLayout();
+          });
+
         } else {
           const proxy = this.fetchProxyElementForSelection();
 
