@@ -146,6 +146,10 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return this.parent && this.parent.owner;
   }
 
+  get top (): IHaikuComponent {
+    return this.instanceContext && this.instanceContext.component;
+  }
+
   get instanceContext (): any {
     return this.memory && this.memory.context;
   }
@@ -901,13 +905,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   }
 
   triggerHover (event) {
-    let manager;
-
-    if (this.isComponent()) {
-      manager = this;
-    } else {
-      manager = this.owner;
-    }
+    let manager = this.top;
 
     // In case of the root container of a render tree
     if (!manager) {
@@ -915,7 +913,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     }
 
     // Not sure how we'd get here, but if we do, skip this process
-    if (!manager) {
+    if (!manager || manager.isDeactivated) {
       return;
     }
 
@@ -924,6 +922,8 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
 
     // If no last hovered element, there's nothing to unhover.
     let mustUnhover = manager.lastHoveredElement !== undefined;
+
+    const hovers = [];
 
     while (hoverable) {
       // If the last hovered element is an ancestor,
@@ -939,16 +939,24 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
         break;
       }
 
+      hovers.push(hoverable);
       hoverable.isHovered = true;
-
-      (manager as IHaikuComponent).routeEventToHandlerAndEmit(
-        hoverable.selector,
-        'hover',
-        [hoverable, hoverable.target /* event? */],
-      );
-
       hoverable = hoverable.parent;
     }
+
+    hovers.forEach((hov) => {
+      const delegator = HaikuElement.getElementEventDelegator(hov);
+
+      if (delegator && !delegator.isDeactivated) {
+        (delegator as IHaikuComponent).routeEventToHandlerAndEmitWithoutBubblingAndWithoutGlobalHandlers(
+          hov.selector,
+          'hover',
+          [hov, hov.target, event],
+        );
+      }
+    });
+
+    const unhovers = [];
 
     // We must be in a different branch of the tree.
     if (mustUnhover) {
@@ -956,17 +964,23 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
 
       // Stop until we hit the common hovered ancestor (wherever we break'ed above).
       while (unhoverable && unhoverable !== hoverable) {
+        unhovers.push(unhoverable);
         unhoverable.isHovered = false;
-
-        (manager as IHaikuComponent).routeEventToHandlerAndEmit(
-          unhoverable.selector,
-          'unhover',
-          [unhoverable, unhoverable.target /* event? */],
-        );
-
         unhoverable = unhoverable.parent;
       }
     }
+
+    unhovers.forEach((unhov) => {
+      const delegator = HaikuElement.getElementEventDelegator(unhov);
+
+      if (delegator && !delegator.isDeactivated) {
+        (delegator as IHaikuComponent).routeEventToHandlerAndEmitWithoutBubblingAndWithoutGlobalHandlers(
+          unhov.selector,
+          'unhover',
+          [unhov, unhov.target, event],
+        );
+      }
+    });
 
     manager.lastHoveredElement = this;
   }
@@ -976,8 +990,20 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   }
 
   dump (): string {
-    return `${this.$id}:<${this.tagName}>(${this.getComponentId()})`;
+    return `${this.$id}:<${this.tagName}>(${this.getComponentId() || '[container]'})`;
   }
+
+  static getElementEventDelegator = (el): IHaikuComponent => {
+    if (!el) {
+      return;
+    }
+
+    if (el.isComponent()) {
+      return el;
+    }
+
+    return el.owner;
+  };
 
   static transformVectorByMatrix = (out, v, m): number[] => {
     out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];

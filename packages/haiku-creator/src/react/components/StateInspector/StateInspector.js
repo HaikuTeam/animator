@@ -121,7 +121,10 @@ class StateInspector extends React.Component {
   onProjectModelUpdate (what, ...args) {
     // We only reload states on a hard reload (eg when a component is loaded from disk)
     // Editing states on state inspector only triggers soft reload
-    if (what === 'reloaded' && args[0] === 'hard') {
+    if (
+      what === 'setCurrentActiveComponent' ||
+      (what === 'reloaded' && args[0] === 'hard')
+    ) {
       this.loadStatesDataFromActiveComponent();
     }
   }
@@ -129,12 +132,14 @@ class StateInspector extends React.Component {
   componentDidMount () {
     if (this.props.projectModel) {
       this.props.projectModel.on('update', this.onProjectModelUpdate);
+      this.props.projectModel.on('remote-update', this.onProjectModelUpdate);
     }
   }
 
   componentWillUnmount () {
     if (this.props.projectModel) {
       this.props.projectModel.removeListener('update', this.onProjectModelUpdate);
+      this.props.projectModel.removeListener('remote-update', this.onProjectModelUpdate);
     }
   }
 

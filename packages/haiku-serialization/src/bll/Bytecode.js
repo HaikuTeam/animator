@@ -3,6 +3,7 @@ const clone = require('lodash.clone')
 const cloneDeepWith = require('lodash.clonedeepwith')
 const merge = require('lodash.merge')
 const BaseModel = require('./BaseModel')
+const enhance = require('@haiku/core/lib/reflection/enhance').default
 const {xmlToMana} = require('haiku-common/lib/layout/xmlUtils')
 const {default: convertManaLayout} = require('haiku-common/lib/layout/convertManaLayout')
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
@@ -93,15 +94,60 @@ Bytecode.cleanBytecode = (bytecode) => {
   }
 }
 
-Bytecode.getAppliedStatesForNode = (out, bytecode, element) => {
-  Template.visit(element, (node) => {
-    for (const stateName in bytecode.states) {
-      // Is it possible for us to detect which states are actually in use by this node?
-      // If so, TODO: perhaps only include those applicable states
-      const stateDescriptor = bytecode.states[stateName]
-      out[stateName] = lodash.clone(stateDescriptor)
+Bytecode.getAppliedStatesForNode = (out, bytecode, node) => {
+  const allExprParams = []
+
+  // We'll collect only the selectors that impact the specific node
+  const selectorsInvolved = {}
+  Template.visit(node, (node) => {
+    if (node && node.attributes) {
+      selectorsInvolved[`haiku:${node.attributes[HAIKU_ID_ATTRIBUTE]}`] = true
     }
   })
+
+  for (const timelineName in bytecode.timelines) {
+    for (const selector in bytecode.timelines[timelineName]) {
+      // Only include states that are used in expressions that affect our
+      // node itself or descendant nodes contained within it
+      if (!selectorsInvolved[selector]) {
+        continue
+      }
+
+      for (const propertyName in bytecode.timelines[timelineName][selector]) {
+        for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
+          const keyframeObj = bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
+
+          // States are considered "used" if they are ADI'd as parameters, i.e.,
+          // listed as parameter names in the signature of an expression function
+          if (typeof keyframeObj.value === 'function') {
+            // This adds a .specification object directly to the function
+            // which describes the function as a serializable payload
+            enhance(keyframeObj.value)
+
+            allExprParams.push.apply(allExprParams, keyframeObj.value.specification.params)
+          }
+        }
+      }
+    }
+  }
+
+  const uniqStateNames = {}
+  allExprParams.forEach((paramName) => {
+    if (typeof paramName === 'string') { // In case of legacy destructured objects
+      uniqStateNames[paramName] = true
+    }
+  })
+
+  for (const stateName in bytecode.states) {
+    // Filter out states that haven't been explicitly used by this element
+    if (!uniqStateNames[stateName]) {
+      continue
+    }
+
+    const stateDescriptor = bytecode.states[stateName]
+    out[stateName] = lodash.clone(stateDescriptor)
+  }
+
   return out
 }
 

@@ -14,10 +14,8 @@ import * as Asset from 'haiku-serialization/src/bll/Asset';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils';
 import Palette from 'haiku-ui-common/lib/Palette';
-import Comment from './Comment';
 import Preview from './Preview';
 import CreateComponentModal from './modals/CreateComponentModal';
-import * as Comments from './Comments';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
@@ -130,12 +128,11 @@ export class Glass extends React.Component {
       lastMouseUpPosition: null,
       lastMouseUpTime: null,
       isMouseDragging: false,
-      comments: [],
-      doShowComments: false,
       targetElement: null,
       isEventHandlerEditorOpen: false,
       isCreateComponentModalOpen: false,
       isConfirmGroupUngroupPopupOpen: false,
+      conglomerateComponentOptions: {},
     };
 
     this.didAlreadyWarnAboutTextNodes = false;
@@ -173,8 +170,6 @@ export class Glass extends React.Component {
         },
       });
     }, DIMENSIONS_RESET_DEBOUNCE_TIME);
-
-    this._comments = new Comments(this.props.folder);
 
     this._playing = false;
     this._stopwatch = null;
@@ -771,7 +766,14 @@ export class Glass extends React.Component {
           break;
 
         case 'conglomerate-component':
-          this.launchComponentNameModal({isBlankComponent: message.isBlankComponent});
+          this.setState({
+            conglomerateComponentOptions: {
+              isBlankComponent: message.isBlankComponent,
+              skipInstantiateInHost: message.skipInstantiateInHost,
+            },
+          }, () => {
+            this.launchComponentNameModal();
+          });
           break;
 
         case 'perform-align':
@@ -786,14 +788,6 @@ export class Glass extends React.Component {
           File.cache.clear();
           break;
       }
-    });
-
-    this._comments.load((err) => {
-      if (err) {
-        return;
-      }
-
-      this.setState({comments: this._comments.comments});
     });
 
     this.addEmitterListener(window, 'resize', lodash.throttle(() => {
@@ -1094,8 +1088,8 @@ export class Glass extends React.Component {
     }
   };
 
-  launchComponentNameModal ({isBlankComponent} = {isBlankComponent: false}) {
-    if (isBlankComponent) {
+  launchComponentNameModal () {
+    if (this.state.conglomerateComponentOptions.isBlankComponent) {
       Element.unselectAllElements({
         component: this.getActiveComponent(),
       }, {from: 'glass'});
@@ -1106,7 +1100,7 @@ export class Glass extends React.Component {
     });
   }
 
-  conglomerateComponentFromSelectedElementsWithTitle (title) {
+  conglomerateComponentFromSelectedElementsWithTitle (title, options = {}) {
     const proxy = this.fetchProxyElementForSelection();
 
     // Our selection becomes invalid as soon as we call this since we're changing
@@ -1159,14 +1153,15 @@ export class Glass extends React.Component {
         'origin.x': 0.5,
         'origin.y': 0.5,
       },
+      options,
       {from: 'glass'},
-      (err, mana) => {
+      (err, nc) => {
         if (err) {
           logger.error(err);
           return;
         }
 
-        this.editComponent(mana.attributes[HAIKU_SOURCE_ATTRIBUTE]);
+        this.editComponent(`./${nc.getRelpath()}`);
       },
     );
   }
@@ -2363,6 +2358,12 @@ export class Glass extends React.Component {
 
           // We get SVG root element here so we can update svg overflow to visible
           const selectedElement = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
+
+          // Apparently there can be a race condition where selected element isn't present here
+          if (!selectedElement) {
+            return mousePositionCurrent;
+          }
+
           const rootSvgElement = selectedElement.getParentSvgElement();
 
           if (this.state.directSelectionAnchorActivation != null) {
@@ -3316,38 +3317,22 @@ export class Glass extends React.Component {
 
     const proxy = this.fetchProxyElementForSelection();
 
-    if (experimentIsEnabled(Experiment.CommentsOnStage)) {
-      items.push({
-        label: (this.state.doShowComments)
-          ? 'Hide Comments'
-          : 'Show Comments',
-        enabled: this.state.comments && this.state.comments.length > 0,
-        onClick: () => {
-          this.setState({doShowComments: !this.state.doShowComments});
-        },
-      });
-
-      items.push({
-        label: 'Add Comment',
-        onClick: () => {
-          this._comments.build({
-            x: this.state.mousePositionCurrent.x,
-            y: this.state.mousePositionCurrent.y,
-          });
-
-          this.setState({comments: this._comments.comments, doShowComments: true});
-        },
-      });
-
-      items.push({type: 'separator'});
-    }
-
     items.push({
       label: 'Create Component',
-      // If a single element is already a component, we don't let it be created as one
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
-        this.launchComponentNameModal();
+        if (proxy.hasNothingInSelection()) {
+          this.setState({
+            conglomerateComponentOptions: {
+              isBlankComponent: true,
+              skipInstantiateInHost: true,
+            },
+          }, () => {
+            this.launchComponentNameModal();
+          });
+        } else {
+          this.launchComponentNameModal();
+        }
       },
     });
 
@@ -3645,17 +3630,23 @@ export class Glass extends React.Component {
 
         {!this.isPreviewMode() && this.state.isCreateComponentModalOpen &&
           <CreateComponentModal
+            options={this.state.conglomerateComponentOptions}
             isOpen={this.state.isCreateComponentModalOpen}
             existingComponentNames={this.project.getExistingComponentNames()}
-            onSubmit={(componentName) => {
+            onSubmit={(componentName, options) => {
               this.setState({
+                conglomerateComponentOptions: {},
                 isCreateComponentModalOpen: false,
               }, () => {
-                this.conglomerateComponentFromSelectedElementsWithTitle(componentName);
+                this.conglomerateComponentFromSelectedElementsWithTitle(
+                  componentName,
+                  options,
+                );
               });
             }}
             onCancel={() => {
               this.setState({
+                conglomerateComponentOptions: {},
                 isCreateComponentModalOpen: false,
               });
             }}
@@ -3828,33 +3819,6 @@ export class Glass extends React.Component {
                 }}
                 />
             </svg>
-            : ''}
-
-          {(!this.isPreviewMode() && this.state.doShowComments && this.state.comments.length > 0)
-            ? <div
-              id="haiku-glass-comments-container"
-              style={{
-                position: 'absolute',
-                pointerEvents: 'none',
-                top: container.y,
-                left: container.x,
-                zIndex: 2000,
-                overflow: 'hidden',
-                width: '100%',
-                height: '100%' }}
-                >
-              {this.getActiveComponent() && this.state.comments.map((comment, index) => {
-                return (
-                  <Comment
-                    index={index}
-                    comment={comment}
-                    x={comment.x + this.getActiveComponent().getArtboard().getMountX()}
-                    y={comment.y + this.getActiveComponent().getArtboard().getMountY()}
-                    key={`comment-${comment.id}`}
-                    model={this._comments} />
-                );
-              })}
-            </div>
             : ''}
 
           {(!this.isPreviewMode())

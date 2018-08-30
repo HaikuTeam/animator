@@ -9,7 +9,6 @@ import {getExperimentConfig} from './config';
 export enum Experiment {
   HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
-  CommentsOnStage = 'CommentsOnStage',
   AsyncClientActions = 'AsyncClientActions',
   NormalizeSvgContent = 'NormalizeSvgContent',
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',

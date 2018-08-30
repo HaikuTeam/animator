@@ -59,7 +59,10 @@ class ComponentMenu extends React.Component {
   }
 
   conglomerateComponent = () => {
-    this.props.conglomerateComponent({isBlankComponent: true});
+    this.props.conglomerateComponent({
+      isBlankComponent: true,
+      skipInstantiateInHost: true,
+    });
   };
 
   render () {
