@@ -1075,7 +1075,7 @@ export default class Creator extends React.Component {
   setInteractionMode (interactionMode) {
     if (this.state.projectModel) {
       logger.time('projectModel.setInteractionMode');
-      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
+      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator', integrity: false}, () => {
         logger.timeEnd('projectModel.setInteractionMode');
       });
     }

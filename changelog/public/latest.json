@@ -4,7 +4,8 @@
     "What's new": [
       "Creating a component with the + sign now always creates an empty component.",
       "Reduced the footprint of @haiku/core by 30KB (3KB minified and gzipped).",
-      "We added some helpful tooltips throughout the app."
+      "We added some helpful tooltips throughout the app.",
+      "Generally improved app performance and stability for large projects."
     ],
     "Fixes": [
       "Greatly improved the performance of Haiku when working with large or complex SVGs.",

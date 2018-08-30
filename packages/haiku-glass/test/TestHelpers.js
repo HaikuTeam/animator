@@ -26,6 +26,8 @@ export default class TestHelpers {
     });
     const win = dom.window;
     global.window = win;
+    // prettier complains if we don't set this.
+    global.window.Date = Date;
     global.document = win.document;
     for (const key in win) {
       if (!win.hasOwnProperty(key)) {

@@ -7,7 +7,10 @@ function propMap (obj) {
       key: {
         // Safest to cast to string literal, maybe support identifiers in the future?
         type: 'StringLiteral',
-        value: key
+        value: key,
+        extra: {
+          raw: `"${key}"`
+        }
       },
       value: paramToFunctionASTParam(obj[key])
       // TODO: Are these needed ever?

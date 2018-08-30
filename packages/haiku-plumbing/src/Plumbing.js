@@ -87,6 +87,7 @@ const METHOD_MESSAGES_TIMEOUT = 15000;
 const METHODS_TO_AWAIT_FOREVER = {
   bootstrapProject: true,
   setCurrentActiveComponent: true,
+  setInteractionMode: true,
   startProject: true,
   initializeFolder: true,
   saveProject: true,
