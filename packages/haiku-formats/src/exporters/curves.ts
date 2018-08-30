@@ -308,8 +308,21 @@ export const isDecomposableCurve = (curve: Curve) => isBounceCurve(curve) || isE
  * @param inKeyframe
  * @param outKeyframe
  */
-export const decomposeCurveBetweenKeyframes = (timelineProperty: BytecodeTimelineProperty,
-                                               inKeyframe: number, outKeyframe: number) => {
+export const decomposeCurveBetweenKeyframes = (
+  timelineProperty: BytecodeTimelineProperty,
+  inKeyframe: number,
+  outKeyframe: number,
+) => {
+  // #FIXME: this will only work correctly for numbers right now.
+  // To do this correctly for e.g. paths, we would need more data.
+  if (
+    typeof timelineProperty[inKeyframe].value !== typeof timelineProperty[outKeyframe].value ||
+    typeof timelineProperty[inKeyframe].value !== 'number'
+  ) {
+    timelineProperty[inKeyframe].curve = Curve.Linear;
+    return;
+  }
+
   const [curveIn, from, to] = [
     timelineProperty[inKeyframe].curve,
     timelineProperty[inKeyframe].value,
