@@ -18,7 +18,7 @@
     "haiku-vendor-legacy": "4.0.0",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
-    "prettier": "^0.22.0",
+    "prettier": "^1.14.2",
     "qs": "6.4.0",
     "radium": "0.18.1",
     "raven-js": "^3.18.1",

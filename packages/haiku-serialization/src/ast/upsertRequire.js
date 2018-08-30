@@ -38,7 +38,10 @@ module.exports = function upsertRequire (ast, identifierName, modulePath) {
         arguments: [
           {
             type: 'StringLiteral',
-            value: modulePath
+            value: modulePath,
+            extra: {
+              raw: `"${modulePath}"`
+            }
           }
         ]
       }

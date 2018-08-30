@@ -15,14 +15,20 @@ function expressionToOASTComponent (exp, key, keyChain) {
   if (typeof exp === 'string') {
     return {
       type: 'StringLiteral',
-      value: exp
+      value: exp,
+      extra: {
+        raw: `"${exp.replace('"', '\\"')}"`
+      }
     }
   }
 
   if (typeof exp === 'number') {
     return {
       type: 'NumericLiteral',
-      value: exp
+      value: exp,
+      extra: {
+        raw: exp.toString()
+      }
     }
   }
 

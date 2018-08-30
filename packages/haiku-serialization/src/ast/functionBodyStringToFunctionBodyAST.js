@@ -1,18 +1,17 @@
-var babylon = require('babylon')
+const {parse} = require('@babel/parser')
 
 function functionBodyStringToFunctionBodyAST (body) {
   var nodes = []
   let innerComments = null
   if (body) {
-    var ast = babylon.parse(body, {
+    var ast = parse(body, {
       allowReturnOutsideFunction: true
     })
-    var parse = ast.program.body
     // Inner comments happens when only comments are existant
     if (ast.program.innerComments) {
       innerComments = ast.program.innerComments
     }
-    nodes = parse
+    nodes.push(...ast.program.body)
   }
   var block = {
     type: 'BlockStatement',
