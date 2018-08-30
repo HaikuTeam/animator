@@ -2358,6 +2358,12 @@ export class Glass extends React.Component {
 
           // We get SVG root element here so we can update svg overflow to visible
           const selectedElement = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
+
+          // Apparently there can be a race condition where selected element isn't present here
+          if (!selectedElement) {
+            return mousePositionCurrent;
+          }
+
           const rootSvgElement = selectedElement.getParentSvgElement();
 
           if (this.state.directSelectionAnchorActivation != null) {
