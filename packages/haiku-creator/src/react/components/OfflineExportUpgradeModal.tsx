@@ -1,3 +1,5 @@
+// @ts-ignore
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {ModalFooter, ModalHeader, ModalWrapper} from 'haiku-ui-common/lib/react/Modal';
@@ -39,11 +41,24 @@ const STYLES: React.CSSProperties = {
 };
 
 export interface OfflineExportUpgradeModalProps {
-  explorePro: () => void;
+  explorePro: (source?: string) => void;
+  metadata: {extension: string, framerate: number};
   onClose: () => void;
 }
 
 export class OfflineExportUpgradeModal extends React.PureComponent<OfflineExportUpgradeModalProps> {
+  private get source () {
+    return `offline-export:${this.props.metadata.extension}:${this.props.metadata.framerate}`;
+  }
+
+  private explorePro = () => {
+    this.props.explorePro(this.source);
+  };
+
+  componentDidMount () {
+    mixpanel.haikuTrack(`creator:upgrade-cta-shown:${this.source}`);
+  }
+
   render () {
     return (
       <ModalWrapper style={STYLES.wrapper} onEsc={this.props.onClose}>
@@ -51,7 +66,7 @@ export class OfflineExportUpgradeModal extends React.PureComponent<OfflineExport
         <div style={STYLES.inner}>
           <div style={STYLES.upgradeWrap}>
             <div>Haiku Pro is required to export local assets and videos.</div>
-            <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
+            <span onClick={this.explorePro} style={STYLES.btnSecondary}>Go Pro
               <span
                 style={{
                   width: 11,
