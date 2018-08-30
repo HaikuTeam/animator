@@ -325,6 +325,7 @@ class EventHandlerEditor extends React.PureComponent {
           <ModalHeader>
             <ElementTitle
               element={this.props.element}
+              data-tooltip={true}
               aria-label={
                 isNumeric(this.props.options.frame)
                   ? `Frame ${this.props.options.frame}`
@@ -425,6 +426,7 @@ class EventHandlerEditor extends React.PureComponent {
                   this.doSave();
                   this.doClose();
                 }}
+                data-tooltip={true}
                 aria-label={
                   this.state.editorWithErrors
                     ? 'an event handler has a syntax error'

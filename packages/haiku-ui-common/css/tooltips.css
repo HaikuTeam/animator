@@ -3,14 +3,14 @@
  */
 
 /* Base styles for the element that has a tooltip */
-[aria-label]:not(.monaco-list-row) {
+[data-tooltip] {
   position: relative;
   cursor: pointer;
 }
 
 /* Base styles for the entire tooltip */
-[aria-label]:not(.monaco-list-row):before,
-[aria-label]:not(.monaco-list-row):after {
+[data-tooltip]:before,
+[data-tooltip]:after {
   position: absolute;
   visibility: hidden;
   opacity: 0;
@@ -26,22 +26,22 @@
   letter-spacing: initial;
 }
 
-[aria-label]:not(.monaco-list-row):hover {
+[data-tooltip]:hover {
   z-index: 999999999999!important;
 }
 
 /* Show the entire tooltip on hover and focus */
-[aria-label]:not(.monaco-list-row):hover:before,
-[aria-label]:not(.monaco-list-row):hover:after,
-[aria-label]:not(.monaco-list-row):focus:before,
-[aria-label]:not(.monaco-list-row):focus:after {
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after,
+[data-tooltip]:focus:before,
+[data-tooltip]:focus:after {
   visibility: visible;
   opacity: 1;
   transition-delay: 600ms;
 }
 
 /* Base styles for the tooltip's directional arrow */
-[aria-label]:not(.monaco-list-row):before {
+[data-tooltip]:before {
   z-index: 1001;
   border: 6px solid transparent;
   background: transparent;
@@ -49,7 +49,7 @@
 }
 
 /* Base styles for the tooltip's content area */
-[aria-label]:not(.monaco-list-row):after {
+[data-tooltip]:after {
   z-index: 1000;
   padding: 3px 10px;
   background-color: #0C0C0C;
@@ -63,22 +63,22 @@
 /* Directions */
 
 /* Top (default) */
-[aria-label]:not(.monaco-list-row):before,
-[aria-label]:not(.monaco-list-row):after {
+[data-tooltip]:before,
+[data-tooltip]:after {
   bottom: 100%;
   left: 50%;
 }
 
-[aria-label]:not(.monaco-list-row):before {
+[data-tooltip]:before {
   margin-left: -6px;
   margin-bottom: -12px;
   border-top-color: #0C0C0C;
 }
 
-[aria-label]:not(.monaco-list-row):hover:before,
-[aria-label]:not(.monaco-list-row):hover:after,
-[aria-label]:not(.monaco-list-row):focus:before,
-[aria-label]:not(.monaco-list-row):focus:after {
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after,
+[data-tooltip]:focus:before,
+[data-tooltip]:focus:after {
   transform: translateY(-12px) translateX(0);
 }
 
