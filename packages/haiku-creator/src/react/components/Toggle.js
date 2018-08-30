@@ -35,6 +35,7 @@ class Toggle extends React.Component {
       <a
         href="#"
         aria-label="Toggle preview"
+        data-tooltip={true}
         data-tooltip-bottom={true}
         style={[
           this.props.disabled && STYLES.disabled,

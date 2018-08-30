@@ -35,6 +35,7 @@ class EditorActions extends React.PureComponent {
           }}
           style={{...STYLES.button, ...STYLES.doneButton, opacity: this.props.isSaveDisabled ? 0.5 : 1}}
           aria-label={this.props.title}
+          data-tooltip={true}
         >
           Done
         </button>

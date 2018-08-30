@@ -126,6 +126,7 @@ class FileImporter extends React.PureComponent {
       >
         <button
           aria-label="Import file"
+          data-tooltip={true}
           data-tooltip-bottom={true}
           style={STYLES.button}
           onClick={() => {
