@@ -51,6 +51,10 @@ class ProjectBrowser extends React.Component {
       // Value has changed.
       // This reload should be silent iff offline is allowed.
       this.loadProjects(nextProps.allowOffline);
+
+      if (!nextProps.isOnline && !nextProps.allowOffline) {
+        mixpanel.haikuTrack('creator:upgrade-cta-shown:project-browser-offline');
+      }
     }
   }
 
@@ -231,6 +235,14 @@ class ProjectBrowser extends React.Component {
     return !this.props.isOnline && !this.props.allowOffline;
   }
 
+  exploreProOffline = () => {
+    this.props.explorePro('project-browser-offline');
+  };
+
+  exploreProTitlebar = () => {
+    this.props.explorePro('project-browser-titlebar');
+  };
+
   offlineElement () {
     if (!this.shouldShowOfflineNotice) {
       return null;
@@ -249,7 +261,7 @@ class ProjectBrowser extends React.Component {
                 DASH_STYLES.btn,
               ]}
               title="Upgrade to Haiku Pro"
-              onClick={this.props.explorePro}>Go Pro
+              onClick={this.exploreProOffline}>Go Pro
               <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
                 <ExternalLinkSVG color={Palette.SUNSTONE}/>
               </span>
@@ -523,7 +535,7 @@ class ProjectBrowser extends React.Component {
                 <span
                   title="Upgrade to Haiku Pro"
                   style={DASH_STYLES.bannerNotice}
-                  onClick={this.props.explorePro}>
+                  onClick={this.exploreProTitlebar}>
                   Go Pro
                   <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
                     <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>

@@ -144,7 +144,7 @@ export interface ProjectShareDetailsProps {
   shouldShowPrivateWarning: boolean;
   togglePublic: () => void;
   mixpanel: any;
-  explorePro: () => void;
+  explorePro: (source?: string) => void;
   privateProjectCount: number;
   privateProjectLimit: number;
   hasError: boolean;
@@ -187,6 +187,10 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
       from: 'app',
       event: 'open-share-link',
     });
+  };
+
+  private explorePro = () => {
+    this.props.explorePro('publish-modal-toggle');
   };
 
   render () {
@@ -291,7 +295,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
                 </span>
               </div>
               <div>Upgrade for unlimited private projects and pro features.</div>
-              <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
+              <span onClick={this.explorePro} style={STYLES.btnSecondary}>Go Pro
                   <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
                     <ExternalLinkIconSVG color={Palette.LIGHT_BLUE}/>
                   </span>
