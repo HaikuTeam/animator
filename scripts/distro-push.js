@@ -46,10 +46,7 @@ openSourcePackages.forEach((pack) => {
 // @haiku/core needs a special build.
 cp.execSync('node ./scripts/build-core.js --skip-compile=1', processOptions);
 
-// Push up before we begin the actual work of publishing. This ensures that unmergeable changes are never published to
-// our standalones. If this fails due to a merge to master occurring while the pipeline is running, we'll have to start over.
 cp.execSync(`git tag -a ${nowVersion()} -m 'release ${nowVersion()}'`, processOptions);
-cp.execSync(`git push -u origin ${branch} --tags`, processOptions);
 
 openSourcePackages.forEach((pack) => {
   // Publish package to NPM as is.
@@ -61,9 +58,14 @@ cp.execSync('node ./scripts/upload-cdn-core.js', processOptions);
 
 // Push standalone remotes.
 openSourcePackages.forEach((pack) => {
-  cp.execSync('node ./scripts/git-subtree-push.js --package=${pack.name}', processOptions);
+  cp.execSync(`node ./scripts/git-subtree-push.js --package=${pack.name}`, processOptions);
 });
 cp.execSync('node ./scripts/git-subtree-push.js --package=changelog', processOptions);
 // Pull standalone remotes once more, so that we don't hit conflicts the next time we have to pull.
 cp.execSync('node ./scripts/git-subtree-pull.js --package=all', processOptions);
-cp.execSync(`git push origin ${branch}`);
+
+// If we got this far, everything worked and we should close this pull request. If any of these steps fail,
+// we may need to roll back subtree splits.
+cp.execSync('git checkout master', processOptions);
+cp.execSync(`git merge ${branch}`, processOptions);
+cp.execSync('git push -u origin master --tags', processOptions);
