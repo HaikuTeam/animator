@@ -596,7 +596,9 @@ class Element extends BaseModel {
 
     const layout = HaikuElement.computeLayout(targetRenderedNode, parentLayout)
 
-    // If we want runtime calculation, update layout.size and layout.matrix
+
+    // This if basically updates returned layout from HaikuElement.computeLayout 
+    // with runtime information from SVG bb
     if (targetRenderedNode.elementName === 'svg') {
       const targetElement = HaikuElement.findOrCreateByNode(targetRenderedNode)
 
@@ -608,19 +610,27 @@ class Element extends BaseModel {
       const bbox = targetElement.target.getBBox()
       const targetSize = { x: bbox.width, y: bbox.height, z: 0 }
 
-      console.log(`bbox ${JSON.stringify(bbox)}`)
-      console.log(`t offset ${JSON.stringify(targetRenderedNode.layout)} `)
-      console.log(`p ${JSON.stringify(parentLayout)}`)
+      // Some debug info
+      // console.log(`bbox ${JSON.stringify(bbox)}`)
+      // console.log(`t offset ${JSON.stringify(targetRenderedNode.layout)} `)
+      // console.log(`p ${JSON.stringify(parentLayout)}`)
       
+
+      // [1] Without touching anything, resizing element works
+
+
       // const targetLayout = {...targetRenderedNode.layout}
+      // [2.1] Uncommenting any pair of these lines unfortunaly makes the element to be dragged with time (it keeps updating the matrix)
       // targetLayout.offset.x = targetLayout.offset.x - bbox.x;
       // targetLayout.offset.y = targetLayout.offset.y - bbox.y;
       // targetLayout.translation.x = targetLayout.translation.x - bbox.x;
       // targetLayout.translation.y = targetLayout.translation.y - bbox.y;
-
+      // const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetLayout, parentLayout)
+      
       const targetLayoutWithParentOffset = HaikuElement.computeLayoutWithParentOffset(targetRenderedNode.layout, parentLayout)
       const targetMatrixWithParentOffset = Layout3D.computeMatrix(targetLayoutWithParentOffset, targetSize)
-
+      
+      // [2.2] Uncommenting these 2 lines unfortunaly makes the element to be dragged with time (it keeps updating the matrix)
       // targetMatrixWithParentOffset[12] = targetMatrixWithParentOffset[12] - bbox.x;
       // targetMatrixWithParentOffset[13] = targetMatrixWithParentOffset[13] - bbox.y;
 
@@ -628,7 +638,11 @@ class Element extends BaseModel {
       // Update computed layout with values from runtime BB
       layout.size = targetSize
       layout.matrix = targetMatrixWithParentOffset
-      layout.bbOffset = {x: bbox.x, y: bbox.y};
+      // [3] By uncommenting these two lines, dragging object inside svg works, because Element.getBoundingBoxPoints is wired to 
+      // use theses values if bbOffset is present. But as it probably don't return the correct matrix, with
+      //  Element.getBoxPointsTransformed use of Element.getOriginOffsetComposedMatrix (it depenps on Element.getComputedLayout return matrix),
+      //  makes resizing wrong
+      // layout.bbOffset = {x: bbox.x, y: bbox.y};
     }
 
     return layout
