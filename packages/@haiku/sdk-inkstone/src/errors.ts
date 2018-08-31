@@ -3,8 +3,8 @@ export enum ErrorCode {
   ErrorOffline = 'E_OFFLINE',
   ErrorUncategorized = 'E_UNCATEGORIZED',
 
-  ErrorCodeUserMissingParams      = 'E_USER_MISSING_PARAMS',
-	ErrorCodeUserEmailAlreadyExists = 'E_USER_EMAIL_ALREADY_EXISTS',
+  ErrorCodeUserMissingParams = 'E_USER_MISSING_PARAMS',
+  ErrorCodeUserEmailAlreadyExists = 'E_USER_EMAIL_ALREADY_EXISTS',
   ErrorCodeAuthorizationRequired = 'E_AUTHORIZATION_REQUIRED',
   ErrorCodePrivilegesPrivateProjectLimitExceeded = 'E_PRIVILEGES_PRIVATE_PROJECT_LIMIT_EXCEEDED',
   ErrorCodeProjectNameRequired = 'E_PROJECT_NAME_REQUIRED',
