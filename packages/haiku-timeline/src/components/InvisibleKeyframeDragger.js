@@ -60,9 +60,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
-    const pxOffsetLeft = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
-      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf);
+    const pxOffsetLeft =  this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
 
     return (
       <TimelineDraggable

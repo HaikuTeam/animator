@@ -25,25 +25,13 @@ export default class PropertyManager extends React.Component {
 
   render () {
     return (
-      <div
-        className="property-manager"
-        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
-          width: 10,
-          position: 'absolute',
-          left: 0,
-          top: 0,
-        })}>
+      <div className="property-manager">
         <div
           onClick={this.launchMenu}
           className="menu-trigger"
-          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          style={{
             transform: 'scale(0.75)',
-          } : {
-            position: 'absolute',
-            transform: 'scale(0.75)',
-            top: -1,
-            left: -1,
-          })}>
+          }}>
           <CirclePlusSVG
             color={this.getIconColor()} />
         </div>

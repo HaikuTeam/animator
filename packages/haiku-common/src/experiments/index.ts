@@ -25,7 +25,6 @@ export enum Experiment {
   OrderedActionStack = 'OrderedActionStack',
   CodeEditor = 'CodeEditor',
   WarnOnUndefinedStateVariables = 'WarnOnUndefinedStateVariables',
-  NativeTimelineScroll = 'NativeTimelineScroll',
   TimelineMarqueeSelection = 'TimelineMarqueeSelection',
   LocalAssetExport = 'LocalAssetExport',
   UserConsole = 'UserConsole',

@@ -171,15 +171,9 @@ export default class TransitionBody extends React.Component {
     const frameInfo = this.props.timeline.getFrameInfo();
 
     const uniqueKey = this.props.keyframe.getUniqueKey();
-    const pxOffsetLeft = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
-      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf);
-    const pxOffsetRight = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf)
-      : this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf);
-
+    const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
+    const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf);
     const curve = this.props.keyframe.getCurveCapitalized();
-
     const breakingBounds = curve.includes('Back') || curve.includes('Bounce') || curve.includes('Elastic');
     // tslint:disable-next-line:variable-name
     const CurveSVG = CURVESVGS[curve + 'SVG'];
@@ -248,8 +242,8 @@ export default class TransitionBody extends React.Component {
             top: 1,
             height: 24,
             WebkitUserSelect: 'none',
-            transform: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'translateX(3px)' : undefined,
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.segmentsBox.pill : undefined,
+            transform: 'translateX(3px)',
+            zIndex: zIndex.segmentsBox.pill,
             cursor: (this.props.keyframe.isWithinCollapsedRow())
               ? 'pointer'
               : 'move',

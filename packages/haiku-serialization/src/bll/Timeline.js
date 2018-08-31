@@ -4,7 +4,6 @@ const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
 const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').default
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
@@ -40,7 +39,6 @@ class Timeline extends BaseModel {
     this._timelinePixelWidth = 870
     this._propertiesPixelWidth = 300
     this._maxFrame = this._visibleFrameRange[1] * 2
-    this._frameBaseline = 0
     this._durationDragStart = 0
     this._durationTrim = 0
     this._dragIsAdding = false
@@ -378,16 +376,6 @@ class Timeline extends BaseModel {
     return this._visibleFrameRange[1]
   }
 
-  getFrameBaseline () {
-    return this._frameBaseline
-  }
-
-  setFrameBaseline (frameBaseline) {
-    this._frameBaseline = frameBaseline
-    this.emit('update', 'timeline-frame-baseline')
-    return this
-  }
-
   getScrollerLeftDragStart () {
     return this._scrollerLeftDragStart
   }
@@ -565,39 +553,22 @@ class Timeline extends BaseModel {
 
   getVisibleFrames () {
     const visibleFrames = []
-
     const frameInfo = this.getFrameInfo()
-    const visiblePixelWidth = this.getTimelinePixelWidth()
-
-    const leftFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA
-    const rightFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? frameInfo.friMax : frameInfo.friB
-
+    const leftFrame = 0
+    const rightFrame = frameInfo.friMax
     const leftMostAbsolutePixel = Math.round(leftFrame * frameInfo.pxpf)
-
     const frameModulus = Timeline.getFrameModulus(frameInfo.pxpf)
 
     for (let i = leftFrame; i <= rightFrame; i++) {
       let pixelOffsetLeft = Math.round(i * frameInfo.pxpf)
 
-      if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        visibleFrames.push({
-          pixelOffsetLeft,
-          frameModulus,
-          frameNumber: i,
-          leftMostAbsolutePixel,
-          pixelsPerFrame: frameInfo.pxpf
-        })
-      } else {
-        if (pixelOffsetLeft >= leftMostAbsolutePixel && pixelOffsetLeft <= (leftMostAbsolutePixel + visiblePixelWidth)) {
-          visibleFrames.push({
-            pixelOffsetLeft,
-            frameModulus,
-            frameNumber: i,
-            leftMostAbsolutePixel,
-            pixelsPerFrame: frameInfo.pxpf
-          })
-        }
-      }
+      visibleFrames.push({
+        pixelOffsetLeft,
+        frameModulus,
+        frameNumber: i,
+        leftMostAbsolutePixel,
+        pixelsPerFrame: frameInfo.pxpf
+      })
     }
 
     return visibleFrames
@@ -624,8 +595,8 @@ class Timeline extends BaseModel {
     const frameInfo = this.getFrameInfo()
 
     const leftFrame = frameInfo.friA
-    const leftMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA * frameInfo.mspf
-    const rightMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? frameInfo.friMax * frameInfo.mspf : frameInfo.friB * frameInfo.mspf
+    const leftMs = 0
+    const rightMs = frameInfo.friMax * frameInfo.mspf
     const totalMs = rightMs - leftMs
 
     const msModulus = Timeline.getMillisecondModulus(frameInfo.pxpf)
@@ -787,51 +758,6 @@ class Timeline extends BaseModel {
     }
   }
 
-  changeVisibleFrameRange (xl, xr) {
-    const frameInfo = this.getFrameInfo()
-    let absL = null
-    let absR = null
-
-    if (this.getScrollerLeftDragStart()) {
-      absL = xl
-    } else if (this.getScrollerRightDragStart()) {
-      absR = xr
-    } else if (this.getScrollerBodyDragStart()) {
-      const offsetL = (this.getScrollbarStart() * frameInfo.pxpf) / frameInfo.scRatio
-      const offsetR = (this.getScrollbarEnd() * frameInfo.pxpf) / frameInfo.scRatio
-      const diffX = xl - this.getScrollerBodyDragStart()
-
-      absL = offsetL + diffX
-      absR = offsetR + diffX
-    }
-
-    let fL = (absL !== null)
-      ? Math.round((absL * frameInfo.scRatio) / frameInfo.pxpf)
-      : this.getLeftFrameEndpoint()
-
-    let fR = (absR !== null)
-      ? Math.round((absR * frameInfo.scRatio) / frameInfo.pxpf)
-      : this.getRightFrameEndpoint()
-
-    // Stop the scroller at the left side and lock the size
-    if (fL <= frameInfo.fri0) {
-      fL = frameInfo.fri0
-      if (!this.getScrollerRightDragStart() && !this.getScrollerLeftDragStart()) {
-        fR = this.getRightFrameEndpoint() - (this.getLeftFrameEndpoint() - fL)
-      }
-    }
-
-    // Stop the scroller at the right side and lock the size
-    if (fR >= frameInfo.friMax2) {
-      fL = this.getLeftFrameEndpoint()
-      if (!this.getScrollerRightDragStart() && !this.getScrollerLeftDragStart()) {
-        fR = frameInfo.friMax2
-      }
-    }
-
-    this.setVisibleFrameRange(fL, fR)
-  }
-
   updateVisibleFrameRangeByDelta (delta) {
     const l = this.getLeftFrameEndpoint() + delta
     const r = this.getRightFrameEndpoint() + delta
@@ -845,30 +771,11 @@ class Timeline extends BaseModel {
    * @description will left-align the current timeline window (maintaining zoom)
    */
   tryToLeftAlignTickerInVisibleFrameRange (frame) {
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const frameInfo = this.getFrameInfo()
-      const pxOffsetLeft = frame * frameInfo.pxpf
-      if (frame !== undefined && (pxOffsetLeft > this._scrollLeft + this._timelinePixelWidth || pxOffsetLeft < this._scrollLeft)) {
-        this.setScrollLeftFromScrollbar(pxOffsetLeft)
-      }
-    } else {
-      const frameInfo = this.getFrameInfo()
-      // If a frame was passed, only do this if we detect we've gone outside of the range
-      if (frame !== undefined && (frame > frameInfo.friB || frame < frameInfo.friA)) {
-        const l = this.getLeftFrameEndpoint()
-        const r = this.getRightFrameEndpoint()
-        const span = r - l
+    const frameInfo = this.getFrameInfo()
+    const pxOffsetLeft = frame * frameInfo.pxpf
 
-        let newL = this.getCurrentFrame()
-        let newR = newL + span
-
-        if (newR > frameInfo.friMax) {
-          newL -= (newR - frameInfo.friMax)
-          newR = frameInfo.friMax
-        }
-
-        this.setVisibleFrameRange(newL, newR)
-      }
+    if (frame !== undefined && (pxOffsetLeft > this._scrollLeft + this._timelinePixelWidth || pxOffsetLeft < this._scrollLeft)) {
+      this.setScrollLeftFromScrollbar(pxOffsetLeft)
     }
 
     return this

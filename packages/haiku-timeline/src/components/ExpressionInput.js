@@ -989,7 +989,7 @@ export default class ExpressionInput extends React.Component {
       height: this.getEditorHeight() + 1,
       left: 0,
       outline: 'none',
-      position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'sticky' : 'relative',
+      position: 'sticky',
       top: 0,
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
@@ -1001,8 +1001,7 @@ export default class ExpressionInput extends React.Component {
       style.visibility = 'visible';
       const rect = this.getRootRect();
       style.left = rect.left;
-      style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : rect.top + 10;
-      style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.container.scrollTop + 10 : undefined;
+      style.marginTop = rect.top + this.props.reactParent.container.scrollTop + 10;
     }
 
     return style;
@@ -1023,7 +1022,7 @@ export default class ExpressionInput extends React.Component {
 
   getInputLabelStyle () {
     const label = this.getLabelString();
-    const width = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83;
+    const width = 82;
     let fontSize = 10;
     if (label.length > 12) {
       fontSize = 8;

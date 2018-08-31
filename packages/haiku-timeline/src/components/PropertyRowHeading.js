@@ -80,7 +80,6 @@ export default class PropertyRowHeading extends React.Component {
           className="property-row-label-text no-select"
           style={{
             display: 'inline-block',
-            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 55,
             textAlign: 'right',
             marginTop,
           }}>
