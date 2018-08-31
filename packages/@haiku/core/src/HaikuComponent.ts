@@ -2704,7 +2704,7 @@ export interface ClonedFunction {
   __rfo?: RFO;
 }
 
-const clone = (value, binding) => {
+export const clone = (value, binding) => {
   if (!value) {
     return value;
   }

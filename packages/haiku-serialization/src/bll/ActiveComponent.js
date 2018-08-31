@@ -6,7 +6,7 @@ const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
 const {PlaybackFlag} = require('@haiku/core/lib/HaikuTimeline')
 const {HAIKU_ID_ATTRIBUTE, HAIKU_LOCKED_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
-const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
+const {default: HaikuComponent, clone} = require('@haiku/core/lib/HaikuComponent')
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
 const {getSortedKeyframes} = require('@haiku/core/lib/helpers/KeyframeUtils')
@@ -1779,11 +1779,13 @@ class ActiveComponent extends BaseModel {
 
         ac.$instance.visitGuestHierarchy((instance) => {
           if (this.doesManageCoreInstance(instance)) {
+            const safe = ActiveComponent.memorySafeBytecode(bytecode, instance)
+
             if (instance.node.__memory && instance.node.__memory.parent) {
-              Object.assign(instance.node.__memory.parent.elementName, bytecode)
+              Object.assign(instance.node.__memory.parent.elementName, safe)
             }
 
-            Object.assign(instance.bytecode, bytecode)
+            Object.assign(instance.bytecode, safe)
           }
         })
       })
@@ -2360,11 +2362,13 @@ class ActiveComponent extends BaseModel {
               instance.deactivate()
 
               if (this.doesManageCoreInstance(instance)) {
+                const safe = ActiveComponent.memorySafeBytecode(bytecode, instance)
+
                 if (instance.node.__memory && instance.node.__memory.parent) {
-                  Object.assign(instance.node.__memory.parent.elementName, bytecode)
+                  Object.assign(instance.node.__memory.parent.elementName, safe)
                 }
 
-                Object.assign(instance.bytecode, bytecode)
+                Object.assign(instance.bytecode, safe)
               }
 
               instance.clearCaches({
@@ -4698,6 +4702,26 @@ ActiveComponent.buildPrimaryKey = (folder, scenename) => {
   // The ideal solution would be use something else to buildPrimaryKey such as
   // organizationName + projectName + scenename
   return folder.replace(/\\/g, '/') + '::' + scenename
+}
+
+/**
+ * Used in multi-component scenarios to avoid interop issues when switching context
+ * dealing between multiple component instances that share the same bytecode.
+ */
+ActiveComponent.memorySafeBytecode = (bytecode, instance) => {
+  const safe = {}
+
+  for (const key in bytecode) {
+    if (key === 'template') {
+      // The hot template contains references like __memory.targets which get stripped out here
+      safe[key] = clone(bytecode[key], instance)
+    } else {
+      // The other fields should be static as far as rendering is concerned, so no need to clone
+      safe[key] = bytecode[key]
+    }
+  }
+
+  return safe
 }
 
 module.exports = ActiveComponent
