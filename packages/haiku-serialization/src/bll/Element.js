@@ -1787,6 +1787,7 @@ class Element extends BaseModel {
 
   ungroupSvg (nodes) {
     const defs = []
+    const extraNodes = []
     const svgElement = this.getHaikuElement()
     const ungroupables = this.getUngroupables()
     const bytecode = this.component.getReifiedBytecode()
@@ -1794,6 +1795,11 @@ class Element extends BaseModel {
     svgElement.visit((descendantHaikuElement) => {
       if (descendantHaikuElement.tagName === 'defs') {
         defs.push(...descendantHaikuElement.node.children)
+        return false
+      } else if (descendantHaikuElement.tagName === 'style' && descendantHaikuElement.memory && descendantHaikuElement.memory.children) {
+        const styleNode = Template.cleanMana(lodash.cloneDeep(descendantHaikuElement.node), {resetIds: true})
+        styleNode.children = [descendantHaikuElement.memory.children[0]]
+        extraNodes.push(styleNode)
         return false
       } else if (DEFABLE_TAG_NAMES[descendantHaikuElement.tagName]) {
         defs.push(descendantHaikuElement.node)
@@ -1895,28 +1901,30 @@ class Element extends BaseModel {
       const node = Template.cleanMana({
         elementName: 'svg',
         attributes: parentAttributes,
-        children: [{
-          elementName: 'g',
-          attributes: Object.assign(
-            attributes,
-            {
-              transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
-            }
-          ),
-          children: [Object.assign(
-            {},
-            descendantHaikuElement.node,
-            {
-              attributes: Object.assign(
-                {
-                  'haiku-transclude': descendantHaikuElement.getComponentId()
-                },
-                descendantHaikuElement.attributes
-              ),
-              children: []
-            }
-          )]
-        }]
+        children: [
+          {
+            elementName: 'g',
+            attributes: Object.assign(
+              attributes,
+              {
+                transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
+              }
+            ),
+            children: [Object.assign(
+              {},
+              descendantHaikuElement.node,
+              {
+                attributes: Object.assign(
+                  {
+                    'haiku-transclude': descendantHaikuElement.getComponentId()
+                  },
+                  descendantHaikuElement.attributes
+                ),
+                children: []
+              }
+            )]
+          }
+        ]
       }, {resetIds: true})
 
       if (defs.length > 0) {
@@ -1934,6 +1942,7 @@ class Element extends BaseModel {
         )
       }
 
+      node.children.unshift(...extraNodes.map(lodash.cloneDeep))
       nodes.push(node)
     })
   }
