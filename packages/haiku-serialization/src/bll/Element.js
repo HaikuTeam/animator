@@ -1803,7 +1803,7 @@ class Element extends BaseModel {
     ungroupables.forEach((descendantHaikuElement) => {
       const mergedAttributes = {}
       let parent = descendantHaikuElement.parent
-      while (parent && parent !== svgElement && parent.node.elementName === 'g') {
+      while (parent && (parent.node.elementName === 'g' || parent.node.elementName === 'svg')) {
         for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${parent.componentId}`]) {
           if (!mergedAttributes.hasOwnProperty(propertyName)) {
             mergedAttributes[propertyName] = parent.componentId
