@@ -387,7 +387,6 @@ export class Glass extends React.Component {
     if (!experimentIsEnabled(Experiment.UserFacingDevTools)) {
       return;
     }
-
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
