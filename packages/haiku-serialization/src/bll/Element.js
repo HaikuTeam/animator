@@ -44,6 +44,21 @@ const DEFABLE_TAG_NAMES = {
   filter: true
 }
 
+/**
+ * Attributes which only show on SVG and shouldn't be copied during ungrouping.
+ */
+const SVG_ONLY_ATTRIBUTES = {
+  baseProfile: true,
+  contentScriptType: true,
+  contentStyleType: true,
+  height: true,
+  preserveAspectRatio: true,
+  version: true,
+  viewBox: true,
+  xmlns: true,
+  width: true
+}
+
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const HAIKU_LOCKED_ATTRIBUTE = 'haiku-locked'
@@ -1811,7 +1826,7 @@ class Element extends BaseModel {
       let parent = descendantHaikuElement.parent
       while (parent && (parent.node.elementName === 'g' || parent.node.elementName === 'svg')) {
         for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${parent.componentId}`]) {
-          if (!propertyName.startsWith('style') && !mergedAttributes.hasOwnProperty(propertyName)) {
+          if (!propertyName.startsWith('style') && !SVG_ONLY_ATTRIBUTES[propertyName] && !mergedAttributes.hasOwnProperty(propertyName)) {
             mergedAttributes[propertyName] = parent.componentId
           }
         }
