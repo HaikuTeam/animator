@@ -44,6 +44,21 @@ const DEFABLE_TAG_NAMES = {
   filter: true
 }
 
+/**
+ * Attributes which only show on SVG and shouldn't be copied during ungrouping.
+ */
+const SVG_ONLY_ATTRIBUTES = {
+  baseProfile: true,
+  contentScriptType: true,
+  contentStyleType: true,
+  height: true,
+  preserveAspectRatio: true,
+  version: true,
+  viewBox: true,
+  xmlns: true,
+  width: true
+}
+
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const HAIKU_LOCKED_ATTRIBUTE = 'haiku-locked'
@@ -1787,6 +1802,7 @@ class Element extends BaseModel {
 
   ungroupSvg (nodes) {
     const defs = []
+    const extraNodes = []
     const svgElement = this.getHaikuElement()
     const ungroupables = this.getUngroupables()
     const bytecode = this.component.getReifiedBytecode()
@@ -1794,6 +1810,11 @@ class Element extends BaseModel {
     svgElement.visit((descendantHaikuElement) => {
       if (descendantHaikuElement.tagName === 'defs') {
         defs.push(...descendantHaikuElement.node.children)
+        return false
+      } else if (descendantHaikuElement.tagName === 'style' && descendantHaikuElement.memory && descendantHaikuElement.memory.children) {
+        const styleNode = Template.cleanMana(lodash.cloneDeep(descendantHaikuElement.node), {resetIds: true})
+        styleNode.children = [descendantHaikuElement.memory.children[0]]
+        extraNodes.push(styleNode)
         return false
       } else if (DEFABLE_TAG_NAMES[descendantHaikuElement.tagName]) {
         defs.push(descendantHaikuElement.node)
@@ -1803,9 +1824,9 @@ class Element extends BaseModel {
     ungroupables.forEach((descendantHaikuElement) => {
       const mergedAttributes = {}
       let parent = descendantHaikuElement.parent
-      while (parent && parent !== svgElement && parent.node.elementName === 'g') {
+      while (parent && (parent.node.elementName === 'g' || parent.node.elementName === 'svg')) {
         for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${parent.componentId}`]) {
-          if (!mergedAttributes.hasOwnProperty(propertyName)) {
+          if (!propertyName.startsWith('style') && !SVG_ONLY_ATTRIBUTES[propertyName] && !mergedAttributes.hasOwnProperty(propertyName)) {
             mergedAttributes[propertyName] = parent.componentId
           }
         }
@@ -1895,28 +1916,30 @@ class Element extends BaseModel {
       const node = Template.cleanMana({
         elementName: 'svg',
         attributes: parentAttributes,
-        children: [{
-          elementName: 'g',
-          attributes: Object.assign(
-            attributes,
-            {
-              transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
-            }
-          ),
-          children: [Object.assign(
-            {},
-            descendantHaikuElement.node,
-            {
-              attributes: Object.assign(
-                {
-                  'haiku-transclude': descendantHaikuElement.getComponentId()
-                },
-                descendantHaikuElement.attributes
-              ),
-              children: []
-            }
-          )]
-        }]
+        children: [
+          {
+            elementName: 'g',
+            attributes: Object.assign(
+              attributes,
+              {
+                transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
+              }
+            ),
+            children: [Object.assign(
+              {},
+              descendantHaikuElement.node,
+              {
+                attributes: Object.assign(
+                  {
+                    'haiku-transclude': descendantHaikuElement.getComponentId()
+                  },
+                  descendantHaikuElement.attributes
+                ),
+                children: []
+              }
+            )]
+          }
+        ]
       }, {resetIds: true})
 
       if (defs.length > 0) {
@@ -1934,6 +1957,7 @@ class Element extends BaseModel {
         )
       }
 
+      node.children.unshift(...extraNodes.map(lodash.cloneDeep))
       nodes.push(node)
     })
   }

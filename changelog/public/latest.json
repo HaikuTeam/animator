@@ -5,7 +5,8 @@
       "You can now change the email address you use to sign in at [account.haiku.ai](https://account.haiku.ai/)."
     ],
     "Fixes": [
-      "First!"
+      "Fixed an issue where ungrouping SVGs containing inline CSS caused a loss of styles.",
+      "Fixed an issue preventing ungrouped SVG elements from receiving display properties from the original SVG."
     ]
   }
 }
