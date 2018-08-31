@@ -333,6 +333,9 @@ export class Glass extends React.Component {
   }
 
   handleActiveComponentReady () {
+    // Reset direct selection before mounting new component
+    Element.directlySelected = null;
+
     this.mountHaikuComponent();
 
     ipcRenderer.send('topmenu:update', {
