@@ -540,7 +540,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   setState (states: StateValues, transitionParameter?: StateTransitionParameters) {
-
     // Do not set any state if invalid
     if (!states || typeof states !== 'object') {
       return this;

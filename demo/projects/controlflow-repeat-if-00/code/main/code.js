@@ -12,9 +12,9 @@ module.exports = {
     tweets: {
       type: "array",
       value: [
-        { t: "meow cat", c: "red", x: 0, y: 0 },
-        { t: "ruff dog", c: "green", x: 100, y: 100 },
-        { t: "chirp bird", c: "blue", x: 200, y: 200 }
+        { t: "meow cat", c: "red", x: 100, y: 100 },
+        { t: "ruff dog", c: "green", x: 200, y: 200 },
+        { t: "chirp bird", c: "blue", x: 300, y: 300 }
       ],
       edited: true
     }
