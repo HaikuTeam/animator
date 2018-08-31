@@ -169,7 +169,18 @@ export namespace inkstone {
 
     export const get = (cb: inkstone.Callback<User>) => {
       newGetRequest()
-        .withEndpoint(Endpoints.OrganizationUserDetail)
+        .withEndpoint(Endpoints.UserDetailResource)
+        .callWithCallback(cb);
+    };
+
+    export interface UserUpdateParams {
+      Username: string;
+    }
+
+    export const update = (params: UserUpdateParams, cb: inkstone.Callback<User>) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.UserDetailResource)
+        .withJson(params)
         .callWithCallback(cb);
     };
 

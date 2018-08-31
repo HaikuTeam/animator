@@ -25,7 +25,7 @@ export const enum Endpoints {
   OrganizationResourceCollection = '/organization',
 
   // User.
-  OrganizationUserDetail = '/user/detail',
+  UserDetailResource = '/user/detail',
 
   // Billing.
   BillingDescribe = '/billing',
