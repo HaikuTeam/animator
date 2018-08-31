@@ -106,22 +106,20 @@ export default class PropertyRow extends React.Component {
         onMouseLeave={this.throttledHandleRowUnhovered}
         style={{
           height: this.props.rowHeight,
-          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
           left: 0,
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative',
         }}>
-        <div draggable="false" style={(experimentIsEnabled(Experiment.NativeTimelineScroll)
-            ? {
-              position: 'sticky',
-              top: 0,
-              left: 0,
-              width: this.props.timeline.getPropertiesPixelWidth(),
-              // Increase the z-index over the other rows to show the pink border around the selected field,
-              // we need to do this here because we are defining a new stacking context with `position: sticky`
-              zIndex: this.props.row === this.props.row.component.getSelectedRow() ? (zIndex.propertyRowHeading.base + 1) : zIndex.propertyRowHeading.base,
-              backgroundColor: Palette.GRAY,
-            } : {})}>
+        <div draggable="false" style={{
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          width: this.props.timeline.getPropertiesPixelWidth(),
+          // Increase the z-index over the other rows to show the pink border around the selected field,
+          // we need to do this here because we are defining a new stacking context with `position: sticky`
+          zIndex: this.props.row === this.props.row.component.getSelectedRow() ? (zIndex.propertyRowHeading.base + 1) : zIndex.propertyRowHeading.base,
+          backgroundColor: Palette.GRAY,
+        }}>
           <div
             onClick={(clickEvent) => {
               // Allow clicking the subproperty of a cluster to collapse the parent row,
@@ -217,13 +215,11 @@ export default class PropertyRow extends React.Component {
           }}
           style={{
             position: 'absolute',
-            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? '100%' : this.props.timeline.getTimelinePixelWidth(),
-            left:
-              experimentIsEnabled(Experiment.NativeTimelineScroll)
-                ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
+            width: '100%',
+            left: this.props.timeline.getPropertiesPixelWidth() + 1,
             top: 0,
             height: 'inherit',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.propertyRow.base : undefined,
+            zIndex: zIndex.propertyRow.base,
           }}>
           <PropertyTimelineSegments
             component={this.props.component}

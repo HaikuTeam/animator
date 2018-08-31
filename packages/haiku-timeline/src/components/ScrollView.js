@@ -46,31 +46,17 @@ class ScrollView extends React.PureComponent {
         ref="scrollview"
         id="property-rows"
         className="no-select"
-        style={
-          experimentIsEnabled(Experiment.NativeTimelineScroll)
-            ? {
-              position: 'absolute',
-              top: 35,
-              left: 0,
-              width: this.props.timeline.calculateFullTimelineWidth(),
-              pointerEvents: 'auto',
-              WebkitUserSelect: 'auto',
-              bottom: 0,
-              display: 'flex',
-              flexDirection: 'column',
-            }
-            : {
-              position: 'absolute',
-              top: 35,
-              left: 0,
-              width: '100%',
-              pointerEvents: 'auto',
-              WebkitUserSelect: 'auto',
-              bottom: 0,
-              overflowY: 'auto',
-              overflowX: 'hidden',
-            }
-        }
+        style={{
+          position: 'absolute',
+          top: 35,
+          left: 0,
+          width: this.props.timeline.calculateFullTimelineWidth(),
+          pointerEvents: 'auto',
+          WebkitUserSelect: 'auto',
+          bottom: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
         onMouseDown={this.props.onMouseDown}
       >
         {this.props.children}

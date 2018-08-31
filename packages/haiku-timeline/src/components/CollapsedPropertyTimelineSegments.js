@@ -13,12 +13,11 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
         className="collapsed-segments-box"
         style={{
           position: 'absolute',
-          left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4,
+          left: this.props.timeline.getPropertiesPixelWidth() + 1,
           height: this.props.rowHeight,
           width: '100%',
-          overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 'hidden',
-          zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.collapsedSegments.base : undefined,
-          backgroundColor: experimentIsEnabled(Experiment.NativeTimelineScroll) ? Palette.LIGHT_GRAY : undefined,
+          zIndex: zIndex.collapsedSegments.base,
+          backgroundColor: Palette.LIGHT_GRAY,
           paddingLeft: 1,
         }}>
         <RowSegments

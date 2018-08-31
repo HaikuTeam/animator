@@ -44,45 +44,6 @@ export default class Gauge extends React.Component {
     }
   }
 
-  wrapIfNativeScrollIsEnabled (children) {
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      return (
-        <div
-          id="gauge-wrapper"
-          style={{
-            height: 23,
-            backgroundColor: Palette.COAL,
-            position: 'sticky',
-            top: 12,
-            marginLeft: this.props.timeline.getPropertiesPixelWidth() + this.props.timelineOffsetPadding,
-            width: this.props.timeline.calculateFullTimelineWidth(),
-            zIndex: zIndex.gauge.base,
-            fontSize: 10,
-            borderBottom: '1px solid ' + Palette.FATHER_COAL,
-            color: Palette.ROCK_MUTED,
-          }}
-          onMouseDown={this.props.onMouseDown}
-          >
-          <span
-            style={{
-              display: 'inline-block',
-              width: '15px',
-              position: 'absolute',
-              left: '-8px',
-              height: 'inherit',
-              border: 'inherit',
-              backgroundColor: 'inherit',
-            }}
-           />
-
-          {children}
-        </div>
-      );
-    }
-
-    return children;
-  }
-
   render () {
     let out;
 
@@ -131,7 +92,37 @@ export default class Gauge extends React.Component {
       );
     }
 
-    return this.wrapIfNativeScrollIsEnabled(out);
+    return (
+      <div
+      id="gauge-wrapper"
+      style={{
+        height: 23,
+        backgroundColor: Palette.COAL,
+        position: 'sticky',
+        top: 12,
+        marginLeft: this.props.timeline.getPropertiesPixelWidth() + this.props.timelineOffsetPadding,
+        width: this.props.timeline.calculateFullTimelineWidth(),
+        zIndex: zIndex.gauge.base,
+        fontSize: 10,
+        borderBottom: '1px solid ' + Palette.FATHER_COAL,
+        color: Palette.ROCK_MUTED,
+      }}
+      onMouseDown={this.props.onMouseDown}
+      >
+      <span
+        style={{
+          display: 'inline-block',
+          width: '15px',
+          position: 'absolute',
+          left: '-8px',
+          height: 'inherit',
+          border: 'inherit',
+          backgroundColor: 'inherit',
+        }}
+       />
+       {out}
+    </div>
+    );
   }
 }
 

@@ -48,38 +48,22 @@ export default class ScrubberInterior extends React.Component {
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
-
-    if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
-        return <span />;
-      }
-
-      if (this.props.timeline.getCurrentFrame() > frameInfo.friB) {
-        return <span />;
-      }
-    }
-
     const currFrame = this.props.timeline.getCurrentFrame();
-    const frameOffset = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? currFrame
-      : currFrame - frameInfo.friA;
-    const pxOffset = frameOffset * frameInfo.pxpf;
+    const pxOffset = currFrame * frameInfo.pxpf;
     const translation = this.propertiesWidth + pxOffset + this.props.timelineOffsetPadding;
 
     return (
       <div
         onMouseDown={this.props.onMouseDown}
-        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+        style={{
           position: 'sticky',
           top: 0,
           marginTop: -45,
           zIndex: zIndex.scrubber.base,
           fontSize: 10,
-        } : {
-          overflow: 'hidden',
-        })}>
+        }}>
         <div
-          style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          style={{
             position: 'absolute',
             backgroundColor: Palette.SUNSTONE,
             color: Palette.FATHER_COAL,
@@ -93,29 +77,16 @@ export default class ScrubberInterior extends React.Component {
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
             willChange: 'transform',
             transform: `translate3D(${translation}px, 0, 0)`,
-          } : {
-            position: 'absolute',
-            backgroundColor: Palette.SUNSTONE,
-            color: Palette.FATHER_COAL,
-            textAlign: 'center',
-            height: 19,
-            width: 19,
-            top: 13,
-            left: pxOffset - 9,
-            borderRadius: '50%',
-            cursor: 'move',
-            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-            zIndex: 2006,
           }}>
           <span style={{
             position: 'absolute',
-            top: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2,
+            top: 1,
             left: 0,
             width: '100%',
           }}>
             {this.props.timeline.getDisplayTime()}
           </span>
-          <span style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          <span style={{
             position: 'absolute',
             width: 0,
             height: 0,
@@ -124,18 +95,8 @@ export default class ScrubberInterior extends React.Component {
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
             borderTop: '9px solid rgb(254, 254, 254)',
-          } : {
-            position: 'absolute',
-            zIndex: 2006,
-            width: 0,
-            height: 0,
-            top: 15,
-            left: 1,
-            borderLeft: '7px solid transparent',
-            borderRight: '7px solid transparent',
-            borderTop: '9px solid ' + Palette.SUNSTONE,
           }} />
-          <span style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          <span style={{
             position: 'absolute',
             width: 0,
             height: 0,
@@ -144,28 +105,16 @@ export default class ScrubberInterior extends React.Component {
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
             borderTop: '8px solid rgb(254, 254, 254)',
-          } : {
-            display: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'none' : 'inline-block',
-            position: 'absolute',
-            zIndex: 2006,
-            width: 0,
-            height: 0,
-            left: 2,
-            top: 15,
-            borderLeft: '7px solid transparent',
-            borderRight: '7px solid transparent',
-            borderTop: '9px solid ' + Palette.SUNSTONE,
           }} />
         </div>
         <div
           style={{
             position: 'absolute',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2006,
+            zIndex: 1,
             backgroundColor: Palette.SUNSTONE,
-            height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
+            height: 'calc(100vh - 80px)',
             width: 1,
             top: 35,
-            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset,
             pointerEvents: 'none',
             willChange: 'transform',
             transform: `translate3D(${translation}px, 0, 0)`,

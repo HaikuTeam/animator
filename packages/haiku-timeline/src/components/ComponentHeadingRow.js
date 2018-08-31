@@ -142,7 +142,7 @@ export default class ComponentHeadingRow extends React.Component {
         className="component-heading-row no-select js-avoid-marquee-init"
         onMouseOver={this.hoverRow}
         onMouseOut={this.unhoverRow}
-        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+        style={{
           display: 'flex',
           alignItems: 'top',
           height: this.props.isExpanded ? 'auto' : this.props.rowHeight,
@@ -153,27 +153,8 @@ export default class ComponentHeadingRow extends React.Component {
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           opacity: this.props.isHidden ? 0.75 : 1.0,
           zIndex: this.props.isExpanded ? zIndex.headingRowExpanded.base : undefined,
-        } : {
-          display: 'table',
-          tableLayout: 'fixed',
-          height: this.props.isExpanded ? 0 : this.props.rowHeight,
-          width: '100%',
-          position: 'relative',
-          zIndex: 1007,
-          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
-          verticalAlign: 'top',
-          opacity: this.props.isHidden ? 0.75 : 1.0,
-        })}>
-        {!this.props.isExpanded && !experimentIsEnabled(Experiment.NativeTimelineScroll) && // covers keyframe hangover at frame 0 that for uncollapsed rows is hidden by the input field
-          <div style={{
-            position: 'absolute',
-            zIndex: 1006,
-            left: propertiesPixelWidth - 10,
-            top: 0,
-            backgroundColor: Palette.LIGHT_GRAY,
-            width: 10,
-            height: this.props.rowHeight}} />}
-        <div className="js-avoid-marquee-init" style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+        }}>
+        <div className="js-avoid-marquee-init" style={{
           display: 'flex',
           position: 'sticky',
           top: 0,
@@ -182,18 +163,13 @@ export default class ComponentHeadingRow extends React.Component {
           width: propertiesPixelWidth,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           zIndex: zIndex.headingRow.base,
-        } : {})}>
+        }}>
           {!this.props.row.isRootRow() &&
             <div
-              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              style={{
                 marginTop: 3,
                 marginRight: 3,
-              } : {
-                position: 'absolute',
-                top: 3,
-                left: 12,
-                zIndex: 4,
-              })}
+              }}
               className="component-heading-row-drag-handle js-avoid-marquee-init"
               {...this.props.dragHandleProps}>
               <span
@@ -205,72 +181,40 @@ export default class ComponentHeadingRow extends React.Component {
           }
           <div
             className="component-heading-row-inner no-select"
-            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            style={{
               width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 200 : propertiesPixelWidth,
               height: 'inherit',
               cursor: 'pointer',
-              // zIndex: 9999999999999,
               backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column',
-            } : {
-              display: 'table-cell',
-              width: (this.props.row.isExpanded()) ? this.props.timeline.getPropertiesPixelWidth() - 140 : '100%',
-              height: 'inherit',
-              position: 'absolute',
-              cursor: 'pointer',
-              zIndex: 3,
-              backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
-            })}>
+            }}>
             <div
               className="component-heading-row-inner-r1"
-              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              style={{
                 height: this.props.rowHeight,
                 display: 'flex',
                 alignItems: this.props.isExpanded ? 'baseline' : 'center',
                 width: '100%',
-              } : {
-                height: this.props.rowHeight,
-                marginTop: -6,
-                maxWidth: (this.props.row.isRootRow()) ? '120px' : undefined,
-              })}
+              }}
               onClick={this.expandAndSelect}
             >
               <span
                 className="component-heading-chevron-box"
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                style={{
                   width: 11,
                   marginTop: 3,
                   marginLeft: -3,
                   marginRight: 3,
                   padding: '0 3px',
-                } : {
-                  display: 'inline-block',
-                  transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)',
-                })}
+                }}
                 onClick={this.toggleExpandAndSelect}
               >
-                {this.props.isExpanded
-                    ? <span className={experimentIsEnabled(Experiment.NativeTimelineScroll) ? '' : 'utf-icon'}
-                      style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                        pointerEvents: 'none',
-                      } : {
-                        top: 1,
-                        pointerEvents: 'none',
-                        left: -1,
-                      })}>
-                      <DownCarrotSVG color={Palette.ROCK} />
-                    </span>
-                    : <span className={experimentIsEnabled(Experiment.NativeTimelineScroll) ? '' : 'utf-icon'}
-                      style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                        pointerEvents: 'none',
-                      } : {
-                        top: 3,
-                        pointerEvents: 'none',
-                      })}>
-                      <RightCarrotSVG />
-                    </span>
-                  }
+                <span style={{pointerEvents: 'none'}}>
+                  {this.props.isExpanded
+                      ? <DownCarrotSVG color={Palette.ROCK} />
+                      : <RightCarrotSVG />}
+                </span>
               </span>
               <ComponentHeadingRowHeading
                 setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
@@ -284,41 +228,22 @@ export default class ComponentHeadingRow extends React.Component {
             </div>
             <div
               className="component-heading-row-inner-r2"
-              style={(
-                experimentIsEnabled(Experiment.NativeTimelineScroll)
-                  ? {
-                    display: this.props.isExpanded ? 'flex' : 'none',
-                    alignItems: 'baseline',
-                    marginTop: -3,
-                    width: '75%',
-                    marginLeft: this.props.row.isRootRow()
-                      ? (this.props.isExpanded ? 33 : undefined)
-                      : (this.props.isExpanded ? 12 : undefined),
-                  } : (
-                    this.props.isExpanded
-                      ? {
-                        marginLeft: '37px',
-                        marginTop: '4px',
-                        position: 'relative',
-                        height: '20px',
-                        maxWidth: '100px',
-                      }
-                      : {float: 'right', marginTop: '-15px', position: 'relative'}
-                  )
-              )}
+              style={{
+                display: this.props.isExpanded ? 'flex' : 'none',
+                alignItems: 'baseline',
+                marginTop: -3,
+                width: '75%',
+                marginLeft: this.props.row.isRootRow()
+                  ? (this.props.isExpanded ? 33 : undefined)
+                  : (this.props.isExpanded ? 12 : undefined),
+              }}
             >
               <div
                 className="layer-lock-button light-on-hover"
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                style={{
                   ...STYLES.actionButton,
                   display: this.props.row.element.getSource() ? 'block' : 'none',
-                } : {
-                  width: 16,
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  display: this.props.row.element.getSource() ? 'block' : 'none',
-                })}
+                }}
                 onClick={this.toggleLock.bind(this)}
               >
                 {
@@ -332,14 +257,9 @@ export default class ComponentHeadingRow extends React.Component {
                 data-tooltip={true}
                 data-tooltip-right={true}
                 className="event-handler-triggerer-button light-on-hover"
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                style={{
                   ...STYLES.actionButton,
-                } : {
-                  width: 10,
-                  position: 'absolute',
-                  left: 16,
-                  top: 0,
-                })}>
+                }}>
                 {(this.props.isExpanded || this.props.hasAttachedActions)
                   ? <EventHandlerTriggerer
                     element={this.props.row.element}
@@ -354,14 +274,9 @@ export default class ComponentHeadingRow extends React.Component {
                 data-tooltip={true}
                 data-tooltip-right={true}
                 className="property-manager-button light-on-hover"
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                style={{
                   ...STYLES.actionButton,
-                } : {
-                  width: 16,
-                  position: 'absolute',
-                  left: 32,
-                  top: -1,
-                })}>
+                }}>
                 {(this.props.isExpanded)
                   ? <PropertyManager
                     element={this.props.row.element}
@@ -375,13 +290,9 @@ export default class ComponentHeadingRow extends React.Component {
         <div
           onClick={this.expandAndSelect}
           className="component-collapsed-segments-box"
-          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          style={{
             height: 'inherit',
-          } : {
-            display: 'table-cell',
-            width: this.props.timeline.getTimelinePixelWidth(),
-            height: 'inherit',
-          })}>
+          }}>
           {(!this.props.isExpanded)
             ? <CollapsedPropertyTimelineSegments
               component={this.props.component}

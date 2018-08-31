@@ -114,27 +114,19 @@ export default class ComponentHeadingRowHeading extends React.Component {
           <div
             className="component-heading-row-heading-root-box"
             title={this.state.rowTitle}
-            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            style={{
               display: 'inline-block',
               transform: 'translateY(1px)',
-            } : {
-              height: 27,
-              display: 'inline-block',
-              transform: 'translateY(1px)',
-            })}
+            }}
           >
             <span
               className="component-heading-row-heading-root-icon-box"
-              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              style={{
                 marginLeft: 8,
                 marginRight: 4,
                 display: 'inline-block',
                 transform: 'translateY(4px)',
-              } : {
-                marginRight: 4,
-                display: 'inline-block',
-                transform: 'translateY(4px)',
-              })}
+              }}
             >
               <ComponentIconSVG />
             </span>
@@ -144,39 +136,25 @@ export default class ComponentHeadingRowHeading extends React.Component {
           <span
             className="component-heading-row-heading-child-box"
             title={this.state.rowTitle}
-            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            style={{
               color,
               display: 'flex',
               alignItems: 'center',
               height: 25,
               marginLeft: 5,
               width: '88%',
-            } : {
-              color,
-              position: 'relative',
-              zIndex: 1005,
-              marginLeft: 25,
-              display: 'inline-block',
-              width: 100,
-              height: 20,
-            })}
+            }}
           >
             <span
               className="component-heading-row-heading-child-icon-box"
-              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              style={{
                 display: 'inline-block',
                 marginTop: 5,
-              } : {
-                position: 'absolute',
-                display: 'inline-block',
-                height: 20,
-                left: 2,
-                top: 8,
-              })}>
+              }}>
               {this.getIcon()}
             </span>
             <span
-              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              style={{
                 display: 'inline-block',
                 height: 20,
                 marginLeft: (this.hasIcon())
@@ -186,19 +164,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 width: '100%',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-              } : {
-                position: 'absolute',
-                display: 'inline-block',
-                height: 20,
-                left: (this.hasIcon())
-                    ? 21
-                    : 5,
-                top: 7,
-                overflowX: 'hidden',
-                width: (this.hasIcon())
-                  ? 80
-                  : 100,
-              })}
+              }}
               onClick={(clickEvent) => {
                 if (!this.onExpandTimeout) {
                   this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS);

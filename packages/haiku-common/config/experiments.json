@@ -15,7 +15,6 @@
   "OrderedActionStack": true,
   "CodeEditor": true,
   "WarnOnUndefinedStateVariables": true,
-  "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": true,
   "AllowBitmapImages": true,
