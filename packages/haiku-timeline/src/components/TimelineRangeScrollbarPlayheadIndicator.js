@@ -57,7 +57,6 @@ export default class TimelineRangeScrollbarPlayheadIndicator extends React.Compo
       <div
         id="timeline-playhead-indicator-container"
         style={{
-          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth() - 35,
           left: 10,
           position: 'relative',
         }}>

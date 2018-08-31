@@ -16,13 +16,7 @@ export default class TimelineRangeScrollbar extends React.Component {
 
     this.onStartDragContainer = this.onStartDragContainer.bind(this);
     this.onStopDragContainer = this.onStopDragContainer.bind(this);
-
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      this.onDragContainer = this.onDragContainer.bind(this);
-    } else {
-      this.onDragContainer = lodash.throttle(this.onDragContainer.bind(this), THROTTLE_TIME);
-    }
-
+    this.onDragContainer = this.onDragContainer.bind(this);
     this.onStartDragLeft = this.onStartDragLeft.bind(this);
     this.onStopDragLeft = this.onStopDragLeft.bind(this);
     this.onDragLeft = lodash.throttle(this.onDragLeft.bind(this), THROTTLE_TIME);
@@ -77,14 +71,10 @@ export default class TimelineRangeScrollbar extends React.Component {
     const {timeline} = this.props;
     // Don't drag on the body if we're already dragging on the ends
     if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
-      if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        // The extra offset makes timeline.getScrollLeft to add extra frames at the end of the timeline
-        const extraOffset = dragData.deltaX === 0 && timeline.getScrollLeft() === timeline.calculateMaxScrollValue() ? 1 : 0;
-        const scrollDelta = dragData.deltaX * this.frameInfo.scRatio + extraOffset;
-        timeline.setScrollLeftFromScrollbar(scrollDelta + timeline.getScrollLeft());
-      } else {
-        timeline.changeVisibleFrameRange(dragData.x, dragData.x);
-      }
+      // The extra offset makes timeline.getScrollLeft to add extra frames at the end of the timeline
+      const extraOffset = dragData.deltaX === 0 && timeline.getScrollLeft() === timeline.calculateMaxScrollValue() ? 1 : 0;
+      const scrollDelta = dragData.deltaX * this.frameInfo.scRatio + extraOffset;
+      timeline.setScrollLeftFromScrollbar(scrollDelta + timeline.getScrollLeft());
     }
   }
 
@@ -107,12 +97,8 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragLeft (dragEvent, dragData) {
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: true});
-      this.props.timeline.zoomByLeftAndRightEndpoints(frame, offset, true);
-    } else {
-      this.props.timeline.changeVisibleFrameRange(dragData.x + this.frameInfo.scA, 0);
-    }
+    const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: true});
+    this.props.timeline.zoomByLeftAndRightEndpoints(frame, offset, true);
   }
 
   onStartDragRight (dragEvent, dragData) {
@@ -124,25 +110,16 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragRight (dragEvent, dragData) {
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: false});
-      this.props.timeline.zoomByLeftAndRightEndpoints(offset, frame, true);
-    } else {
-      this.props.timeline.changeVisibleFrameRange(0, dragData.x + this.frameInfo.scA);
-    }
+    const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: false});
+    this.props.timeline.zoomByLeftAndRightEndpoints(offset, frame, true);
   }
 
   render () {
     this.frameInfo = this.props.timeline.getFrameInfo();
     let leftPosition;
-
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const {timeline} = this.props;
-      const isNearEnd = timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60;
-      leftPosition = (isNearEnd ? timeline.calculateMaxScrollValue() : timeline.getScrollLeft()) / this.frameInfo.scRatio;
-    } else {
-      leftPosition = this.frameInfo.scA;
-    }
+    const {timeline} = this.props;
+    const isNearEnd = timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60;
+    leftPosition = (isNearEnd ? timeline.calculateMaxScrollValue() : timeline.getScrollLeft()) / this.frameInfo.scRatio;
 
     return (
       <div
@@ -167,7 +144,7 @@ export default class TimelineRangeScrollbar extends React.Component {
               backgroundColor: Palette.LIGHTEST_GRAY,
               height: KNOB_DIAMETER,
               left: leftPosition,
-              width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.frameInfo.scB - this.frameInfo.scA - KNOB_DIAMETER : this.frameInfo.scB - this.frameInfo.scA,
+              width: this.frameInfo.scB - this.frameInfo.scA - KNOB_DIAMETER,
               borderRadius: KNOB_DIAMETER / 2,
               cursor: 'move',
             }}>

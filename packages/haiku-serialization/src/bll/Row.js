@@ -471,14 +471,7 @@ class Row extends BaseModel {
       return [...this.children.map((child) => child.mapVisibleKeyframes({ maxDepth }, iteratee))]
     }
 
-    const keyframes = this.getKeyframes()
-
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      return keyframes.map(iteratee)
-    } else {
-      const frameInfo = this.timeline.getFrameInfo()
-      return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
-    }
+    return this.getKeyframes().map(iteratee)
   }
 
   isState () {

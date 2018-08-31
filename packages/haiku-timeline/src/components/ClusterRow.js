@@ -75,20 +75,19 @@ export default class ClusterRow extends React.Component {
         }}
         style={{
           height: this.props.rowHeight,
-          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
           left: 0,
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative',
           cursor: 'pointer',
         }}>
-        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+        <div style={{
           position: 'sticky',
           top: 0,
           left: 0,
           width: this.props.timeline.getPropertiesPixelWidth(),
           zIndex: zIndex.clusterRowHeading.base,
           backgroundColor: Palette.GRAY,
-        } : {})}>
+        }}>
           <div>
             <div
               style={{
@@ -105,10 +104,8 @@ export default class ClusterRow extends React.Component {
               className="property-cluster-row-label no-select"
               draggable="false"
               style={{
-                position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'absolute' : 'relative',
-                right: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 0,
-                width: this.props.timeline.getPropertiesPixelWidth() - (experimentIsEnabled(Experiment.NativeTimelineScroll) ? 80 : 120),
-                marginLeft: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 40,
+                position: 'absolute',
+                width: this.props.timeline.getPropertiesPixelWidth() - 80,
                 height: this.props.rowHeight,
                 paddingTop: 3,
                 paddingRight: 10,
@@ -147,13 +144,11 @@ export default class ClusterRow extends React.Component {
         <div
           className="property-cluster-timeline-segments-box"
           style={{
-            overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 'hidden',
             position: 'absolute',
-            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getTimelinePixelWidth(),
-            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
+            left: this.props.timeline.getPropertiesPixelWidth() + 1,
             top: 0,
             height: 'inherit',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.clusterRow.base : undefined,
+            zIndex: zIndex.clusterRow.base,
           }}>
           <RowSegments
             scope="ClusterRow"

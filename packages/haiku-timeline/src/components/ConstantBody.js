@@ -73,12 +73,8 @@ export default class ConstantBody extends React.Component {
     const frameInfo = this.props.timeline.getFrameInfo();
 
     const uniqueKey = this.props.keyframe.getUniqueKey();
-    const pxOffsetLeft = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
-      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf);
-    const pxOffsetRight = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf)
-      : this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf);
+    const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
+    const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf);
 
     return (
       <span

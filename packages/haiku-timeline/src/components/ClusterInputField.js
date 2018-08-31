@@ -9,7 +9,7 @@ export default class ClusterInputField extends React.Component {
       <div
         className="property-cluster-input-field no-select"
         style={{
-          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83,
+          width: 82,
           margin: 0,
           color: 'transparent',
           textShadow: '0 0 0 ' + Palette.DARK_ROCK,
