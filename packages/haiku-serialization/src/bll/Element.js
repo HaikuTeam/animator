@@ -1805,7 +1805,7 @@ class Element extends BaseModel {
       let parent = descendantHaikuElement.parent
       while (parent && (parent.node.elementName === 'g' || parent.node.elementName === 'svg')) {
         for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${parent.componentId}`]) {
-          if (!mergedAttributes.hasOwnProperty(propertyName)) {
+          if (!propertyName.startsWith('style') && !mergedAttributes.hasOwnProperty(propertyName)) {
             mergedAttributes[propertyName] = parent.componentId
           }
         }
