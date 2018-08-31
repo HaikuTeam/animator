@@ -316,6 +316,13 @@ export default class HaikuContext extends HaikuBase implements IHaikuContext {
       // Only continue ticking and updating if our root component is still activated and awake;
       // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
       if (!this.component.isDeactivated && !this.component.isSleeping) {
+        // This incrementation MUST occur before the blocks below, especially #callRemount,
+        // because #callRemount (and friends?) may result in a 'component:will-mount' action
+        // firing, which in turn may call this.pause()/this.gotoAndStop(). Internally those
+        // methods rely on #tick(), which means they can result in an infinite remount loop.
+        const ticks = this.ticks;
+        this.ticks++;
+
         // Perform any necessary updates that have to occur in all copmonents in the scene
         this.component.visitGuestHierarchy((component) => {
           // State transitions are bound to clock time, so we update them on every tick
@@ -330,7 +337,7 @@ export default class HaikuContext extends HaikuBase implements IHaikuContext {
 
         // After we've hydrated the tree the first time, we can proceed with patches --
         // unless the component indicates it wants a full flush per its internal settings.
-        if (this.component.shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
+        if (this.component.shouldPerformFullFlush() || this.config.forceFlush || ticks < 1) {
           this.performFullFlushRender();
 
           flushed = true;
@@ -345,13 +352,11 @@ export default class HaikuContext extends HaikuBase implements IHaikuContext {
         this.updateMountRootStyles();
 
         // Do any initialization that may need to occur if we happen to be on the very first tick
-        if (this.ticks < 1) {
+        if (ticks < 1) {
           // If this is the 0th (first) tick, notify anybody listening that we've mounted
           // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
           this.component.callRemount(null, flushed);
         }
-
-        this.ticks++;
       }
     } catch (exception) {
       console.warn('[haiku core] caught error during tick', exception);
