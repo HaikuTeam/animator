@@ -2320,47 +2320,72 @@ const needsVirtualChildren = (child: BytecodeNode): boolean => typeof child === 
     (child.__memory.repeater && !!child.__memory.repeater.repeatees)
   );
 
+const reduceNodeMemoryChildren = (children, out = [], doIncludeRepeatees = false) => {
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+
+    if (!child) {
+      continue;
+    }
+
+    if (typeof child === 'object' && child.__memory) {
+      // Do not include any children that have been removed due to $if-logic
+      if (child.__memory.if && !child.__memory.if.answer) {
+        continue;
+      }
+
+      // If the child is a repeater, use the $repeats instead of itself
+      if (
+        doIncludeRepeatees &&
+        child.__memory.repeater &&
+        child.__memory.repeater.repeatees
+      ) {
+        reduceNodeMemoryChildren(child.__memory.repeater.repeatees, out, false);
+        continue;
+      }
+
+      // If we got this far, the child is structurally normal
+      out.push(child);
+    } else {
+      out.push(child);
+    }
+  }
+
+  return out;
+}
+
+const assembleNodeMemoryChildren = (node: BytecodeNode, subtree) => {
+  if (subtree) {
+    return [subtree];
+  }
+
+  if (node.__memory.placeholder) {
+    return [];
+  }
+
+  // To avoid creating garbage, only allow allocations here if we actually need virtual children.
+  if (!node.children || !node.children.some(needsVirtualChildren)) {
+    return;
+  }
+
+  return reduceNodeMemoryChildren(node.children, [], true);
+};
+
 const expandNode = (node: BytecodeNode|string, parent) => {
   if (!node || typeof node !== 'object' || !node.__memory) {
     return;
   }
 
-  const subtree = node.__memory.subcomponent && node.__memory.subcomponent.bytecode.template;
   let children = node.children;
 
   // Special case if our current original is the wrapper of a subcomponent.
-  if (subtree) {
-    node.__memory.children = [node.__memory.subcomponent.bytecode.template];
-  } else if (node.__memory.placeholder) {
-    node.__memory.children = [];
-  } else if (node.children) {
-    // To avoid creating garbage, only allow allocations here if we actually need virtual children.
-    if (node.children.some(needsVirtualChildren)) {
-      node.__memory.children = [];
-      for (let i = 0; i < node.children.length; i++) {
-        const child = node.children[i];
+  const subtree = node.__memory.subcomponent && node.__memory.subcomponent.bytecode.template;
 
-        if (!child) {
-          continue;
-        }
+  const assembled = assembleNodeMemoryChildren(node, subtree);
 
-        if (typeof child === 'object' && child.__memory) {
-          // Do not include any children that have been removed due to $if-logic
-          if (child.__memory.if && !child.__memory.if.answer) {
-            continue;
-          }
-
-          // If the child is a repeater, use the $repeats instead of itself
-          if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-            node.__memory.children.push(...child.__memory.repeater.repeatees);
-            continue;
-          }
-        }
-
-        // If we got this far, the child is structurally normal
-        node.__memory.children.push(child);
-      }
-    }
+  // Don't just overwrite, since node.__memory.children may've been set to vanity 'content'
+  if (assembled) {
+    node.__memory.children = assembled;
   }
 
   if (node.__memory.children) {
@@ -2485,6 +2510,11 @@ const hydrateNode = (
     //         <div root> instance id=2
     //           ...
     if (!node.__memory.subcomponent) {
+      const config = Config.buildChildSafeConfig({
+        ...context.config,
+        ...options,
+      });
+
       // Note: .render and thus .hydrateNode are called by the constructor,
       // automatically connecting the root node to itself (see stanza above).
       node.__memory.subcomponent = new HaikuComponent(
@@ -2493,10 +2523,7 @@ const hydrateNode = (
         component, // host
         {
           loop: true, // A la Flash, subcomponents play by default
-          ...Config.buildChildSafeConfig({
-            ...context.config,
-            ...options,
-          }),
+          ...config,
         },
         node, // container
       );
