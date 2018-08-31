@@ -30,9 +30,9 @@
   "OutliningElementsOnStageFromStage": false,
   "CopyPasteTweens": false,
   "CopyPasteTweensWithAccelerators": false,
-  "UserFacingDevTools": false,
-  "ControlFlowIf": false,
-  "ControlFlowRepeat": false,
+  "UserFacingDevTools": true,
+  "ControlFlowIf": true,
+  "ControlFlowRepeat": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "GlassControlPointShadows": false,
   "DumpBase64Images": true
