@@ -5,7 +5,8 @@
       "First!"
     ],
     "Fixes": [
-      "First!"
+      "Fixed bug causing some subcomponents' overridden states not to be rendered while editing.",
+      "Fixed bug causing infinite loops to be triggered by using some Timeline APIs in Action code for Component > Will Mount"
     ]
   }
 }
