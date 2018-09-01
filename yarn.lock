@@ -6426,6 +6426,10 @@ node-abi@^2.0.0:
   dependencies:
     semver "^5.4.1"
 
+node-cleanup@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/node-cleanup/-/node-cleanup-2.1.2.tgz#7ac19abd297e09a7f72a71545d951b517e4dde2c"
+
 node-fetch@^1.0.1:
   version "1.7.3"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-1.7.3.tgz#980f6f72d85211a5347c6b2bc18c5b84c3eb47ef"
@@ -7356,7 +7360,7 @@ prr@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz#d3fc114ba06995a45ec6893f484ceb1d78f5f476"
 
-ps-tree@^1.0.1:
+ps-tree@^1.0.1, ps-tree@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/ps-tree/-/ps-tree-1.1.0.tgz#b421b24140d6203f1ed3c76996b4427b08e8c014"
   dependencies:
@@ -9424,6 +9428,16 @@ ts-node@^6.1.0:
     mkdirp "^0.5.1"
     source-map-support "^0.5.6"
     yn "^2.0.0"
+
+tsc-watch@^1.0.27:
+  version "1.0.27"
+  resolved "https://registry.yarnpkg.com/tsc-watch/-/tsc-watch-1.0.27.tgz#f1b103c413c70a6b143482767ae973252263efb6"
+  dependencies:
+    chalk "^2.3.0"
+    cross-spawn "^5.1.0"
+    node-cleanup "^2.1.2"
+    ps-tree "^1.1.0"
+    strip-ansi "^4.0.0"
 
 tsconfig-paths@^3.3.2:
   version "3.3.2"
