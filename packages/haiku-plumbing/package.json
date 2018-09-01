@@ -66,7 +66,7 @@
     "@types/semver": "^5.4.1",
     "@types/fs-extra": "^4.0.8",
     "cross-env": "^5.1.6",
-    "electron": "2.0.7",
+    "electron": "2.0.8",
     "haiku-creator": "4.1.1",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "nyc": "^13.0.1",
