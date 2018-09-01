@@ -78,7 +78,7 @@
     "spectron": "^3.7.2",
     "tap-spec": "^4.1.2",
     "tape": "^4.9.0",
-    "typescript": "^2.9.1",
+    "typescript": "^3.0.3",
     "uglify-es": "^3.3.2",
     "webpack": "^4.16.0",
     "yargs": "^6.6.0"
