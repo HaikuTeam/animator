@@ -6,7 +6,8 @@
     ],
     "Fixes": [
       "Fixed an issue where ungrouping SVGs containing inline CSS caused a loss of styles.",
-      "Fixed an issue preventing ungrouped SVG elements from receiving display properties from the original SVG."
+      "Fixed an issue preventing ungrouped SVG elements from receiving display properties from the original SVG.",
+      "Fixed a rare crash triggered by quickly dragging or scaling elements on stage immediately after instantiation."
     ]
   }
 }
