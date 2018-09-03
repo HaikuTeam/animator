@@ -41,6 +41,7 @@ class ElementSelectionProxy extends BaseModel {
 
     // When representing multiple elements, we apply changes to our proxy properties
     this.reinitializeLayout()
+    this.cacheOrigins()
 
     // Allows transforms to be recalled on demand, e.g. during Alt+drag
     this.transformCache = new TransformCache(this)
