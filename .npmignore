@@ -13,3 +13,11 @@ build
 
 .nyc_output/
 coverage/
+
+ISSUE_TEMPLATE
+README.md
+docs/
+nodemon.json
+scripts/
+tsconfig.*
+tslint.json
