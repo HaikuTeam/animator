@@ -7,7 +7,7 @@ import Watcher from '../Watcher';
 
 const IMAGE_DATA_INDICATOR = 'data:image/';
 const BASE64_DELIMITER = ';base64,';
-const ASCII_ENCODING = 'ascii';
+const UNICODE_ENCODING = 'utf-8';
 const BASE64_ENCODING = 'base64';
 
 const doDumpBase64Images = experimentIsEnabled(Experiment.DumpBase64Images);
@@ -61,7 +61,7 @@ export const dumpBase64Images = (
     // Stop if we can't find the corresponding ;base64, delimiter after this mark.
     const encodingMarkStart = buffer.indexOf(BASE64_DELIMITER, imageStart + 1);
     // Ensure we support both single and double quotes by pulling out the first character *before* the data URL.
-    const quotation = buffer.toString(ASCII_ENCODING, imageStart - 1, imageStart);
+    const quotation = buffer.toString(UNICODE_ENCODING, imageStart - 1, imageStart);
     if (encodingMarkStart === -1 || (quotation !== '\'' && quotation !== '"')) {
       break;
     }
@@ -69,19 +69,19 @@ export const dumpBase64Images = (
     changed = true;
 
     // Pull out the extension; e.g. from data:image/png;base64,… extract "png".
-    const extension = buffer.toString(ASCII_ENCODING, imageStart + IMAGE_DATA_INDICATOR.length, encodingMarkStart);
+    const extension = buffer.toString(UNICODE_ENCODING, imageStart + IMAGE_DATA_INDICATOR.length, encodingMarkStart);
     const outputFilename = `${outputPrefix}${++imageCounter}.${extension}`;
     mkdirpSync(path.join(folder, outputDirectory));
 
     // Add the content up until data:image/ as is.
-    xml += buffer.toString(ASCII_ENCODING, cursor, imageStart);
+    xml += buffer.toString(UNICODE_ENCODING, cursor, imageStart);
     cursor = buffer.indexOf(quotation, imageStart + 1) + 1;
     writeFileSync(
       path.join(folder, outputFilename),
       Buffer.from(
-        // Sadly, we need to stringify the buffer in memory to convert from ASCII to base64
+        // Sadly, we need to stringify the buffer in memory to convert from unicode to base64
         // (buffer.transcode does not support base64). The performance penalty of this seems minimal.
-        buffer.toString(ASCII_ENCODING, encodingMarkStart + BASE64_DELIMITER.length, cursor - 1),
+        buffer.toString(UNICODE_ENCODING, encodingMarkStart + BASE64_DELIMITER.length, cursor - 1),
         BASE64_ENCODING,
       ),
     );
@@ -91,7 +91,7 @@ export const dumpBase64Images = (
   if (changed) {
     // We should never encounter the negation of this condition, but just in case….
     if (cursor !== -1) {
-      xml += buffer.toString(ASCII_ENCODING, cursor);
+      xml += buffer.toString(UNICODE_ENCODING, cursor);
     }
     if (watcher) {
       watcher.blacklistKey(LOCKS.FileReadWrite(abspath));
