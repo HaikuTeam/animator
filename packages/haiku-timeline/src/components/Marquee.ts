@@ -63,6 +63,7 @@ class Marquee {
       right: 0,
       width: 0,
       height: 0,
+      toJSON: null,
     };
 
     this.updatePos(this.selector, selectorPos);
@@ -106,6 +107,7 @@ class Marquee {
       right: 0,
       width: 0,
       height: 0,
+      toJSON: null,
     };
 
     // right

@@ -46,7 +46,7 @@
     "ts-node": "^6.1.0",
     "tsconfig-paths": "^3.3.2",
     "tslint": "^5.10.0",
-    "tslint-config-haiku": "^1.0.15",
-    "typescript": "^2.9.1"
+    "tslint-config-haiku": "^1.0.16",
+    "typescript": "^3.0.3"
   }
 }
