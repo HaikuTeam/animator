@@ -80,14 +80,7 @@ const FORK_OPERATION_TIMEOUT = 2000;
 const MAX_FORK_ATTEMPTS = 15;
 const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5; /* 5 minutes */
 
-// enum USER_DISPLAY {
-//   INTRO,
-//   DASHBOARD,
-//   PROJECT_LAUNCHING,
-//   PROJECT_LAUNCHING,
-//   PROJECT_EDITOR,
-// }
-
+// viewToDisplay state definitions. When converting to typescript, transform into enum =)
 const INTRO = 0;
 const DASHBOARD = 1;
 const PROJECT_LAUNCHING = 2;
@@ -146,9 +139,8 @@ export default class Creator extends React.Component {
       projectFolder: this.props.folder,
       projectObject: null,
       projectModel: null, // Instance of the Project model
-      userDisplay: this.props.folder ? DASHBOARD : PROJECT_EDITOR,
+      viewToDisplay: this.props.folder ? PROJECT_EDITOR : INTRO,
       readyForAuth: false,
-      isUserAuthenticated: false,
       username: null,
       isAdmin: false,
       notices: [],
@@ -683,12 +675,12 @@ export default class Creator extends React.Component {
           username: user.Username,
           isAdmin: user.IsAdmin,
           organizationName: organization.Name,
-          userDisplay: DASHBOARD,
         });
 
         // Delay so the default startup screen doesn't just flash then go away
         setTimeout(() => {
-          this.setState({isUserAuthenticated: true});
+          // Go straight to project editor when receiving a folder to launch
+          this.setState({viewToDisplay: this.props.folder ? PROJECT_EDITOR : DASHBOARD});
         }, this.state.readyForAuth ? 0 : 2500);
       });
 
@@ -704,9 +696,8 @@ export default class Creator extends React.Component {
       setTimeout(() => {
         this.setState({
           readyForAuth: true,
-          isUserAuthenticated: user && organization,
         }, () => {
-          if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
+          if (this.state.username && typeof this._postAuthCallback === 'function') {
             this._postAuthCallback();
             delete this._postAuthCallback;
           } else if (this.props.folder) {
@@ -900,7 +891,7 @@ export default class Creator extends React.Component {
         if (this.state.projectModel) {
           this.teardownMaster({shouldFinishTour: false});
         } else {
-          this.setState({userDisplay: DASHBOARD});
+          this.setState({viewToDisplay: DASHBOARD});
         }
 
         // Put it at the bottom of the event loop
@@ -1164,7 +1155,7 @@ export default class Creator extends React.Component {
 
     this.handleEnvoyUserReady();
 
-    return this.setState({isUserAuthenticated: true});
+    return this.setState({viewToDisplay: DASHBOARD});
   }
 
   loadProjects (silent, cb) {
@@ -1190,7 +1181,7 @@ export default class Creator extends React.Component {
   }
 
   onProjectLaunchError () {
-    this.setState({userDisplay: DASHBOARD}, () => {
+    this.setState({viewToDisplay: DASHBOARD}, () => {
       this.createNotice({
         type: 'error',
         title: 'Oh no!',
@@ -1206,7 +1197,7 @@ export default class Creator extends React.Component {
   };
 
   createProject (projectName, duplicate = false, callback) {
-    this.setState({userDisplay: PROJECT_LAUNCHING});
+    this.setState({viewToDisplay: PROJECT_LAUNCHING});
     this.envoyProject.createProject(projectName).then((newProject) => {
       if (duplicate && this.state.projectToDuplicate !== null) {
         this.props.websocket.request(
@@ -1222,7 +1213,7 @@ export default class Creator extends React.Component {
         callback(null, newProject);
       }
     }).catch((error) => {
-      this.setState({userDisplay: DASHBOARD});
+      this.setState({viewToDisplay: DASHBOARD});
       console.log(error);
       this.createNotice({
         type: 'error',
@@ -1239,7 +1230,7 @@ export default class Creator extends React.Component {
     // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
     projectObject.skipContentCreation = true;
 
-    this.setState({userDisplay: PROJECT_LAUNCHING});
+    this.setState({viewToDisplay: PROJECT_LAUNCHING});
 
     if (projectObject.isFork && !projectObject.forkComplete) {
       return this.openNewlyForkedProject(projectObject, 0, () => {});
@@ -1332,7 +1323,7 @@ export default class Creator extends React.Component {
                   // And if we don't have anything assigned, assume we're editing the main component
                   this.state.projectModel.setCurrentActiveComponent('main', {from: 'creator'}, () => { });
                 }
-                this.setState({userDisplay: PROJECT_EDITOR});
+                this.setState({viewToDisplay: PROJECT_EDITOR});
               });
             });
 
@@ -1443,7 +1434,7 @@ export default class Creator extends React.Component {
     if (this.state.projectFolder) {
       this.awaitAllProjectModelsState(this.state.projectFolder, 'component:mounted', true, () => {
         this.setState({
-          userDisplay: PROJECT_EDITOR,
+          viewToDisplay: PROJECT_EDITOR,
         });
       });
     }
@@ -1643,7 +1634,7 @@ export default class Creator extends React.Component {
   }
 
   awaitAuthAndFire (cb) {
-    if (!this.state.readyForAuth || !this.state.isUserAuthenticated) {
+    if (!this.state.readyForAuth) {
       this._postAuthCallback = cb;
     } else {
       cb();
@@ -1651,7 +1642,7 @@ export default class Creator extends React.Component {
   }
 
   showForkingError () {
-    this.setState({userDisplay: DASHBOARD});
+    this.setState({viewToDisplay: DASHBOARD});
     this.createNotice({
       type: 'error',
       title: 'Oh no!',
@@ -1684,7 +1675,7 @@ export default class Creator extends React.Component {
     if (this.state.projectModel) {
       this.teardownMaster({shouldFinishTour: true}, doFork);
     } else {
-      this.setState({userDisplay: PROJECT_LAUNCHING});
+      this.setState({viewToDisplay: PROJECT_LAUNCHING});
       doFork();
     }
   }
@@ -1732,7 +1723,7 @@ export default class Creator extends React.Component {
       {method: 'teardownMaster', params: [this.state.projectModel.getFolder()]},
       () => {
         logger.info('[creator] master torn down');
-        this.setState({userDisplay: DASHBOARD, tearingDown: false});
+        this.setState({viewToDisplay: DASHBOARD, tearingDown: false});
         this.onTimelineUnmounted();
 
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready');
@@ -1814,7 +1805,7 @@ export default class Creator extends React.Component {
   };
 
   clearAuth () {
-    this.setState({readyForAuth: true, isUserAuthenticated: false, username: ''});
+    this.setState({readyForAuth: true, username: ''});
   }
 
   tryToChangeCurrentActiveComponent (scenename) {
@@ -2070,7 +2061,7 @@ export default class Creator extends React.Component {
       );
     }
 
-    if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
+    if (this.state.readyForAuth && (!this.state.username)) {
       return (
         <StyleRoot>
           <AuthenticationUI
@@ -2084,7 +2075,7 @@ export default class Creator extends React.Component {
       );
     }
 
-    if (!this.state.isUserAuthenticated || !this.state.username) {
+    if (!this.state.viewToDisplay === INTRO || !this.state.username) {
       return this.renderStartupDefaultScreen();
     }
 
@@ -2106,7 +2097,7 @@ export default class Creator extends React.Component {
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        {this.state.userDisplay === DASHBOARD && <ProjectBrowser
+        {this.state.viewToDisplay === DASHBOARD && <ProjectBrowser
           ref="ProjectBrowser"
           explorePro={this.explorePro}
           areProjectsLoading={this.state.areProjectsLoading}
@@ -2143,9 +2134,9 @@ export default class Creator extends React.Component {
           </div>
         )}
         <ProjectLoader
-          show={this.state.userDisplay === PROJECT_LAUNCHING}
+          show={this.state.viewToDisplay === PROJECT_LAUNCHING}
         />
-        {(this.state.userDisplay === PROJECT_EDITOR || this.state.userDisplay === PROJECT_LAUNCHING) && this.state.projectModel &&
+        {(this.state.viewToDisplay === PROJECT_EDITOR || this.state.viewToDisplay === PROJECT_LAUNCHING) && this.state.projectModel &&
           <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <CSSTransition
