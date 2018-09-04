@@ -29,7 +29,7 @@
   "OutliningElementsOnStageFromStage": false,
   "CopyPasteTweens": false,
   "CopyPasteTweensWithAccelerators": false,
-  "UserFacingDevTools": true,
+  "UserFacingDevTools": false,
   "ControlFlowIf": true,
   "ControlFlowRepeat": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
