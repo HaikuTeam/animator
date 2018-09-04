@@ -2136,7 +2136,7 @@ export default class Creator extends React.Component {
         <ProjectLoader
           show={this.state.doShowProjectLoader || this.state.projectLaunching}
         />
-        {!this.state.dashboardVisible && !this.state.doShowProjectLoader && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
+        {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <CSSTransition
               classNames="toast"
