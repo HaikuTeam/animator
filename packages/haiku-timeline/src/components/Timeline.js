@@ -1393,7 +1393,7 @@ class Timeline extends React.Component {
       return;
     }
 
-    this.getActiveComponent().getCurrentTimeline().seek(newFrame);
+    this.getActiveComponent().getCurrentTimeline().seek(frameX);
   }
 
   mouseUpListener () {
