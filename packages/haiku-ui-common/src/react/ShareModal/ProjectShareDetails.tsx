@@ -3,6 +3,7 @@ import {shell} from 'electron';
 import * as os from 'os';
 import * as React from 'react';
 import Palette from '../../Palette';
+import {ExternalLink} from '../ExternalLink';
 import ExternalLinkIconSVG from '../icons/ExternalLinkIconSVG';
 import {TooltipBasic} from '../TooltipBasic';
 import {LinkHolster} from './LinkHolster';
@@ -132,6 +133,10 @@ const STYLES = {
     backgroundColor: 'transparent',
     border: '1px solid ' + Palette.LIGHT_BLUE,
   },
+  externalLink: {
+    color: Palette.BLUE,
+    cursor: 'pointer',
+  },
 } as React.CSSProperties;
 
 export interface ProjectShareDetailsProps {
@@ -148,6 +153,7 @@ export interface ProjectShareDetailsProps {
   privateProjectCount: number;
   privateProjectLimit: number;
   hasError: boolean;
+  organizationName: string;
 }
 
 export interface ProjectShareDetailsStates {
@@ -191,6 +197,13 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
 
   private explorePro = () => {
     this.props.explorePro('publish-modal-toggle');
+  };
+
+  private trackPublicProfileClick = () => {
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'open-public-profile',
+    });
   };
 
   render () {
@@ -279,9 +292,21 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
                 !this.props.isPublic && <span>with the link&nbsp;</span>
               }
               <strong>can view and install</strong> your project&nbsp;
-              {
-                this.props.isPublic && <span><br />from your public profile</span> /*TODO: link to public profile */
-              }
+              {this.props.isPublic && (
+                <span>
+                  <br />
+                  from your{' '}
+                  <ExternalLink
+                    style={STYLES.externalLink}
+                    href={`https://share.haiku.ai/u/${
+                      this.props.organizationName
+                    }`}
+                    onClick={this.trackPublicProfileClick}
+                  >
+                    public profile
+                  </ExternalLink>
+                </span>
+              )}
             </p>
           </div>
         </div>

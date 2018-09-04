@@ -171,6 +171,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             privateProjectCount={this.props.privateProjectCount}
             privateProjectLimit={this.props.privateProjectLimit}
             hasError={hasError}
+            organizationName={organizationName}
           />
         </ModalHeader>
 

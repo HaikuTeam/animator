@@ -2,7 +2,7 @@ import * as Color from 'color';
 import * as React from 'react';
 import Palette from '../../../Palette';
 
-export const PUBLISH_SHARED = {
+export const PUBLISH_SHARED: React.CSSProperties = {
   codebox: {
     color: Palette.ROCK,
     userSelect: 'all',
@@ -23,11 +23,10 @@ export const PUBLISH_SHARED = {
     lineHeight: '18px',
     fontWeight: 'bold',
     fontSize: '11px',
-  } as React.CSSProperties,
+  },
   block: {
     display: 'inline-block',
     verticalAlign: 'top',
-    // fontSize: 14,
     width: '100%',
   },
   nav: {
@@ -56,7 +55,7 @@ export const PUBLISH_SHARED = {
     ':hover': {
       color: Color(Palette.ROCK).fade(0.3),
     },
-  } as React.CSSProperties,
+  },
   active: {
     fontWeight: 'bold',
     color: Palette.ROCK,
@@ -71,7 +70,7 @@ export const PUBLISH_SHARED = {
     MozUserSelect: 'all',
     WebkitUserSelect: 'all',
     userSelect: 'all',
-  } as React.CSSProperties,
+  },
   instructionsRow: {
     width: '100%',
     marginBottom: '15px',
