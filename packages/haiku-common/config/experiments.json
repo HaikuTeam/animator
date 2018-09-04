@@ -30,8 +30,8 @@
   "CopyPasteTweens": false,
   "CopyPasteTweensWithAccelerators": false,
   "UserFacingDevTools": false,
-  "ControlFlowIf": false,
-  "ControlFlowRepeat": false,
+  "ControlFlowIf": true,
+  "ControlFlowRepeat": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "GlassControlPointShadows": false,
   "DumpBase64Images": true

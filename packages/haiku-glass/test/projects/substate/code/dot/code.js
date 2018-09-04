@@ -47,7 +47,16 @@ module.exports = {
         "origin.y": 0.5,
         "style.zIndex": 1,
         playback: "loop",
-        color: { "0": { value: "red", edited: true } }
+        color: {
+          "0": {
+            value: Haiku.inject(
+              function(color) {
+                return color;
+              },
+              "color"
+            )
+          }
+        }
       }
     }
   },

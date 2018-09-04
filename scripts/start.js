@@ -84,6 +84,7 @@ const FOLDER_CHOICES = {
   'overr-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/overr'),
   'playstate-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/playstate'),
   'substate-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/substate'),
+  'repstate-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repstate'),
 };
 
 // Support:
