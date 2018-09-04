@@ -125,16 +125,18 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       for (let i = 0; i < domTargets.length; i++) {
         const domTarget = domTargets[i];
 
-        if (domTarget.parentNode) {
-          HaikuDOMRenderer.updateElement(
-            domTarget, // DOM node
-            virtualElement, // mana node
-            domTarget.parentNode, // DOM node
-            parentVirtualElement, // mana node
-            component,
-            true, // isPatchOperation
-          );
+        if (!domTarget.parentNode) {
+          continue;
         }
+
+        HaikuDOMRenderer.updateElement(
+          domTarget, // DOM node
+          virtualElement, // mana node
+          domTarget.parentNode, // DOM node
+          parentVirtualElement, // mana node
+          component,
+          true, // isPatchOperation
+        );
       }
     }
   }
@@ -737,7 +739,6 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
     isPatchOperation,
     doSkipChildren,
   ) {
-    // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
     connectTarget(virtualElement, domElement);
 
     const compositeId = getNodeCompositeId(virtualElement);
