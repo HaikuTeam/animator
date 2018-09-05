@@ -67,9 +67,10 @@ class File extends BaseModel {
       this.flushContent()
     }, DISK_FLUSH_TIMEOUT)
 
-    // We don't reassign this on every initialize because that would make this
-    // pointless to track given that ingestOne would reset this value
-    this._pendingContentFlushes = []
+    // pendingRequestedFlush keeps tracks between requestAsyncContentFlush and when debouncedFlushContent is tigguered 
+    this.pendingRequestedFlush = false;
+    // pendingWrite keeps tracks between flushContent and when async write is executed
+    this.pendingWrite = false;
 
     // Important: Please see afterInitialize for assigned properties
   }
@@ -102,13 +103,15 @@ class File extends BaseModel {
 
   requestAsyncContentFlush (flushSpec = {}) {
     if (this.options.doWriteToDisk) {
-      this._pendingContentFlushes.push(flushSpec)
+      this.pendingRequestedFlush = true;
       this.debouncedFlushContent()
     }
   }
 
   awaitNoFurtherContentFlushes (cb) {
-    if (this._pendingContentFlushes.length > 0) {
+    // If there isn't pending flush request or write request, keep waiting (setTimeout allows going 
+    // back to nodejs event loop, so write debouncedFlushContent/async write can be executed)
+    if (this.pendingRequestedFlush ||  this.pendingWrite) {
       return setTimeout(
         () => this.awaitNoFurtherContentFlushes(cb),
         AWAIT_CONTENT_FLUSH_TIMEOUT
@@ -136,15 +139,14 @@ class File extends BaseModel {
   flushContent () {
     this.trackContentsAndGetCode() // <~ Populates this.contents
 
-    // We're about to flush content for all requests received up to this point
-    // If more occur during async, that's fine; we'll just get called again,
-    // but those who need to wait can read the list to know what's still pending
-    this._pendingContentFlushes.splice(0)
-
     this.assertContents(this.contents)
-
+    
+    // When flushContent is executed, clear pending requested flush and set pendingWrite
+    this.pendingRequestedFlush = false;
+    this.pendingWrite = true;
     return this.write((err) => {
       if (err) throw err
+      this.pendingWrite = false;
     })
   }
 
@@ -187,7 +189,7 @@ class File extends BaseModel {
     }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
-    logger.info(`[file] writing ${this.relpath} to disk`)
+    logger.info(`[file] async writing ${this.relpath} to disk`)
     return File.write(this.folder, this.relpath, this.contents, (err) => {
       this.dtLastWriteEnd = Date.now()
       if (err) {
@@ -204,7 +206,7 @@ class File extends BaseModel {
     }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
-    logger.info(`[file] writing ${this.relpath} to disk`)
+    logger.info(`[file] sync writing ${this.relpath} to disk`)
     const abspath = path.join(this.folder, this.relpath)
     fse.outputFileSync(abspath, this.contents)
     this.dtLastWriteEnd = Date.now()

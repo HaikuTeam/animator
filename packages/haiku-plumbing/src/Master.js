@@ -1008,7 +1008,6 @@ export default class Master extends EventEmitter {
                 if (err) {
                   return next(err);
                 }
-                // #FIXME: we should have a mechanism to force flush in cases where we actually want I/O to be blocking.
                 return ac.fetchActiveBytecodeFile().awaitNoFurtherContentFlushes(next);
               },
             );
