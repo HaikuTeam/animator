@@ -67,10 +67,10 @@ class File extends BaseModel {
       this.flushContent()
     }, DISK_FLUSH_TIMEOUT)
 
-    // pendingRequestedFlush keeps tracks between requestAsyncContentFlush and when debouncedFlushContent is tigguered 
-    this.pendingRequestedFlush = false;
+    // pendingRequestedFlush keeps tracks between requestAsyncContentFlush and when debouncedFlushContent is triggered
+    this.pendingRequestedFlush = false
     // pendingWrite keeps tracks between flushContent and when async write is executed
-    this.pendingWrite = false;
+    this.pendingWrite = false
 
     // Important: Please see afterInitialize for assigned properties
   }
@@ -103,15 +103,15 @@ class File extends BaseModel {
 
   requestAsyncContentFlush (flushSpec = {}) {
     if (this.options.doWriteToDisk) {
-      this.pendingRequestedFlush = true;
+      this.pendingRequestedFlush = true
       this.debouncedFlushContent()
     }
   }
 
   awaitNoFurtherContentFlushes (cb) {
-    // If there isn't pending flush request or write request, keep waiting (setTimeout allows going 
+    // If there isn't pending flush request or write request, keep waiting (setTimeout allows going
     // back to nodejs event loop, so write debouncedFlushContent/async write can be executed)
-    if (this.pendingRequestedFlush ||  this.pendingWrite) {
+    if (this.pendingRequestedFlush || this.pendingWrite) {
       return setTimeout(
         () => this.awaitNoFurtherContentFlushes(cb),
         AWAIT_CONTENT_FLUSH_TIMEOUT
@@ -140,13 +140,13 @@ class File extends BaseModel {
     this.trackContentsAndGetCode() // <~ Populates this.contents
 
     this.assertContents(this.contents)
-    
+
     // When flushContent is executed, clear pending requested flush and set pendingWrite
-    this.pendingRequestedFlush = false;
-    this.pendingWrite = true;
+    this.pendingRequestedFlush = false
+    this.pendingWrite = true
     return this.write((err) => {
       if (err) throw err
-      this.pendingWrite = false;
+      this.pendingWrite = false
     })
   }
 
