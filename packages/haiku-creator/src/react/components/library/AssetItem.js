@@ -552,13 +552,6 @@ class AssetItem extends React.Component {
       `;
     }
 
-    if (this.props.asset.isDesignsHostFolder()) {
-      return `
-        To import a new design file, click the + sign above
-        and choose "Import from file".
-      `;
-    }
-
     return null;
   }
 
@@ -602,7 +595,10 @@ class AssetItem extends React.Component {
   }
 
   render () {
-    if (this.props.asset.isPhonyOrOnlyHasPhonyChildrens()) {
+    if (
+      this.props.asset.isPhonyOrOnlyHasPhonyChildrens() ||
+      this.props.asset.isDesignsHostFolder() && this.props.asset.getChildAssets().length === 0
+    ) {
       return null;
     }
 

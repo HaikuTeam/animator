@@ -382,14 +382,27 @@ class Library extends React.Component {
     );
   };
 
+  shouldDisplayAssetList () {
+    const componentshostFolder = this.state.assets.find((asset) => asset.isComponentsHostFolder());
+    const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
+
+    if (!componentshostFolder || !designsFolder) {
+      return false;
+    }
+
+    return (
+      componentshostFolder &&
+      designsFolder &&
+      (componentshostFolder.getChildAssets().length !== 0 || designsFolder.getChildAssets().length !== 0)
+    );
+  }
+
   shouldDisplayAssetCreator () {
     const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
-    const componentshostFolder = this.state.assets.find((asset) => asset.isComponentsHostFolder());
 
     return (
       designsFolder &&
       designsFolder.getChildAssets().length === 0 &&
-      componentshostFolder.getChildAssets().length === 0 &&
       !this.state.isLoading
     );
   }
@@ -424,7 +437,24 @@ class Library extends React.Component {
           id="library-scroll-wrap"
           style={STYLES.scrollwrap}>
             <div style={STYLES.assetsWrapper}>
-              {this.shouldDisplayAssetCreator() ? (
+            {this.shouldDisplayAssetList() && (
+              <AssetList
+                websocket={this.props.websocket}
+                projectModel={this.props.projectModel}
+                onDragStart={this.props.onDragStart}
+                onDragEnd={this.props.onDragEnd}
+                onAssetDoubleClick={this.onAssetDoubleClick}
+                figma={this.state.figma}
+                onImportFigmaAsset={this.importFigmaAsset}
+                onRefreshFigmaAsset={this.importFigmaAsset}
+                onAskForFigmaAuth={this.askForFigmaAuth}
+                deleteAsset={this.handleAssetDeletion}
+                indent={0}
+                assets={this.state.assets}
+                conglomerateComponent={this.props.conglomerateComponent}
+              />
+            )}
+              {this.shouldDisplayAssetCreator() && (
                 <DesignFileCreator
                   projectModel={this.props.projectModel}
                   websocket={this.props.websocket}
@@ -432,22 +462,6 @@ class Library extends React.Component {
                   onAskForFigmaAuth={this.askForFigmaAuth}
                   onImportFigmaAsset={this.importFigmaAsset}
                   onRefreshFigmaAsset={this.importFigmaAsset}
-                />
-              ) : (
-                <AssetList
-                  websocket={this.props.websocket}
-                  projectModel={this.props.projectModel}
-                  onDragStart={this.props.onDragStart}
-                  onDragEnd={this.props.onDragEnd}
-                  onAssetDoubleClick={this.onAssetDoubleClick}
-                  figma={this.state.figma}
-                  onImportFigmaAsset={this.importFigmaAsset}
-                  onRefreshFigmaAsset={this.importFigmaAsset}
-                  onAskForFigmaAuth={this.askForFigmaAuth}
-                  deleteAsset={this.handleAssetDeletion}
-                  indent={0}
-                  assets={this.state.assets}
-                  conglomerateComponent={this.props.conglomerateComponent}
                 />
               )}
             </div>
