@@ -787,6 +787,7 @@ class Timeline extends BaseModel {
       this.setMaxFrame(r)
     }
     this.cache.unset('frameInfo')
+    Keyframe.clearAllViewPositions({component: this.component})
     this.emit('update', 'timeline-frame-range')
     return this
   }
