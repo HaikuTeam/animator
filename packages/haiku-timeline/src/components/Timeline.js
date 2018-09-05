@@ -1226,7 +1226,7 @@ class Timeline extends React.Component {
     );
   }
 
-  showEventHandlersEditor (elementPrimaryKey, frame) {
+  showEventHandlersEditor = (elementPrimaryKey, frame) => {
     this.project.broadcastPayload({
       name: 'show-event-handlers-editor',
       elid: elementPrimaryKey,
@@ -1235,7 +1235,7 @@ class Timeline extends React.Component {
       },
       frame,
     });
-  }
+  };
 
   renderDurationModifier () {
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo();
@@ -1459,6 +1459,25 @@ class Timeline extends React.Component {
     this._doHandleMouseMovesInGauge = false;
   }
 
+  renderRowManager ({group, indexOfGroup, prevGroup, dragHandleProps}) {
+    return (
+      <RowManager
+        key={`property-row-group-${group.id}-${indexOfGroup}`}
+        group={group}
+        indexOfGroup={indexOfGroup}
+        prevGroup={prevGroup}
+        rowHeight={this.state.rowHeight}
+        dragHandleProps={dragHandleProps}
+        getActiveComponent={() => {
+          return this.getActiveComponent();
+        }}
+        showEventHandlersEditor={this.showEventHandlersEditor}
+        onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
+        setEditingRowTitleStatus={this.setEditingRowTitleStatus}
+      />
+    );
+  }
+
   renderComponentRows () {
     const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder();
 
@@ -1471,7 +1490,7 @@ class Timeline extends React.Component {
           }
 
           const idx = result.destination.index;
-          const reflection = groups.length - idx;
+          const reflection = groups.length - idx - 1;
           logger.info(`z-drop ${result.draggableId} at`, reflection);
 
           this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
@@ -1486,54 +1505,58 @@ class Timeline extends React.Component {
               this.forceUpdate();
             },
           );
-        }}>
-        <Droppable droppableId="componentRowsDroppable" ignoreContainerClipping={true}>
+        }}
+      >
+        <Droppable
+          droppableId="componentRowsDroppable"
+          ignoreContainerClipping={true}
+        >
           {(provided, snapshot) => {
             return (
               <div
                 className="droppable-wrapper"
                 style={{paddingBottom: 20}}
-                ref={provided.innerRef}>
+                ref={provided.innerRef}
+              >
                 {groups.map((group, indexOfGroup) => {
-                  const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth();
                   const prevGroup = groups[indexOfGroup - 1];
-                  return (
-                    <Draggable
-                      key={`property-row-group-${group.id}-${indexOfGroup}`}
-                      draggableId={group.id}
-                      index={indexOfGroup}>
-                      {(providedDraggable) => {
-                        return (
-                          <div>
-                            <div
-                              className="droppable-wrapper no-select"
-                              ref={providedDraggable.innerRef}
-                              {...providedDraggable.draggableProps}
-                              style={{
-                                ...providedDraggable.draggableProps.style,
-                              }}>
-                              <RowManager
-                                group={group}
-                                indexOfGroup={indexOfGroup}
-                                prevGroup={prevGroup}
-                                dragHandleProps={providedDraggable.dragHandleProps}
-                                rowHeight={this.state.rowHeight}
-                                getActiveComponent={() => {
-                                  return this.getActiveComponent();
-                                }}
-                                showEventHandlersEditor={(...args) => {
-                                  this.showEventHandlersEditor(...args);
-                                }}
-                                onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
-                                setEditingRowTitleStatus={this.setEditingRowTitleStatus}
-                              />
+
+                  if (prevGroup) {
+                    return (
+                      <Draggable
+                        key={`property-row-group-${group.id}-${indexOfGroup}`}
+                        draggableId={group.id}
+                        index={indexOfGroup}
+                      >
+                        {(providedDraggable) => {
+                          return (
+                            <div>
+                              <div
+                                className="droppable-wrapper no-select"
+                                ref={providedDraggable.innerRef}
+                                {...providedDraggable.draggableProps}
+                                style={{...providedDraggable.draggableProps.style}}
+                              >
+                                {this.renderRowManager({
+                                  group,
+                                  indexOfGroup,
+                                  prevGroup,
+                                  dragHandleProps: providedDraggable.dragHandleProps,
+                                })}
+                              </div>
+                              {providedDraggable.placeholder}
                             </div>
-                            {providedDraggable.placeholder}
-                          </div>
-                        );
-                      }}
-                    </Draggable>
-                  );
+                          );
+                        }}
+                      </Draggable>
+                    );
+                  }
+
+                  return this.renderRowManager({
+                    group,
+                    indexOfGroup,
+                    prevGroup,
+                  });
                 })}
                 {provided.placeholder}
               </div>
@@ -1541,6 +1564,7 @@ class Timeline extends React.Component {
           }}
         </Droppable>
       </DragDropContext>
+
     );
   }
 
