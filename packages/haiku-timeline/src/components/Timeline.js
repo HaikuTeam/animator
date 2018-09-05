@@ -18,7 +18,6 @@ import ControlsArea from './ControlsArea';
 import ExpressionInput from './ExpressionInput';
 import ScrubberInterior from './ScrubberInterior';
 import RowManager from './RowManager';
-import FrameGrid from './FrameGrid';
 import SimplifiedFrameGrid from './SimplifiedFrameGrid';
 import FrameActionsGrid from './FrameActionsGrid';
 import IntercomWidget from './IntercomWidget';
