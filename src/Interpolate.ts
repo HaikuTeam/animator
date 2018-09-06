@@ -7,6 +7,11 @@ import justCurves from './vendor/just-curves';
 const CENT = 1.0;
 const OBJECT = 'object';
 const NUMBER = 'number';
+const STRING = 'string';
+const PERCENT_REGEX = /^\d+(\.\d+)?%$/;
+const PERCENT_SYMBOL = '%';
+
+const isString = (value: BytecodeStateType): value is string => typeof value === STRING;
 
 function percentOfTime (t0: number, t1: number, tnow: number) {
   const span = t1 - t0;
@@ -34,10 +39,10 @@ function interpolateValue (v0: number, v1: number, t0: number, t1: number, tnow:
   return valueAtPercent(v0, v1, pc);
 }
 
-function interpolate (
+export const interpolate = (
   now: number, curve: CurveDefinition, started: number, ends: number, origin: BytecodeStateType,
   destination: BytecodeStateType,
-): BytecodeStateType {
+): BytecodeStateType => {
   // If curve is a string, transform into a function using justCurves
   const curveFunc = typeof curve === 'string' ? justCurves[curve] : curve;
 
@@ -79,9 +84,21 @@ function interpolate (
     return interpolateValue(origin as number, destination as number, started, ends, now, curveFunc as CurveFunction);
   }
 
-  return origin;
-}
+  if (
+    isString(origin) &&
+    isString(destination) &&
+    PERCENT_REGEX.test(origin) &&
+    PERCENT_REGEX.test(destination)
+  ) {
+    return interpolateValue(
+      parseFloat(origin),
+      parseFloat(destination),
+      started,
+      ends,
+      now,
+      curveFunc as CurveFunction,
+    ) + PERCENT_SYMBOL;
+  }
 
-export default {
-  interpolate,
+  return origin;
 };
