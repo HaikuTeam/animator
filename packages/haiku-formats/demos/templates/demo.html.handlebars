@@ -48,7 +48,7 @@
   // Initialize animations.
   window.haikuComponent = window.HaikuDOMAdapter.default(window.bytecode)(
     coreMount,
-    {loop: true, autoplay: false, sizing: 'contain'}
+    {loop: true, autoplay: false, sizing: 'contain', folder: '/static/'}
   );
 
   window.bodymovinAnimation = window.lottie.loadAnimation({

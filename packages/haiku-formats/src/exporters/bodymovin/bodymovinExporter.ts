@@ -10,13 +10,14 @@ import {
 import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
-import {writeFile} from 'fs-extra';
+import {existsSync, readFileSync, writeFile} from 'fs-extra';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import * as imageSize from 'image-size';
 import {difference, flatten, mapKeys} from 'lodash';
+import {extname, join} from 'path';
 
 import {ExporterInterface} from '..';
 
@@ -609,19 +610,35 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         return;
       }
 
-      const rawData = timeline[transcludedIdField] || node.attributes[transcludedIdField];
-      const matches = rawData.match(/^data:image\/\w+;base64,(.+)$/);
+      let rawData: string = initialValueOr(timeline, transcludedIdField, false) || node.attributes[transcludedIdField];
+      let buffer: Buffer;
 
-      if (!matches) {
-        return;
+      const fileMatches = rawData.match(/^web\+haikuroot:\/\/(.+)$/);
+      if (fileMatches) {
+        const [_, filePath] = fileMatches;
+        const assetPath = join(this.componentFolder, '..', '..', filePath);
+        if (existsSync(assetPath)) {
+          buffer = readFileSync(assetPath);
+          rawData = `data:image/${extname(filePath)};base64,${buffer.toString('base64')}`;
+        }
+      } else {
+        const matches = rawData.match(/^data:image\/\w+;base64,(.+)$/);
+        if (!matches) {
+          return;
+        }
+
+        const [_, base64] = matches;
+        buffer = new Buffer(base64, 'base64');
       }
 
-      const [_, base64] = matches;
+      if (!buffer) {
+        return;
+      }
 
       let width = initialValueOrNull(timeline, 'width');
       let height = initialValueOrNull(timeline, 'height');
       if (width === null || height === null) {
-        ({width, height} = imageSize(new Buffer(base64, 'base64')));
+        ({width, height} = imageSize(buffer));
       }
 
       // Create local IDs we can use consistently.
