@@ -520,8 +520,10 @@ export default class Creator extends React.Component {
 
   // Controls viewToDisplay state machine
   setViewToDisplay (viewToDisplay, cb) {
-    // In the future, we can create hooks here. e.g. onProjectLaunching
-    mixpanel.haikuTrack(`creator:set-view-to-display:${viewToDisplay}`);
+    if (this.state.viewToDisplay !== viewToDisplay) {
+      // In the future, we can create hooks here. e.g. onProjectLaunching
+      mixpanel.haikuTrack(`creator:set-view-to-display:${viewToDisplay}`);
+    }
     return this.setState({viewToDisplay}, cb);
   }
 
@@ -900,7 +902,7 @@ export default class Creator extends React.Component {
         if (this.state.projectModel) {
           this.teardownMaster({shouldFinishTour: false});
         } else {
-          this.setViewToDisplay(DASHBOARD)
+          this.setViewToDisplay(DASHBOARD);
         }
 
         // Put it at the bottom of the event loop
@@ -1631,10 +1633,7 @@ export default class Creator extends React.Component {
     // Redundant with a future call, but ensures we will show the loading spinner ASAP.
     this.setState({tearingDown: true});
     this.user.load().then(({user, organization}) => {
-      this.setState({
-        readyForAuth: true,
-        isUserAuthenticated: user && organization,
-      });
+      this.setState({readyForAuth: true});
       this.teardownMaster({shouldFinishTour: true});
       ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false});
     });
