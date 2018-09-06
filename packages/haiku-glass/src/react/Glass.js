@@ -87,6 +87,10 @@ const DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED = {
   path: true,
 };
 
+// Percent increase/decrease for each Zoom in/Zoom out
+const MOUSE_WHEEL_ZOOM_FACTOR = 0.50;
+const SHORTCUT_ZOOM_FACTOR = 0.25;
+
 const niceTimestamp = () => {
   return moment().format('YYYY-MM-DD-HHmmss');
 };
@@ -333,6 +337,9 @@ export class Glass extends React.Component {
   }
 
   handleActiveComponentReady () {
+    // Reset direct selection before mounting new component
+    Element.directlySelected = null;
+
     this.mountHaikuComponent();
 
     ipcRenderer.send('topmenu:update', {
@@ -592,12 +599,12 @@ export class Glass extends React.Component {
 
         case 'global-menu:zoom-in':
           mixpanel.haikuTrack('creator:glass:zoom-in');
-          this.getActiveComponent().getArtboard().zoomIn(1.25);
+          this.getActiveComponent().getArtboard().zoomIn(1 + SHORTCUT_ZOOM_FACTOR);
           break;
 
         case 'global-menu:zoom-out':
           mixpanel.haikuTrack('creator:glass:zoom-out');
-          this.getActiveComponent().getArtboard().zoomOut(1.25);
+          this.getActiveComponent().getArtboard().zoomOut(1 + SHORTCUT_ZOOM_FACTOR);
           break;
 
         case 'global-menu:reset-viewport':
@@ -1078,7 +1085,7 @@ export class Glass extends React.Component {
 
   handlePinchToZoom = (wheelEvent) => {
     wheelEvent.preventDefault();
-    const zoomFactor = 1 + Math.min(Math.abs(wheelEvent.deltaY * 0.01), 0.5);
+    const zoomFactor = 1 + Math.min(Math.abs(wheelEvent.deltaY * 0.01), MOUSE_WHEEL_ZOOM_FACTOR);
 
     if (wheelEvent.deltaY > 0) {
       this.getActiveComponent().getArtboard().zoomOut(zoomFactor);

@@ -12,7 +12,8 @@
       "Fixed an issue preventing ungrouped SVG elements from receiving display properties from the original SVG.",
       "Fixed a rare crash triggered by quickly dragging or scaling elements on stage immediately after instantiation.",
       "Fixed an issue where the library won't show the buttons to create design assets if you have a component defined.",
-      "Fixed a bug causing the Frame Actions Editor to display the wrong title"
+      "Fixed an issue where sometimes a published project might show the wrong version.",
+      "Fixed a bug causing the Frame Actions Editor to display the wrong title."
     ]
   }
 }
