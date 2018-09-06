@@ -6,6 +6,7 @@
       "You can now find a link to your public profile when publishing a public project."
     ],
     "Fixes": [
+      "Creating a project with the same name as a previously deleted project no longer shows shadow copies of the old project's design files in the asset library.",
       "Fixed bug that could cause some subcomponents' overridden states not to be rendered while editing.",
       "Fixed bug that could cause infinite loops to be triggered when using certain Timeline APIs in Action code for Component > Will Mount",
       "Fixed an issue where ungrouping SVGs containing inline CSS caused a loss of styles.",
