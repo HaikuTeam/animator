@@ -2352,7 +2352,7 @@ const reduceNodeMemoryChildren = (children, out = [], doIncludeRepeatees = false
   }
 
   return out;
-}
+};
 
 const assembleNodeMemoryChildren = (node: BytecodeNode, subtree) => {
   if (subtree) {

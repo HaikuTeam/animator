@@ -3,7 +3,7 @@
  */
 import {BytecodeTimelineProperty} from './api';
 import {getSortedKeyframes} from './helpers/KeyframeUtils';
-import Interpolate from './Interpolate';
+import {interpolate} from './Interpolate';
 
 // 0:    { value: { ... } }
 // 2500: { value: { ... } }
@@ -61,7 +61,7 @@ const getTransitionValue = (currentKeyframe, currentTransition, nextKeyframe, ne
     return currentValue;
   } // We have gone past the final transition
 
-  const finalValue = Interpolate.interpolate(
+  const finalValue = interpolate(
     nowValue,
     currentTransition.curve,
     currentKeyframe,
