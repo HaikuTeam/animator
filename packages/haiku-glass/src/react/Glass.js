@@ -958,10 +958,21 @@ export class Glass extends React.Component {
   handleUndo (payload) {
     if (this.project) {
       mixpanel.haikuTrack('creator:glass:undo');
-      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
+      const directlySelectedComponentId = Element.directlySelected && Element.directlySelected.componentId;
+      const component = this.getActiveComponent();
+      Element.unselectAllElements({component}, {from: 'glass'});
       this.project.undo({}, {from: 'glass'}, () => {
         // Important: purge the element selection proxy so that our box points can be reestablished.
         ElementSelectionProxy.purge();
+
+        // Restore directly selected element if it still exists
+        if (!directlySelectedComponentId) {
+          return;
+        }
+        const selectedElement = component.findElementByComponentId(directlySelectedComponentId);
+        if (selectedElement) {
+          Element.directlySelected = selectedElement.getHaikuElement();
+        }
       });
     }
   }
@@ -969,10 +980,21 @@ export class Glass extends React.Component {
   handleRedo (payload) {
     if (this.project) {
       mixpanel.haikuTrack('creator:glass:redo');
-      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
+      const directlySelectedComponentId = Element.directlySelected && Element.directlySelected.componentId;
+      const component = this.getActiveComponent();
+      Element.unselectAllElements({component}, {from: 'glass'});
       this.project.redo({}, {from: 'glass'}, () => {
         // Important: purge the element selection proxy so that our box points can be reestablished.
         ElementSelectionProxy.purge();
+
+        // Restore directly selected element if it still exists
+        if (!directlySelectedComponentId) {
+          return;
+        }
+        const selectedElement = component.findElementByComponentId(directlySelectedComponentId);
+        if (selectedElement) {
+          Element.directlySelected = selectedElement.getHaikuElement();
+        }
       });
     }
   }

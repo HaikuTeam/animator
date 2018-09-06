@@ -709,9 +709,9 @@ const createCollection = (klass, opts) => {
     const idx = klass.idx(instance)
     if (idx !== -1) {
       arrayCollection.splice(idx, 1)
-      clearQueryCache()
     }
     delete hashmapCollection[instance.getPrimaryKey()]
+    clearQueryCache()
   }
 
   klass.all = () => arrayCollection
@@ -784,9 +784,9 @@ const createCollection = (klass, opts) => {
   }
 
   klass.purge = () => {
-    arrayCollection.forEach((item) => {
-      item.destroy()
-    })
+    while (arrayCollection.length > 0) {
+      arrayCollection[0].destroy()
+    }
   }
 }
 
