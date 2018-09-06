@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as Radium from 'radium';
 import Bolt from 'haiku-ui-common/lib/react/icons/Bolt';
 import Palette from 'haiku-ui-common/lib/Palette';
 
@@ -41,44 +40,49 @@ const HOVER_INTENT_TIME = 190;
 class FrameAction extends React.Component {
   constructor () {
     super();
-    this.openFrameActionsEditor = this.openFrameActionsEditor.bind(this);
     this.timeout = null;
     this.state = {
       achievedHover: false,
     };
   }
 
-  setHover () {
+  setHover = () => {
     if (!this.timeout) {
       this.timeout = setTimeout(() => {
         this.timeout = null;
         this.setState({achievedHover: true});
       }, HOVER_INTENT_TIME);
     }
-  }
+  };
 
-  unsetTimeout () {
+  unsetTimeout = () => {
     this.setState({achievedHover: false});
 
     if (this.timeout) {
       clearTimeout(this.timeout);
       this.timeout = null;
     }
-  }
+  };
 
   componentWillUnmount () {
     this.unsetTimeout();
   }
 
-  openFrameActionsEditor (e) {
-    e.stopPropagation();
+  openFrameActionsEditor = (clickEvent) => {
+    clickEvent.stopPropagation();
     this.props.onShowFrameActionsEditor(this.props.frame);
-  }
+  };
+
+  openFrameActionsEditorIfAchievedHover = (event) => {
+    if (this.state.achievedHover) {
+      this.openFrameActionsEditor(event);
+    }
+  };
 
   render () {
     if (this.props.hasActions) {
       return (
-        <div onMouseDown={(e) => this.openFrameActionsEditor(e)} style={STYLE.base}>
+        <div onMouseDown={this.openFrameActionsEditor} style={STYLE.base}>
           <Bolt color={Palette.LIGHT_BLUE} />
         </div>
       );
@@ -87,17 +91,11 @@ class FrameAction extends React.Component {
     return (
       <div
         className="frame-action-box"
-        onMouseOver={() => this.setHover()}
-        onMouseLeave={() => this.unsetTimeout()}
-        onMouseDown={(event) => {
-          if (this.state.achievedHover) {
-            this.openFrameActionsEditor(event);
-          }
-        }
-        }
-        style={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
-        <div
-          style={STYLE.plus}>
+        onMouseOver={this.setHover}
+        onMouseLeave={this.unsetTimeout}
+        onMouseDown={this.openFrameActionsEditorIfAchievedHover}
+        style={{...STYLE.base, ...STYLE.addAction, ...(this.state.achievedHover && STYLE.show)}}>
+        <div style={STYLE.plus}>
           +
         </div>
       </div>
@@ -110,4 +108,4 @@ FrameAction.propTypes = {
   onShowFrameActionsEditor: React.PropTypes.func.isRequired,
 };
 
-export default Radium(FrameAction);
+export default FrameAction;
