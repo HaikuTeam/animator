@@ -326,7 +326,7 @@ class EventHandlerEditor extends React.PureComponent {
             <ElementTitle
               element={this.props.element}
               data-tooltip={true}
-              aria-label={
+              title={
                 isNumeric(this.props.options.frame)
                   ? `Frame ${this.props.options.frame}`
                   : null
