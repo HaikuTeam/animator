@@ -3,7 +3,8 @@
   "sections": {
     "What's new": [
       "You can now change the email address you use to sign in at [account.haiku.ai](https://account.haiku.ai/).",
-      "You can now find a link to your public profile when publishing a public project."
+      "You can now find a link to your public profile when publishing a public project.",
+      "Added the ability to tween percent values (e.g. `\"25%\"` to `\"50%\"`)."
     ],
     "Fixes": [
       "Creating a project with the same name as a previously deleted project no longer shows shadow copies of the old project's design files in the asset library.",

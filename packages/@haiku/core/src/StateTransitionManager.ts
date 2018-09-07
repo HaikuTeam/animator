@@ -1,6 +1,6 @@
 import {BytecodeStateType, Curve, CurveDefinition, IHaikuComponent} from './api';
 import HaikuClock from './HaikuClock';
-import Interpolate from './Interpolate';
+import {interpolate} from './Interpolate';
 
 export interface StateTransitionParameters {
   curve: CurveDefinition;
@@ -188,7 +188,7 @@ export default class StateTransitionManager {
           // Calculate interpolated states.
           Object.assign(
             interpolatedStates,
-            Interpolate.interpolate(
+            interpolate(
               currentTime, transition.transitionParameter.curve, transition.startTime,
               transition.endTime, transition.transitionStart, transition.transitionEnd,
             ),
