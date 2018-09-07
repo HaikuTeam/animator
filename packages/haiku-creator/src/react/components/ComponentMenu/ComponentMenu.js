@@ -91,7 +91,9 @@ class ComponentMenu extends React.Component {
         }))}
         {this.props.showGlass &&
           <button
-            title="Create blank component"
+            aria-label="Create blank component"
+            data-tooltip={true}
+            data-tooltip-bottom={true}
             style={STYLES.newComponentButton}
             onClick={this.conglomerateComponent}>
             +
