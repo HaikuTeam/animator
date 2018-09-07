@@ -236,6 +236,7 @@ export default class Master extends EventEmitter {
     this.active = false;
     this.watchOff();
     this._knownLibraryAssets = {};
+    this._wereAssetsInitiallyLoaded = false;
     if (this.project) {
       this.project.getAllActiveComponents().forEach((ac) => {
         if (ac.$instance) {
