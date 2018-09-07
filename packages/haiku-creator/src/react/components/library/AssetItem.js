@@ -232,7 +232,12 @@ class AssetItem extends React.Component {
       items.push({
         label: 'Create Component',
         icon: ComponentIconSVG,
-        onClick: this.props.conglomerateComponent,
+        onClick: () => {
+          this.props.conglomerateComponent({
+            isBlankComponent: true,
+            skipInstantiateInHost: true,
+          });
+        },
       });
     }
 

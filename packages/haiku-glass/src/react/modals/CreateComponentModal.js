@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Modal, {MODAL_STYLES} from '../Modal';
 
-const DEFAULT_COMPONENT_NAME = 'untitled';
+const DEFAULT_COMPONENT_NAME = 'Name Component';
 const INITIAL_INVALIDITY_REASON = 'Use only lowercase letters and numbers';
 
 export default class CreateComponentModal extends React.Component {
@@ -61,7 +61,7 @@ export default class CreateComponentModal extends React.Component {
         isOpen={this.props.isOpen}>
         <div
           style={MODAL_STYLES.wrapper}>
-          <div style={MODAL_STYLES.title}>Name your component</div>
+          <div style={MODAL_STYLES.title}>{this.props.options.isBlankComponent ? 'Create component' : 'Create Component from selection'}</div>
           <input
             type="text"
             autoFocus={true}

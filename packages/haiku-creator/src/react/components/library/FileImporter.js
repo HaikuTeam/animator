@@ -72,6 +72,13 @@ class FileImporter extends React.PureComponent {
     }
   }
 
+  conglomerateComponent = () => {
+    this.props.conglomerateComponent({
+      isBlankComponent: true,
+      skipInstantiateInHost: true,
+    });
+  };
+
   get popoverBody () {
     return (
       <div
@@ -93,7 +100,7 @@ class FileImporter extends React.PureComponent {
         <div style={STYLES.popover.item}>
           <div
             style={STYLES.popover.text}
-            onClick={this.props.conglomerateComponent}
+            onClick={this.conglomerateComponent}
           >
             Create Component
           </div>
