@@ -564,8 +564,8 @@ class StageTitleBar extends React.Component {
       });
     } else {
       this.props.conglomerateComponent({
-        isBlankComponent: true,
-        skipInstantiateInHost: true,
+        isBlankComponent: proxy.selection.length === 0,
+        skipInstantiateInHost: proxy.selection.length === 0,
       });
     }
   }
