@@ -32,6 +32,7 @@ function go () {
     haiku.mode = 'creator';
   }
 
+  logger.view = 'master';
   logger.info(`Haiku plumbing ${process.env.HAIKU_RELEASE_VERSION} on ${process.env.NODE_ENV} launching`);
   logger.info('args:', args);
   logger.info('flags:', flags);
@@ -54,31 +55,5 @@ function go () {
     plumbing.launch(haiku, () => {
       logger.info('Haiku plumbing running');
     });
-  });
-}
-
-function startEmUp (plumbing, haiku, cb) {
-  delete haiku.folder;
-  plumbing.launch(haiku, () => {
-    let folder = global.process.env.HAIKU_PROJECT_FOLDER;
-    if (folder) {
-      if (folder[0] !== path.sep) {
-        folder = path.join(global.process.cwd(), folder);
-      }
-
-      plumbing.bootstrapProject(null, {projectPath: folder}, null, null, (err) => {
-        if (err) {
-          throw err;
-        }
-        plumbing.startProject(null, folder, (err) => {
-          if (err) {
-            throw err;
-          }
-          cb(null, folder);
-        });
-      });
-    } else {
-      cb(null);
-    }
   });
 }

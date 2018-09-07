@@ -118,6 +118,7 @@ if (!haiku.plumbing.url) {
 }
 
 function createWindow () {
+  logger.view = 'main';
   mixpanel.haikuTrack('app:initialize');
 
   browserWindow = new BrowserWindow({

@@ -125,7 +125,7 @@ class Logger extends EventEmitter {
       transports
     })
 
-    // Hook to allow Monkey.js to configure the view prefix from which we log
+    // Hook to allow consumers to configure the view prefix from which we log
     this.view = '?'
   }
 
