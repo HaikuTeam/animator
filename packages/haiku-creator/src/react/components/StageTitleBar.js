@@ -146,6 +146,12 @@ const STYLES = {
     height: 3,
     backgroundColor: Palette.LIGHTEST_PINK,
   },
+  activeIndicatorLeft: {
+    borderBottomLeftRadius: 4,
+  },
+  activeIndicatorRight: {
+    borderBottomRightRadius: 4,
+  },
 };
 
 const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
@@ -622,6 +628,8 @@ class StageTitleBar extends React.Component {
   }
 
   render () {
+    const isEditModeActive = isEditMode(this.props.interactionMode);
+    const isCodeModeActive = isCodeEditorMode(this.props.interactionMode);
     let btnText = 'PUBLISH';
     if (this.state.snapshotSyndicated === false) {
       btnText = 'PUBLISHING';
@@ -669,7 +677,9 @@ class StageTitleBar extends React.Component {
             <button
               key="toggle-design"
               id="toggle-design"
-              title="Switch to Design Mode"
+              aria-label="Switch to Design Mode"
+              data-tooltip={!isEditModeActive}
+              data-tooltip-bottom={!isEditModeActive}
               onClick={this.props.tryToSwitchToEditMode}
               style={[
                 BTN_STYLES.btnText,
@@ -684,13 +694,15 @@ class StageTitleBar extends React.Component {
                   },
                 }]}>
               <span style={{marginLeft: 7}}>DESIGN</span>
-              {isEditMode(this.props.interactionMode) && <span style={STYLES.activeIndicator}/>}
+              {isEditModeActive && <span style={{...STYLES.activeIndicator, ...STYLES.activeIndicatorLeft}} />}
             </button>
 
             <button
               key="toggle-code"
               id="toggle-code"
-              title="Switch to Code Mode"
+              aria-label="Switch to Code Mode"
+              data-tooltip={!isCodeModeActive}
+              data-tooltip-bottom={!isCodeModeActive}
               onClick={this.props.setGlassInteractionToCodeEditorMode}
               style={[
                 BTN_STYLES.btnText,
@@ -705,7 +717,7 @@ class StageTitleBar extends React.Component {
                   },
                 }]}>
               <span style={{marginLeft: 7}}>CODE</span>
-              {isCodeEditorMode(this.props.interactionMode) && <span style={STYLES.activeIndicator} />}
+              {isCodeModeActive && <span style={{...STYLES.activeIndicator, ...STYLES.activeIndicatorRight}} />}
             </button>
           </div>
         }
