@@ -431,6 +431,7 @@ If I make a change and publish, I get a new share link
 Cmd+S should not publish the project, but should display an info toast
 Eventually the "other" option (for GIF) becomes clickable and shows correct info
 If I try to publish while offline, it fails immediately instead of appearing to try to publish
+If I am over my private project limit and try to publish a private project, I receive a public opt-in warning
 
 
 

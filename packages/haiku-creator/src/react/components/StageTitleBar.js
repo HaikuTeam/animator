@@ -2,6 +2,7 @@ import * as Radium from 'radium';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {ipcRenderer, shell} from 'electron';
+import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -180,6 +181,7 @@ class StageTitleBar extends React.Component {
 
     this.state = {
       snapshotSaveResolutionStrategyName: 'normal',
+      forceDisablePrivate: false,
       isSnapshotSaveInProgress: false,
       snapshotSaveConfirmed: null,
       snapshotSaveError: null,
@@ -360,8 +362,32 @@ class StageTitleBar extends React.Component {
     return this.performProjectSave();
   }
 
+  showGenericPublishError () {
+    this.props.createNotice({
+      type: 'danger',
+      title: 'Uh oh!',
+      message: 'We were unable to publish your project. 😢 Are you online?',
+    });
+  }
+
+  showSharePopover (cb) {
+    this.setState(
+      {
+        showPublicPrivateOptInModal: false,
+        showSharePopover: true,
+        isSnapshotSaveInProgress: true,
+        snapshotSyndicated: false,
+      },
+      () => {
+        this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+      },
+    );
+  }
+
   requestSaveProject (cb) {
     if (this.props.projectModel) {
+      // We might come back to this later!
+      this.setState({forceDisablePrivate: false});
       this.props.envoyProject.getProjectsList().then((list) => {
         this.setState({
           privateProjectCount: list.filter((project) => !project.isPublic).length,
@@ -369,37 +395,44 @@ class StageTitleBar extends React.Component {
           // If the project already has a repository URL, this means the user has already confirmed their project's
           // privacy settings. Prior to 3.5.2, we presented this field during project creation in Creator; as of 3.5.2,
           // we explicit defer Caudex backing during project creation, ensuring there won't be a repository URL _until_
-          // the step skipped here.
-          if (this.props.project.repositoryUrl) {
-            // We can go straight to the publish modal.
-            this.setState({showSharePopover: true, isSnapshotSaveInProgress: true, snapshotSyndicated: false});
-            return this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+          // this step.
+          if (!this.props.project.repositoryUrl) {
+            // The user needs to set up public/private first.
+            this.setState({
+              showPublicPrivateOptInModal: true,
+              saveProjectContinue: () => {
+                this.showSharePopover(cb);
+              },
+            });
+            return;
           }
 
-          // The user needs to set up public/private first.
-          this.setState({
-            showPublicPrivateOptInModal: true,
-            saveProjectContinue: () => {
-              this.setState(
-                {
-                  showPublicPrivateOptInModal: false,
-                  showSharePopover: true,
-                  isSnapshotSaveInProgress: true,
-                  snapshotSyndicated: false,
-                },
-                () => {
-                  this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
-                },
-              );
-            },
-          });
+          // If we have a private project limit and the project is private, we have to first check if any updates will
+          // be permitted.
+          if (typeof this.props.privateProjectLimit === 'number' && !this.props.project.isPublic) {
+            this.props.envoyProject.updateProject(this.props.project).then(() => this.showSharePopover(cb)).catch((error) => {
+              switch (error.message) {
+                case ErrorCode.ErrorCodePrivilegesPrivateProjectLimitExceeded:
+                  this.setState({
+                    forceDisablePrivate: true,
+                    showPublicPrivateOptInModal: true,
+                    saveProjectContinue: () => {
+                      this.showSharePopover(cb);
+                    },
+                  });
+                  break;
+                default:
+                  this.showGenericPublishError();
+                  break;
+              }
+            });
+          } else {
+            // We can go straight to the publish modal.
+            this.showSharePopover(cb);
+          }
         });
       }).catch(() => {
-        this.props.createNotice({
-          type: 'danger',
-          title: 'Uh oh!',
-          message: 'We were unable to publish your project. 😢 Are you online?',
-        });
+        this.showGenericPublishError();
       });
     }
   }
@@ -762,6 +795,7 @@ class StageTitleBar extends React.Component {
             privateProjectCount={this.state.privateProjectCount}
             privateProjectLimit={this.props.privateProjectLimit}
             explorePro={this.props.explorePro}
+            forceDisablePrivate={this.state.forceDisablePrivate}
           />
         }
 
