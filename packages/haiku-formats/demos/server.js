@@ -15,6 +15,7 @@ const BODYMOVIN_DIRECTORY = path.join(GOLDENS_DIRECTORY, 'bodymovin');
 
 const app = express();
 app.use(express.static(__dirname));
+app.use('/static', express.static(path.join(__dirname, '..', 'test')));
 
 app.get('/', (req, res) => {
   console.info('[haiku core demo server] request /');

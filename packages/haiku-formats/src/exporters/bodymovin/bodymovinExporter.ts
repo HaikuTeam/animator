@@ -10,13 +10,14 @@ import {
 import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
-import {writeFile} from 'fs-extra';
+import {existsSync, readFileSync, writeFile} from 'fs-extra';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import * as imageSize from 'image-size';
 import {difference, flatten, mapKeys} from 'lodash';
+import {extname, join} from 'path';
 
 import {ExporterInterface} from '..';
 
@@ -609,19 +610,35 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         return;
       }
 
-      const rawData = timeline[transcludedIdField] || node.attributes[transcludedIdField];
-      const matches = rawData.match(/^data:image\/\w+;base64,(.+)$/);
+      let rawData: string = initialValueOr(timeline, transcludedIdField, false) || node.attributes[transcludedIdField];
+      let buffer: Buffer;
 
-      if (!matches) {
-        return;
+      const fileMatches = rawData.match(/^web\+haikuroot:\/\/(.+)$/);
+      if (fileMatches) {
+        const [_, filePath] = fileMatches;
+        const assetPath = join(this.componentFolder, '..', '..', filePath);
+        if (existsSync(assetPath)) {
+          buffer = readFileSync(assetPath);
+          rawData = `data:image/${extname(filePath)};base64,${buffer.toString('base64')}`;
+        }
+      } else {
+        const matches = rawData.match(/^data:image\/\w+;base64,(.+)$/);
+        if (!matches) {
+          return;
+        }
+
+        const [_, base64] = matches;
+        buffer = new Buffer(base64, 'base64');
       }
 
-      const [_, base64] = matches;
+      if (!buffer) {
+        return;
+      }
 
       let width = initialValueOrNull(timeline, 'width');
       let height = initialValueOrNull(timeline, 'height');
       if (width === null || height === null) {
-        ({width, height} = imageSize(new Buffer(base64, 'base64')));
+        ({width, height} = imageSize(buffer));
       }
 
       // Create local IDs we can use consistently.
@@ -1237,39 +1254,37 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * where jumps occur and shimming in keyframes forcing a linear transition within a single frame.
    */
   private normalizeCurves () {
-    this.bytecode.template.children.forEach((node: BytecodeNode) => {
-      const timeline = this.timelineForNode(node);
-      for (const property in timeline) {
-        const timelineProperty = timeline[property];
-        const keyframes = keyframesFromTimelineProperty(timelineProperty);
-        keyframes.forEach((keyframe, index) => {
-          if (timelineProperty[keyframe].curve) {
+    this.visitAllTimelineProperties((timeline, property) => {
+      const timelineProperty = timeline[property];
+      const keyframes = keyframesFromTimelineProperty(timelineProperty);
+
+      keyframes.forEach((keyframe, index) => {
+        if (timelineProperty[keyframe].curve) {
             // Either a curve is defined or there is no next keyframe. Either way, there's nothing to normalize.
-            return;
-          }
+          return;
+        }
 
           // Create a linear tween to enforce that every transition has a curve, which is a requirement for Bodymovin.
-          timelineProperty[keyframe].curve = Curve.Linear;
+        timelineProperty[keyframe].curve = Curve.Linear;
 
-          if (index === keyframes.length - 1) {
-            return;
-          }
+        if (index === keyframes.length - 1) {
+          return;
+        }
 
-          if (keyframe + 1 === keyframes[index + 1] ||
+        if (keyframe + 1 === keyframes[index + 1] ||
             timelineValuesAreEquivalent(
               timelineProperty[keyframe].value,
               timelineProperty[keyframes[index + 1]].value,
             )) {
             // There is either no transition to "recover", or the transition is happening inside of 0 frames. Either
             // way, our choice of a linear "transition" is fine.
-            return;
-          }
+          return;
+        }
 
           // Insert a keyframe one frame before the next keyframe, using identical values as the current keyframe. It
           // will transition into the next keyframe inside of 0 frames, just like our trivial cases above.
-          timelineProperty[keyframes[index + 1] - 1] = timelineProperty[keyframe];
-        });
-      }
+        timelineProperty[keyframes[index + 1] - 1] = timelineProperty[keyframe];
+      });
     });
   }
 

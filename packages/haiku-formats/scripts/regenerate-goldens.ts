@@ -6,13 +6,13 @@ import {each} from 'async';
 import {readdir, writeFile} from 'fs-extra';
 import {basename, join} from 'path';
 
-const goldensRoot = join(global.process.cwd(), 'test/goldens');
+const goldensRoot = join(global.process.cwd(), 'test', 'goldens');
 
 readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
   each(bytecodeFiles, (filename: string, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     const name = basename(bytecodeFilename, '.js');
-    const bodymovinExporter = new BodymovinExporter(require(bytecodeFilename), null);
+    const bodymovinExporter = new BodymovinExporter(require(bytecodeFilename), join(goldensRoot, 'bytecode'));
     // Clear require cache.
     delete require.cache[require.resolve(bytecodeFilename)];
     writeFile(

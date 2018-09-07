@@ -2,6 +2,7 @@
   "date": "September 10, 2018",
   "sections": {
     "What's new": [
+      "Elements now remain direct-selected through undo/redo.",
       "You can now change the email address you use to sign in at [account.haiku.ai](https://account.haiku.ai/).",
       "You can now find a link to your public profile when publishing a public project.",
       "Added the ability to tween percent values (e.g. `\"25%\"` to `\"50%\"`)."
@@ -16,7 +17,8 @@
       "Fixed an issue where the library won't show the buttons to create design assets if you have a component defined.",
       "Fixed an issue where sometimes a published project might show the wrong version.",
       "Fixed a bug causing the Frame Actions Editor to display the wrong title.",
-      "Keep element direct selection on undo/redo"
+      "Fixed an issue where externally hosted image files were not included in Lottie exports.",
+      "Fixed an issue where adding keyframes on an SVG path property without a tween might result in an empty Lottie export."
     ]
   }
 }
