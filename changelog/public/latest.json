@@ -18,7 +18,8 @@
       "Fixed an issue where sometimes a published project might show the wrong version.",
       "Fixed a bug causing the Frame Actions Editor to display the wrong title.",
       "Fixed an issue where externally hosted image files were not included in Lottie exports.",
-      "Fixed an issue where adding keyframes on an SVG path property without a tween might result in an empty Lottie export."
+      "Fixed an issue where adding keyframes on an SVG path property without a tween might result in an empty Lottie export.",
+      "Improved the logic to create new components."
     ]
   }
 }
