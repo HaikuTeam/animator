@@ -16,6 +16,7 @@ const STYLES = {
     position: 'relative',
     backgroundColor: Palette.GRAY,
     WebkitUserSelect: 'none',
+    overflow: 'visible',
   },
   bar: { // This invisible bar is for grabbing and moving around the application via its 'frame' class
     position: 'absolute',

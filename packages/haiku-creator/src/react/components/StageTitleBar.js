@@ -136,7 +136,7 @@ const STYLES = {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     borderRadius: 3,
-    overflow: 'hidden',
+    zIndex: 1,
   },
   activeIndicator: {
     position: 'absolute',
