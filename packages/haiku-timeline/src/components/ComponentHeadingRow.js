@@ -182,7 +182,7 @@ export default class ComponentHeadingRow extends React.Component {
           <div
             className="component-heading-row-inner no-select"
             style={{
-              width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 200 : propertiesPixelWidth,
+              width: this.props.row.isExpanded() ? (this.props.row.isRootRow() ? propertiesPixelWidth - 160 : propertiesPixelWidth - 200) : propertiesPixelWidth,
               height: 'inherit',
               cursor: 'pointer',
               backgroundColor: 'transparent',

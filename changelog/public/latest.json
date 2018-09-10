@@ -22,7 +22,8 @@
       "Improved the logic to create new components.",
       "Ensured that locked elements do not intercept pointer events on stage.",
       "Improved accuracy of marquee selection in Timeline.",
-      "Fixed crashes during marquee selection in Timeline."
+      "Fixed crashes during marquee selection in Timeline.",
+      "Fixed layout issues with long component names in Timeline."
     ]
   }
 }
