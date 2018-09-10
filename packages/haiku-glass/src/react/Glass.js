@@ -316,6 +316,13 @@ export class Glass extends React.Component {
         case 'mergeDesigns':
           Element.directlySelected = null;
           break;
+        case 'setLockedStatusForComponent':
+          // Unselect element after locking it
+          const lockedElement = this.getActiveComponent().findElementByComponentId(args[1]);
+          if (args[2] && lockedElement && lockedElement._isSelected) {
+            lockedElement.unselectSoftly({from: 'glass'});
+          }
+          break;
       }
     });
 
