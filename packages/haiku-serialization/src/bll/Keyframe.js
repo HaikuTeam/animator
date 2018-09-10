@@ -417,6 +417,10 @@ class Keyframe extends BaseModel {
     }
   }
 
+  clearViewPosition () {
+    this._viewPosition = {}
+  }
+
   isWithinCollapsedClusterHeadingRow () {
     return (
       this.row &&
@@ -839,6 +843,12 @@ Keyframe.deselectAndDeactivateAllKeyframes = (criteria) => {
 
 Keyframe.getInferredUid = (row, ms) => {
   return `${row.getPrimaryKey()}-keyframe-${ms}`
+}
+
+Keyframe.clearAllViewPositions = (filter) => {
+  Keyframe.where(filter).forEach((keyframe) => {
+    keyframe.clearViewPosition()
+  })
 }
 
 Keyframe.buildKeyframeMoves = (criteria, serialized) => {

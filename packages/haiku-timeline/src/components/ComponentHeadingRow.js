@@ -313,5 +313,5 @@ ComponentHeadingRow.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   onEventHandlerTriggered: React.PropTypes.func.isRequired,
-  dragHandleProps: React.PropTypes.object.isRequired,
+  dragHandleProps: React.PropTypes.object,
 };

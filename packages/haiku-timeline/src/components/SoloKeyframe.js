@@ -42,6 +42,7 @@ export default class SoloKeyframe extends React.Component {
   componentWillUnmount () {
     this.mounted = false;
     this.teardownKeyframeUpdateReceiver();
+    this.props.keyframe.clearViewPosition();
   }
 
   componentDidUpdate () {
