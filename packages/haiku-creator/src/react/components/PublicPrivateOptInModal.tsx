@@ -78,6 +78,7 @@ const STYLES: React.CSSProperties = {
 
 export interface PublicPrivateOptInModalProps {
   isPublic: boolean;
+  forceDisablePrivate: boolean;
   onToggle: () => void;
   onContinue: () => void;
   onClose: () => void;
@@ -91,9 +92,11 @@ const SOURCE = 'public-private-opt-in-modal';
 export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOptInModalProps> {
   private initiallyPrivate = false;
   private get shouldDisablePrivate () {
-    return !this.initiallyPrivate &&
+    return this.props.forceDisablePrivate || (
+      !this.initiallyPrivate &&
       this.props.privateProjectLimit !== null &&
-      this.props.privateProjectCount >= this.props.privateProjectLimit;
+      this.props.privateProjectCount >= this.props.privateProjectLimit
+    );
   }
 
   constructor (props: PublicPrivateOptInModalProps) {
@@ -192,6 +195,7 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
             <button
               onClick={this.props.onContinue}
               style={STYLES.button}
+              disabled={this.props.forceDisablePrivate && !this.props.isPublic}
             >
               <span>Continue</span>
             </button>

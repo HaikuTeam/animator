@@ -386,3 +386,8 @@ input[type='radio']:checked:after {
 .draw-text * {
   cursor: text !important;
 }
+
+/* Disable mouse click targeting locked elements */
+[haiku-locked="true"] {
+  pointer-events: none;
+}

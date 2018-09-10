@@ -140,6 +140,10 @@ button {
   text-transform: uppercase;
 }
 
+button[disabled] {
+  cursor: not-allowed !important;
+}
+
 /* We have a ton of elements with text content that shouldn't be selectable
  * TODO: Move into the ui-common module?
  */

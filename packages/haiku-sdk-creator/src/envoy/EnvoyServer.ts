@@ -197,7 +197,7 @@ export default class EnvoyServer {
             .catch((error: Error) => {
               const response = {
                 channel: data.channel,
-                data: {error},
+                data: {error: error instanceof Error ? {message: error.message} : error},
                 id: data.id,
                 intent: DatagramIntent.RESPONSE,
               } as Datagram;

@@ -117,6 +117,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
             style={{
               display: 'inline-block',
               transform: 'translateY(1px)',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
             }}
           >
             <span
@@ -125,12 +128,12 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 marginLeft: 8,
                 marginRight: 4,
                 display: 'inline-block',
-                transform: 'translateY(4px)',
+                verticalAlign: 'sub',
               }}
             >
               <ComponentIconSVG />
             </span>
-            {trunc(this.state.rowTitle, 12)}
+            {this.state.rowTitle}
           </div>
         ) : (
           <span
@@ -208,14 +211,6 @@ export default class ComponentHeadingRowHeading extends React.Component {
     );
   }
 }
-
-const trunc = (str, len) => {
-  if (str.length <= len) {
-    return str;
-  }
-
-  return `${str.slice(0, len)}…`;
-};
 
 ComponentHeadingRowHeading.propTypes = {
   row: React.PropTypes.object.isRequired,
