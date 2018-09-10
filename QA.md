@@ -36,22 +36,6 @@ I can open a duplicated project and the default Adobe Illustrator file and its r
 I can open an existing project 5 times (navigating back and forth from editor to dashboard)
 I can open a new project 5 times (navigating back and forth from editor to dashboard)
 
-Trouble Spot: Instantiation/Deletion
-
-I can instantiate the Haiku "H", drag it 5 times, then quickly delete it, without causing a crash
-Instantiating multiple inline image elements works (images don't disappear)
-Instantiating inline image, then deleting it, then re-instantiating it works
-I can instantiate two polygons, then delete the first one, and the others remain
-I can instantiate an element with text content, then instantiate other elements and not crash
-
-Trouble Spot: Copy/Paste
-
-I can copy+paste an element several times, then delete the first one, and the others remain
-I can copy+paste an element with a gradient filter, move the copy, and it works
-I can copy+paste an element that has a gradient, then delete the first one, and the others remain
-I can copy+paste a polygon, then delete the first one, and the others remain
-I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
-
 Trouble Spot: Undo/Redo vs. Other Things
 
 I can instantiate an element, cut it, undo the cut, and then select and move the element without crash
@@ -60,27 +44,9 @@ I can undo a deletion of an element and things still work normally
 I can select multiple elements and delete them without a crash
 I can undo a change to an element with a shadow and still instantiate/edit other elements
 I can undo several transform changes quickly and things don't break
-When my component has a playing time of more than `0`, undo/redo doesn't play the timeline
-I can create a keyframe in the timeline directly, change it, and undo the change
-I can create an keyframe with an expression in the timeline, change it, and undo the change
-I can instantiate a slice, undo, redo
-I can instantiate a slice, delete, undo, redo
-I can delete existing element, undo, redo
-I can Alt+drag to copy element, undo, redo
-I can move, rotate, scale element, undo, redo
-I can copy an element, paste it, move it, undo, undo, redo
-I can cut an element, paste it, delete it, undo, undo, redo
-I can zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo when the scrubber is at zero
-I can use Bring to Front, Backward, and friends when the scrubber is not at zero
-I can delete keyframe, undo, redo
-I can create keyframe, undo, redo
-I can move keyframes across multiple rows, undo, redo
-I can undo a z-index change that occurred via the on-stage context menu
-I can undo a z-index change that occurred via drag-and-drop in the timeline
 I can move many keyframes, including an expression, undo, redo, and verify the expression still works
 Instantiate component, move on stage, click timeline, undo until component is gone, then redo all actions
 I can undo a change from a keyframe value to an expression, and vice versa
-I can copy+paste a component
 
 Trouble Spot: Multi-Component
 
@@ -89,6 +55,7 @@ I delete an instance of a component from the stage, and then undo this
 Multi-component projects shown on the dashboard behave like normal projects
 I can create a subcomponent, give it animations, and when I scrub via the host, the child's animations don't play
 I can create a subcomponent, give it animations, and use Preview Mode to see the animations in the host and child
+I can copy+paste a component
 
 
 
@@ -429,6 +396,22 @@ I can still make changes after I undo
 Undo/redo doesn't degrade the performance of the app
 After I undo, the timeline also reflects what I just undid on stage
 Performing undo preserves the current scrubber time
+When my component has a playing time of more than `0`, undo/redo doesn't play the timeline
+I can create a keyframe in the timeline directly, change it, and undo the change
+I can create an keyframe with an expression in the timeline, change it, and undo the change
+I can instantiate a slice, undo, redo
+I can instantiate a slice, delete, undo, redo
+I can Alt+drag to copy element, undo, redo
+I can move, rotate, scale element, undo, redo
+I can copy an element, paste it, move it, undo, undo, redo
+I can cut an element, paste it, delete it, undo, undo, redo
+I can zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo when the scrubber is at zero
+I can use Bring to Front, Backward, and friends when the scrubber is not at zero
+I can delete keyframe, undo, redo
+I can create keyframe, undo, redo
+I can move keyframes across multiple rows, undo, redo
+I can undo a z-index change that occurred via the on-stage context menu
+I can undo a z-index change that occurred via drag-and-drop in the timeline
 
 Z-index
 
@@ -505,6 +488,22 @@ I can click on the dimmed Timeline UI to exit Preview Mode
 When exiting Preview Mode, the on-stage transform controls are restored if an element had been selected
 When in Preview Mode, the preview "Eye" icon follows your mouse around
 Expression values (such as `$user.mouse.x`) are set to 1 when in editing mode, and become 'real' during Preview Mode
+
+Trouble Spot: Instantiation/Deletion
+
+I can instantiate the Haiku "H", drag it 5 times, then quickly delete it, without causing a crash
+Instantiating multiple inline image elements works (images don't disappear)
+Instantiating inline image, then deleting it, then re-instantiating it works
+I can instantiate two polygons, then delete the first one, and the others remain
+I can instantiate an element with text content, then instantiate other elements and not crash
+
+Trouble Spot: Copy/Paste
+
+I can copy+paste an element several times, then delete the first one, and the others remain
+I can copy+paste an element with a gradient filter, move the copy, and it works
+I can copy+paste an element that has a gradient, then delete the first one, and the others remain
+I can copy+paste a polygon, then delete the first one, and the others remain
+I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
 
 Multi-Component
 
