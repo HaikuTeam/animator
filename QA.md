@@ -1,11 +1,12 @@
-🏁 QA CHECKLIST 3.5.3 🏁
+🏁 QA CHECKLIST 4.2.0 🏁
 
 Please complete all sections under YOUR NAME.
 
 If you find a bug, file it in Asana and label it here.
 
+Put your initials to the right of any items you have checked.
+
 Use the following legend:
-  -strikethrough-=checked (use this to mark items that you have checked)
   🔴=showstopper (use only for defects that should block release syndication)
   🐛=minor bug (use for known bugs, bugs already in prod, or small stuff)
   💚=fixed issue
@@ -59,7 +60,7 @@ I can undo a deletion of an element and things still work normally
 I can select multiple elements and delete them without a crash
 I can undo a change to an element with a shadow and still instantiate/edit other elements
 I can undo several transform changes quickly and things don't break
-If my component has a playing time of more than `0`, undo/redo doesn't play the timeline
+When my component has a playing time of more than `0`, undo/redo doesn't play the timeline
 I can create a keyframe in the timeline directly, change it, and undo the change
 I can create an keyframe with an expression in the timeline, change it, and undo the change
 I can instantiate a slice, undo, redo
@@ -80,30 +81,6 @@ I can move many keyframes, including an expression, undo, redo, and verify the e
 Instantiate component, move on stage, click timeline, undo until component is gone, then redo all actions
 I can undo a change from a keyframe value to an expression, and vice versa
 I can copy+paste a component
-
-Trouble Spot: Expressions
-
-Text selection doesn't keep appearing/reappearing as I type in an expression field
-Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
-I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
-If I have an expression bound to time or interactivity, this continues to work even if playback is paused
-In Preview Mode, the `$user.mouse.y` position is calculated correctly with respect to the share page artboard box
-In Preview Mode, the `$user.mouse.y` position is calculated correctly when the stage has been zoomed/panned
-I can enter `rotation.x,y,z` `0,0,0` (defaults) and not see any change in rotation reflected
-
-Trouble Spot: Timeline
-
-I can scrub wildly over a keyframe sequence that involves rotation and the rotation doesn't become nondeterministic
-In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
-I can play a short (<30f) animation on a loop and playback doesn't slow down
-I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
-
-Trouble Spot: On-Stage Transforming
-
-I can scale an element down to near zero in either dimension without a problem
-I can continuously scale an element round and round without causing a freeze/crash
-I can multi-scale elements that have been rotated in three dimensions
-I can negatively multi-scale (flip) elements that have been rotated without a problem
 
 Trouble Spot: Multi-Component
 
@@ -306,6 +283,10 @@ When I transform an element on stage (move, rotate, scale), the element snaps to
 When I hold down Cmd, snapping does not occur, nor do snap-lines appear
 I can use the Align/Distribute menu to align/distribute a set of selected elements in various ways
 I can undo whatever I just did with Align/Distribute
+I can scale an element down to near zero in either dimension without a problem
+I can continuously scale an element round and round without causing a freeze/crash
+I can multi-scale elements that have been rotated in three dimensions
+I can negatively multi-scale (flip) elements that have been rotated without a problem
 
 Instantiation
 
@@ -352,6 +333,10 @@ The keyframe created doesn't have a curve
 I can change the value of a keyframe that I created via right-click
 Activating a keyframe/segment highlights it
 Highlighting just one keyframe only highlights the one
+I can scrub wildly over a keyframe sequence that involves rotation and the rotation doesn't become nondeterministic
+In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
+I can play a short (<30f) animation on a loop and playback doesn't slow down
+I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
 
 Timeline Scrolling/Zooming/Display
 
@@ -381,17 +366,6 @@ When playback reaches the timeline page boundary, the timeline paginates
 When I play the timeline, it plays back on stage at a reasonable speed
 I can play an animation with only keyframe 0 and it works
 I can play an animation with only keyframe 0 and 1 and it doesn't crash
-
-Artboard
-
-I can click the artboard name to select the artboard
-I can resize the artboard by clicking the name and scaling it
-When I scale the artboard, the centerpoint is adjusted
-Code reloading is not triggered when the artboard is resized
-Even if frame>0, artboard resizes only affect frame 0
-I can resize the artboard at any frame greater than 0, and its transform box is synced with the white box
-Elements are semi-transparent outside artboard box
-Element transform controls are not transparent when outside the artboard box
 
 Cut/Copy/Paste (Inputs)
 
@@ -468,6 +442,17 @@ Changes to z-index reflect correctly on stage
 Changes to z-index reflect correctly in the timeline as `style.zIndex` ("Style > Z Index")
 I can drag-and-drop timeline rows to reorder z-index
 
+Artboard
+
+I can click the artboard name to select the artboard
+I can resize the artboard by clicking the name and scaling it
+When I scale the artboard, the centerpoint is adjusted
+Code reloading is not triggered when the artboard is resized
+Even if frame>0, artboard resizes only affect frame 0
+I can resize the artboard at any frame greater than 0, and its transform box is synced with the white box
+Elements are semi-transparent outside artboard box
+Element transform controls are not transparent when outside the artboard box
+
 Expressions
 
 I can create an expression (e.g. binding to $user.mouse.x)
@@ -483,6 +468,13 @@ Pressing tab while an autocompletion is selected chooses that item
 Pressing enter while an autocompletion is selected chooses that item (BACKLOG)
 I can create an expression that causes a runtime error and things don't crash (error shown)
 I can save a multiline expression by pressing the "save" button on the left side
+Text selection doesn't keep appearing/reappearing as I type in an expression field
+Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
+I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
+If I have an expression bound to time or interactivity, this continues to work even if playback is paused
+In Preview Mode, the `$user.mouse.y` position is calculated correctly with respect to the share page artboard box
+In Preview Mode, the `$user.mouse.y` position is calculated correctly when the stage has been zoomed/panned
+I can enter `rotation.x,y,z` `0,0,0` (defaults) and not see any change in rotation reflected
 
 States
 
