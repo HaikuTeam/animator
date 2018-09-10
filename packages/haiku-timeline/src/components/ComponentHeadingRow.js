@@ -159,12 +159,12 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.props.row.isRootRow() ? (this.props.isExpanded ? 0 : 7) : (this.props.isExpanded ? 10 : 15),
+          paddingLeft: this.props.row.isRootRow() ? (this.props.isExpanded ? 0 : 7) : (this.props.isExpanded ? 35 : 15),
           width: propertiesPixelWidth,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           zIndex: zIndex.headingRow.base,
         }}>
-          {!this.props.row.isRootRow() &&
+          {!this.props.row.isRootRow() && !this.props.isExpanded &&
             <div
               style={{
                 marginTop: 3,
