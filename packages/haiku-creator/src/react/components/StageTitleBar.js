@@ -366,7 +366,7 @@ class StageTitleBar extends React.Component {
     this.props.createNotice({
       type: 'danger',
       title: 'Uh oh!',
-      message: 'We were unable to publish your project. 😢 Are you online?',
+      message: 'We were unable to publish your project. 😢 Please make sure you are connected to the internet.',
     });
   }
 
