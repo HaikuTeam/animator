@@ -115,6 +115,7 @@ export default class TransitionBody extends React.Component {
     this.mounted = false;
     this.teardownKeyframeUpdateReceiver();
     this.teardownNextKeyframeUpdateReceiver();
+    this.props.keyframe.clearViewPosition();
   }
 
   handleUpdate (what, ...args) {
