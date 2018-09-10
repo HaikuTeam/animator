@@ -590,18 +590,15 @@ export class Glass extends React.Component {
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
       logger.info('relay received', message.name, 'from', message.from);
 
-      // Don't take action if the user is within the dev tools window
-      if (remote.getCurrentWebContents().isDevToolsFocused()) {
-        return;
-      }
-
       switch (message.name) {
         case 'global-menu:open-dev-tools':
           remote.getCurrentWebContents().openDevTools();
           break;
 
         case 'global-menu:close-dev-tools':
-          remote.getCurrentWebContents().closeDevTools();
+          if (remote.getCurrentWebContents().isDevToolsFocused()) {
+            remote.getCurrentWebContents().closeDevTools();
+          }
           break;
 
         case 'global-menu:zoom-in':
