@@ -911,14 +911,9 @@ export default class Master extends EventEmitter {
       },
 
       (cb) => {
-        // At this point, we cannot proceed with a remote URL.
-        if (project.repositoryUrl) {
-          return cb();
-        }
-
         this.envoyHandlers.project.updateProject(
           // The user may have opted in to specific privacy settings prior to this step. Calling update
-          // ensure those settings stick on the first publish.
+          // ensures those settings stick on the first publish.
           project,
           /*ensureCaudexBacking=*/true,
         ).then(() => {
@@ -940,7 +935,7 @@ export default class Master extends EventEmitter {
           return cb();
         }
 
-                // Create a fault-tolerant async series to process all requested formats for all components
+        // Create a fault-tolerant async series to process all requested formats for all components
         return async.eachSeries(acs, (ac, nextComponent) => {
           logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
           return async.series([ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic].map((format) => (nextFormat) => {
@@ -1084,6 +1079,8 @@ export default class Master extends EventEmitter {
               this.envoyHandlers.exporter.save(request);
               next();
             }, cb);
+          }).catch((err) => {
+            return cb(err);
           });
         });
       },
