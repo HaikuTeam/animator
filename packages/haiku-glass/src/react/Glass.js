@@ -1131,6 +1131,8 @@ export class Glass extends React.Component {
   conglomerateComponentFromSelectedElementsWithTitle (title, options = {}) {
     const proxy = this.fetchProxyElementForSelection();
 
+    proxy.clearAllRelatedCaches();
+
     // Our selection becomes invalid as soon as we call this since we're changing
     // the elements that are currently on stage (including our current selection)
     Element.unselectAllElements({
