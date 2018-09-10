@@ -92,7 +92,7 @@ class ProjectLoader extends React.PureComponent {
   render () {
     return (
       <div style={{...STYLES.fullScreenCenterWrap, transform: this.props.show ? 'none' : 'translateX(-100%)'}} id="js-helper-project-loader">
-        <span style={STYLES.message}>Initializing project....</span>
+        <span style={STYLES.message}>Initializing project...</span>
         <div style={{...STYLES.loadingScreen}} ref={this.persistMount} />
       </div>
     );
