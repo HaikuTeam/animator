@@ -171,7 +171,8 @@ export default class ComponentHeadingRow extends React.Component {
                 marginRight: 3,
               }}
               className="component-heading-row-drag-handle js-avoid-marquee-init"
-              {...this.props.dragHandleProps}>
+              {...this.props.dragHandleProps}
+              tabIndex={null}>
               <span
                 className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
                 style={{display: 'block'}}>
