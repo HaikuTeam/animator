@@ -318,6 +318,9 @@ The scrollbar proportion updates if I scroll to create more keyframes
 Milliseconds and frames display properly at different zoom levels
 The current time/frame changes whenever the scrubber moves
 I can click the time/frame box to toggle from frames to seconds
+I can marquee select on the timeline
+I can zoom-in and marquee select on the timeline
+I can sroll horizontally/vertically and marquee select on the timeline
 
 Timeline Playback/Scrubbing
 
@@ -514,10 +517,10 @@ At bottom of app, the label shows {ProjectName} {ComponentName}
 The timeline displays the name of the component, Main, as the root element
 The state inspector heading indicates the current component
 On stage, I can reveal the context menu and I see 'Create Component'
-Clicking 'Create Component' opens a naming dialog box
-There is a 'Create Component' button in the top bar
-There is a 'Create Component' option in the library menus
-There is a "+" tab to create a component via the Component Tabs
+Clicking 'Create Component' opens a naming dialog box, and creates a component with the current stage selection
+There is a 'Create Component' button in the top bar that creates a component with the current stage selection
+There is a 'Create Component' option in the library menus that creates a blank component
+There is a "+" tab to create a component via the Component Tabs that creates a blank component
 The component name dialog can be canceled
 I can enter a component name
 The component name field only allows numbers and lowercase letters
