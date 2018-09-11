@@ -12,6 +12,8 @@ export default class TimelineRangeScrollbar extends React.Component {
   constructor (props) {
     super(props);
 
+    this._isFromMe = false;
+
     this.handleUpdate = this.handleUpdate.bind(this);
 
     this.onStartDragContainer = this.onStartDragContainer.bind(this);
@@ -50,9 +52,14 @@ export default class TimelineRangeScrollbar extends React.Component {
     }
     if (
       what === 'timeline-frame-range' ||
-      what === 'timeline-scroll' ||
-      what === 'timeline-scroll-from-scrollbar'
+      what === 'timeline-scroll'
     ) {
+      this._isFromMe = false;
+      this.forceUpdate();
+    }
+
+    if (what === 'timeline-scroll-from-scrollbar') {
+      this._isFromMe = true;
       this.forceUpdate();
     }
   }
@@ -98,28 +105,45 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   onDragLeft (dragEvent, dragData) {
     const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: true});
+    console.log('left, frame, offset', frame, offset);
     this.props.timeline.zoomByLeftAndRightEndpoints(frame, offset, true);
   }
 
   onStartDragRight (dragEvent, dragData) {
+    this.isDragging = true;
     this.props.timeline.scrollbarRightStart(dragData);
   }
 
   onStopDragRight (dragEvent, dragData) {
+    this.isDragging = false;
     this.props.timeline.scrollbarRightStop(dragData);
   }
 
   onDragRight (dragEvent, dragData) {
     const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: false});
-    this.props.timeline.zoomByLeftAndRightEndpoints(offset, frame, true);
+    // console.log('right, frame, offset', frame, offset);
+    console.log('dragEvent.clientX', dragEvent.clientX);
+    // debugger;
+    this.props.timeline.zoomByLeftAndRightEndpoints(0, this.props.timeline.mapXCoordToFrame(dragEvent.clientX), true);
   }
 
   render () {
     this.frameInfo = this.props.timeline.getFrameInfo();
-    let leftPosition;
     const {timeline} = this.props;
-    const isNearEnd = timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60;
-    leftPosition = (isNearEnd ? timeline.calculateMaxScrollValue() : timeline.getScrollLeft()) / this.frameInfo.scRatio;
+    let leftPosition;
+
+    if (this.isDragging) {
+      leftPosition = this.lastdrag;
+    } else {
+
+      if (this._isFromMe && timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60) {
+        leftPosition = timeline.calculateMaxScrollValue() / this.frameInfo.scRatio;
+      } else {
+        leftPosition = timeline.getScrollLeft() / this.frameInfo.scRatio;
+      }
+
+      this.lastdrag = leftPosition;
+    }
 
     return (
       <div

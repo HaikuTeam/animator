@@ -422,9 +422,11 @@ class Timeline extends BaseModel {
   }
 
   scrollbarRightStart (dragData) {
+    const frameInfo= this.getFrameInfo()
     this._scrollerRightDragStart = dragData.x
-    this._scrollbarStart = this.getLeftFrameEndpoint()
-    this._scrollbarEnd = this.getRightFrameEndpoint()
+    this._scrollbarStart = this._scrollLeft / frameInfo.pxpf
+    this._scrollbarEnd = (this._timelinePixelWidth + this._scrollLeft) / frameInfo.pxpf
+    this.teste = frameInfo
     this.emit('update', 'timeline-scrollbar-right-start')
     return this
   }
@@ -433,6 +435,7 @@ class Timeline extends BaseModel {
     this._scrollerRightDragStart = false
     this._scrollbarStart = null
     this._scrollbarEnd = null
+    this.teste = null
     this.emit('update', 'timeline-scrollbar-right-stop')
     return this
   }
@@ -693,14 +696,17 @@ class Timeline extends BaseModel {
   handleSettingScroll (scrollValue, eventName) {
     if (scrollValue >= 0) {
       const maxScrollValue = this.calculateMaxScrollValue()
+      const frameInfo = this.getFrameInfo()
 
       if (scrollValue >= maxScrollValue) {
-        const frameInfo = this.getFrameInfo()
         const pixelsToMove = 40
         const framesToMove = pixelsToMove / frameInfo.pxpf
         this._scrollLeft = maxScrollValue
         this.setMaxFrame(this.getMaxFrame() + framesToMove)
       } else {
+        const l = Math.round(scrollValue / frameInfo.pxpf)
+        const r =  ((this._timelinePixelWidth + scrollValue) / frameInfo.pxpf)
+        this.setVisibleFrameRange(l, r, false)
         this._scrollLeft = scrollValue
       }
 
@@ -731,6 +737,7 @@ class Timeline extends BaseModel {
   }
 
   zoomByLeftAndRightEndpoints (left, right, fromScrollbar = false) {
+    console.log('left: ', left, ' rigth: ', right)
     const frameInfo = this.getFrameInfo()
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
@@ -779,14 +786,17 @@ class Timeline extends BaseModel {
     return this
   }
 
-  setVisibleFrameRange (l, r) {
+  setVisibleFrameRange (l, r, shouldNotifyUpdates = true) {
     this._visibleFrameRange = [l, r]
     if (r > this.getMaxFrame()) {
       this.setMaxFrame(r)
     }
-    this.cache.unset('frameInfo')
-    Keyframe.clearAllViewPositions({component: this.component})
-    this.emit('update', 'timeline-frame-range')
+
+    if (shouldNotifyUpdates) {
+      this.cache.unset('frameInfo')
+      Keyframe.clearAllViewPositions({component: this.component})
+      this.emit('update', 'timeline-frame-range')
+    }
     return this
   }
 
