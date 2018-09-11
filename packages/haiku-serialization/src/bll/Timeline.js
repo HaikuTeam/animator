@@ -8,6 +8,7 @@ const logger = require('haiku-serialization/src/utils/LoggerInstance')
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
 const DURATION_MOD_TIMEOUT = 100
+const MINIMUM_ZOOM_THRESHOLD = 3 // Minimum number of frames to show
 
 /**
  * @class Timeline
@@ -725,13 +726,8 @@ class Timeline extends BaseModel {
   }
 
   zoomBy (scale) {
-    const left = this.getLeftFrameEndpoint()
     const right = this.getRightFrameEndpoint()
-
-    this.zoomByLeftAndRightEndpoints(
-      (left * scale) + left,
-      (right * scale) + right
-    )
+    this.zoomByLeftAndRightEndpoints(0, (right * scale) + right)
   }
 
   zoomByLeftAndRightEndpoints (left, right, fromScrollbar = false) {
@@ -739,13 +735,15 @@ class Timeline extends BaseModel {
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
 
-    if (leftTotal < frameInfo.fri0) {
-      leftTotal = frameInfo.fri0
+    if (
+      rightTotal < MINIMUM_ZOOM_THRESHOLD ||
+      rightTotal > this._timelinePixelWidth * 2
+    ) {
+      return
     }
 
-    // Stop the scroller at the right side and lock the size
-    if (rightTotal > frameInfo.friMax) {
-      rightTotal = frameInfo.friMax
+    if (leftTotal < frameInfo.fri0) {
+      leftTotal = frameInfo.fri0
     }
 
     this.setVisibleFrameRange(leftTotal, rightTotal)
