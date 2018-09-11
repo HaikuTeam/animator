@@ -1,6 +1,44 @@
 # Changelog
 
 
+## 4.1.1
+
+### Bug Fixes
+
+ * Fix issue where component bounds are wrong when creating one immediately after resizing stage
+ * truncate component names using CSS
+ * fail politely on publish if a user who once had unlimited private projects no longer does.
+ * clear view positions of unmounted keyframes
+ * prevent main row from interacting with dnd rows
+ * update keyframe view positions when zooming
+ * use the correct logic to conglomerate components
+ * make tooltips more flexible to disable
+ * do not hide the overflow of the library
+ * ensure we always re-ingest assets when restarting a project.
+ * restore log view.
+ * ensure we fully purge the asset library between project loads.
+ * support external images in Lottie.
+ * ensure tweens, even/especially on nested properties.
+ * correct a typo in props causing frame actions to have the wrong title
+ * display the design creator component if no design assets are present
+ * use the correct variable name
+ * ensure we have cached origins always
+ * use utf-8, not ascii, for SVG assets.
+ * Ensure if-false'd elements get filtered from the repeat collection too (767130344203330)
+ * Prevent infinite remounting due to tick() being called from a will-mount action (767130344203326)
+ * copy through <style>s into ungrouped SVGs.
+ * traverse all the way up to the parent SVG to pull merged attributes.
+ * use correct regexp for source branch test.
+ * do not rewrite strings in hot editing mode
+ * Ensure hover/unhover work correctly through nested components
+ * ensure ID-based selectors work in migration path.
+
+### Features
+
+ * add the ability to tween strings that look like percents.
+ * add a link to the user profile in the publish modal
+ * add endpoint for user email update.
+
 ## 4.1.0
 
 ### Bug Fixes

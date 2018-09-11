@@ -7793,5 +7793,157 @@
       "label": "fix",
       "message": "disable tooltips on actions editor submit button"
     }
+  },
+  "4.1.1": {
+    "fdf10cc89f853f59c43faf7519abbfd716344f20": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix issue where component bounds are wrong when creating one immediately after resizing stage"
+    },
+    "b9918c06a530b91327a167bde4fb1f3af0810f0d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "truncate component names using CSS"
+    },
+    "79db0818910129e3de2eef2d0c0d6eeedc4af082": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "fail politely on publish if a user who once had unlimited private projects no longer does."
+    },
+    "9592606eede8d02d71ff70f3e3410014f3616836": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "clear view positions of unmounted keyframes"
+    },
+    "35df4c36a89a6e5dd7a5b747e8c9056510c7e26d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent main row from interacting with dnd rows"
+    },
+    "4fd888c4144b15db5e58e59c049a5838a5c6f84b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update keyframe view positions when zooming"
+    },
+    "6465a102f85f9f33fd6aefb8b862acffeb0152d6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use the correct logic to conglomerate components"
+    },
+    "2d5a6478b3fb3972829d333b61c66542160528c0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "make tooltips more flexible to disable"
+    },
+    "1c20401fdf5e10558afe2490885dbd69cadf480e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not hide the overflow of the library"
+    },
+    "1dff9f710099cb7dd6487f908a3aca0af21bf428": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure we always re-ingest assets when restarting a project."
+    },
+    "7f5a9f5ef693842bb669ec9553102d054d68c024": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "restore log view."
+    },
+    "fc4d37f9474f58ec0f93a9015d7a2fff4c52ac72": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add the ability to tween strings that look like percents."
+    },
+    "12c99f01c0250eb84937df9cca7c838fe992b6c2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure we fully purge the asset library between project loads."
+    },
+    "0adf7e9a89c9ca05a4c5bb9163f5a14e7f7065ae": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support external images in Lottie."
+    },
+    "ec8f094b89444cb6aad111612fed4e1cc7ded2df": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure tweens, even/especially on nested properties."
+    },
+    "da1644e5220a92ae00129723f764ec1ec2401789": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "correct a typo in props causing frame actions to have the wrong title"
+    },
+    "7dd95b22ac33ff8c878f28bd6dd29250d19b052f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "display the design creator component if no design assets are present"
+    },
+    "665984f7e76b3257b05733e30b49b951f8490866": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use the correct variable name"
+    },
+    "ac209bcac25491efb1f5b1205869547069c8f55a": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add a link to the user profile in the publish modal"
+    },
+    "857a4dc9bddd03c14f5c39f0fa99d578fcc57a13": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure we have cached origins always"
+    },
+    "1336c21ca582d7e439f2e7eab61842b4aa5c0691": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use utf-8, not ascii, for SVG assets."
+    },
+    "8be5aa35310a3530948916d0a2b18b1f185cbd47": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure if-false'd elements get filtered from the repeat collection too (767130344203330)"
+    },
+    "3adb5a62a2e2c7de4ce0eb3706b527a5d471a77c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent infinite remounting due to tick() being called from a will-mount action (767130344203326)"
+    },
+    "fc5733a7bd842e0b37ba9ee64eb9b06c2839ef4d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "copy through <style>s into ungrouped SVGs."
+    },
+    "a5a59ba33173deacd780009627a4bddaeac66887": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "traverse all the way up to the parent SVG to pull merged attributes."
+    },
+    "6183b84df967d216b1f58ba3cbdc2378bc538467": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add endpoint for user email update."
+    },
+    "5497c4f20f3db5bab5cb827da0325349896bc7f4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use correct regexp for source branch test."
+    },
+    "3a6ca3f7c0193fe34c306c44ae7246bb0f1af6bc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not rewrite strings in hot editing mode"
+    },
+    "10259df15e486fd91461130119b0b48f4e0634e8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure hover/unhover work correctly through nested components"
+    },
+    "82ad3974b5ba307412169b7cf8e2c18e2f523254": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure ID-based selectors work in migration path."
+    }
   }
 }
