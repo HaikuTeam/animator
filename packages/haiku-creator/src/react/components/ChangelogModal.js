@@ -110,7 +110,7 @@ class ChangelogModal extends React.PureComponent {
             <span
               style={STYLES.link}
               onClick={() => {
-                shell.openExternal(getUrl('release-notes'));
+                shell.openExternal('https://docs.haiku.ai/release-notes/');
               }}
             >
               Full Changelog
