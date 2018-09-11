@@ -413,7 +413,7 @@ class Timeline extends BaseModel {
     return this
   }
 
-  scrollbarLeftStop (dragData) {
+  scrollbarLeftStop () {
     this._scrollerLeftDragStart = false
     this._scrollbarStart = null
     this._scrollbarEnd = null
@@ -429,7 +429,7 @@ class Timeline extends BaseModel {
     return this
   }
 
-  scrollbarRightStop (dragData) {
+  scrollbarRightStop () {
     this._scrollerRightDragStart = false
     this._scrollbarStart = null
     this._scrollbarEnd = null

@@ -1094,7 +1094,7 @@ class Timeline extends React.Component {
     // Not yet implemented
   }
 
-  saveTimeDisplayModeSetting () {
+  saveTimeDisplayModeSetting = () => {
     const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode();
 
     if (!this.project.getEnvoyClient().isInMockMode()) {
@@ -1111,7 +1111,7 @@ class Timeline extends React.Component {
         },
       );
     }
-  }
+  };
 
   copySelectedCurve () {
     this.props.mixpanel.haikuTrack('creator:timeline:copy-curve');
@@ -1312,7 +1312,7 @@ class Timeline extends React.Component {
               fontSize: 10,
             }}
           >
-            <GaugeTimeReadout reactParent={this} timeline={timeline} />
+            <GaugeTimeReadout saveTimeDisplayModeSetting={this.saveTimeDisplayModeSetting} timeline={timeline} />
           </div>
         ),
       (
