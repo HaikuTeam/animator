@@ -145,6 +145,7 @@ export default class TimelineRangeScrollbar extends React.Component {
               height: KNOB_DIAMETER,
               left: leftPosition,
               width: this.frameInfo.scB - this.frameInfo.scA - KNOB_DIAMETER,
+              minWidth: 35,
               borderRadius: KNOB_DIAMETER / 2,
               cursor: 'move',
             }}>
