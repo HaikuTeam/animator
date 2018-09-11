@@ -845,86 +845,56 @@ export class Glass extends React.Component {
     this.project.getEnvoyClient().closeConnection();
   }
 
-  buildSnapLineMana () {
-    if (!experimentIsEnabled(Experiment.Snapping)) {
-      return;
-    }
-
-    // Don't do anything until a project is initialized
-    if (!this.getActiveComponent()) {
-      return;
-    }
-
-    const horizSnaps = [];
-    const vertSnaps = [];
-
+  renderSnapLines (overlays) {
     if (
-      this.state.isMouseDown &&
-      ElementSelectionProxy.snaps.length > 0 &&
-      !Globals.isSpecialKeyDown() &&
-      !Globals.isSpaceKeyDown &&
-      !this.isMarqueeActive()
+      !this.state.isMouseDown ||
+      !experimentIsEnabled(Experiment.Snapping) ||
+      ElementSelectionProxy.snaps.length === 0 ||
+      Globals.isSpecialKeyDown() ||
+      Globals.isSpaceKeyDown ||
+      this.isMarqueeActive()
     ) {
-      ElementSelectionProxy.snaps.forEach((snapLine, index) => {
-        if (snapLine.direction === 'HORIZONTAL') {
-          horizSnaps.push(snapLine);
-        } else {
-          vertSnaps.push(snapLine);
-        }
-      });
+      return;
     }
 
     const children = [];
 
-    horizSnaps.forEach((snap, i) => {
-      children.push({
-        elementName: 'line',
-        attributes: {
-          x1: '-5000',
-          x2: '5000',
-          y1: snap.positionWorld,
-          y2: snap.positionWorld,
-          strokeWidth: '1.25',
-          stroke: Palette.LIGHT_BLUE,
-        },
-      });
+    ElementSelectionProxy.snaps.forEach((snap) => {
+      if (snap.direction === 'HORIZONTAL') {
+        children.push({
+          elementName: 'line',
+          attributes: {
+            x1: -5000,
+            x2: 5000,
+            y1: snap.positionWorld,
+            y2: snap.positionWorld,
+            'stroke-width': 1.25,
+            'vector-effect': 'non-scaling-stroke',
+            stroke: Palette.LIGHT_BLUE,
+          },
+        });
+      } else {
+        children.push({
+          elementName: 'line',
+          attributes: {
+            x1: snap.positionWorld,
+            x2: snap.positionWorld,
+            y1: -5000,
+            y2: 5000,
+            'stroke-width': 1.25,
+            'vector-effect': 'non-scaling-stroke',
+            stroke: Palette.LIGHT_BLUE,
+          },
+        });
+      }
     });
 
-    vertSnaps.forEach((snap, i) => {
-      children.push({
-        elementName: 'line',
-        attributes: {
-          x1: snap.positionWorld,
-          x2: snap.positionWorld,
-          y1: '-5000',
-          y2: '5000',
-          strokeWidth: '1.25',
-          stroke: Palette.LIGHT_BLUE,
-        },
-      });
-    });
-
-    if (children.length < 1) {
-      return;
-    }
-
-    const artboard = this.getActiveComponent().getArtboard();
-
-    return ({
-      elementName: 'svg',
+    overlays.push({
+      elementName: 'g',
       attributes: {
-        id: 'snap-overlay',
         style: {
-          position: 'fixed',
-          width: '100%',
-          height: '100%',
-          bottom: 0,
-          right: 0,
           pointerEvents: 'none',
           zIndex: MAX_Z_INDEX - 2,
-          overflow: 'visible',
-          top: artboard.getMountY(),
-          left: artboard.getMountX(),
         },
       },
       children,
@@ -2963,7 +2933,6 @@ export class Glass extends React.Component {
           },
           children: this.buildDrawnOverlays(),
         },
-        this.buildSnapLineMana(),
       ],
     };
 
@@ -3020,6 +2989,7 @@ export class Glass extends React.Component {
     this.renderSelectionMarquee(overlays);
 
     this.renderHoverOutline(overlays);
+    this.renderSnapLines(overlays);
 
     return overlays;
   }
