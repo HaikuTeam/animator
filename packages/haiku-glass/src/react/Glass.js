@@ -590,18 +590,15 @@ export class Glass extends React.Component {
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
       logger.info('relay received', message.name, 'from', message.from);
 
-      // Don't take action if the user is within the dev tools window
-      if (remote.getCurrentWebContents().isDevToolsFocused()) {
-        return;
-      }
-
       switch (message.name) {
         case 'global-menu:open-dev-tools':
           remote.getCurrentWebContents().openDevTools();
           break;
 
         case 'global-menu:close-dev-tools':
-          remote.getCurrentWebContents().closeDevTools();
+          if (remote.getCurrentWebContents().isDevToolsFocused()) {
+            remote.getCurrentWebContents().closeDevTools();
+          }
           break;
 
         case 'global-menu:zoom-in':
@@ -848,86 +845,56 @@ export class Glass extends React.Component {
     this.project.getEnvoyClient().closeConnection();
   }
 
-  buildSnapLineMana () {
-    if (!experimentIsEnabled(Experiment.Snapping)) {
-      return;
-    }
-
-    // Don't do anything until a project is initialized
-    if (!this.getActiveComponent()) {
-      return;
-    }
-
-    const horizSnaps = [];
-    const vertSnaps = [];
-
+  renderSnapLines (overlays) {
     if (
-      this.state.isMouseDown &&
-      ElementSelectionProxy.snaps.length > 0 &&
-      !Globals.isSpecialKeyDown() &&
-      !Globals.isSpaceKeyDown &&
-      !this.isMarqueeActive()
+      !this.state.isMouseDown ||
+      !experimentIsEnabled(Experiment.Snapping) ||
+      ElementSelectionProxy.snaps.length === 0 ||
+      Globals.isSpecialKeyDown() ||
+      Globals.isSpaceKeyDown ||
+      this.isMarqueeActive()
     ) {
-      ElementSelectionProxy.snaps.forEach((snapLine, index) => {
-        if (snapLine.direction === 'HORIZONTAL') {
-          horizSnaps.push(snapLine);
-        } else {
-          vertSnaps.push(snapLine);
-        }
-      });
+      return;
     }
 
     const children = [];
 
-    horizSnaps.forEach((snap, i) => {
-      children.push({
-        elementName: 'line',
-        attributes: {
-          x1: '-5000',
-          x2: '5000',
-          y1: snap.positionWorld,
-          y2: snap.positionWorld,
-          strokeWidth: '1.25',
-          stroke: Palette.LIGHT_BLUE,
-        },
-      });
+    ElementSelectionProxy.snaps.forEach((snap) => {
+      if (snap.direction === 'HORIZONTAL') {
+        children.push({
+          elementName: 'line',
+          attributes: {
+            x1: -5000,
+            x2: 5000,
+            y1: snap.positionWorld,
+            y2: snap.positionWorld,
+            'stroke-width': 1.25,
+            'vector-effect': 'non-scaling-stroke',
+            stroke: Palette.LIGHT_BLUE,
+          },
+        });
+      } else {
+        children.push({
+          elementName: 'line',
+          attributes: {
+            x1: snap.positionWorld,
+            x2: snap.positionWorld,
+            y1: -5000,
+            y2: 5000,
+            'stroke-width': 1.25,
+            'vector-effect': 'non-scaling-stroke',
+            stroke: Palette.LIGHT_BLUE,
+          },
+        });
+      }
     });
 
-    vertSnaps.forEach((snap, i) => {
-      children.push({
-        elementName: 'line',
-        attributes: {
-          x1: snap.positionWorld,
-          x2: snap.positionWorld,
-          y1: '-5000',
-          y2: '5000',
-          strokeWidth: '1.25',
-          stroke: Palette.LIGHT_BLUE,
-        },
-      });
-    });
-
-    if (children.length < 1) {
-      return;
-    }
-
-    const artboard = this.getActiveComponent().getArtboard();
-
-    return ({
-      elementName: 'svg',
+    overlays.push({
+      elementName: 'g',
       attributes: {
-        id: 'snap-overlay',
         style: {
-          position: 'fixed',
-          width: '100%',
-          height: '100%',
-          bottom: 0,
-          right: 0,
           pointerEvents: 'none',
           zIndex: MAX_Z_INDEX - 2,
-          overflow: 'visible',
-          top: artboard.getMountY(),
-          left: artboard.getMountX(),
         },
       },
       children,
@@ -1543,9 +1510,7 @@ export class Glass extends React.Component {
           this.fetchProxyElementForSelection().cacheOrigins();
         };
 
-        if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
-          // TODO: Drawing tools
-        } else if (!this.isPreviewMode()) {
+        if (!this.isPreviewMode()) {
           let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target);
 
           // True if the user has clicked the transform control for a selected element
@@ -2966,7 +2931,6 @@ export class Glass extends React.Component {
           },
           children: this.buildDrawnOverlays(),
         },
-        this.buildSnapLineMana(),
       ],
     };
 
@@ -3023,6 +2987,7 @@ export class Glass extends React.Component {
     this.renderSelectionMarquee(overlays);
 
     this.renderHoverOutline(overlays);
+    this.renderSnapLines(overlays);
 
     return overlays;
   }
@@ -3294,14 +3259,14 @@ export class Glass extends React.Component {
     return (this.state.stageMouseDown) ? '-webkit-grabbing' : 'default';
   }
 
-  renderHotComponentMount (mount, drawingClassName) {
+  renderHotComponentMount (mount) {
     const opacity = this.isPreviewMode() ? 0 : (this.state.isEventHandlerEditorOpen ? 0.5 : 1.0);
     return (
       <div
         ref="mount"
         key="haiku-mount-container"
         id="haiku-mount-container"
-        className={`${drawingClassName} no-select`}
+        className="no-select"
         style={{
           opacity,
           position: 'absolute',
@@ -3328,7 +3293,6 @@ export class Glass extends React.Component {
       // Glass won't initialize properly due to the way it is currently set up.
       // TODO: Make glass more accepting of situations where there is no component
       return {
-        drawingClassName: '',
         pan: {x: 0, y: 0},
         zoom: {x: 1, y: 1},
         container: {x: 1, y: 1, w: 1, h: 1},
@@ -3595,7 +3559,6 @@ export class Glass extends React.Component {
 
   render () {
     const {
-      drawingClassName,
       pan,
       zoom,
       container,
@@ -3735,7 +3698,7 @@ export class Glass extends React.Component {
               style={{
                 position: 'absolute',
                 zIndex: 10,
-                top: mount.y - 19,
+                bottom: container.h - mount.y,
                 left: mount.x + 2,
                 height: 20,
                 width: mount.w,
@@ -3743,6 +3706,8 @@ export class Glass extends React.Component {
                 cursor: 'default',
                 whiteSpace: 'nowrap', // Prevent wrapping if name is longer than stage box
                 overflow: 'visible',
+                transformOrigin: 'bottom left',
+                transform: `scale(${1 / zoom.x})`,
               }}
               onClick={this.handleClickStageName.bind(this)}
               onMouseOver={this.handleMouseOverStageName.bind(this)}
@@ -3863,7 +3828,6 @@ export class Glass extends React.Component {
               ref="overlay"
               id="haiku-glass-overlay-mount"
               style={{
-                transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
                 pointerEvents: 'none', // This needs to be un-set for surface elements that take mouse interaction
                 width: container.w,
                 height: this.getContainerHeight(),
@@ -3876,7 +3840,7 @@ export class Glass extends React.Component {
               }} />
             : ''}
 
-          {this.renderHotComponentMount(mount, drawingClassName)}
+          {this.renderHotComponentMount(mount)}
           {(!this.isPreviewMode())
             ? <div
               ref="outline"

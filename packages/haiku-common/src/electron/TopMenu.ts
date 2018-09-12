@@ -363,7 +363,7 @@ export default class TopMenu {
       },
     });
 
-    Menu.setApplicationMenu(Menu.buildFromTemplate([
+    const template = [
       {
         label: app.getName(),
         submenu: mainMenuPieces,
@@ -481,6 +481,18 @@ export default class TopMenu {
           },
         ],
       },
-    ] as MenuItemConstructorOptions[]));
+    ] as MenuItemConstructorOptions[];
+
+    if (isMac() && experimentIsEnabled(Experiment.WindowMenu)) {
+      template.push({
+        role: 'window',
+        submenu: [
+          {role: 'minimize'},
+          {role: 'zoom'},
+        ],
+      });
+    }
+
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   }
 }
