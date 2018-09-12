@@ -5,7 +5,7 @@
       "FIRST!"
     ],
     "Fixes": [
-      "FIRST!"
+      "Snap lines now have a consistent thickness regardless of the artboard zoom level."
     ]
   }
 }
