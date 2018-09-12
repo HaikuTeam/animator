@@ -3698,7 +3698,7 @@ export class Glass extends React.Component {
               style={{
                 position: 'absolute',
                 zIndex: 10,
-                top: mount.y - 19,
+                bottom: container.h - mount.y,
                 left: mount.x + 2,
                 height: 20,
                 width: mount.w,
@@ -3706,6 +3706,8 @@ export class Glass extends React.Component {
                 cursor: 'default',
                 whiteSpace: 'nowrap', // Prevent wrapping if name is longer than stage box
                 overflow: 'visible',
+                transformOrigin: 'bottom left',
+                transform: `scale(${1 / zoom.x})`,
               }}
               onClick={this.handleClickStageName.bind(this)}
               onMouseOver={this.handleMouseOverStageName.bind(this)}
