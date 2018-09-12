@@ -633,9 +633,9 @@ class Timeline extends BaseModel {
         this._scrollLeft = maxScrollValue
         this.setMaxFrame(this.getMaxFrame() + framesToMove)
       } else {
-        const l = Math.round(scrollValue / frameInfo.pxpf)
-        const r =  ((this._timelinePixelWidth + scrollValue) / frameInfo.pxpf)
-        this.setVisibleFrameRange(l, r, false)
+        const left = Math.round(scrollValue / frameInfo.pxpf)
+        const right =  ((this._timelinePixelWidth + scrollValue) / frameInfo.pxpf)
+        this.setVisibleFrameRange(left, right, false)
         this._scrollLeft = scrollValue
       }
 
@@ -719,8 +719,8 @@ class Timeline extends BaseModel {
       this.setMaxFrame(r)
     }
 
+    this.cache.unset('frameInfo')
     if (shouldNotifyUpdates) {
-      this.cache.unset('frameInfo')
       Keyframe.clearAllViewPositions({component: this.component})
       this.emit('update', 'timeline-frame-range')
     }
