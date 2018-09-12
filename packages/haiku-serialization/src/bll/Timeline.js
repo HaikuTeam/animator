@@ -634,7 +634,7 @@ class Timeline extends BaseModel {
         this.setMaxFrame(this.getMaxFrame() + framesToMove)
       } else {
         const left = Math.round(scrollValue / frameInfo.pxpf)
-        const right =  ((this._timelinePixelWidth + scrollValue) / frameInfo.pxpf)
+        const right = left + this._visibleFrameRange[1] - this._visibleFrameRange[0]
         this.setVisibleFrameRange(left, right, false)
         this._scrollLeft = scrollValue
       }
@@ -661,17 +661,24 @@ class Timeline extends BaseModel {
   }
 
   zoomBy (scale) {
+    const left = this.getLeftFrameEndpoint()
     const right = this.getRightFrameEndpoint()
-    this.zoomByLeftAndRightEndpoints(0, (right * scale) + right)
+
+    this.zoomByLeftAndRightEndpoints(
+      (left * scale) + left,
+      (right * scale) + right
+    )
   }
 
-  zoomByLeftAndRightEndpoints (left, right, frameInfo = this.getFrameInfo()) {
+  zoomByLeftAndRightEndpoints (left, right, fromScrollbar = false) {
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
+    const difference = rightTotal - leftTotal
+    const frameInfo = this.getFrameInfo()
 
     if (
-      rightTotal < MINIMUM_ZOOM_THRESHOLD ||
-      rightTotal > this._timelinePixelWidth * 2 ||
+      difference < MINIMUM_ZOOM_THRESHOLD ||
+      difference > this._timelinePixelWidth * 2 ||
       rightTotal < leftTotal
     ) {
       return
@@ -683,11 +690,9 @@ class Timeline extends BaseModel {
 
     this.setVisibleFrameRange(leftTotal, rightTotal)
 
-    const scrollValue = leftTotal * frameInfo.pxpf
     if (fromScrollbar) {
+      const scrollValue = leftTotal * frameInfo.pxpf
       this.setScrollLeftFromScrollbar(scrollValue)
-    } else {
-      this.setScrollLeft(scrollValue)
     }
   }
 
