@@ -82,6 +82,17 @@
         "${workspaceFolder}/packages/**/lib/**/*.js",
         "${workspaceFolder}/packages/**/lib/*.js"
       ],
+      "name": "attach-master"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "sourceMaps": true,
+      "port": 9220,
+      "outFiles": [
+        "${workspaceFolder}/packages/**/lib/**/*.js",
+        "${workspaceFolder}/packages/**/lib/*.js"
+      ],
       "name": "attach-main"
     },
     {

@@ -281,7 +281,7 @@ function go () {
   switch (inputs.devChoice) {
     case 'everything':
       global.process.env.HAIKU_DEBUG = '1';
-      binaryArgs.push('electron', '--remote-debugging-port=9222', '.');
+      binaryArgs.push('electron', '--inspect=9220', '--remote-debugging-port=9222', '.');
       // On Windows and Linux, custom protocol handler is
       // passed as argument, so here we forward it
       if (haikuURI) {
