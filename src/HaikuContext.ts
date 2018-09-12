@@ -283,21 +283,23 @@ export default class HaikuContext extends HaikuBase implements IHaikuContext {
       if (this.config.position && root.style.position !== this.config.position) {
         root.style.position = this.config.position;
       }
+    }
 
+    if (this.mount) {
       if (this.config.overflow) {
-        root.style.overflow = this.config.overflow;
+        this.mount.style.overflow = this.config.overflow;
       } else {
         if (
           this.config.overflowX &&
-          root.style.overflowX !== this.config.overflowX
+          this.mount.style.overflowX !== this.config.overflowX
         ) {
-          root.style.overflowX = this.config.overflowX;
+          this.mount.style.overflowX = this.config.overflowX;
         }
         if (
           this.config.overflowY &&
-          root.style.overflowY !== this.config.overflowY
+          this.mount.style.overflowY !== this.config.overflowY
         ) {
-          root.style.overflowY = this.config.overflowY;
+          this.mount.style.overflowY = this.config.overflowY;
         }
       }
     }
