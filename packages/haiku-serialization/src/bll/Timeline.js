@@ -671,7 +671,8 @@ class Timeline extends BaseModel {
 
     if (
       rightTotal < MINIMUM_ZOOM_THRESHOLD ||
-      rightTotal > this._timelinePixelWidth * 2
+      rightTotal > this._timelinePixelWidth * 2 ||
+      rightTotal < leftTotal
     ) {
       return
     }
