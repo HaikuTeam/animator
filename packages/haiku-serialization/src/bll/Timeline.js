@@ -377,77 +377,6 @@ class Timeline extends BaseModel {
     return this._visibleFrameRange[1]
   }
 
-  getScrollerLeftDragStart () {
-    return this._scrollerLeftDragStart
-  }
-
-  getScrollerRightDragStart () {
-    return this._scrollerRightDragStart
-  }
-
-  getScrollerBodyDragStart () {
-    return this._scrollerBodyDragStart
-  }
-
-  scrollbarBodyStart (dragData) {
-    this._scrollerBodyDragStart = dragData.x
-    this._scrollbarStart = this.getLeftFrameEndpoint()
-    this._scrollbarEnd = this.getRightFrameEndpoint()
-    this.emit('update', 'timeline-scrollbar-body-start')
-    return this
-  }
-
-  scrollbarBodyStop () {
-    this._scrollerBodyDragStart = false
-    this._scrollbarStart = null
-    this._scrollbarEnd = null
-    this.emit('update', 'timeline-scrollbar-body-stop')
-    return this
-  }
-
-  scrollbarLeftStart (dragData) {
-    this._scrollerLeftDragStart = dragData.x
-    this._scrollbarStart = this.getLeftFrameEndpoint()
-    this._scrollbarEnd = this.getRightFrameEndpoint()
-    this.emit('update', 'timeline-scrollbar-left-start')
-    return this
-  }
-
-  scrollbarLeftStop () {
-    this._scrollerLeftDragStart = false
-    this._scrollbarStart = null
-    this._scrollbarEnd = null
-    this.emit('update', 'timeline-scrollbar-left-stop')
-    return this
-  }
-
-  scrollbarRightStart (dragData) {
-    const frameInfo= this.getFrameInfo()
-    this._scrollerRightDragStart = dragData.x
-    this._scrollbarStart = this._scrollLeft / frameInfo.pxpf
-    this._scrollbarEnd = (this._timelinePixelWidth + this._scrollLeft) / frameInfo.pxpf
-    this.teste = frameInfo
-    this.emit('update', 'timeline-scrollbar-right-start')
-    return this
-  }
-
-  scrollbarRightStop () {
-    this._scrollerRightDragStart = false
-    this._scrollbarStart = null
-    this._scrollbarEnd = null
-    this.teste = null
-    this.emit('update', 'timeline-scrollbar-right-stop')
-    return this
-  }
-
-  getScrollbarStart () {
-    return this._scrollbarStart
-  }
-
-  getScrollbarEnd () {
-    return this._scrollbarEnd
-  }
-
   getDragIsAdding () {
     return this._dragIsAdding
   }
@@ -736,9 +665,7 @@ class Timeline extends BaseModel {
     this.zoomByLeftAndRightEndpoints(0, (right * scale) + right)
   }
 
-  zoomByLeftAndRightEndpoints (left, right, fromScrollbar = false) {
-    console.log('left: ', left, ' rigth: ', right)
-    const frameInfo = this.getFrameInfo()
+  zoomByLeftAndRightEndpoints (left, right, frameInfo = this.getFrameInfo()) {
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
 
