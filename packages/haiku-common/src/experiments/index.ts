@@ -43,6 +43,7 @@ export enum Experiment {
   ExpandTimelinePropertiesFromStageChanges = 'ExpandTimelinePropertiesFromStageChanges',
   GlassControlPointShadows = 'GlassControlPointShadows',
   DumpBase64Images = 'DumpBase64Images',
+  WindowMenu = 'WindowMenu',
 }
 
 /**
