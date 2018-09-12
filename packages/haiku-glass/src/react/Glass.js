@@ -1510,9 +1510,7 @@ export class Glass extends React.Component {
           this.fetchProxyElementForSelection().cacheOrigins();
         };
 
-        if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
-          // TODO: Drawing tools
-        } else if (!this.isPreviewMode()) {
+        if (!this.isPreviewMode()) {
           let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target);
 
           // True if the user has clicked the transform control for a selected element
@@ -3261,14 +3259,14 @@ export class Glass extends React.Component {
     return (this.state.stageMouseDown) ? '-webkit-grabbing' : 'default';
   }
 
-  renderHotComponentMount (mount, drawingClassName) {
+  renderHotComponentMount (mount) {
     const opacity = this.isPreviewMode() ? 0 : (this.state.isEventHandlerEditorOpen ? 0.5 : 1.0);
     return (
       <div
         ref="mount"
         key="haiku-mount-container"
         id="haiku-mount-container"
-        className={`${drawingClassName} no-select`}
+        className="no-select"
         style={{
           opacity,
           position: 'absolute',
@@ -3295,7 +3293,6 @@ export class Glass extends React.Component {
       // Glass won't initialize properly due to the way it is currently set up.
       // TODO: Make glass more accepting of situations where there is no component
       return {
-        drawingClassName: '',
         pan: {x: 0, y: 0},
         zoom: {x: 1, y: 1},
         container: {x: 1, y: 1, w: 1, h: 1},
@@ -3562,7 +3559,6 @@ export class Glass extends React.Component {
 
   render () {
     const {
-      drawingClassName,
       pan,
       zoom,
       container,
@@ -3830,7 +3826,6 @@ export class Glass extends React.Component {
               ref="overlay"
               id="haiku-glass-overlay-mount"
               style={{
-                transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
                 pointerEvents: 'none', // This needs to be un-set for surface elements that take mouse interaction
                 width: container.w,
                 height: this.getContainerHeight(),
@@ -3843,7 +3838,7 @@ export class Glass extends React.Component {
               }} />
             : ''}
 
-          {this.renderHotComponentMount(mount, drawingClassName)}
+          {this.renderHotComponentMount(mount)}
           {(!this.isPreviewMode())
             ? <div
               ref="outline"

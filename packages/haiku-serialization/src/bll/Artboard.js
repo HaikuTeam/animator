@@ -36,7 +36,6 @@ class Artboard extends BaseModel {
 
     this._zoomXY = Artboard.DEFAULT_ZOOM
 
-    this._activeDrawingTool = 'pointer'
     this._drawingIsModal = true
 
     this.component.on('time:change', (timelineName, timelineTime) => {
@@ -106,9 +105,6 @@ class Artboard extends BaseModel {
 
   getArtboardRenderInfo () {
     return {
-      drawingClassName: (this._activeDrawingTool !== 'pointer')
-        ? 'draw-shape'
-        : '',
       pan: {
         x: this._panX,
         y: this._panY
@@ -192,12 +188,6 @@ class Artboard extends BaseModel {
     this.dimensionsChangedHook()
   }
 
-  setDrawingTool (activeDrawingTool, drawingIsModal) {
-    this._activeDrawingTool = activeDrawingTool
-    this._drawingIsModal = drawingIsModal
-    this.emit('update', 'drawing-tool-changed')
-  }
-
   isDrawingModal () {
     return this._drawingIsModal
   }
@@ -264,10 +254,6 @@ class Artboard extends BaseModel {
       x: this._panX,
       y: this._panY
     }
-  }
-
-  getActiveDrawingTool () {
-    return this._activeDrawingTool
   }
 
   // Snapline {
