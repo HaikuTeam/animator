@@ -258,7 +258,7 @@ class Timeline extends BaseModel {
 
         if (this.getRepeat()) {
           this.seek(0)
-          this.play()
+          this._stopwatch = Date.now()
         } else {
           this.seekAndPause(frameInfo.maxf)
         }
