@@ -9,8 +9,6 @@ const HUMANIZED_PROP_NAMES = {
   'translation.z': 'Position Z',
   'sizeAbsolute.x': 'Size X',
   'sizeAbsolute.y': 'Size Y',
-  'style.overflowX': 'Overflow X',
-  'style.overflowY': 'Overflow Y',
 };
 
 export default function humanizePropertyName (propertyName: string) {
