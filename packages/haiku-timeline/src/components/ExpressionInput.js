@@ -244,11 +244,11 @@ export default class ExpressionInput extends React.Component {
     this.props.onNavigateRequested(direction, maybeDoFocus);
   }
 
-  getCommitableValue (valueDescriptor, originalDescriptor) {
+  getCommitableValue (valueDescriptor, originalDescriptor, editingMode = this.state.editingMode) {
     // If we are in multi-line mode then assume we want to create an expression as opposed to a string.
     // We get problems if we don't do this like a function that doesn't match our naive expression check
     // e.g. function () { if (foo) { ... } else { ... }} which doesn't begin with a return
-    if (this.state.editingMode === EDITOR_MODES.MULTI_LINE || doesValueImplyExpression(valueDescriptor.body)) {
+    if (editingMode === EDITOR_MODES.MULTI_LINE || doesValueImplyExpression(valueDescriptor.body)) {
       // Note that extra/cached fields are stripped off of the function, like '.summary'
       return {
         __function: {
@@ -679,9 +679,18 @@ export default class ExpressionInput extends React.Component {
       return false;
     }
 
-    const parsedText = text.trim();
-    const mode = parsedText.startsWith('function') ? EDITOR_MODES.MULTI_LINE : EDITOR_MODES.SINGLE_LINE;
-    const officialValue = this.rawValueToOfficialValue(parsedText, EXPR_SIGNS.RET, true, mode);
+    let parsedText = text.trim();
+    let mode;
+    if (parsedText.split('\n').length > 1) {
+      mode = EDITOR_MODES.MULTI_LINE;
+      if (!parsedText.startsWith('function')) {
+        parsedText = getRenderableValueMultiline({body: parsedText});
+      }
+    } else {
+      mode = EDITOR_MODES.SINGLE_LINE;
+    }
+
+    const officialValue = this.rawValueToOfficialValue(parsedText, EXPR_SIGNS.RET, false, mode);
     const parse = parseExpression(
       parseExpression.wrap(officialValue.body),
       this.getInjectables(),
@@ -694,7 +703,7 @@ export default class ExpressionInput extends React.Component {
 
     officialValue.params = parse.params;
     this.props.onCommitValue(
-      this.getCommitableValue(officialValue),
+      this.getCommitableValue(officialValue, parsedText, mode),
       selectedRow,
       this.props.component.getCurrentTimeline().getCurrentMs(),
     );
