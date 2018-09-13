@@ -604,6 +604,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "circle red shape group",
           "it": [
             {
               "ty": "el",
@@ -973,6 +974,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ring red shape group",
           "it": [
             {
               "ty": "el",
@@ -1679,6 +1681,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "circle teal shape group",
           "it": [
             {
               "ty": "el",
@@ -2298,6 +2301,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "circle yellow shape group",
           "it": [
             {
               "ty": "el",
@@ -3192,6 +3196,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ring yellow shape group",
           "it": [
             {
               "ty": "el",
@@ -4336,6 +4341,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ring teal shape group",
           "it": [
             {
               "ty": "el",
@@ -5030,6 +5036,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "circle red shape group",
           "it": [
             {
               "ty": "el",
@@ -5571,6 +5578,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "E shape group",
           "it": [
             {
               "ty": "sh",
@@ -6254,6 +6262,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "V shape group",
           "it": [
             {
               "ty": "sh",
@@ -6901,6 +6910,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "M shape group",
           "it": [
             {
               "ty": "sh",
@@ -7969,6 +7979,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "O shape group",
           "it": [
             {
               "ty": "sh",
@@ -8351,6 +8362,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",

@@ -235,6 +235,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Asset 1cm_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -410,6 +411,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1cm_logo shape group",
           "it": [
             {
               "ty": "el",
@@ -503,6 +505,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1cm_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -799,6 +802,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1cm_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -996,6 +1000,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1cm_logo shape group",
           "it": [
             {
               "ty": "el",
@@ -1242,6 +1247,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -1465,6 +1471,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -1604,6 +1611,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -1743,6 +1751,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -1882,6 +1891,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -2057,6 +2067,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "sh",
@@ -2244,6 +2255,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Asset 1sc_logo shape group",
           "it": [
             {
               "ty": "el",

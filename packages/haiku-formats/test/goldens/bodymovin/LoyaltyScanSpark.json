@@ -284,6 +284,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -495,6 +496,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -706,6 +708,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -917,6 +920,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -1128,6 +1132,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -1327,6 +1332,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -1526,6 +1532,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -1737,6 +1744,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -1948,6 +1956,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -2159,6 +2168,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -2370,6 +2380,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -2569,6 +2580,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -2768,6 +2780,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3099,6 +3112,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3238,6 +3252,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3401,6 +3416,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3540,6 +3556,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3691,6 +3708,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3830,6 +3848,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -3969,6 +3988,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -4096,6 +4116,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -4283,6 +4304,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -4410,6 +4432,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -4537,6 +4560,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -4676,6 +4700,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Receipt shape group",
           "it": [
             {
               "ty": "sh",
@@ -5841,6 +5866,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "spark-110270 shape group",
           "it": [
             {
               "ty": "sh",
@@ -6028,6 +6054,7 @@
         },
         {
           "ty": "gr",
+          "nm": "spark-110270 shape group",
           "it": [
             {
               "ty": "sh",
@@ -6640,6 +6667,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "spark2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -6827,6 +6855,7 @@
         },
         {
           "ty": "gr",
+          "nm": "spark2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -7439,6 +7468,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "spark1 shape group",
           "it": [
             {
               "ty": "sh",
@@ -7626,6 +7656,7 @@
         },
         {
           "ty": "gr",
+          "nm": "spark1 shape group",
           "it": [
             {
               "ty": "sh",
@@ -8257,6 +8288,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "spark shape group",
           "it": [
             {
               "ty": "sh",
@@ -8444,6 +8476,7 @@
         },
         {
           "ty": "gr",
+          "nm": "spark shape group",
           "it": [
             {
               "ty": "sh",
@@ -8740,6 +8773,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Bg Circle shape group",
           "it": [
             {
               "ty": "el",

@@ -508,6 +508,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "boat shape group",
           "it": [
             {
               "ty": "sh",
@@ -659,6 +660,7 @@
         },
         {
           "ty": "gr",
+          "nm": "boat shape group",
           "it": [
             {
               "ty": "sh",
@@ -798,6 +800,7 @@
         },
         {
           "ty": "gr",
+          "nm": "boat shape group",
           "it": [
             {
               "ty": "sh",
@@ -937,6 +940,7 @@
         },
         {
           "ty": "gr",
+          "nm": "boat shape group",
           "it": [
             {
               "ty": "sh",
@@ -1076,6 +1080,7 @@
         },
         {
           "ty": "gr",
+          "nm": "boat shape group",
           "it": [
             {
               "ty": "sh",
@@ -1215,6 +1220,7 @@
         },
         {
           "ty": "gr",
+          "nm": "boat shape group",
           "it": [
             {
               "ty": "sh",
@@ -2005,6 +2011,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "treetop shape group",
           "it": [
             {
               "ty": "sh",
@@ -2240,6 +2247,7 @@
         },
         {
           "ty": "gr",
+          "nm": "treetop shape group",
           "it": [
             {
               "ty": "el",
@@ -2333,6 +2341,7 @@
         },
         {
           "ty": "gr",
+          "nm": "treetop shape group",
           "it": [
             {
               "ty": "el",
@@ -2426,6 +2435,7 @@
         },
         {
           "ty": "gr",
+          "nm": "treetop shape group",
           "it": [
             {
               "ty": "el",
@@ -2945,6 +2955,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -3060,6 +3071,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -3175,6 +3187,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -3290,6 +3303,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -3405,6 +3419,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -3754,6 +3769,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -3989,6 +4005,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "el",
@@ -4082,6 +4099,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sea-icon shape group",
           "it": [
             {
               "ty": "el",
@@ -4625,6 +4643,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -4740,6 +4759,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -4855,6 +4875,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -4970,6 +4991,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -5085,6 +5107,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -5200,6 +5223,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -5339,6 +5363,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -5478,6 +5503,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -5995,6 +6021,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -6206,6 +6233,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -6405,6 +6433,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -6604,6 +6633,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -6743,6 +6773,7 @@
         },
         {
           "ty": "gr",
+          "nm": "beach-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -7262,6 +7293,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "airplane shape group",
           "it": [
             {
               "ty": "sh",
@@ -7389,6 +7421,7 @@
         },
         {
           "ty": "gr",
+          "nm": "airplane shape group",
           "it": [
             {
               "ty": "sh",
@@ -7576,6 +7609,7 @@
         },
         {
           "ty": "gr",
+          "nm": "airplane shape group",
           "it": [
             {
               "ty": "sh",
@@ -7751,6 +7785,7 @@
         },
         {
           "ty": "gr",
+          "nm": "airplane shape group",
           "it": [
             {
               "ty": "sh",
@@ -7902,6 +7937,7 @@
         },
         {
           "ty": "gr",
+          "nm": "airplane shape group",
           "it": [
             {
               "ty": "sh",
@@ -8077,6 +8113,7 @@
         },
         {
           "ty": "gr",
+          "nm": "airplane shape group",
           "it": [
             {
               "ty": "sh",
@@ -8729,6 +8766,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "world-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -8994,6 +9032,7 @@
         },
         {
           "ty": "gr",
+          "nm": "world-icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -9304,6 +9343,7 @@
         },
         {
           "ty": "gr",
+          "nm": "world-icon shape group",
           "it": [
             {
               "ty": "el",
@@ -9397,6 +9437,7 @@
         },
         {
           "ty": "gr",
+          "nm": "world-icon shape group",
           "it": [
             {
               "ty": "el",
@@ -9490,6 +9531,7 @@
         },
         {
           "ty": "gr",
+          "nm": "world-icon shape group",
           "it": [
             {
               "ty": "el",
@@ -9583,6 +9625,7 @@
         },
         {
           "ty": "gr",
+          "nm": "world-icon shape group",
           "it": [
             {
               "ty": "el",

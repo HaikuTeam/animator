@@ -1087,6 +1087,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     groupItems.push(transform);
     this.activeLayer[LayerKey.Shapes].unshift({
       [ShapeKey.Type]: ShapeType.Group,
+      [ShapeKey.Name]: `${this.activeLayer[LayerKey.Name]} shape group`,
       [ShapeKey.GroupItems]: groupItems,
     });
   }

@@ -271,6 +271,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Rectangle-e15349-fe156e-babb1d shape group",
           "it": [
             {
               "ty": "rc",
@@ -586,6 +587,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Rectangle-e15349-fe156e shape group",
           "it": [
             {
               "ty": "rc",
@@ -901,6 +903,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Rectangle-e15349 shape group",
           "it": [
             {
               "ty": "rc",
@@ -1216,6 +1219,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Rectangle shape group",
           "it": [
             {
               "ty": "rc",

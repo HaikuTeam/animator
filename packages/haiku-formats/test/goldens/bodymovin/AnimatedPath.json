@@ -67,6 +67,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Artboard shape group",
           "it": [
             {
               "ty": "sh",

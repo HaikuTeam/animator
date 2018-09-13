@@ -69,6 +69,7 @@
           "shapes": [
             {
               "ty": "gr",
+              "nm": "Rectangle-path-left shape group",
               "it": [
                 {
                   "ty": "rc",
@@ -230,6 +231,7 @@
           "shapes": [
             {
               "ty": "gr",
+              "nm": "Rectangle-path-right shape group",
               "it": [
                 {
                   "ty": "rc",
@@ -395,6 +397,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "SlotPocket shape group",
           "it": [
             {
               "ty": "sh",
@@ -534,6 +537,7 @@
         },
         {
           "ty": "gr",
+          "nm": "SlotPocket shape group",
           "it": [
             {
               "ty": "rc",
@@ -778,6 +782,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Icons/euro shape group",
           "it": [
             {
               "ty": "sh",
@@ -1517,6 +1522,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Icons/euro shape group",
           "it": [
             {
               "ty": "sh",
@@ -2016,6 +2022,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Icons/euro shape group",
           "it": [
             {
               "ty": "sh",
@@ -2383,6 +2390,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Icons/euro shape group",
           "it": [
             {
               "ty": "sh",
@@ -2522,6 +2530,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Icons/euro shape group",
           "it": [
             {
               "ty": "sh",
@@ -2685,6 +2694,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Icons/euro shape group",
           "it": [
             {
               "ty": "sh",
@@ -2953,6 +2963,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Group shape group",
           "it": [
             {
               "ty": "el",
@@ -3110,6 +3121,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape shape group",
           "it": [
             {
               "ty": "sh",
@@ -3472,6 +3484,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -3870,6 +3883,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Rectangle-path-tail shape group",
           "it": [
             {
               "ty": "rc",
@@ -4027,6 +4041,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",
