@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Color from 'color';
 import * as lodash from 'lodash';
 import * as CodeMirror from 'codemirror';
+import {clipboard} from 'electron';
 import * as stripindent from 'strip-indent';
 import marshalParams from '@haiku/core/lib/reflection/marshalParams';
 import * as parseExpression from 'haiku-serialization/src/ast/parseExpression';
@@ -16,7 +17,6 @@ import ensureRet from 'haiku-ui-common/lib/helpers/ensureRet';
 import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq';
 import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression';
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import AutoCompleter from './AutoCompleter';
 import zIndex from './styles/zIndex';
 
@@ -330,14 +330,7 @@ export default class ExpressionInput extends React.Component {
         });
       }
 
-      // We'll use these both for auto-assigning function signature params and for syntax highlighting.
-      // We do this first because it populates HaikuMode.keywords with vars, which we will use when
-      // parsing to produce a summary that includes add'l validation information about the contents
-      //
-      // Since ActiveComponent manages multiple instances, we kind of have to choose just one
-      const instance = this.props.reactParent.getActiveComponent().$instance;
-      const injectables = (instance && instance.getInjectables()) || {};
-
+      const injectables = this.getInjectables();
       this.resetSyntaxInjectables(injectables);
 
       // This wrapping is required for parsing to work (parens are needed to make it an expression)
@@ -466,8 +459,8 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
-  rawValueToOfficialValue (raw, desiredExpressionSign, skipFormatting) {
-    if (this.state.editingMode === EDITOR_MODES.SINGLE_LINE) {
+  rawValueToOfficialValue (raw, desiredExpressionSign, skipFormatting, editingMode = this.state.editingMode) {
+    if (editingMode === EDITOR_MODES.SINGLE_LINE) {
       if (doesValueImplyExpression(raw)) {
         let clean = raw.trim();
 
@@ -489,7 +482,7 @@ export default class ExpressionInput extends React.Component {
       };
     }
 
-    if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
+    if (editingMode === EDITOR_MODES.MULTI_LINE) {
       // The body will determine the params, so we can safely discard the function prefix/suffix
       const lines = raw.split('\n');
       let body = lines.slice(1, lines.length - 1).join('\n');
@@ -676,6 +669,37 @@ export default class ExpressionInput extends React.Component {
     );
 
     this.setState({autoCompletions: []});
+  }
+
+  willHandlePasteEvent () {
+    const selectedRow = this.props.component.getSelectedRow();
+    const text = clipboard.readText();
+
+    if (!selectedRow || !text) {
+      return false;
+    }
+
+    const parsedText = text.trim();
+    const mode = parsedText.startsWith('function') ? EDITOR_MODES.MULTI_LINE : EDITOR_MODES.SINGLE_LINE;
+    const officialValue = this.rawValueToOfficialValue(parsedText, EXPR_SIGNS.RET, true, mode);
+    const parse = parseExpression(
+      parseExpression.wrap(officialValue.body),
+      this.getInjectables(),
+      haikuMode.keywords,
+    );
+
+    if (parse.error) {
+      return false;
+    }
+
+    officialValue.params = parse.params;
+    this.props.onCommitValue(
+      this.getCommitableValue(officialValue),
+      selectedRow,
+      this.props.component.getCurrentTimeline().getCurrentMs(),
+    );
+
+    return true;
   }
 
   /**
@@ -872,6 +896,16 @@ export default class ExpressionInput extends React.Component {
     }
 
     this.forceUpdate();
+  }
+
+  getInjectables () {
+    // We'll use these both for auto-assigning function signature params and for syntax highlighting.
+    // We do this first because it populates HaikuMode.keywords with vars, which we will use when
+    // parsing to produce a summary that includes add'l validation information about the contents
+    //
+    // Since ActiveComponent manages multiple instances, we kind of have to choose just one
+    const instance = this.props.reactParent.getActiveComponent().$instance;
+    return (instance && instance.getInjectables()) || {};
   }
 
   getEditorWidth () {

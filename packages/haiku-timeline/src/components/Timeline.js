@@ -437,7 +437,7 @@ class Timeline extends React.Component {
           } else {
             // Delegate paste only if the user is not editing something here
             if (document.hasFocus()) {
-              if (!this.isTextInputFocused() && !this._isIntercomOpen) {
+              if (!this.isTextInputFocused() && !this._isIntercomOpen && !this.refs.expressionInput.willHandlePasteEvent()) {
                 this.props.websocket.send(relayable);
               }
             } else {
