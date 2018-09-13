@@ -1255,6 +1255,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Path 4 shape group",
           "it": [
             {
               "ty": "sh",
@@ -1595,6 +1596,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "1 shape group",
           "it": [
             {
               "ty": "sh",
@@ -5027,6 +5029,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "建筑底座 shape group",
           "it": [
             {
               "ty": "sh",
@@ -7415,6 +7418,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Mask shape group",
           "it": [
             {
               "ty": "sh",
@@ -7612,6 +7616,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Mask shape group",
           "it": [
             {
               "ty": "sh",
@@ -8021,6 +8026,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "光 shape group",
           "it": [
             {
               "ty": "sh",

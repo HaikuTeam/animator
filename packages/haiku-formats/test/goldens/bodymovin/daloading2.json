@@ -160,6 +160,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "red_cross shape group",
           "it": [
             {
               "ty": "sh",

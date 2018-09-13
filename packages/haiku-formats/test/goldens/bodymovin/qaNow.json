@@ -96,6 +96,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -367,6 +368,7 @@
         },
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -756,6 +758,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -1027,6 +1030,7 @@
         },
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -1416,6 +1420,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -1687,6 +1692,7 @@
         },
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -2076,6 +2082,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -2347,6 +2354,7 @@
         },
         {
           "ty": "gr",
+          "nm": "heart icon shape group",
           "it": [
             {
               "ty": "sh",
@@ -2678,6 +2686,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",

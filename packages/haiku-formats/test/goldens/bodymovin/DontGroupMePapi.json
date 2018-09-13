@@ -69,6 +69,7 @@
           "shapes": [
             {
               "ty": "gr",
+              "nm": "sun shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -184,6 +185,7 @@
             },
             {
               "ty": "gr",
+              "nm": "sun shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -299,6 +301,7 @@
             },
             {
               "ty": "gr",
+              "nm": "sun shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -414,6 +417,7 @@
             },
             {
               "ty": "gr",
+              "nm": "sun shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -529,6 +533,7 @@
             },
             {
               "ty": "gr",
+              "nm": "sun shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -953,6 +958,7 @@
             },
             {
               "ty": "gr",
+              "nm": "sun shape group",
               "it": [
                 {
                   "ty": "el",
@@ -1110,6 +1116,7 @@
           "shapes": [
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -1273,6 +1280,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -1544,6 +1552,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -1659,6 +1668,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -1786,6 +1796,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -1913,6 +1924,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "sh",
@@ -2112,6 +2124,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "el",
@@ -2205,6 +2218,7 @@
             },
             {
               "ty": "gr",
+              "nm": "moto shape group",
               "it": [
                 {
                   "ty": "el",
@@ -2456,6 +2470,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",

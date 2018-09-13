@@ -254,6 +254,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "juju shape group",
           "it": [
             {
               "ty": "sh",
@@ -513,6 +514,7 @@
         },
         {
           "ty": "gr",
+          "nm": "juju shape group",
           "it": [
             {
               "ty": "rc",
@@ -786,6 +788,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "face shape group",
           "it": [
             {
               "ty": "sh",
@@ -1153,6 +1156,7 @@
         },
         {
           "ty": "gr",
+          "nm": "face shape group",
           "it": [
             {
               "ty": "sh",
@@ -1562,6 +1566,7 @@
         },
         {
           "ty": "gr",
+          "nm": "face shape group",
           "it": [
             {
               "ty": "sh",
@@ -1701,6 +1706,7 @@
         },
         {
           "ty": "gr",
+          "nm": "face shape group",
           "it": [
             {
               "ty": "sh",
@@ -1840,6 +1846,7 @@
         },
         {
           "ty": "gr",
+          "nm": "face shape group",
           "it": [
             {
               "ty": "sh",
@@ -1979,6 +1986,7 @@
         },
         {
           "ty": "gr",
+          "nm": "face shape group",
           "it": [
             {
               "ty": "sh",
@@ -2240,6 +2248,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "top suit shape group",
           "it": [
             {
               "ty": "sh",
@@ -2525,6 +2534,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "shirt shape group",
           "it": [
             {
               "ty": "sh",
@@ -2810,6 +2820,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "hair shape group",
           "it": [
             {
               "ty": "sh",
@@ -3293,6 +3304,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "facecolor shape group",
           "it": [
             {
               "ty": "rc",

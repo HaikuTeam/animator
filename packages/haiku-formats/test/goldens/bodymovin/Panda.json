@@ -179,6 +179,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "panda--arms shape group",
           "it": [
             {
               "ty": "sh",
@@ -306,6 +307,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda--arms shape group",
           "it": [
             {
               "ty": "sh",
@@ -605,6 +607,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "cloud2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -876,6 +879,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -1147,6 +1151,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud2 shape group",
           "it": [
             {
               "ty": "rc",
@@ -1308,6 +1313,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Rectangle 2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -1685,6 +1691,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -1812,6 +1819,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -1905,6 +1913,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -1998,6 +2007,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -2200,6 +2210,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -2339,6 +2350,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -2432,6 +2444,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -2525,6 +2538,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -2618,6 +2632,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -2757,6 +2772,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -2932,6 +2948,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -3191,6 +3208,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "sh",
@@ -3450,6 +3468,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -3543,6 +3562,7 @@
         },
         {
           "ty": "gr",
+          "nm": "panda shape group",
           "it": [
             {
               "ty": "el",
@@ -3783,6 +3803,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "cloud shape group",
           "it": [
             {
               "ty": "rc",
@@ -3880,6 +3901,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud shape group",
           "it": [
             {
               "ty": "rc",
@@ -3977,6 +3999,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud shape group",
           "it": [
             {
               "ty": "sh",
@@ -4212,6 +4235,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud shape group",
           "it": [
             {
               "ty": "sh",
@@ -4511,6 +4535,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "hills shape group",
           "it": [
             {
               "ty": "sh",
@@ -4662,6 +4687,7 @@
         },
         {
           "ty": "gr",
+          "nm": "hills shape group",
           "it": [
             {
               "ty": "sh",
@@ -5039,6 +5065,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "el",
@@ -5196,6 +5223,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "hill-2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -5469,6 +5497,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "cloud3 shape group",
           "it": [
             {
               "ty": "sh",
@@ -5728,6 +5757,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud3 shape group",
           "it": [
             {
               "ty": "sh",
@@ -5987,6 +6017,7 @@
         },
         {
           "ty": "gr",
+          "nm": "cloud3 shape group",
           "it": [
             {
               "ty": "rc",

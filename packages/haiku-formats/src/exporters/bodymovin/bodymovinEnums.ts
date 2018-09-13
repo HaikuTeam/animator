@@ -55,6 +55,7 @@ export const enum PropertyKey {
 
 export const enum ShapeKey {
   Type = 'ty',
+  Name = 'nm',
   GroupItems = 'it',
   Vertices = 'ks',
 }
