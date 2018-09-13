@@ -2,7 +2,7 @@
   "date": "September 17, 2018",
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Now you can paste expressions or values into Timeline properties without having to open/focus the input."
     ],
     "Fixes": [
       "Improved zooming behavior in the Timeline.",
