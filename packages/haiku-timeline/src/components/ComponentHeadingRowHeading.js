@@ -113,7 +113,6 @@ export default class ComponentHeadingRowHeading extends React.Component {
         ? (
           <div
             className="component-heading-row-heading-root-box"
-            title={this.state.rowTitle}
             style={{
               display: 'inline-block',
               transform: 'translateY(1px)',
@@ -138,7 +137,6 @@ export default class ComponentHeadingRowHeading extends React.Component {
         ) : (
           <span
             className="component-heading-row-heading-child-box"
-            title={this.state.rowTitle}
             style={{
               color,
               display: 'flex',
