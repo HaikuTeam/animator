@@ -171,6 +171,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "yay_whole shape group",
           "it": [
             {
               "ty": "sh",
@@ -406,6 +407,7 @@
         },
         {
           "ty": "gr",
+          "nm": "yay_whole shape group",
           "it": [
             {
               "ty": "sh",
@@ -605,6 +607,7 @@
         },
         {
           "ty": "gr",
+          "nm": "yay_whole shape group",
           "it": [
             {
               "ty": "sh",
@@ -804,6 +807,7 @@
         },
         {
           "ty": "gr",
+          "nm": "yay_whole shape group",
           "it": [
             {
               "ty": "el",
@@ -897,6 +901,7 @@
         },
         {
           "ty": "gr",
+          "nm": "yay_whole shape group",
           "it": [
             {
               "ty": "el",
@@ -990,6 +995,7 @@
         },
         {
           "ty": "gr",
+          "nm": "yay_whole shape group",
           "it": [
             {
               "ty": "el",
@@ -1679,6 +1685,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_eyebr_r shape group",
           "it": [
             {
               "ty": "sh",
@@ -2498,6 +2505,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_eyebr_l shape group",
           "it": [
             {
               "ty": "sh",
@@ -3472,6 +3480,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_eye_r shape group",
           "it": [
             {
               "ty": "el",
@@ -4316,6 +4325,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_eye_l shape group",
           "it": [
             {
               "ty": "el",
@@ -5030,6 +5040,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_mouth shape group",
           "it": [
             {
               "ty": "sh",
@@ -5571,6 +5582,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_tear shape group",
           "it": [
             {
               "ty": "sh",
@@ -6000,6 +6012,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_tear shape group",
           "it": [
             {
               "ty": "sh",
@@ -6460,6 +6473,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_mouth shape group",
           "it": [
             {
               "ty": "sh",
@@ -6827,6 +6841,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_eyebr_r shape group",
           "it": [
             {
               "ty": "sh",
@@ -7206,6 +7221,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_eyebr_l shape group",
           "it": [
             {
               "ty": "sh",
@@ -7771,6 +7787,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_eye_r shape group",
           "it": [
             {
               "ty": "el",
@@ -8218,6 +8235,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_eye_l shape group",
           "it": [
             {
               "ty": "el",
@@ -8762,6 +8780,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "wow_eyebr_r shape group",
           "it": [
             {
               "ty": "sh",
@@ -9424,6 +9443,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "wow_eyebr_l shape group",
           "it": [
             {
               "ty": "sh",
@@ -10297,6 +10317,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "wow_eye_r shape group",
           "it": [
             {
               "ty": "el",
@@ -11027,6 +11048,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "wow_eye_l shape group",
           "it": [
             {
               "ty": "el",
@@ -11664,6 +11686,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "wow_mouth shape group",
           "it": [
             {
               "ty": "el",
@@ -12788,6 +12811,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "haha_mouth shape group",
           "it": [
             {
               "ty": "el",
@@ -12881,6 +12905,7 @@
         },
         {
           "ty": "gr",
+          "nm": "haha_mouth shape group",
           "it": [
             {
               "ty": "sh",
@@ -13047,6 +13072,7 @@
         },
         {
           "ty": "gr",
+          "nm": "haha_mouth shape group",
           "it": [
             {
               "ty": "sh",
@@ -13460,6 +13486,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "haha_eye_r shape group",
           "it": [
             {
               "ty": "sh",
@@ -13881,6 +13908,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "haha_eye_l shape group",
           "it": [
             {
               "ty": "sh",
@@ -14168,6 +14196,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sad_face shape group",
           "it": [
             {
               "ty": "el",
@@ -14354,6 +14383,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "wow_face shape group",
           "it": [
             {
               "ty": "el",
@@ -14511,6 +14541,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "haha_face shape group",
           "it": [
             {
               "ty": "el",
@@ -15009,6 +15040,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "love_heart shape group",
           "it": [
             {
               "ty": "sh",
@@ -15236,6 +15268,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "love_face shape group",
           "it": [
             {
               "ty": "el",
@@ -15780,6 +15813,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "like_hand shape group",
           "it": [
             {
               "ty": "sh",
@@ -16474,6 +16508,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "like_collar shape group",
           "it": [
             {
               "ty": "sh",
@@ -16737,6 +16772,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "like_face shape group",
           "it": [
             {
               "ty": "el",
@@ -16998,6 +17034,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_redface shape group",
           "it": [
             {
               "ty": "el",
@@ -17155,6 +17192,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ang_face shape group",
           "it": [
             {
               "ty": "el",

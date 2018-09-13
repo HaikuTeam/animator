@@ -98,6 +98,7 @@
           "shapes": [
             {
               "ty": "gr",
+              "nm": "haiku icon shape group",
               "it": [
                 {
                   "ty": "sh",

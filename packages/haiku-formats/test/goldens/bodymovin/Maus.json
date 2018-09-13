@@ -264,6 +264,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Whoopsie shape group",
           "it": [
             {
               "ty": "rc",

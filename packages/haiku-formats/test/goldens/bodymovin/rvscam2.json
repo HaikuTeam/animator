@@ -96,6 +96,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Arrows shape group",
           "it": [
             {
               "ty": "sh",
@@ -223,6 +224,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Arrows shape group",
           "it": [
             {
               "ty": "sh",
@@ -350,6 +352,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Arrows shape group",
           "it": [
             {
               "ty": "sh",
@@ -477,6 +480,7 @@
         },
         {
           "ty": "gr",
+          "nm": "Arrows shape group",
           "it": [
             {
               "ty": "sh",
@@ -668,6 +672,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Page 1 shape group",
           "it": [
             {
               "ty": "sh",
@@ -963,6 +968,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",

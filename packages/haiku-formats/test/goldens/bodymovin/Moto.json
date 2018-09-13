@@ -422,6 +422,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "smoke shape group",
           "it": [
             {
               "ty": "el",
@@ -579,6 +580,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "smoke shape group",
           "it": [
             {
               "ty": "el",
@@ -1066,6 +1068,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "smoke shape group",
           "it": [
             {
               "ty": "el",
@@ -1480,6 +1483,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "goodCLoud shape group",
           "it": [
             {
               "ty": "rc",
@@ -1774,6 +1778,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "goodCLoud shape group",
           "it": [
             {
               "ty": "rc",
@@ -2747,6 +2752,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "sh",
@@ -2910,6 +2916,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "sh",
@@ -3181,6 +3188,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "sh",
@@ -3296,6 +3304,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "sh",
@@ -3423,6 +3432,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "sh",
@@ -3550,6 +3560,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "sh",
@@ -3749,6 +3760,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "el",
@@ -3842,6 +3854,7 @@
         },
         {
           "ty": "gr",
+          "nm": "moto shape group",
           "it": [
             {
               "ty": "el",
@@ -4028,6 +4041,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "tree-range shape group",
           "it": [
             {
               "ty": "sh",
@@ -6517,6 +6531,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "mountain-range shape group",
           "it": [
             {
               "ty": "sh",
@@ -7061,6 +7076,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "sh",
@@ -7176,6 +7192,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "sh",
@@ -7291,6 +7308,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "sh",
@@ -7406,6 +7424,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "sh",
@@ -7521,6 +7540,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "sh",
@@ -7945,6 +7965,7 @@
         },
         {
           "ty": "gr",
+          "nm": "sun shape group",
           "it": [
             {
               "ty": "el",
@@ -8160,6 +8181,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "bg shape group",
           "it": [
             {
               "ty": "rc",

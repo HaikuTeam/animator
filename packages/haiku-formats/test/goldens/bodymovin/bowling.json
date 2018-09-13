@@ -228,6 +228,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -665,6 +666,7 @@
         },
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -1368,6 +1370,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -1805,6 +1808,7 @@
         },
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -2445,6 +2449,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -2882,6 +2887,7 @@
         },
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -3522,6 +3528,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -3959,6 +3966,7 @@
         },
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -4628,6 +4636,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -5065,6 +5074,7 @@
         },
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -5822,6 +5832,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -6259,6 +6270,7 @@
         },
         {
           "ty": "gr",
+          "nm": "pin shape group",
           "it": [
             {
               "ty": "sh",
@@ -7186,6 +7198,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "hole shape group",
           "it": [
             {
               "ty": "sh",
@@ -7604,6 +7617,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ball shape group",
           "it": [
             {
               "ty": "el",
@@ -8047,6 +8061,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "ballshadow shape group",
           "it": [
             {
               "ty": "el",
@@ -8203,6 +8218,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "bg shape group",
           "it": [
             {
               "ty": "rc",
@@ -8360,6 +8376,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",

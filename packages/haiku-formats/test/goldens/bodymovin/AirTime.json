@@ -329,6 +329,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape 6 shape group",
           "it": [
             {
               "ty": "sh",
@@ -782,6 +783,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape 5 shape group",
           "it": [
             {
               "ty": "sh",
@@ -1235,6 +1237,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape 4 shape group",
           "it": [
             {
               "ty": "sh",
@@ -1630,6 +1633,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape 3 shape group",
           "it": [
             {
               "ty": "sh",
@@ -2025,6 +2029,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape 2 shape group",
           "it": [
             {
               "ty": "sh",
@@ -2419,6 +2424,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Shape shape group",
           "it": [
             {
               "ty": "sh",
@@ -2610,6 +2616,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Satellite shape group",
           "it": [
             {
               "ty": "sh",
@@ -4789,6 +4796,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "if_satellite_2981831 shape group",
           "it": [
             {
               "ty": "sh",

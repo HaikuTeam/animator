@@ -146,6 +146,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -839,6 +840,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -1532,6 +1534,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -2225,6 +2228,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -2918,6 +2922,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -3611,6 +3616,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -4304,6 +4310,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -4997,6 +5004,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -5690,6 +5698,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -6383,6 +6392,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -7076,6 +7086,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -7769,6 +7780,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -8462,6 +8474,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -9155,6 +9168,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -9848,6 +9862,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -10541,6 +10556,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -11234,6 +11250,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -11927,6 +11944,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -12620,6 +12638,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -13313,6 +13332,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -14006,6 +14026,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -14674,6 +14695,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Fill shape group",
           "it": [
             {
               "ty": "sh",
@@ -15288,6 +15310,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "Background shape group",
           "it": [
             {
               "ty": "sh",
@@ -24466,6 +24489,7 @@
       "shapes": [
         {
           "ty": "gr",
+          "nm": "undefined shape group",
           "it": [
             {
               "ty": "rc",
