@@ -414,7 +414,7 @@ class ProjectBrowser extends React.Component {
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}>
           <ExternalLink
             key="user-profile"
-            href={`https://share.haiku.ai/u/${this.props.username}`}>
+            href={`https://share.haiku.ai/u/${this.props.organizationName}`}>
             <span style={[DASH_STYLES.popover.icon, {transform: 'translateY(3px)'}]}>
               <UserIconSVG />
             </span>

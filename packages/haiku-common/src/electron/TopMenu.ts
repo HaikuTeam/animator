@@ -248,23 +248,26 @@ export default class TopMenu {
       projectSubmenu.push(
         {
           label: 'Export…',
-          enabled: this.options.isProjectOpen,
           submenu: [
             {
               label: 'Video',
               click: () => this.emitExportRequest('mp4', 30),
+              enabled: this.options.isProjectOpen,
             },
             {
               label: 'GIF (medium quality)',
               click: () => this.emitExportRequest('gif', 15),
+              enabled: this.options.isProjectOpen,
             },
             {
               label: 'GIF (high quality)',
               click: () => this.emitExportRequest('gif', 30),
+              enabled: this.options.isProjectOpen,
             },
             {
               label: 'Lottie',
               click: () => this.emitExportRequest('json', 60),
+              enabled: this.options.isProjectOpen,
             },
           ],
         },

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {ModalWrapper, ModalFooter} from 'haiku-ui-common/lib/react/Modal';
+import {ModalWrapper, ModalFooter, ModalHeader} from 'haiku-ui-common/lib/react/Modal';
 import {BTN_STYLES} from '../../styles/btnShared';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
@@ -14,11 +14,12 @@ const STYLES = {
   },
   modalWrapper: {
     maxWidth: '400px',
-    padding: 20,
-    top: '50%',
-    transform: 'translateY(-50%)',
+    top: '110px',
+    left: 'calc(50% + 150px)',
+    transform: 'translateX(-50%)',
   },
   modalBody: {
+    padding: 20,
     minHeight: 40,
     marginBottom: 40,
   },
@@ -31,7 +32,7 @@ const STYLES = {
     fontWeight: 'normal',
     fontSize: 15,
     textAlign: 'left',
-    marginBottom: 7,
+    margin: '7px 0',
   },
   formInput: {
     marginBottom: 15,
@@ -98,7 +99,9 @@ class ConfirmGroupUngroup extends React.Component {
     return this.state.showPopup && (
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
-          <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}</div>
+          <ModalHeader>
+            <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}</div>
+          </ModalHeader>
           <div style={STYLES.modalBody}>
             Transitions or expressions may be lost when you {this.props.groupOrUngroup} these elements. Proceed anyway?
           </div>

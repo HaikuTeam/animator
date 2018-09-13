@@ -241,6 +241,9 @@ export default class ComponentHeadingRow extends React.Component {
             >
               <div
                 className="layer-lock-button light-on-hover"
+                aria-label={this.props.row.element.isLocked() ? 'Unlock element' : 'Lock element'}
+                data-tooltip={true}
+                data-tooltip-right={true}
                 style={{
                   ...STYLES.actionButton,
                   display: this.props.row.element.getSource() ? 'block' : 'none',
