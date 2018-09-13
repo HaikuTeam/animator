@@ -87,9 +87,7 @@ export default class SoloKeyframe extends React.Component {
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
-    const leftPx = experimentIsEnabled(Experiment.TimelineMarqueeSelection)
-      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
-      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf);
+    const leftPx = this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
 
     return (
       <span

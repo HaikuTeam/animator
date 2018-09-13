@@ -40,7 +40,7 @@ export default class GaugeTimeReadout extends React.Component {
 
   handleClick () {
     this.props.timeline.toggleTimeDisplayMode();
-    this.props.reactParent.saveTimeDisplayModeSetting();
+    this.props.saveTimeDisplayModeSetting();
   }
 
   render () {
@@ -148,8 +148,6 @@ class FpsReadout extends React.Component {
     }
     if (what === 'timeline-frame') {
       this.throttledForceUpdate();
-    } else if (what === 'timeline-frame-range') {
-      this.forceUpdate();
     }
   }
 
@@ -188,8 +186,6 @@ class TimeReadout extends React.Component {
     }
     if (what === 'timeline-frame') {
       this.throttledForceUpdate();
-    } else if (what === 'timeline-frame-range') {
-      this.forceUpdate();
     }
   }
 

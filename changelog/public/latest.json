@@ -5,6 +5,7 @@
       "FIRST!"
     ],
     "Fixes": [
+      "Improved zooming behavior in the Timeline.",
       "Snap lines now have a consistent thickness regardless of the artboard zoom level."
     ]
   }

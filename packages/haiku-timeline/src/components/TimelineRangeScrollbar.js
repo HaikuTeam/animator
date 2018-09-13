@@ -12,6 +12,8 @@ export default class TimelineRangeScrollbar extends React.Component {
   constructor (props) {
     super(props);
 
+    this._isFromMe = false;
+
     this.handleUpdate = this.handleUpdate.bind(this);
 
     this.onStartDragContainer = this.onStartDragContainer.bind(this);
@@ -50,27 +52,30 @@ export default class TimelineRangeScrollbar extends React.Component {
     }
     if (
       what === 'timeline-frame-range' ||
-      what === 'timeline-scroll' ||
-      what === 'timeline-scroll-from-scrollbar'
+      what === 'timeline-scroll'
     ) {
+      this._isFromMe = false;
+      this.forceUpdate();
+    }
+
+    if (what === 'timeline-scroll-from-scrollbar') {
+      this._isFromMe = true;
       this.forceUpdate();
     }
   }
 
   onStartDragContainer (dragEvent, dragData) {
-    this.props.timeline.scrollbarBodyStart(dragData);
     this.props.disableTimelinePointerEvents();
   }
 
   onStopDragContainer (dragEvent, dragData) {
-    this.props.timeline.scrollbarBodyStop(dragData);
     this.props.enableTimelinePointerEvents();
   }
 
   onDragContainer (dragEvent, dragData) {
     const {timeline} = this.props;
     // Don't drag on the body if we're already dragging on the ends
-    if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
+    if (!this.isDraggingRight && !this.isDraggingLeft) {
       // The extra offset makes timeline.getScrollLeft to add extra frames at the end of the timeline
       const extraOffset = dragData.deltaX === 0 && timeline.getScrollLeft() === timeline.calculateMaxScrollValue() ? 1 : 0;
       const scrollDelta = dragData.deltaX * this.frameInfo.scRatio + extraOffset;
@@ -79,47 +84,54 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onStartDragLeft (dragEvent, dragData) {
-    this.props.timeline.scrollbarLeftStart(dragData);
+    this.isDraggingLeft = true;
+    this.frameInfoOnDragStart = this.frameInfo;
   }
 
   onStopDragLeft (dragEvent, dragData) {
-    this.props.timeline.scrollbarLeftStop(dragData);
-  }
-
-  calculateScrollbarFromMouse ({mousePosition, considerBarWidth}) {
-    const timeline = this.props.timeline;
-    const maybeBarWidth = considerBarWidth ? this.frameInfo.scB - this.frameInfo.scA : 0;
-
-    return {
-      frame: timeline.mapXCoordToFrame(mousePosition),
-      offset: timeline.mapXCoordToFrame(timeline.getScrollLeft() / this.frameInfo.scRatio + maybeBarWidth),
-    };
+    this.isDraggingLeft = false;
+    this.frameInfoOnDragStart = null;
   }
 
   onDragLeft (dragEvent, dragData) {
-    const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: true});
-    this.props.timeline.zoomByLeftAndRightEndpoints(frame, offset, true);
+    const left = this.props.timeline.mapXCoordToFrame(dragEvent.clientX);
+    this.props.timeline.zoomByLeftAndRightEndpoints(left, this.frameInfoOnDragStart.friB, true);
   }
 
   onStartDragRight (dragEvent, dragData) {
-    this.props.timeline.scrollbarRightStart(dragData);
+    this.isDraggingRight = true;
+    this.frameInfoOnDragStart = this.frameInfo;
   }
 
   onStopDragRight (dragEvent, dragData) {
-    this.props.timeline.scrollbarRightStop(dragData);
+    this.isDraggingRight = false;
+    this.frameInfoOnDragStart = null;
   }
 
   onDragRight (dragEvent, dragData) {
-    const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: false});
-    this.props.timeline.zoomByLeftAndRightEndpoints(offset, frame, true);
+    const timeline = this.props.timeline;
+    const right = timeline.mapXCoordToFrame(dragEvent.clientX);
+    this.props.timeline.zoomByLeftAndRightEndpoints(this.frameInfoOnDragStart.friA, right, true);
   }
 
   render () {
-    this.frameInfo = this.props.timeline.getFrameInfo();
+    const timeline = this.props.timeline;
+    this.frameInfo = timeline.getFrameInfo();
     let leftPosition;
-    const {timeline} = this.props;
-    const isNearEnd = timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60;
-    leftPosition = (isNearEnd ? timeline.calculateMaxScrollValue() : timeline.getScrollLeft()) / this.frameInfo.scRatio;
+
+    // If we are dragging from the right pole, lock the left position
+    if (this.isDraggingRight) {
+      leftPosition = this.frameInfoOnDragStart.scA;
+    } else {
+      // HACK: keep the scrollbar locked to the right when adding frames, this is a special case
+      // of our UI, because normally an scrollbar would jump a couple of pixels to the left everytime
+      // new content is added.
+      if (timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60) {
+        leftPosition = (timeline.calculateMaxScrollValue() - KNOB_DIAMETER) / this.frameInfo.scRatio;
+      } else {
+        leftPosition = timeline.getScrollLeft() / this.frameInfo.scRatio;
+      }
+    }
 
     return (
       <div
@@ -145,6 +157,7 @@ export default class TimelineRangeScrollbar extends React.Component {
               height: KNOB_DIAMETER,
               left: leftPosition,
               width: this.frameInfo.scB - this.frameInfo.scA - KNOB_DIAMETER,
+              minWidth: 35,
               borderRadius: KNOB_DIAMETER / 2,
               cursor: 'move',
             }}>
@@ -185,7 +198,7 @@ export default class TimelineRangeScrollbar extends React.Component {
           </div>
         </DraggableCore>
         <TimelineRangeScrollbarPlayheadIndicator
-          timeline={this.props.timeline} />
+          timeline={timeline} />
       </div>
     );
   }

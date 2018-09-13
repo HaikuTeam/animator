@@ -8,6 +8,7 @@ const logger = require('haiku-serialization/src/utils/LoggerInstance')
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
 const DURATION_MOD_TIMEOUT = 100
+const MINIMUM_ZOOM_THRESHOLD = 3 // Minimum number of frames to show
 
 /**
  * @class Timeline
@@ -376,74 +377,6 @@ class Timeline extends BaseModel {
     return this._visibleFrameRange[1]
   }
 
-  getScrollerLeftDragStart () {
-    return this._scrollerLeftDragStart
-  }
-
-  getScrollerRightDragStart () {
-    return this._scrollerRightDragStart
-  }
-
-  getScrollerBodyDragStart () {
-    return this._scrollerBodyDragStart
-  }
-
-  scrollbarBodyStart (dragData) {
-    this._scrollerBodyDragStart = dragData.x
-    this._scrollbarStart = this.getLeftFrameEndpoint()
-    this._scrollbarEnd = this.getRightFrameEndpoint()
-    this.emit('update', 'timeline-scrollbar-body-start')
-    return this
-  }
-
-  scrollbarBodyStop () {
-    this._scrollerBodyDragStart = false
-    this._scrollbarStart = null
-    this._scrollbarEnd = null
-    this.emit('update', 'timeline-scrollbar-body-stop')
-    return this
-  }
-
-  scrollbarLeftStart (dragData) {
-    this._scrollerLeftDragStart = dragData.x
-    this._scrollbarStart = this.getLeftFrameEndpoint()
-    this._scrollbarEnd = this.getRightFrameEndpoint()
-    this.emit('update', 'timeline-scrollbar-left-start')
-    return this
-  }
-
-  scrollbarLeftStop (dragData) {
-    this._scrollerLeftDragStart = false
-    this._scrollbarStart = null
-    this._scrollbarEnd = null
-    this.emit('update', 'timeline-scrollbar-left-stop')
-    return this
-  }
-
-  scrollbarRightStart (dragData) {
-    this._scrollerRightDragStart = dragData.x
-    this._scrollbarStart = this.getLeftFrameEndpoint()
-    this._scrollbarEnd = this.getRightFrameEndpoint()
-    this.emit('update', 'timeline-scrollbar-right-start')
-    return this
-  }
-
-  scrollbarRightStop (dragData) {
-    this._scrollerRightDragStart = false
-    this._scrollbarStart = null
-    this._scrollbarEnd = null
-    this.emit('update', 'timeline-scrollbar-right-stop')
-    return this
-  }
-
-  getScrollbarStart () {
-    return this._scrollbarStart
-  }
-
-  getScrollbarEnd () {
-    return this._scrollbarEnd
-  }
-
   getDragIsAdding () {
     return this._dragIsAdding
   }
@@ -692,14 +625,17 @@ class Timeline extends BaseModel {
   handleSettingScroll (scrollValue, eventName) {
     if (scrollValue >= 0) {
       const maxScrollValue = this.calculateMaxScrollValue()
+      const frameInfo = this.getFrameInfo()
 
       if (scrollValue >= maxScrollValue) {
-        const frameInfo = this.getFrameInfo()
         const pixelsToMove = 40
         const framesToMove = pixelsToMove / frameInfo.pxpf
         this._scrollLeft = maxScrollValue
         this.setMaxFrame(this.getMaxFrame() + framesToMove)
       } else {
+        const left = Math.round(scrollValue / frameInfo.pxpf)
+        const right = left + this._visibleFrameRange[1] - this._visibleFrameRange[0]
+        this.setVisibleFrameRange(left, right, false)
         this._scrollLeft = scrollValue
       }
 
@@ -735,26 +671,28 @@ class Timeline extends BaseModel {
   }
 
   zoomByLeftAndRightEndpoints (left, right, fromScrollbar = false) {
-    const frameInfo = this.getFrameInfo()
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
+    const difference = rightTotal - leftTotal
+    const frameInfo = this.getFrameInfo()
+
+    if (
+      difference < MINIMUM_ZOOM_THRESHOLD ||
+      difference > this._timelinePixelWidth * 2 ||
+      rightTotal < leftTotal
+    ) {
+      return
+    }
 
     if (leftTotal < frameInfo.fri0) {
       leftTotal = frameInfo.fri0
     }
 
-    // Stop the scroller at the right side and lock the size
-    if (rightTotal > frameInfo.friMax) {
-      rightTotal = frameInfo.friMax
-    }
-
     this.setVisibleFrameRange(leftTotal, rightTotal)
 
-    const scrollValue = leftTotal * frameInfo.pxpf
     if (fromScrollbar) {
+      const scrollValue = leftTotal * frameInfo.pxpf
       this.setScrollLeftFromScrollbar(scrollValue)
-    } else {
-      this.setScrollLeft(scrollValue)
     }
   }
 
@@ -781,14 +719,17 @@ class Timeline extends BaseModel {
     return this
   }
 
-  setVisibleFrameRange (l, r) {
+  setVisibleFrameRange (l, r, shouldNotifyUpdates = true) {
     this._visibleFrameRange = [l, r]
     if (r > this.getMaxFrame()) {
       this.setMaxFrame(r)
     }
+
     this.cache.unset('frameInfo')
-    Keyframe.clearAllViewPositions({component: this.component})
-    this.emit('update', 'timeline-frame-range')
+    if (shouldNotifyUpdates) {
+      Keyframe.clearAllViewPositions({component: this.component})
+      this.emit('update', 'timeline-frame-range')
+    }
     return this
   }
 

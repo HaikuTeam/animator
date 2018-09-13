@@ -63,14 +63,11 @@ export default class ClusterRow extends React.Component {
         onContextMenu={(ctxMenuEvent) => {
           ctxMenuEvent.stopPropagation();
 
-          const tlOffset = Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth();
-          const pxOffsetLeft = (tlOffset) + this.props.timeline.getLeftFrameEndpoint() * frameInfo.pxpf;
-
           PopoverMenu.emit('show', {
             type: 'cluster-row',
             event: {offsetX: 0},
             model: this.props.row,
-            offset: pxOffsetLeft,
+            offset: Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth(),
           });
         }}
         style={{
