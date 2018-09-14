@@ -600,7 +600,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
       let transcludedIdField;
 
-      if (timeline.hasOwnProperty('href') || node.attributes.hasOwnProperty('href')) {
+      if (node.elementName === SvgTag.Img) {
+        transcludedIdField = 'src';
+      } else if (timeline.hasOwnProperty('href') || node.attributes.hasOwnProperty('href')) {
         transcludedIdField = 'href';
       } else if (timeline.hasOwnProperty('xlink:href') || node.attributes.hasOwnProperty('xlink:href')) {
         transcludedIdField = 'xlink:href';
@@ -619,7 +621,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         const assetPath = join(this.componentFolder, '..', '..', filePath);
         if (existsSync(assetPath)) {
           buffer = readFileSync(assetPath);
-          rawData = `data:image/${extname(filePath)};base64,${buffer.toString('base64')}`;
+          rawData = `data:image/${extname(filePath).slice(1)};base64,${buffer.toString('base64')}`;
         }
       } else {
         const matches = rawData.match(/^data:image\/\w+;base64,(.+)$/);
@@ -686,17 +688,22 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       // We can't really solve complex z-collisions because we can't compose the shape layer from this SVG with the
       // shape layer, so we just hope the image is actually supposed to be underneath any shapes that might be in here…
       this.layers.splice(
-        this.layers.length - 1,
+        Math.max(this.layers.length - 1, 0),
         0,
         {
           [LayerKey.Type]: LayerType.Precomp,
           [LayerKey.Name]: `instance:${precompId}`,
           [LayerKey.ReferenceId]: precompId,
-          [LayerKey.Index]: this.activeLayer[LayerKey.Index],
+          [LayerKey.Index]: this.activeLayer ? this.activeLayer[LayerKey.Index] : 1,
           [LayerKey.InPoint]: 0,
           [LayerKey.StartTime]: 0,
           [LayerKey.LocalIndex]: ++this.localLayerIndex,
-          [LayerKey.Transform]: this.activeLayer[LayerKey.Transform],
+          [LayerKey.Transform]: this.activeLayer ?
+            this.activeLayer[LayerKey.Transform] :
+            {
+              ...this.standardTransformsForTimeline(timeline),
+              ...this.transformsForLayerTimeline(timeline),
+            },
           // Required here instead of transforms….
           [LayerKey.Width]: initialValueOr(timeline, 'sizeAbsolute.x', width),
           [LayerKey.Height]: initialValueOr(timeline, 'sizeAbsolute.y', height),
@@ -1101,6 +1108,15 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   private handleElement (node: BytecodeNode, parentNode: BytecodeNode, skipTranscludedElements = true) {
     // If we have landed on a subcomponent, absorb it and return.
     if (typeof node.elementName === 'object' && node.elementName.template) {
+      // Push down props as states if requested.
+      const timeline = this.timelineForNode(node);
+      for (const property in timeline) {
+        if (node.elementName.states[property]) {
+          node.elementName.states[property].value =
+            initialValueOr(timeline, property, node.elementName.states[property].value);
+        }
+      }
+
       this.handleSubcomponent(
         (new BodymovinExporter(node.elementName, this.componentFolder, this.assetUniqueId)).rawOutput(),
         node,
@@ -1134,7 +1150,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       return;
     }
 
-    if (this.layerStack.has(parentNode)) {
+    if (this.layerStack.has(parentNode) && node.elementName === SvgTag.Div || node.elementName === SvgTag.Svg) {
       this.structuralNode = parentNode;
       this.handleShapeLayer(node);
       return;
@@ -1142,6 +1158,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     switch (node.elementName) {
       case SvgTag.Image:
+      case SvgTag.Img:
         this.handleImageLayer(node, parentNode);
       case SvgTag.Use:
         this.handleTransclusion(node, parentNode);
