@@ -5,6 +5,7 @@
       "Now you can paste expressions or values into Timeline properties without having to open/focus the input."
     ],
     "Fixes": [
+      "Fixed an error on the share page and an empty `lottie.json` when embedding raster images in Haiku.",
       "Improved zooming behavior in the Timeline.",
       "Snap lines now have a consistent thickness regardless of the artboard zoom level.",
       "Export options are now disabled outside of a project.",

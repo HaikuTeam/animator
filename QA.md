@@ -499,6 +499,7 @@ Instantiating multiple inline image elements works (images don't disappear)
 Instantiating inline image, then deleting it, then re-instantiating it works
 I can instantiate two polygons, then delete the first one, and the others remain
 I can instantiate an element with text content, then instantiate other elements and not crash
+I can instantiate an image component, publish, and the publish page works and has a correct/working lottie.json
 
 Trouble Spot: Copy/Paste
 

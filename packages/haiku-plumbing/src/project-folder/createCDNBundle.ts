@@ -35,6 +35,12 @@ const createBundle = (moduleDirectory: string, input: string, name: string, cb: 
         include: {
           '@haiku/core': require.resolve('@haiku/core'),
           '@haiku/core/dom': require.resolve('@haiku/core/dom'),
+          '@haiku/core/components/controls/Image/code/main/code':
+            require.resolve('@haiku/core/components/controls/Image/code/main/code'),
+          '@haiku/core/components/controls/Font/code/main/code':
+            require.resolve('@haiku/core/components/controls/Font/code/main/code'),
+          '@haiku/core/components/controls/Text/code/main/code':
+            require.resolve('@haiku/core/components/controls/Text/code/main/code'),
           // Note how we're pointing legacy player to core here
           '@haiku/player': require.resolve('@haiku/core'),
           '@haiku/player/dom': require.resolve('@haiku/core/dom'),
