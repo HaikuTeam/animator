@@ -1,6 +1,4 @@
 /** @file Generic handling for injectables through export. */
-import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
-
 import {
   BytecodeStates,
   BytecodeStateType,
@@ -47,11 +45,11 @@ class DefaultStub {
  */
 export const evaluateInjectedFunctionInExportContext = (bytecodeSummonable: BytecodeSummonable,
                                                         states: BytecodeStates): BytecodeStateType => {
-  const rfo = functionToRFO(bytecodeSummonable);
   const defaultStub = new DefaultStub();
-  const params = rfo.__function.params.map((param: string) => (global[param] || states.hasOwnProperty(param))
-    ? (global[param] || states[param].value)
-    : defaultStub,
+  const params = bytecodeSummonable.specification.params.map(
+    (param: string) => (global[param] || states.hasOwnProperty(param))
+      ? (global[param] || states[param].value)
+      : defaultStub,
   );
   return bytecodeSummonable.apply(undefined, params) || 0;
 };
