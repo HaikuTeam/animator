@@ -13,6 +13,7 @@ export enum SvgTag {
   PolylineShape = 'polyline',
   Svg = 'svg',
   Use = 'use',
-  // Not really an SVG tag, but behaves like one in our layout semantics.
+  // Not really SVG tags, but behave like them in our layout semantics.
   Div = 'div',
+  Img = 'img',
 }
