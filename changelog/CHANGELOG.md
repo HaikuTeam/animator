@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 4.2.0
+
+### Bug Fixes
+
+ * use original parameter names in evaluateInjectedFunctionInExportContext
+ * support image components in Lottie exporter.
+ * ensure correct module resolution for controls when bundling.
+ * ensure controls define valid bytecode.
+ * breaking change in lottie-android@2.6.0 requires giving shape groups names.
+ * Ensure if-false'd elements get filtered from the repeat collection too (767130344203330)
+ * Prevent infinite remounting due to tick() being called from a will-mount action (767130344203326)
+
+### Features
+
+ * add the ability to tween strings that look like percents.
+ * add endpoint for user email update.
+
 ## 4.1.1
 
 ### Bug Fixes
