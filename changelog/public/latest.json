@@ -9,7 +9,8 @@
       "Snap lines now have a consistent thickness regardless of the artboard zoom level.",
       "Export options are now disabled outside of a project.",
       "User Menu -> Your Profile now points to the correct location.",
-      "Resolved a breaking change in Lottie Android 2.6.0 causing crashes."
+      "Resolved a breaking change in Lottie Android 2.6.0 causing crashes.",
+      "Fixed a crash caused by forking certain projects."
     ]
   }
 }

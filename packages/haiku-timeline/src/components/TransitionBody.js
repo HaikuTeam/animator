@@ -101,9 +101,14 @@ export default class TransitionBody extends React.Component {
       this.teardownKeyframeUpdateReceiver = keyframe.registerUpdateReceiver(this.props.id, (what) => {
         this.handleUpdate(what);
       });
-      this.teardownNextKeyframeUpdateReceiver = keyframe.next().registerUpdateReceiver(this.props.id, (what) => {
-        this.handleUpdate(what);
-      });
+      const nextKeyframe = keyframe.next();
+      if (nextKeyframe) {
+        this.teardownNextKeyframeUpdateReceiver = nextKeyframe.registerUpdateReceiver(this.props.id, (what) => {
+          this.handleUpdate(what);
+        });
+      } else {
+        this.teardownNextKeyframeUpdateReceiver = () => {};
+      }
     }
   }
 
