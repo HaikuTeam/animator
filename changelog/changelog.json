@@ -7945,5 +7945,52 @@
       "label": "fix",
       "message": "ensure ID-based selectors work in migration path."
     }
+  },
+  "4.2.0": {
+    "4b6688f355b2bc4ac04821a374481f0b1b6878d6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use original parameter names in evaluateInjectedFunctionInExportContext"
+    },
+    "00708ce93ca2faba44c98268f977c0ea950f7074": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support image components in Lottie exporter."
+    },
+    "dfed465dfec807e61d1511dc54c11fa331d8d2b8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure correct module resolution for controls when bundling."
+    },
+    "ccfecfda2bc96c9e16f0184d67b6e745a9c7c879": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure controls define valid bytecode."
+    },
+    "0064a4171286f7a1c42d41aebe33382af983a303": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "breaking change in lottie-android@2.6.0 requires giving shape groups names."
+    },
+    "760a76cd96b2404852d3b580dbd5a8543072a3c8": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add the ability to tween strings that look like percents."
+    },
+    "62ffcbf62555f3a4c0f3d5fa6d161120b9e44ce7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure if-false'd elements get filtered from the repeat collection too (767130344203330)"
+    },
+    "2476a50e97eca45040eba6020e4e145299ba188d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent infinite remounting due to tick() being called from a will-mount action (767130344203326)"
+    },
+    "e2762850b4b6dc13fdcd51f57559df43167ab9ec": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add endpoint for user email update."
+    }
   }
 }
