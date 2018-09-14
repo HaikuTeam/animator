@@ -1,8 +1,6 @@
 import {remote, ipcRenderer} from 'electron';
 import * as React from 'react';
-import * as Color from 'color';
 import * as lodash from 'lodash';
-import {DraggableCore} from 'react-draggable';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as Project from 'haiku-serialization/src/bll/Project';
@@ -28,7 +26,6 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar';
 import HorzScrollShadow from './HorzScrollShadow';
 import ScrollView from './ScrollView';
 import Marquee from './Marquee';
-import PostMaxKeyframeArea from './PostMaxKeyframeArea';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
@@ -1237,61 +1234,6 @@ class Timeline extends React.Component {
     });
   };
 
-  renderDurationModifier () {
-    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo();
-
-    const pxOffset = this.getActiveComponent().getCurrentTimeline().getDragIsAdding() ? 0 : -this.getActiveComponent().getCurrentTimeline().getDurationTrim() * frameInfo.pxpf;
-
-    if (frameInfo.friB >= frameInfo.friMax || this.getActiveComponent().getCurrentTimeline().getDragIsAdding()) {
-      return (
-        <DraggableCore
-          axis="x"
-          onStart={(dragEvent, dragData) => {
-            this.getActiveComponent().getCurrentTimeline().setDurationTrim(0);
-          }}
-          onStop={(dragEvent, dragData) => {
-            this.getActiveComponent().getCurrentTimeline().handleDurationModifierStop(dragData);
-          }}
-          onDrag={(dragEvent, dragData) => {
-            this.getActiveComponent().getCurrentTimeline().dragDurationModifierPosition(dragData.x);
-          }}>
-          <div style={{
-            position: 'absolute',
-            right: pxOffset,
-            top: 0,
-            zIndex: 1006,
-          }}>
-            <div
-              style={{
-                position: 'absolute',
-                backgroundColor: Palette.ROCK,
-                width: 6,
-                height: 32,
-                zIndex: 3,
-                top: 1,
-                right: 0,
-                borderTopRightRadius: 5,
-                borderBottomRightRadius: 5,
-                cursor: 'move',
-              }} />
-            <div className="trim-area" style={{
-              position: 'absolute',
-              top: 0,
-              mouseEvents: 'none',
-              left: -6,
-              width: 26 + pxOffset,
-              height: (this.refs.scrollview && this.refs.scrollview.clientHeight + 35) || 0,
-              borderLeft: '1px solid ' + Palette.FATHER_COAL,
-              backgroundColor: Color(Palette.FATHER_COAL).fade(0.6),
-            }} />
-          </div>
-        </DraggableCore>
-      );
-    }
-
-    return <span />;
-  }
-
   renderTopControls () {
     const timeline = this.getActiveComponent().getCurrentTimeline();
 
@@ -1345,11 +1287,6 @@ class Timeline extends React.Component {
             onMouseDown={this.onGaugeMouseDown}
             timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
-        ),
-      (
-          <div key="durationModifier">
-            {this.renderDurationModifier()}
-          </div>
         ),
     ];
   }
