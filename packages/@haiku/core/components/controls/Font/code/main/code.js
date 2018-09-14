@@ -1,15 +1,15 @@
-var Haiku = require('@haiku/core')
+let Haiku = require('@haiku/core');
 
 module.exports = {
   metadata: {
     type: 'haiku',
     name: 'HaikuControlsFont',
-    nonrendered: true
+    nonrendered: true,
   },
 
   states: {
-    name: { type: 'string', value: '' },
-    href: { type: 'string', value: '' }
+    name: {type: 'string', value: ''},
+    href: {type: 'string', value: ''},
   },
 
   timelines: {
@@ -21,8 +21,8 @@ module.exports = {
         'sizeMode.x': 1,
         'sizeMode.y': 1,
         'sizeMode.z': 1,
-        'content': {
-          '0': {
+        content: {
+          0: {
             value: Haiku.inject(function (href, name) {
               const style = {
                 elementName: 'style',
@@ -32,8 +32,8 @@ module.exports = {
                     font-family: "${name}";
                     src: url("${href}");
                   }
-                `]
-              }
+                `],
+              };
 
               if (this.isEditMode()) {
                 return {
@@ -52,30 +52,30 @@ module.exports = {
                       borderRadius: '4px',
                       backgroundColor: 'rgb(52, 63, 65)',
                       border: '1px solid rgb(33, 45, 49)',
-                      wordWrap: 'break-word'
-                    }
+                      wordWrap: 'break-word',
+                    },
                   },
                   children: [
                     name,
-                    style
-                  ]
-                }
+                    style,
+                  ],
+                };
               }
 
-              return style
-            }, 'href', 'name')
-          }
-        }
-      }
-    }
+              return style;
+            }, 'href', 'name'),
+          },
+        },
+      },
+    },
   },
 
   template: {
     elementName: 'div',
     attributes: {
       'haiku-title': 'HaikuControlsFont',
-      'haiku-id': 'HaikuControlsDiv'
+      'haiku-id': 'HaikuControlsDiv',
     },
-    children: []
-  }
-}
+    children: [],
+  },
+};
