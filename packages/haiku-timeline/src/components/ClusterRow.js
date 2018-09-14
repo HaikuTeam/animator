@@ -48,8 +48,6 @@ export default class ClusterRow extends React.Component {
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo();
-
     const componentId = this.props.row.element.getComponentId();
     const clusterName = this.props.row.getClusterNameString();
 
