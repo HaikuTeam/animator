@@ -864,9 +864,10 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
         continue;
       }
 
-      this._states[stateSpecName] = stateSpec.value;
-
-      this.defineSettableState(stateSpec, stateSpecName);
+      if (!this._states.hasOwnProperty(stateSpecName) || this.config.states.hasOwnProperty(stateSpecName)) {
+        this._states[stateSpecName] = stateSpec.value;
+        this.defineSettableState(stateSpec, stateSpecName);
+      }
     }
   }
 
