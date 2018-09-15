@@ -152,6 +152,8 @@ Property.HUMANIZED_PROP_NAMES = {
   'translation.z': 'Position Z',
   'sizeAbsolute.x': 'Size X',
   'sizeAbsolute.y': 'Size Y',
+  'style.overflowX': 'Overflow X',
+  'style.overflowY': 'Overflow Y',
   'origin.x': 'Origin X',
   'origin.y': 'Origin Y'
 }
@@ -676,8 +678,8 @@ Property.DISPLAY_RULES = {
   'style.display': {jit: [NEVER], add: [NEVER]},
   'style.height': {jit: [NEVER], add: [NEVER]},
   'style.margin': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
-  'style.overflowX': {jit: [NEVER], add: [NEVER]},
-  'style.overflowY': {jit: [NEVER], add: [NEVER]},
+  'style.overflowX': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.overflowY': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'style.padding': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'style.perspective': {jit: [ALWAYS], add: [NEVER]},
   'style.pointerEvents': {jit: [ALWAYS], add: [NEVER]},
