@@ -721,12 +721,39 @@ class Element extends BaseModel {
 
   getBoundingBoxPoints () {
     const layout = this.getComputedLayout()
-    const w = layout.size.x
-    const h = layout.size.y
+    let w = layout.size.x
+    let h = layout.size.y
+    let cx = w / 2
+    let cy = h / 2
+
+    let widthOffset = 0
+    let heightOffset = 0
+
+    // TODO: should we consider skipping this step if no manipulations have been made inside the SVG? Since the
+    // result is cached in the hot paths where it gets used, this might not be heavy enough to merit it.
+    const node = this.getLiveRenderedNode()
+    if (node.elementName === 'svg' && node.__memory && node.__memory.targets) {
+      const offsetBoundingBox = node.__memory.targets[0].getBBox()
+      const originXOffset = (offsetBoundingBox.width - layout.size.x) * layout.origin.x
+      const originYOffset = (offsetBoundingBox.height - layout.size.y) * layout.origin.y
+      widthOffset = offsetBoundingBox.x + originXOffset
+      heightOffset = offsetBoundingBox.y + originYOffset
+      w = offsetBoundingBox.width + widthOffset
+      h = offsetBoundingBox.height + heightOffset
+      cx = offsetBoundingBox.width / 2 + widthOffset
+      cy = offsetBoundingBox.height / 2 + heightOffset
+    }
+
     return [
-      {x: 0, y: 0, z: 0}, {x: w / 2, y: 0, z: 0}, {x: w, y: 0, z: 0},
-      {x: 0, y: h / 2, z: 0}, {x: w / 2, y: h / 2, z: 0}, {x: w, y: h / 2, z: 0},
-      {x: 0, y: h, z: 0}, {x: w / 2, y: h, z: 0}, {x: w, y: h, z: 0}
+      {x: widthOffset, y: heightOffset, z: 0},
+      {x: cx, y: heightOffset, z: 0},
+      {x: w, y: heightOffset, z: 0},
+      {x: widthOffset, y: cy, z: 0},
+      {x: cx, y: cy, z: 0},
+      {x: w, y: cy, z: 0},
+      {x: widthOffset, y: h, z: 0},
+      {x: cx, y: h, z: 0},
+      {x: w, y: h, z: 0}
     ]
   }
 
