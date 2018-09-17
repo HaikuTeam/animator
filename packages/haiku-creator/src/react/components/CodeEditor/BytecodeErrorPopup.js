@@ -20,6 +20,13 @@ const STYLES = {
   modalBody: {
     padding: '20px',
   },
+  code: {
+    fontFamily: 'Fira Mono',
+    backgroundColor: Palette.SPECIAL_COAL,
+    overflow: 'auto',
+    fontSize: '13px',
+    padding: '4px',
+  },
 };
 
 class BytecodeErrorPopup extends React.Component {
@@ -30,17 +37,15 @@ class BytecodeErrorPopup extends React.Component {
     }
 
     const message = error.toString();
-    const relevantStack = error.stack.slice(
-      error.stack.indexOf(':') + 1,
-      error.stack.indexOf(message) + message.length,
-    );
-    return relevantStack.split('\n').map((errorLine, index) => {
-      if (index === 0) {
-        return <div key={`bep-${index}`}>Please fix syntax errors on line {errorLine} and try again.</div>;
-      }
-
-      return <pre key={`bep-${index}`}>{errorLine}</pre>;
-    });
+    const res = error.stack.match(/.*?:(.*?)\n([.|\S|\s]*)/);
+    if (res.length === 3 && res[1] && res[2]) {
+      const lineNum = res[1];
+      const errorMessage = res[2].slice(0, res[2].indexOf(message) + message.length);
+      return (<div >
+        <div >Please fix syntax error(s) on line {lineNum} and try again.</div>
+        <pre style={STYLES.code}>{errorMessage}</pre>
+      </div>);
+    }
   }
 
   render () {
