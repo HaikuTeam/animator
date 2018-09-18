@@ -246,6 +246,7 @@ class Timeline extends React.Component {
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
       resetKeyStates();
+      this.resetGaugeAndPointerStates();
 
       // If an expression input is focused when we leave this webview, close it
       if (this.getActiveComponent()) {
@@ -1333,6 +1334,10 @@ class Timeline extends React.Component {
   }
 
   mouseUpListener () {
+    this.resetGaugeAndPointerStates();
+  }
+
+  resetGaugeAndPointerStates () {
     this._doHandleMouseMovesInGauge = false;
     this.enableTimelinePointerEvents();
   }
