@@ -153,16 +153,6 @@ export default class ExpressionInput extends React.Component {
     this.codemirror.setValue('');
     this.codemirror.on('change', this.handleEditorChange.bind(this));
     this.codemirror.on('keydown', this.handleEditorKeydown.bind(this));
-    this.codemirror.on('beforeChange', (cm, changeObject) => {
-      // If multiline mode, only allow a change to the function body, not the signature
-      // Simply cancel any change that occurs in either of those places.
-      if (this.state.editingMode === EDITOR_MODES.MULTI_LINE && changeObject.origin !== SET_VALUE_ORIGIN) {
-        const lines = this.state.editedValue.body.split('\n');
-        if (changeObject.from.line === 0 || changeObject.from.line > lines.length) {
-          changeObject.cancel();
-        }
-      }
-    });
 
     this.state = {
       useAutoCompleter: false, // Used to 'comment out' this feature until it's fully baked
@@ -858,6 +848,14 @@ export default class ExpressionInput extends React.Component {
 
   setEditorValue (value) {
     this.codemirror.setValue(value);
+
+    // Mark the first and last lines (function signature and closing bracket)
+    // as non-editable content.
+    if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
+      const lastLine = this.codemirror.lastLine();
+      this.codemirror.markText({line: 0, ch: 0}, {line: 1, ch: 0}, {readOnly: true, atomic: true});
+      this.codemirror.markText({line: lastLine, ch: 0}, {line: lastLine, ch: 1}, {readOnly: true, atomic: true});
+    }
   }
 
   recalibrateEditor (cursor) {
@@ -867,7 +865,7 @@ export default class ExpressionInput extends React.Component {
       case EDITOR_MODES.MULTI_LINE:
         this.codemirror.setOptions({
           lineNumbers: true,
-          scrollbarStyle: 'native',
+          scrollbarStyle: 'null',
         });
         renderable = getRenderableValueMultiline(this.state.editedValue);
         this.setEditorValue(renderable);
