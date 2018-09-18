@@ -36,16 +36,28 @@ class BytecodeErrorPopup extends React.Component {
       return;
     }
 
-    const message = error.toString();
-    const res = error.stack.match(/.*?:(.*?)\n([.|\S|\s]*)/);
-    if (res.length === 3 && res[1] && res[2]) {
-      const lineNum = res[1];
-      const errorMessage = res[2].slice(0, res[2].indexOf(message) + message.length);
-      return (<div >
-        <div >Please fix syntax error(s) on line {lineNum} and try again.</div>
-        <pre style={STYLES.code}>{errorMessage}</pre>
-      </div>);
+    const lineNum = '?';
+    let errorMessage = error.toString();
+    if (error.name === 'ReferenceError') {
+      const res = error.stack.match(/\(.*?:(.*?):.*?\)/);
+      if (res.length === 2 && res[1]) {
+        lineNum = res[1];
+      }
+    } else if (error.name === 'SyntaxError') {
+      // Captures line number and remaining of stack
+      const res = error.stack.match(/.*?:(.*?)\n([.|\S|\s]*)/);
+      if (res.length === 3 && res[1] && res[2]) {
+        lineNum = res[1];
+        // For syntax error, we slice only important part from remaining
+        // of stack, so we can show to the user where the error is
+        errorMessage = res[2].slice(0, res[2].indexOf(errorMessage) + errorMessage.length);
+      }
     }
+
+    return (<div>
+      <div >Please fix error(s) on line <b>{lineNum}</b> and try again.</div>
+      <pre style={STYLES.code}>{errorMessage}</pre>
+    </div>);
   }
 
   render () {
