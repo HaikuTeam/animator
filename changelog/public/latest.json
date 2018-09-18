@@ -10,7 +10,8 @@
       "Export options are now disabled outside of a project.",
       "User Menu -> Your Profile now points to the correct location.",
       "Fixed a crash caused by forking certain projects.",
-      "Improve code editor save error popup"
+      "Improve code editor save error popup",
+      "Minor fixes to the multiline Expressions editor"
     ]
   }
 }
