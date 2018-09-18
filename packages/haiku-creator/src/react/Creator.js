@@ -52,6 +52,7 @@ import * as opn from 'opn';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
 import {getAccountUrl} from 'haiku-common/lib/environments';
+import Globals from 'haiku-ui-common/lib/Globals';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -457,6 +458,10 @@ export default class Creator extends React.Component {
     });
 
     window.addEventListener('dragover', Asset.preventDefaultDrag, false);
+
+    window.addEventListener('blur', () => {
+      Globals.allKeysUp();
+    });
 
     window.addEventListener(
       'drop',
