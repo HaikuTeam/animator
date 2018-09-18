@@ -30,7 +30,8 @@ export default class Gif extends React.PureComponent<GifProps> {
   get gifUrl () {
     // Hack until we are simply subscribing to Envoy ExporterHandler.
     const maybeLocalFile = join(this.props.folder, 'animation.gif');
-    return existsSync(maybeLocalFile) ? maybeLocalFile : this.props.urls.gif;
+    // If serving a local file, we append ?<current timestamp> to cache-bust.
+    return existsSync(maybeLocalFile) ? `${maybeLocalFile}?${Date.now()}` : this.props.urls.gif;
   }
 
   render () {
