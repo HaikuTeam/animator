@@ -127,7 +127,7 @@ export const dasharrayTransformer = (dasharray: string) => {
   }
 
   // Get dash gaps as an array of numbers, and double it if we have an odd number of values.
-  let dashGaps = dasharray.split(',').map((value) => Number(value.trim()));
+  let dashGaps = dasharray.toString().split(',').map((value) => Number(value.trim()));
   if (dashGaps.length % 2 === 1) {
     dashGaps = dashGaps.concat(dashGaps);
   }
