@@ -865,7 +865,7 @@ export default class ExpressionInput extends React.Component {
       case EDITOR_MODES.MULTI_LINE:
         this.codemirror.setOptions({
           lineNumbers: true,
-          scrollbarStyle: 'native',
+          scrollbarStyle: 'null',
         });
         renderable = getRenderableValueMultiline(this.state.editedValue);
         this.setEditorValue(renderable);
