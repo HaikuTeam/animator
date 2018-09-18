@@ -30,7 +30,7 @@ export default class Video extends React.PureComponent<VideoProps> {
   get videoUrl () {
     // Hack until we are simply subscribing to Envoy ExporterHandler.
     const maybeLocalFile = join(this.props.folder, 'animation.mp4');
-    return existsSync(maybeLocalFile) ? maybeLocalFile : this.props.urls.video;
+    return existsSync(maybeLocalFile) ? `${maybeLocalFile}?${Date.now()}` : this.props.urls.video;
   }
 
   render () {

@@ -1156,11 +1156,16 @@ export default class Master extends EventEmitter {
   }
 
   handleActiveComponentReady () {
-    return this.awaitActiveComponent(() => {
-      this.exporterListener = getExporterListener(this.envoyHandlers.exporter, this.getActiveComponent(), this._git);
-      this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:save`, this.exporterListener);
-      this.mountHaikuComponent();
-    });
+    if (!this.exporterListener) {
+      this.awaitActiveComponent((_, ac) => {
+        if (ac.getSceneName() !== 'main') {
+          return;
+        }
+        this.exporterListener = getExporterListener(this.envoyHandlers.exporter, ac, this._git);
+        this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:save`, this.exporterListener);
+        this.mountHaikuComponent();
+      });
+    }
   }
 
   mountHaikuComponent () {
@@ -1170,10 +1175,11 @@ export default class Master extends EventEmitter {
   }
 
   awaitActiveComponent (cb) {
-    if (!this.getActiveComponent()) {
+    const ac = this.getActiveComponent();
+    if (!ac) {
       return setTimeout(() => this.awaitActiveComponent(cb), 100);
     }
-    return cb();
+    return cb(null, ac);
   }
 
   handleHaikuComponentMounted () {
