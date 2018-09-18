@@ -10,8 +10,11 @@
       "Export options are now disabled outside of a project.",
       "User Menu -> Your Profile now points to the correct location.",
       "Fixed a crash caused by forking certain projects.",
-      "Improve code editor save error popup",
-      "Minor fixes to the multiline Expressions editor"
+      "Improve code editor save error popup.",
+      "Minor fixes to the multiline Expressions editor.",
+      "Fixed a bug causing Timeline inputs with numbers in exponential format to display 'NaN' instead of the correct value.",
+      "Fixed a bug preventing the time/frame indicator of subcomponents to update.",
+      "Fixed a bug causing the Timeline ticker to behave unexpectedly in certain situations."
     ]
   }
 }
