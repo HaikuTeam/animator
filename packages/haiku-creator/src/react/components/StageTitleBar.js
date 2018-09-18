@@ -660,6 +660,44 @@ class StageTitleBar extends React.Component {
     }
   }
 
+  get conglomerateComponentButton () {
+    return (
+      <button
+        key="conglomerate-component-button"
+        id="conglomerate-component-button"
+        aria-label="Create a new Component"
+        data-tooltip={true}
+        data-tooltip-bottom-right={true}
+        onClick={this.handleConglomerateComponent}
+        style={[
+          BTN_STYLES.btnIcon,
+          BTN_STYLES.leftBtns,
+        ]}>
+        <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
+      </button>
+    );
+  }
+
+  get eventHandlerEditorButton () {
+    if (this.isEventHandlersEditorAvailable()) {
+      return (
+        <button
+          key="show-event-handlers-editor-button"
+          id="show-event-handlers-editor-button"
+          aria-label="Edit element Actions"
+          data-tooltip={true}
+          data-tooltip-bottom-right={true}
+          onClick={this.handleShowEventHandlersEditor}
+          style={[
+            BTN_STYLES.btnIcon,
+            BTN_STYLES.leftBtns,
+          ]}>
+          <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
+        </button>
+      );
+    }
+  }
+
   render () {
     const isEditModeActive = isEditMode(this.props.interactionMode);
     const isCodeModeActive = isCodeEditorMode(this.props.interactionMode);
@@ -670,35 +708,10 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className="frame">
-        <button
-          key="conglomerate-component-button"
-          id="conglomerate-component-button"
-          aria-label="Create a new Component"
-          data-tooltip={true}
-          data-tooltip-bottom-right={true}
-          onClick={this.handleConglomerateComponent}
-          style={[
-            BTN_STYLES.btnIcon,
-            BTN_STYLES.leftBtns,
-          ]}>
-          <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
-        </button>
-
-        {this.isEventHandlersEditorAvailable() &&
-          <button
-            key="show-event-handlers-editor-button"
-            id="show-event-handlers-editor-button"
-            aria-label="Edit element Actions"
-            data-tooltip={true}
-            data-tooltip-bottom-right={true}
-            onClick={this.handleShowEventHandlersEditor}
-            style={[
-              BTN_STYLES.btnIcon,
-              BTN_STYLES.leftBtns,
-            ]}>
-            <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
-          </button>
-        }
+        {isEditModeActive && [
+          this.conglomerateComponentButton,
+          this.eventHandlerEditorButton,
+        ]}
 
         {this.isAlignPanelAvailable() && <AlignToolBox
           websocket={this.props.websocket}
