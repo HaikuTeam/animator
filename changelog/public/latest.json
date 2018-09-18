@@ -12,11 +12,12 @@
       "Fixed a crash caused by forking certain projects.",
       "Added more detail to error messages resulting from attempting to save with invalid content in code mode.",
       "Minor fixes to the multiline Expressions editor.",
-      "GIFs and videos now always show the contents of the main component."
+      "GIFs and videos now always show the contents of the main component.",
       "Fixed a bug causing Timeline inputs with numbers in exponential format to display 'NaN' instead of the correct value.",
       "Fixed a bug preventing the time/frame indicator of subcomponents to update.",
       "Fixed a bug causing the Timeline ticker to behave unexpectedly in certain situations.",
-      "Fixed a bug causing the Actions editor to unexpectedly close."
+      "Fixed a bug causing the Actions editor to unexpectedly close.",
+      "Focus code editor when switching to code mode"
     ]
   }
 }

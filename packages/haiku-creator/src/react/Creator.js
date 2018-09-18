@@ -1083,7 +1083,12 @@ export default class Creator extends React.Component {
       this.safelyHideEventHandlersEditor();
     }
 
-    this.setState({interactionMode}, this.openPreviewDevTools);
+    this.setState({interactionMode}, () => {
+      this.openPreviewDevTools();
+      if (interactionMode === InteractionMode.CODE_EDITOR) {
+        this.refs.stage.focusCodeEditor();
+      }
+    });
   }
 
   setInteractionMode (interactionMode) {
@@ -2171,9 +2176,7 @@ export default class Creator extends React.Component {
                           zIndex: 999999,
                           backgroundColor: Palette.COAL,
                         }}
-                        onClick={() => {
-                          this.setGlassInteractionToEditMode();
-                        }}
+                        onClick={this.setGlassInteractionToEditMode}
                       />
                     )
                   }

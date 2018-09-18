@@ -19,6 +19,7 @@ class CodeEditor extends React.Component {
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
     this.discardFromCodeEditor = this.discardFromCodeEditor.bind(this);
     this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this);
+    this.focusCodeEditor = this.focusCodeEditor.bind(this);
 
     this.hideBytecodeErrorPopup = () => {
       this.setState({
@@ -140,6 +141,10 @@ class CodeEditor extends React.Component {
     });
   }
 
+  focusCodeEditor () {
+    this.refs.monacoeditor.focusCodeEditor();
+  }
+
   discardFromCodeEditor () {
     this.onMonacoEditorChange(this.state.currentComponentCode);
   }
@@ -180,6 +185,7 @@ class CodeEditor extends React.Component {
             closeBytecodeErrorPopup={this.hideBytecodeErrorPopup}
           />}
         <MonacoEditor
+          ref="monacoeditor"
           language="javascript"
           theme="haiku"
           value={this.state.currentEditorContents}
