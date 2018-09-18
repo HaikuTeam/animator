@@ -20,6 +20,13 @@ const STYLES = {
   modalBody: {
     padding: '20px',
   },
+  code: {
+    fontFamily: 'Fira Mono',
+    backgroundColor: Palette.SPECIAL_COAL,
+    overflow: 'auto',
+    fontSize: '13px',
+    padding: '4px',
+  },
 };
 
 class BytecodeErrorPopup extends React.Component {
@@ -29,18 +36,28 @@ class BytecodeErrorPopup extends React.Component {
       return;
     }
 
-    const message = error.toString();
-    const relevantStack = error.stack.slice(
-      error.stack.indexOf(':') + 1,
-      error.stack.indexOf(message) + message.length,
-    );
-    return relevantStack.split('\n').map((errorLine, index) => {
-      if (index === 0) {
-        return <div key={`bep-${index}`}>Please fix syntax errors on line {errorLine} and try again.</div>;
+    const lineNum = '?';
+    let errorMessage = error.toString();
+    if (error.name === 'ReferenceError') {
+      const res = error.stack.match(/\(.*?:(.*?):.*?\)/);
+      if (res.length === 2 && res[1]) {
+        lineNum = res[1];
       }
+    } else if (error.name === 'SyntaxError') {
+      // Captures line number and remaining of stack
+      const res = error.stack.match(/.*?:(.*?)\n([.|\S|\s]*)/);
+      if (res.length === 3 && res[1] && res[2]) {
+        lineNum = res[1];
+        // For syntax error, we slice only important part from remaining
+        // of stack, so we can show to the user where the error is
+        errorMessage = res[2].slice(0, res[2].indexOf(errorMessage) + errorMessage.length);
+      }
+    }
 
-      return <pre key={`bep-${index}`}>{errorLine}</pre>;
-    });
+    return (<div>
+      <div >Please fix error(s) on line <b>{lineNum}</b> and try again.</div>
+      <pre style={STYLES.code}>{errorMessage}</pre>
+    </div>);
   }
 
   render () {
