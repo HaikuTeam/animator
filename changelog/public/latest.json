@@ -10,8 +10,9 @@
       "Export options are now disabled outside of a project.",
       "User Menu -> Your Profile now points to the correct location.",
       "Fixed a crash caused by forking certain projects.",
-      "Improve code editor save error popup",
-      "Minor fixes to the multiline Expressions editor"
+      "Added more detail to error messages resulting from attempting to save with invalid content in code mode.",
+      "Minor fixes to the multiline Expressions editor.",
+      "GIFs and videos now always show the contents of the main component."
     ]
   }
 }
