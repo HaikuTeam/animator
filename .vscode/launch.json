@@ -44,6 +44,7 @@
       "sourceMaps": true,
       "webRoot": "${workspaceFolder}",
       "name": "attach-glass",
+      "targetTypes": null,
       "urlFilter": "*haiku-glass/index.html*"
     },
     {
@@ -71,6 +72,7 @@
       "sourceMaps": true,
       "webRoot": "${workspaceFolder}",
       "name": "attach-timeline",
+      "targetTypes": null,
       "urlFilter": "*haiku-timeline/index.html*"
     },
     {
