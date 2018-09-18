@@ -944,6 +944,11 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
     prettyValue = (typeof computedValue === 'number')
       ? numeral(computedValue || 0).format(options.numFormat || '0,0[.]0')
       : computedValue
+
+    // TODO: remove this check when https://github.com/adamwdraper/Numeral-js/pull/629 is merged
+    if (isNaN(prettyValue)) {
+      prettyValue = computedValue
+    }
   }
 
   const valueUnit = Timeline.inferUnitOfValue(propertyDescriptor.name)
