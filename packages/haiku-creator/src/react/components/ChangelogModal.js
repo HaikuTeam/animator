@@ -35,9 +35,6 @@ const STYLES = {
   version: {
     fontSize: '30px',
   },
-  date: {
-    fontSize: '11px',
-  },
   logoAndVersion: {
     display: 'flex',
     alignItems: 'center',
@@ -126,7 +123,6 @@ class ChangelogModal extends React.PureComponent {
                 <LogoMicroSVG style={STYLES.iconStyle} size={24} />
                 <span style={STYLES.version}>{process.env.HAIKU_RELEASE_VERSION}</span>
               </div>
-              <time style={STYLES.date}>{changelog.date}</time>
             </div>
 
             {/* Shamefully dirty, but we need to style the content coming from
