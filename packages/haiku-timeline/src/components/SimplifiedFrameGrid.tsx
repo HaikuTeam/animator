@@ -1,15 +1,18 @@
-import * as React from 'react';
 import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
+import * as React from 'react';
 
-export default class SimplifiedFrameGrid extends React.PureComponent {
-  constructor (props) {
-    super(props);
-    this.handleUpdate = this.handleUpdate.bind(this);
-    this.defaultFrameBorder = `1px solid ${Color(Palette.COAL).fade(0.65)}`;
-    this.activeFrameBorder = `1px solid ${Color(Palette.ROCK).fade(0.8)}`;
-    this.lastHoveredFrame = 0;
-  }
+export interface SimplifiedFrameGridProps {
+  timeline: any;
+  timelineOffsetPadding: number;
+}
+
+export default class SimplifiedFrameGrid extends React.PureComponent<SimplifiedFrameGridProps> {
+  private defaultFrameBorder = `1px solid ${Color(Palette.COAL).fade(0.65)}`;
+  private activeFrameBorder = `1px solid ${Color(Palette.ROCK).fade(0.8)}`;
+  private lastHoveredFrame = 0;
+  private lastHoveredFrameEl: null|HTMLElement = null;
+  private mounted = false;
 
   componentWillUnmount () {
     this.mounted = false;
@@ -21,7 +24,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
     this.props.timeline.on('update', this.handleUpdate);
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps (nextProps: SimplifiedFrameGridProps) {
     // When switching the active component, we also get a new timeline instance
     if (nextProps.timeline !== this.props.timeline) {
       this.props.timeline.removeListener('update', this.handleUpdate);
@@ -36,17 +39,20 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
       return;
     }
 
-    const hoveredFrameEl = document.getElementById(`frame-${hoveredFrame}`);
-    const lastHoveredFrameEl = document.getElementById(`frame-${this.lastHoveredFrame}`);
+    if (this.lastHoveredFrameEl) {
+      this.lastHoveredFrameEl.style.borderLeft = this.defaultFrameBorder;
+    }
 
-    if (hoveredFrameEl && lastHoveredFrameEl) {
+    const hoveredFrameEl = document.getElementById(`frame-${hoveredFrame}`);
+
+    if (hoveredFrameEl) {
       hoveredFrameEl.style.borderLeft = this.activeFrameBorder;
-      lastHoveredFrameEl.style.borderLeft = this.defaultFrameBorder;
       this.lastHoveredFrame = hoveredFrame;
+      this.lastHoveredFrameEl = hoveredFrameEl;
     }
   }
 
-  handleUpdate (what) {
+  handleUpdate = (what: string): null => {
     if (!this.mounted) {
       return null;
     }
@@ -60,7 +66,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
     ) {
       this.forceUpdate();
     }
-  }
+  };
 
   render () {
     const propertiesWidth = this.props.timeline.getPropertiesPixelWidth();
@@ -76,7 +82,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
         }}
       >
         {this.props.timeline.mapVisibleFrames(
-          (frameNumber, pixelOffsetLeft, pixelsPerFrame, frameModulus) => {
+          (frameNumber: number, pixelOffsetLeft: number) => {
             return (
               <span
                 id={`frame-${frameNumber}`}
@@ -88,7 +94,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
                   left: pixelOffsetLeft + propertiesWidth,
                   top: 34,
                 }}
-               />
+              />
             );
           },
         )}
@@ -96,7 +102,3 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
     );
   }
 }
-
-SimplifiedFrameGrid.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
-};
