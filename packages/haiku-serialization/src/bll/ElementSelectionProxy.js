@@ -702,6 +702,8 @@ class ElementSelectionProxy extends BaseModel {
 
   handleMouseUp (mousePosition) {
     ElementSelectionProxy.snaps = []
+    // We set this._lastMouseDownPosition = undefined to imply that there isn't any mouse action in course
+    this._lastMouseDownPosition = undefined
   }
 
   // this is used specifically for the CMD key (though it is not explicitly filtered here.)
@@ -944,7 +946,9 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     // 'mousetrap' for snapping
-    if (this._shouldCaptureMousePosition || this._lastMouseDownPosition === undefined) {
+    // We assume that `this._lastMouseDownPosition === undefined` means that no mouse action is in course,
+    // so we only capture new mouse position if is true
+    if (this._shouldCaptureMousePosition && this._lastMouseDownPosition === undefined) {
       this._lastMouseDownPosition = mouseCoordsCurrent
       this._lastBbox = this.getBoundingClientRect()
       this._lastProxyBox = this.getBoxPointsTransformed()
