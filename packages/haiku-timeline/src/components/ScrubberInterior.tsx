@@ -1,16 +1,15 @@
-import * as React from 'react';
-import * as lodash from 'lodash';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import * as React from 'react';
 import zIndex from './styles/zIndex';
 
-export default class ScrubberInterior extends React.Component {
-  constructor (props) {
-    super(props);
-    this.propertiesWidth = props.timeline.getPropertiesPixelWidth();
-    this.handleUpdate = this.handleUpdate.bind(this);
-    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64);
-  }
+export interface ScrubberInteriorProps {
+  timeline: any;
+  timelineOffsetPadding: number;
+  onMouseDown: React.MouseEventHandler<HTMLElement>;
+}
+
+export default class ScrubberInterior extends React.Component<ScrubberInteriorProps> {
+  private mounted = false;
 
   componentWillUnmount () {
     this.mounted = false;
@@ -22,7 +21,7 @@ export default class ScrubberInterior extends React.Component {
     this.props.timeline.on('update', this.handleUpdate);
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps (nextProps: ScrubberInteriorProps) {
     // When switching the active component, we also get a new timeline instance
     if (nextProps.timeline !== this.props.timeline) {
       this.props.timeline.removeListener('update', this.handleUpdate);
@@ -30,7 +29,7 @@ export default class ScrubberInterior extends React.Component {
     }
   }
 
-  handleUpdate (what) {
+  handleUpdate = (what: string): null => {
     if (!this.mounted) {
       return null;
     }
@@ -44,13 +43,13 @@ export default class ScrubberInterior extends React.Component {
     } else if (what === 'timeline-scroll' || 'timeline-scroll-from-scrollbar') {
       this.forceUpdate();
     }
-  }
+  };
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
     const currFrame = this.props.timeline.getCurrentFrame();
     const pxOffset = currFrame * frameInfo.pxpf;
-    const translation = this.propertiesWidth + pxOffset + this.props.timelineOffsetPadding;
+    const translation = this.props.timeline.getPropertiesPixelWidth() + pxOffset + this.props.timelineOffsetPadding;
 
     return (
       <div
@@ -77,35 +76,42 @@ export default class ScrubberInterior extends React.Component {
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
             willChange: 'transform',
             transform: `translate3D(${translation}px, 0, 0)`,
-          }}>
-          <span style={{
-            position: 'absolute',
-            top: 1,
-            left: 0,
-            width: '100%',
-          }}>
+          }}
+        >
+          <span
+            style={{
+              position: 'absolute',
+              top: 1,
+              left: 0,
+              width: '100%',
+            }}
+          >
             {this.props.timeline.getDisplayTime()}
           </span>
-          <span style={{
-            position: 'absolute',
-            width: 0,
-            height: 0,
-            top: 13,
-            left: 1,
-            borderLeft: '6px solid transparent',
-            borderRight: '6px solid transparent',
-            borderTop: '9px solid rgb(254, 254, 254)',
-          }} />
-          <span style={{
-            position: 'absolute',
-            width: 0,
-            height: 0,
-            top: 15,
-            left: 2,
-            borderLeft: '6px solid transparent',
-            borderRight: '6px solid transparent',
-            borderTop: '8px solid rgb(254, 254, 254)',
-          }} />
+          <span
+            style={{
+              position: 'absolute',
+              width: 0,
+              height: 0,
+              top: 13,
+              left: 1,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '9px solid rgb(254, 254, 254)',
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              width: 0,
+              height: 0,
+              top: 15,
+              left: 2,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '8px solid rgb(254, 254, 254)',
+            }}
+          />
         </div>
         <div
           style={{
@@ -123,8 +129,3 @@ export default class ScrubberInterior extends React.Component {
     );
   }
 }
-
-ScrubberInterior.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
-  onMouseDown: React.PropTypes.func,
-};
