@@ -16,7 +16,8 @@
       "Fixed a bug causing Timeline inputs with numbers in exponential format to display 'NaN' instead of the correct value.",
       "Fixed a bug preventing the time/frame indicator of subcomponents to update.",
       "Fixed a bug causing the Timeline ticker to behave unexpectedly in certain situations.",
-      "Fixed a bug causing the Actions editor to unexpectedly close."
+      "Fixed a bug causing the Actions editor to unexpectedly close.",
+      "Do not allow Timeline rows to be dragged over the controls on the top."
     ]
   }
 }
