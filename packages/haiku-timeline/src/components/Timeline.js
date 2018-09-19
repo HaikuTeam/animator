@@ -1597,6 +1597,7 @@ class Timeline extends React.Component {
           component={this.getActiveComponent()}
           timeline={timeline}
           onCommitValue={this.onCommitValue}
+          windowHeight={window.innerHeight}
           onFocusRequested={() => {
             const selected = this.getActiveComponent().getSelectedRows()[0];
             if (selected.isProperty()) {

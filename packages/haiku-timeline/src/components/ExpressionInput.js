@@ -48,15 +48,10 @@ const EXPR_KINDS = {
   MACHINE: 2, // To be written as a function
 };
 
-const ANY_TYPES = {
-  '*': true,
-  any: true,
-};
-
 const SET_VALUE_ORIGIN = 'setValue';
 
 const EDITOR_LINE_HEIGHT = 24;
-const MAX_EDITOR_HEIGHT = 300;
+const MAX_EDITOR_HEIGHT_RATIO = 0.45;
 const MIN_EDITOR_WIDTH_MULTILINE = 200;
 const MAX_EDITOR_WIDTH_MULTILINE = 600;
 const MIN_EDITOR_WIDTH_SINGLE_LINE = 140;
@@ -944,8 +939,8 @@ export default class ExpressionInput extends React.Component {
       case EDITOR_MODES.MULTI_LINE:
         rowh = rowh - 4; // Ends up a bit too big...
         let finalh = rowh * this.getTotalLineCount();
-        if (finalh > MAX_EDITOR_HEIGHT) {
-          finalh = MAX_EDITOR_HEIGHT;
+        if (finalh > this.props.windowHeight * MAX_EDITOR_HEIGHT_RATIO) {
+          finalh = this.props.windowHeight * MAX_EDITOR_HEIGHT_RATIO;
         }
         return ~~finalh;
       default: return rowh;
