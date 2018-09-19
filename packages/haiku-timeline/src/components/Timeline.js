@@ -1471,6 +1471,13 @@ class Timeline extends React.Component {
                         index={indexOfGroup}
                       >
                         {(providedDraggable) => {
+                          // HACK: Don't allow the draggable element to be positioned above the top bar controls
+                          const {transform, top} = providedDraggable.draggableProps.style;
+                          const transformXRegex = /(\d*)px\)/;
+                          if (transform && top && top - parseInt(transform.match(transformXRegex)[1], 10) <= 35) {
+                            providedDraggable.draggableProps.style.transform = transform.replace(transformXRegex, `${top - 35}px)`);
+                          }
+
                           return (
                             <div>
                               <div
