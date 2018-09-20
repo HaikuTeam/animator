@@ -255,7 +255,7 @@ export default class TransitionBody extends React.Component {
               : 'move',
           }}>
           <span
-            className="pill js-avoid-marquee-init"
+            className={`pill ${this.props.keyframe.isWithinCollapsedRow() ? '' : 'js-avoid-marquee-init'}`}
             style={{
               position: 'absolute',
               zIndex: 1001,
