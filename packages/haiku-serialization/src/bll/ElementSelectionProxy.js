@@ -697,7 +697,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   handleMouseDown (mousePosition) {
-    this._shouldCaptureMousePosition = true
+    ElementSelectionProxy._shouldCaptureMousePosition = true
   }
 
   handleMouseUp (mousePosition) {
@@ -710,7 +710,7 @@ class ElementSelectionProxy extends BaseModel {
   // if we don't "recapture" mouse position when CMD is released, the element will unexpectedly
   // jolt back to its original position pre-drag.
   handleKeyUp () {
-    this._shouldCaptureMousePosition = true
+    ElementSelectionProxy._shouldCaptureMousePosition = true
   }
 
   // snapDefinitions are the element-side 'snap points' (lines)
@@ -946,9 +946,9 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     // 'mousetrap' for snapping
-    // We assume that `this._lastMouseDownPosition === undefined` means that no mouse action is in course,
-    // so we only capture new mouse position if is true
-    if (this._shouldCaptureMousePosition && this._lastMouseDownPosition === undefined) {
+    // We assume that `ElementSelectionProxy._shouldCaptureMousePosition === undefined` means that no
+    // mouse action is in course, so we only capture new mouse position if is true
+    if (ElementSelectionProxy._shouldCaptureMousePosition && this._lastMouseDownPosition === undefined) {
       this._lastMouseDownPosition = mouseCoordsCurrent
       this._lastBbox = this.getBoundingClientRect()
       this._lastProxyBox = this.getBoxPointsTransformed()
@@ -957,7 +957,7 @@ class ElementSelectionProxy extends BaseModel {
       this._lastOrigins = this.selection.map((elem) => {
         return elem.getOriginTransformed()
       })
-      this._shouldCaptureMousePosition = false
+      ElementSelectionProxy._shouldCaptureMousePosition = false
     }
 
     // track mouse positions, offsets, and original bounding boxes for snapping
@@ -2387,6 +2387,9 @@ const isWithinEpsilon = (v0, v1, override) => {
 
 // Storage for snap lines data
 ElementSelectionProxy.snaps = []
+// Storage to preserve `_shouldCaptureMousePosition` set on handleMouseDown method on former ElementSelectionProxy
+// instance up to `drag` method on newly created ElementSelectionProxy instance
+ElementSelectionProxy._shouldCaptureMousePosition = false
 
 ElementSelectionProxy.fromSelection = (selection, query) => {
   const uid = selection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'
