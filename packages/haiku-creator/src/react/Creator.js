@@ -789,24 +789,6 @@ export default class Creator extends React.Component {
       }
     });
 
-    this.props.websocket.on('method', (method, params, message, cb) => {
-      // Harness to enable cross-subview integration testing
-      if (method === 'executeFunctionSpecification') {
-        return Project.executeFunctionSpecification(
-          {creator: this},
-          'creator',
-          lodash.assign(
-            {
-              creator: this,
-              project: this.state.projectModel,
-            },
-            params[0],
-          ),
-          cb,
-        );
-      }
-    });
-
     this.activityMonitor.startWatchers();
 
     this.envoyClient = new EnvoyClient(this.envoyOptions);

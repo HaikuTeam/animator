@@ -569,24 +569,6 @@ export class Glass extends React.Component {
       this.performPan(evt.wheelDeltaX * SCROLL_PAN_COEFFICIENT, evt.wheelDeltaY * SCROLL_PAN_COEFFICIENT);
     }, false);
 
-    this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
-      // Harness to enable cross-subview integration testing
-      if (method === 'executeFunctionSpecification') {
-        return Project.executeFunctionSpecification(
-          {glass: this},
-          'glass',
-          lodash.assign(
-            {
-              glass: this,
-              project: this.project,
-            },
-            params[0],
-          ),
-          cb,
-        );
-      }
-    });
-
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
       logger.info('relay received', message.name, 'from', message.from);
 
