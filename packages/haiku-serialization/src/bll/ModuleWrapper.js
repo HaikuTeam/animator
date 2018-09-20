@@ -124,6 +124,18 @@ class ModuleWrapper extends BaseModel {
     return abspath
   }
 
+  getGlobalHotCache () {
+    return MODULE_CACHE_HOT
+  }
+
+  getGlobalColdCache () {
+    return MODULE_CACHE_COLD
+  }
+
+  getGlobalRequireCache () {
+    return require.cache
+  }
+
   load () {
     overrideModulesLoaded(
       (stop) => {

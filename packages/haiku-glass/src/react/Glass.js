@@ -669,35 +669,6 @@ export class Glass extends React.Component {
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
-        case 'remote-model:receive-sync':
-          BaseModel.receiveSync(message);
-          break;
-
-        case 'component:reload':
-          // Race condition where Master emits this event during initial load of assets in
-          // a project, resulting in this message arriving before we've initialized
-          if (this.getActiveComponent()) {
-            return this.getActiveComponent().moduleReplace((err) => {
-              // Notify the plumbing that the module replacement here has finished;
-              // Note how we do this whether or not we got an error from the action
-              this.props.websocket.send({
-                type: 'broadcast',
-                name: 'component:reload:complete',
-                from: 'glass',
-              });
-
-              if (err) {
-                logger.error(err);
-                return;
-              }
-
-              this.getActiveComponent().getArtboard().updateMountSize(this.refs.container);
-            });
-          }
-
-          logger.warn('active component not initialized; cannot reload');
-          return;
-
         case 'event-handlers-editor-open':
           this.setState({isEventHandlerEditorOpen: true});
           break;
@@ -796,6 +767,7 @@ export class Glass extends React.Component {
 
         case 'assets-changed':
           File.cache.clear();
+          this.project && this.project.reloadAssets(message.assets, () => {});
           break;
       }
     });

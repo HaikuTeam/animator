@@ -22,7 +22,6 @@ import {EventEmitter} from 'events';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Watcher from './Watcher';
 import MasterGitProject from './MasterGitProject';
-import MasterModuleProject from './MasterModuleProject';
 import getExporterListener from './envoy/getExporterListener';
 import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
@@ -140,17 +139,6 @@ export default class Master extends EventEmitter {
       this.handleSemverTagChange(tag, cb);
     });
 
-    // Encapsulation of project actions that concern the live module in other views
-    this._mod = new MasterModuleProject(this.folder);
-
-    this._mod.on('component:reload', (file) => {
-      // Our bytecode and models have to be up to date before we can receive actions
-      // We update ours first since we need to reflect what will get committed to disk
-      this.getActiveComponent().moduleReplace(() => {
-        this.emit('component:reload', this, file);
-      });
-    });
-
     // To store a Watcher instance which will watch for changes on the file system
     this._watcher = null;
 
@@ -187,11 +175,14 @@ export default class Master extends EventEmitter {
     this._wereAssetsInitiallyLoaded = false;
 
     // We end up oversaturating the sockets unless we debounce this
-    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 100, {trailing: true});
+    this.debouncedEmitAssetsChanged = debounce((assets) => {
+      this.emit('assets-changed', this, assets);
+    }, 500, {leading: false, trailing: true});
+
     this.debouncedEmitDesignNeedsMergeRequest = debounce(
       this.emitDesignNeedsMergeRequest.bind(this),
       500,
-      {trailing: true},
+      {leading: false, trailing: true},
     );
 
     this.websocket = (global.process.env.NODE_ENV === 'test')
@@ -211,15 +202,7 @@ export default class Master extends EventEmitter {
   }
 
   handleBroadcast (message) {
-    switch (message.name) {
-      case 'remote-model:receive-sync':
-        BaseModel.receiveSync(message);
-        break;
-
-      case 'component:reload:complete':
-        this._mod.handleReloadComplete(message);
-        break;
-    }
+    // no-op
   }
 
   getActiveComponent () {
@@ -260,7 +243,6 @@ export default class Master extends EventEmitter {
 
   teardown (cb) {
     clearInterval(this._methodQueueInterval);
-    clearInterval(this._mod._modificationsInterval);
     if (this.project) {
       this.project.teardown();
     }
@@ -334,11 +316,6 @@ export default class Master extends EventEmitter {
     }
 
     return cb();
-  }
-
-  emitAssetsChanged (assets) {
-    File.cache.clear();
-    return this.emit('assets-changed', this, assets);
   }
 
   emitDesignNeedsMergeRequest () {
@@ -452,14 +429,6 @@ export default class Master extends EventEmitter {
           Illustrator.importSVG({abspath});
           logger.info('[master] illustrator import done');
           return;
-        }
-
-        if (extname === '.js' && basename === 'code') {
-          const file = this.getActiveComponent() && this.getActiveComponent().fetchActiveBytecodeFile();
-
-          if (file && file.relpath === relpath) {
-            this._mod.handleModuleChange(file);
-          }
         }
       });
     });
@@ -775,7 +744,6 @@ export default class Master extends EventEmitter {
 
     logger.info(`[master] ${loggingPrefix}: ${this.folder}`);
 
-    this._mod.restart();
     this._git.restart();
 
     return fetchProjectConfigInfo(this.folder, (err, userconfig) => {

@@ -2503,9 +2503,7 @@ class ActiveComponent extends BaseModel {
 
   /**
    * @method moduleReplace
-   * @description The more severe cousin of mountApplication which also displays a message on the view
-   * indicating that reloading is occurring. This is really only used in the Glass, where code reload
-   * events can interfere with what the user is doing and a UI lock of some kind is required.
+   * @description Run this when we need to pick up changes that have occurred on disk.
    */
   moduleReplace (cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
@@ -2615,9 +2613,6 @@ class ActiveComponent extends BaseModel {
   rehydrate (options = {}) {
     logger.time('ActiveComponent#rehydrate')
 
-    // Don't allow any incoming syncs while we're in the midst of this
-    BaseModel.__sync = false
-
     this.cache.unset('displayableRows')
     this.cache.unset('getTemplateNodesByComponentId')
 
@@ -2669,9 +2664,6 @@ class ActiveComponent extends BaseModel {
         row._wasInitiallyExpanded = true
       }
     }
-
-    // Now that we have all the initial models ready, we can receive syncs
-    BaseModel.__sync = true
 
     logger.timeEnd('ActiveComponent#rehydrate')
   }

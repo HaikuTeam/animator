@@ -4,7 +4,7 @@ const fse = require('haiku-fs-extra')
 const Project = require('./../../src/bll/Project')
 
 tape('Project', (t) => {
-  t.plan(16)
+  t.plan(15)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'project-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -22,7 +22,6 @@ tape('Project', (t) => {
       t.deepEqual(project.getFolder(), folder)
       t.deepEqual(project.getAlias(), 'test')
       t.true(project.buildFileUid('foo/bar/baz.js').endsWith('haiku-serialization/test/fixtures/projects/project-01/foo/bar/baz.js'))
-      t.ok(project.getPlatform().haiku.registry[project.buildFileUid('code/main/code.js')])
       t.ok(project.getEnvoyClient())
       websocket.send = () => {}
 

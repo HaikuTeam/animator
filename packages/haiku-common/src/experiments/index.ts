@@ -44,6 +44,7 @@ export enum Experiment {
   GlassControlPointShadows = 'GlassControlPointShadows',
   DumpBase64Images = 'DumpBase64Images',
   WindowMenu = 'WindowMenu',
+  LocalMarketplace = 'LocalMarketplace',
 }
 
 /**

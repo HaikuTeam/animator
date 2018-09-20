@@ -1,15 +1,8 @@
 const { EventEmitter } = require('events')
 const lodash = require('lodash')
 const Cache = require('./Cache')
-const MemoryStorage = require('./storage/MemoryStorage')
-const DiskStorage = require('./storage/DiskStorage')
 const CryptoUtils = require('./../utils/CryptoUtils')
 const EmitterManager = require('./../utils/EmitterManager')
-const logger = require('./../utils/LoggerInstance')
-const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
-const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
-
-const SYNC_DEBOUNCE_TIME = 100 // ms
 
 /**
  * @class BaseModel
@@ -66,14 +59,6 @@ class BaseModel extends EventEmitter {
       }
     }
 
-    // Whether or not we should actively sync to remote instances of this model
-    this.__sync = false
-
-    // Allow us to freely call sync on any update without backing up websockets
-    this.syncDebounced = lodash.debounce(() => {
-      this.sync()
-    }, SYNC_DEBOUNCE_TIME)
-
     // Enough models have this relationship that we provide it from BaseModel;
     // we set this before .assign() though in case they were provided in the constructor
     this.parent = null
@@ -82,14 +67,12 @@ class BaseModel extends EventEmitter {
     // Generic cache object that can store 'anything' that model instances want.
     this.cache = new Cache()
 
-    // Assign initial attributes. Note that __sync is falsy until later
+    // Assign initial attributes.
     this.assign(props)
 
     if (!this.getPrimaryKey()) {
       this.setPrimaryKey(this.generateUniqueId())
     }
-
-    this.__storage = 'mem'
 
     // Tracking when we were last updated can be used to optimize UI updates
     this.__updated = Date.now()
@@ -106,9 +89,6 @@ class BaseModel extends EventEmitter {
     if (this.afterInitialize) {
       this.afterInitialize()
     }
-
-    // Now that we're done constructing, assume we're ready to send syncs
-    this.__sync = true
 
     if (this.constructor.config.useQueryCache) {
       this.__proxy = new Proxy(this, {
@@ -237,7 +217,6 @@ class BaseModel extends EventEmitter {
 
   set (key, value) {
     this[key] = value
-    this.syncDebounced()
   }
 
   destroy () {
@@ -245,7 +224,6 @@ class BaseModel extends EventEmitter {
     this.constructor.remove(this)
     this.constructor.clearCaches()
     this.__destroyed = Date.now()
-    this.syncDebounced()
   }
 
   isDestroyed () {
@@ -336,255 +314,9 @@ class BaseModel extends EventEmitter {
   off (channel, fn) {
     return this.removeListener(channel, fn)
   }
-
-  assertStorable () {
-    if (!this.constructor.toPOJO) {
-      throw new Error(`BaseModel subclass must implement 'toPOJO'`)
-    }
-
-    if (!this.constructor.fromPOJO) {
-      throw new Error(`BaseModel subclass must implement 'fromPOJO'`)
-    }
-
-    if (!BaseModel.storage) {
-      throw new Error(`BaseModel has no 'storage' configured`)
-    }
-
-    if (!this.getStorage()) {
-      throw new Error(`BaseModel has no '${this.getStorageType()} storage' configured`)
-    }
-  }
-
-  getStorageType () {
-    return this.__storage
-  }
-
-  setStorageType (type) {
-    if (!BaseModel.storage[type]) {
-      throw new Error(`BaseModel has no storage module '${type}'`)
-    }
-    this.__storage = type
-  }
-
-  getStorageModule () {
-    return BaseModel.storage[this.getStorageType()]
-  }
-
-  store () {
-    this.assertStorable()
-    const pojo = this.constructor.toPOJO(this)
-    const key = `${this.getClassName()}-${this.getKeySHA()}`
-    const storage = this.getStorageModule()
-    return storage.store(key, pojo)
-  }
-
-  unstore () {
-    this.assertStorable()
-    const key = `${this.getClassName()}-${this.getKeySHA()}`
-    const storage = this.getStorageModule()
-    const pojo = storage.unstore(key)
-    if (pojo) {
-      this.constructor.fromPOJO(pojo)
-    }
-  }
-
-  sync () {
-    if (
-      // Don't send syncs until we're globally ready to do so
-      !BaseModel.__sync ||
-      // Don't actually transmit if we aren't sync-ready yet
-      !this.__sync ||
-      // Don't try to transmit if we have no synchronize capability
-      !this.synchronize
-    ) {
-      return
-    }
-
-    this.synchronize(Object.assign(
-      this.getWireReadyPayload(),
-      {
-        name: 'remote-model:receive-sync',
-        syncIntent: (this.isDestroyed())
-          ? BaseModel.SYNC_INTENTS.destroy
-          : BaseModel.SYNC_INTENTS.upsert
-      }
-    ))
-  }
-
-  getWireReadyPayload () {
-    return {
-      className: this.getClassName(),
-      primaryKey: this.getPrimaryKey(),
-      objectAttributes: this.getWireReadyObjectAttributes()
-    }
-  }
-
-  getWireReadyObjectAttributes () {
-    return BaseModel.getWireReadyObjectAttributes(this, true, true)
-  }
-}
-
-BaseModel.SYNC_INTENTS = {
-  upsert: 'upsert',
-  destroy: 'destroy'
-}
-
-// Use this to toggle whether any model can send/receive syncs or not
-BaseModel.__sync = false // Caution: singleton
-
-BaseModel.receiveSync = ({ syncIntent, className, primaryKey, objectAttributes }) => {
-  // Don't try to receive any syncs if we aren't ready at all yet
-  if (!BaseModel.__sync) {
-    logger.warn(`BaseModel sync not ready to ${syncIntent} ${className} ${primaryKey}`)
-    return
-  }
-
-  if (!BaseModel.SYNC_INTENTS[syncIntent]) {
-    throw new Error(`BaseModel sync intent invalid; cannot receive`)
-  }
-
-  let instance
-
-  switch (syncIntent) {
-    case BaseModel.SYNC_INTENTS.upsert:
-      instance = BaseModel.upsertFromWireObjectAttributes({ className, primaryKey, objectAttributes })
-      if (instance) {
-        instance.emit('local-model:handle-sync', { syncIntent })
-      } else {
-        logger.warn(`BaseModel sync could not ${syncIntent} ${className} ${primaryKey}`)
-      }
-      break
-
-    case BaseModel.SYNC_INTENTS.destroy:
-      instance = BaseModel.instanceFromModelSpec({ className, primaryKey })
-      if (instance) {
-        instance.destroy()
-        instance.emit('local-model:handle-sync', { syncIntent })
-      } else {
-        logger.warn(`BaseModel sync could not ${syncIntent} ${className} ${primaryKey}`)
-      }
-      break
-  }
-}
-
-BaseModel.upsertFromWireObjectAttributes = ({ className, primaryKey, objectAttributes }) => {
-  const klass = BaseModel.getModelClassByClassName(className)
-
-  if (!klass) {
-    // We may not have a class yet if we're not fully bootstrapped (race condition)
-    return
-  }
-
-  const upsertSpec = {}
-
-  for (const attrKey in objectAttributes) {
-    const attrVal = objectAttributes[attrKey]
-
-    // Transform a reference to an instance into the instance itself
-    if (attrVal && attrVal.__model) {
-      upsertSpec[attrKey] = BaseModel.instanceFromModelSpec(attrVal.__model)
-      continue
-    }
-
-    upsertSpec[attrKey] = reifyRO(attrVal)
-  }
-
-  // Must set the primary key as part of the upsertSpec for the lookup to work
-  upsertSpec[klass.config.primaryKey] = primaryKey
-
-  return klass.upsert(upsertSpec, { validationOff: true })
-}
-
-BaseModel.instanceFromModelSpec = ({ className, primaryKey }) => {
-  const klass = BaseModel.getModelClassByClassName(className)
-  // In case we receive a sync before bootstrapped, don't assume we have a class
-  const instance = klass && klass.findById(primaryKey)
-  return instance // This may be undefined in race condition cases
-}
-
-BaseModel.getWireReadyObjectAttributes = (obj, isBase = false, goDeep = false) => {
-  if (
-    typeof obj === 'boolean' ||
-    typeof obj === 'number' ||
-    typeof obj === 'string' ||
-    typeof obj === 'function' ||
-    !obj
-  ) {
-    return expressionToRO(obj)
-  }
-
-  if (goDeep) {
-    if (Array.isArray(obj)) {
-      return obj.map(BaseModel.getWireReadyObjectAttributes)
-    }
-
-    const out = {}
-
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        if (
-          // Exclude any property blacklisted as reserved
-          !RESERVED_PROPERTY_KEYS[key] &&
-          // Exclude any property that matches our primary key name
-          obj.constructor.config.primaryKey !== key
-        ) {
-          const result = BaseModel.getWireReadyObjectAttributes(obj[key], false, false)
-
-          // Undefined indicates no change when upserting, to we just exclude these
-          if (result !== undefined) {
-            out[key] = result
-          }
-        }
-      }
-    }
-
-    return out
-  }
-
-  if (obj instanceof BaseModel && !goDeep) {
-    return {
-      __model: {
-        className: obj.getClassName(),
-        primaryKey: obj.getPrimaryKey()
-      }
-    }
-  }
-}
-
-// HACK: I want to blacklist all methods properties that belong to BaseModel,
-// but I can't figure out how to do it. klass.prototype[] didn't work?
-const RESERVED_PROPERTY_KEYS = {
-  __checked: true,
-  __destroyed: true,
-  __initialized: true,
-  __marked: true,
-  __proxy: true,
-  __storage: true,
-  __sync: true,
-  __updated: true,
-  _events: true,
-  _eventsCount: true,
-  _maxListeners: true,
-  _updateReceivers: true,
-  addEmitterListener: true,
-  addEmitterListenerIfNotAlreadyRegistered: true,
-  cache: true,
-  children: true,
-  options: true,
-  parent: true,
-  removeEmitterListeners: true,
-  synchronize: true,
-  sync: true,
-  syncDebounced: true,
-  uid: true
 }
 
 BaseModel.DEFAULT_OPTIONS = {}
-
-BaseModel.storage = {
-  mem: new MemoryStorage(),
-  disk: new DiskStorage()
-}
 
 BaseModel.extensions = []
 

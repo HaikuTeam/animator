@@ -35,5 +35,6 @@
   "ExpandTimelinePropertiesFromStageChanges": true,
   "GlassControlPointShadows": false,
   "DumpBase64Images": true,
-  "WindowMenu": false
+  "WindowMenu": false,
+  "LocalMarketplace": true
 }

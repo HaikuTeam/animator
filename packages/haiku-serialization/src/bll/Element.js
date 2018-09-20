@@ -2221,10 +2221,6 @@ Element.upsertElementFromVirtualElement = (
     throw new Error('component argument must have a `project` defined')
   }
 
-  if (!component.project.getPlatform()) {
-    throw new Error('component project must be able to return a platform object')
-  }
-
   if (!component.project.getMetadata()) {
     throw new Error('component proct must be able to return a metadata object')
   }

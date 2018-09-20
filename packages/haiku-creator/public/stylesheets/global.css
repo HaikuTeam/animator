@@ -453,3 +453,14 @@ input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
 .button-css-transform:active {
   transform: scale(0.9);
 }
+
+/*
+This prevents the scrollbar from appearing visibly in the library panel
+when we have y-overflow. This is hacky but I couldn't figure out a quick way
+for library search flexbox layout to look clean when the scrollbar would
+appear and disappear at will. If we don't like hiding the scrollbar, we
+can just remove this rule.
+*/
+#library-content-wrap::-webkit-scrollbar {
+  display: none;
+}

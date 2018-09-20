@@ -163,7 +163,6 @@ class ComponentInfoInspector extends React.Component {
         id="component-info-inspector-wrapper"
         style={{height: '100%', display: this.props.visible ? 'initial' : 'none'}}>
         <div
-          id="library-scroll-wrap"
           style={STYLES.sectionHeader}>
           Component Info
         </div>

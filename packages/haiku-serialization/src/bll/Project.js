@@ -65,8 +65,6 @@ class Project extends BaseModel {
       alias: this.alias
     }
 
-    this.ensurePlatformHaikuRegistry()
-
     // Batched collections of methods to send through the websocket
     this.actionStack = new ActionStack({
       uid: this.getPrimaryKey(),
@@ -248,12 +246,6 @@ class Project extends BaseModel {
     })
   }
 
-  ensurePlatformHaikuRegistry () {
-    if (!this.platform) this.platform = {}
-    if (!this.platform.haiku) this.platform.haiku = {}
-    if (!this.platform.haiku.registry) this.platform.haiku.registry = {}
-  }
-
   getName () {
     const parts = this.folder.split(path.sep)
     const last = parts[parts.length - 1]
@@ -368,10 +360,6 @@ class Project extends BaseModel {
 
   getEnvoyClient () {
     return this._envoyClient
-  }
-
-  getPlatform () {
-    return this.platform
   }
 
   undo (options, metadata, cb) {
@@ -545,6 +533,64 @@ class Project extends BaseModel {
     this.setInteractionMode(interactionMode, metadata, cb)
   }
 
+  /**
+   * @description Given a dictionary of known assets such as:
+   *   {'foo/bar.txt': {relpath: ..., abspath, dtModified: ...}, ...}
+   * Reload all of the assets in this project as appropriate, including components.
+   */
+  reloadAssets (assets, cb) {
+    const finish = (err) => {
+      if (err) {
+        return cb(err)
+      }
+
+      this.emit('assets-reloaded')
+
+      cb()
+    }
+
+    return async.eachOfSeries(assets, ({abspath, dtModified}, relpath, next) => {
+      const parts = relpath.split(path.sep)
+
+      if (parts[0] === 'code' && parts[2] === 'code.js') {
+        const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
+        // This call is a no-op if the ActiveComponent instance already.
+        // If an ActiveComponent needs to be created, this code path handles
+        // upserting the File instance, adding the instance to the multi-component tabs, etc.
+        return this.findOrCreateActiveComponent(scenename, next)
+      }
+
+      return next()
+    }, (err) => {
+      if (err) {
+        return finish(err)
+      }
+
+      const ac = this.getCurrentActiveComponent()
+      const changeDescriptor = assets[ac.getRelpath()]
+
+      if (ac && changeDescriptor) {
+        return ac.moduleReplace(finish)
+      }
+
+      return finish()
+    })
+  }
+
+  assimilateProjectSources (sourceProjectAbspath, sourceProjectName, cb) {
+    return this.websocket.method(
+      'assimilateProjectSources',
+      [
+        this.getFolder(), // destProjectAbspath
+        sourceProjectAbspath,
+        sourceProjectName
+      ],
+      (err) => {
+        return cb(err)
+      }
+    )
+  }
+
   linkAsset (assetAbspath, cb) {
     return this.websocket.request({
       folder: this.getFolder(),
@@ -655,12 +701,6 @@ class Project extends BaseModel {
   }
 
   addActiveComponentToRegistry (activeComponent) {
-    const activeComponentKey = path.join(
-      this.getFolder(),
-      activeComponent.getRelpath()
-    )
-    this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
-    this.platform.haiku.registry[activeComponentKey] = activeComponent
     this.addActiveComponentToMultiComponentTabs(activeComponent.getSceneName(), false)
   }
 
