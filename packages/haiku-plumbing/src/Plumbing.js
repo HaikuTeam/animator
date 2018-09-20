@@ -919,7 +919,8 @@ export default class Plumbing extends EventEmitter {
         return this.awaitMasterAndCallMethod(folder, method, params, nextStep);
       }
 
-      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, nextStep);
+      this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, () => {});
+      return nextStep();
     }, (err) => {
       return logAndHandleActionResult(err, cb, method, type, alias);
     });
