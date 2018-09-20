@@ -28,7 +28,6 @@ import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
-import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {
@@ -89,6 +88,7 @@ const Q_CREATOR = {alias: 'creator'};
 const Q_MASTER = {alias: 'master'};
 
 const AWAIT_INTERVAL = 100;
+const WAIT_DELAY = 30 * 1000;
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -558,7 +558,7 @@ export default class Plumbing extends EventEmitter {
     }));
   }
 
-  awaitClientWithQuery (query, cb) {
+  awaitClientWithQuery (query, timeout, cb) {
     if (!query) {
       throw new Error('Query is required');
     }
@@ -573,6 +573,11 @@ export default class Plumbing extends EventEmitter {
       }
     }
 
+    if (timeout <= 0) {
+      logger.warn(`[plumbing] timed out waiting for client ${JSON.stringify(fixed)}`);
+      return cb(new Error('E_TIMEOUT'));
+    }
+
     const clientMatching = find(
       this.clients,
       {params: fixed},
@@ -583,7 +588,7 @@ export default class Plumbing extends EventEmitter {
     }
 
     return setTimeout(() => {
-      return this.awaitClientWithQuery(query, cb);
+      return this.awaitClientWithQuery(query, timeout - AWAIT_INTERVAL, cb);
     }, AWAIT_INTERVAL);
   }
 
@@ -606,13 +611,15 @@ export default class Plumbing extends EventEmitter {
 
     logger.info(`[plumbing] relaying ${message.name} to ${message.view}`);
 
-    return this.awaitClientWithQuery(clientQuery, (_, client) => {
-      return this.sendClientMessage(client, message);
+    return this.awaitClientWithQuery(clientQuery, WAIT_DELAY, (_, client) => {
+      if (client) {
+        return this.sendClientMessage(client, message);
+      }
     });
   }
 
   sendQueriedClientMethod (query = {}, method, params = [], cb) {
-    return this.awaitClientWithQuery(query, (err, client) => {
+    return this.awaitClientWithQuery(query, WAIT_DELAY, (err, client) => {
       if (err) {
         return cb(err);
       }

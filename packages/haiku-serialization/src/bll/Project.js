@@ -10,7 +10,6 @@ const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
-const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
 const Lock = require('./Lock')
