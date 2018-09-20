@@ -362,43 +362,6 @@ export default class Plumbing extends EventEmitter {
   }
 
   /**
-   * @method executeFunction
-   * @param views {Array} List of all views in which to execute the function
-   * @param data {Object} Data object to pass to the function on each execution
-   * @param fn {Function} The function to execute
-   * @param cb {Function} The callback to call when finished
-   * @description Execute an arbitrary function in all of the subviews.
-   * The this-binding of the function will be an instance of Project, if available.
-   */
-  executeFunction (views, data, fn, cb) {
-    const outputs = {};
-    return async.eachSeries(views, (alias, next) => {
-      const finish = (err, result) => {
-        if (err) {
-          return next(err);
-        }
-        outputs[alias] = result;
-        return next();
-      };
-      if (alias === 'plumbing') {
-        return fn.call({plumbing: this}, data, finish);
-      }
-      const rfo = lodash.assign(functionToRFO(fn).__function, data);
-      return this.sendQueriedClientMethod(
-        lodash.assign({alias}, data),
-        'executeFunctionSpecification',
-        [rfo, {from: 'plumbing'}],
-        finish,
-      );
-    }, (err) => {
-      if (err) {
-        return cb(err);
-      }
-      return cb(null, outputs);
-    });
-  }
-
-  /**
    * @method invokeAction
    * @description Convenience wrapper around making a generic action call
    */
