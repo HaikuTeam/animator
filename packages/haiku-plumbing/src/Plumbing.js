@@ -83,24 +83,12 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   unhoverElement: true,
 };
 
-const METHOD_MESSAGES_TIMEOUT = 15000;
-const METHODS_TO_AWAIT_FOREVER = {
-  bootstrapProject: true,
-  setCurrentActiveComponent: true,
-  setInteractionMode: true,
-  startProject: true,
-  initializeFolder: true,
-  saveProject: true,
-  teardownMaster: true,
-};
-
 const Q_GLASS = {alias: 'glass'};
 const Q_TIMELINE = {alias: 'timeline'};
 const Q_CREATOR = {alias: 'creator'};
 const Q_MASTER = {alias: 'master'};
 
 const AWAIT_INTERVAL = 100;
-const WAIT_DELAY = 30 * 1000;
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -488,59 +476,29 @@ export default class Plumbing extends EventEmitter {
     const nextMethodMessage = this._methodMessages.shift();
 
     if (!nextMethodMessage) {
-      return setTimeout(this.executeMethodMessagesWorker.bind(this), 64);
+      return setTimeout(() => this.executeMethodMessagesWorker(), 64);
     }
 
     const {type, alias, folder, message, cb} = nextMethodMessage;
 
     this.methodMessageBeforeLog(message, alias);
 
-    // If it takes too long for us to get a response for a method, kick start the queue
-    // again so we don't hang when important new messages are being received
-    let timedOut = false;
-    let gotResponse = false;
-
-    if (!METHODS_TO_AWAIT_FOREVER[message.method]) {
-      setTimeout(() => {
-        timedOut = true;
-        if (!gotResponse) {
-          logger.warn(`[plumbing] timed out waiting for ${message.method}; restarting worker`);
-          this.executeMethodMessagesWorker();
-        }
-      }, METHOD_MESSAGES_TIMEOUT);
-    }
-
     // Actions are a special case of methods that end up routed through all of the clients,
     // glass -> timeline -> master before returning. They go through one handler as opposed
     // to the normal 'methods' which plumbing handles on a more a la carte basis
     if (message.type === 'action') {
       return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
-        if (timedOut) {
-          logger.warn(`[plumbing] received late response from timed out action ${message.method}`);
-        }
 
         this.methodMessageAfterLog(message, err, result, alias);
         cb(err, result);
-
-        if (!timedOut) {
-          gotResponse = true;
-          this.executeMethodMessagesWorker(); // Continue with the next queue entry (if any)
-        }
+        this.executeMethodMessagesWorker();
       });
     }
 
     return this.plumbingMethod(message.method, message.params || [], (err, result) => {
-      if (timedOut) {
-        logger.warn(`[plumbing] received late response from timed out method ${message.method}`);
-      }
-
       this.methodMessageAfterLog(message, err, result, alias);
       cb(err, result);
-
-      if (!timedOut) {
-        gotResponse = true;
-        this.executeMethodMessagesWorker(); // Continue with the next queue entry (if any)
-      }
+      this.executeMethodMessagesWorker();
     });
   }
 
@@ -637,7 +595,7 @@ export default class Plumbing extends EventEmitter {
     }));
   }
 
-  awaitClientWithQuery (query, timeout, cb) {
+  awaitClientWithQuery (query, cb) {
     if (!query) {
       throw new Error('Query is required');
     }
@@ -652,11 +610,6 @@ export default class Plumbing extends EventEmitter {
       }
     }
 
-    if (timeout <= 0) {
-      logger.warn(`[plumbing] timed out waiting for client ${JSON.stringify(fixed)}`);
-      return null;
-    }
-
     const clientMatching = find(
       this.clients,
       {params: fixed},
@@ -667,7 +620,7 @@ export default class Plumbing extends EventEmitter {
     }
 
     return setTimeout(() => {
-      return this.awaitClientWithQuery(query, timeout - AWAIT_INTERVAL, cb);
+      return this.awaitClientWithQuery(query, cb);
     }, AWAIT_INTERVAL);
   }
 
@@ -690,46 +643,23 @@ export default class Plumbing extends EventEmitter {
 
     logger.info(`[plumbing] relaying ${message.name} to ${message.view}`);
 
-    return this.awaitClientWithQuery(clientQuery, WAIT_DELAY, (err, client) => {
-      if (err) {
-        return logger.warn(`[plumbing] timed out awaiting relay client ${JSON.stringify(clientQuery)}`);
-      }
-
+    return this.awaitClientWithQuery(clientQuery, (_, client) => {
       return this.sendClientMessage(client, message);
     });
   }
 
   sendQueriedClientMethod (query = {}, method, params = [], cb) {
-    return this.awaitClientWithQuery(query, WAIT_DELAY, (err, client) => {
+    return this.awaitClientWithQuery(query, (err, client) => {
       if (err) {
         return cb(err);
       }
 
-      // Give a maximum of 10 seconds before forcing a crash if the client doesn't respond.
-      // If the page crashes before sending the result, we might not find out and could lose work.
-      let responseReceived = false;
-      let timedOut = false;
-
-      // In dev, we may use a debugger in which case we don't want to force a timeout
-      setTimeout(() => {
-        timedOut = true;
-
-        if (!responseReceived) {
-          logger.warn(`[plumbing] timed out sending ${method} to client ${JSON.stringify(query)}`);
-        }
-      }, WAIT_DELAY);
-
       return this.sendClientMethod(client, method, params, (error, response) => {
-        responseReceived = true;
-
-        if (!timedOut || METHODS_TO_AWAIT_FOREVER[method]) {
-          if (error) {
-            this.sentryError(method, error, {tags: query});
-            return cb(error);
-          }
-
-          return cb(null, response);
+        if (error) {
+          this.sentryError(method, error, {tags: query});
         }
+
+        return cb(error, response);
       });
     });
   }
