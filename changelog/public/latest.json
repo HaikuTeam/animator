@@ -17,6 +17,7 @@
       "Fixed a bug preventing the time/frame indicator of subcomponents to update.",
       "Fixed a bug causing the Timeline ticker to behave unexpectedly in certain situations.",
       "Fixed a bug causing the Actions editor to unexpectedly close.",
+      "Do not allow Timeline rows to be dragged over the controls on the top.",
       "Focus code editor when switching to code mode"
     ]
   }
