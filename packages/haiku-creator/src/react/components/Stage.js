@@ -54,6 +54,7 @@ class Stage extends React.Component {
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
     this.executeActionAfterCodeEditorSavePopup = this.executeActionAfterCodeEditorSavePopup.bind(this);
     this.closeCodeEditorSavePopup = this.closeCodeEditorSavePopup.bind(this);
+    this.focusCodeEditor = this.focusCodeEditor.bind(this);
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
@@ -105,6 +106,10 @@ class Stage extends React.Component {
     } else {
       this.props.setGlassInteractionToPreviewMode();
     }
+  }
+
+  focusCodeEditor () {
+    this.refs.codeeditor.focusCodeEditor();
   }
 
   executeActionAfterCodeEditorSavePopup () {
