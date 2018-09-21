@@ -20,7 +20,8 @@
       "Fixed a bug preventing Timeline marquee selection to start from within collapsed rows.",
       "Added better logic to calculate the size of the Timeline multiline expressions editor on different sizes.",
       "Do not allow Timeline rows to be dragged over the controls on the top.",
-      "Focus code editor when switching to code mode"
+      "Focus code editor when switching to code mode",
+      "Fixed wrong result when pressing ctrl during element mouse scaling"
     ]
   }
 }
