@@ -175,12 +175,40 @@ export default class Master extends EventEmitter {
     this._wereAssetsInitiallyLoaded = false;
 
     // We end up oversaturating the sockets unless we debounce this
-    this.debouncedEmitAssetsChanged = debounce((assets) => {
-      this.emit('assets-changed', this, assets);
-    }, 500, {leading: false, trailing: true});
+    this.debouncedEmitAssetsChanged = debounce(
+      (assets) => {
+        if (this.project && this.project.getCurrentActiveComponent()) {
+          logger.info('[master] reload assets requested');
+          this.project.reloadAssets(
+            assets,
+            {from: 'master'},
+            () => {
+              logger.info(`[master] finished reload assets`);
+            },
+          );
+        }
+      },
+      500,
+      {leading: false, trailing: true},
+    );
 
     this.debouncedEmitDesignNeedsMergeRequest = debounce(
-      this.emitDesignNeedsMergeRequest.bind(this),
+      () => {
+        const designs = this._designsPendingMerge;
+        if (Object.keys(designs).length > 0) {
+          logger.info('[master] merge designs requested');
+          if (this.project && this.project.getCurrentActiveComponent()) {
+            this._designsPendingMerge = {};
+            this.project.mergeDesigns(
+              designs,
+              {from: 'master'},
+              () => {
+                logger.info(`[master] finished merge designs`);
+              },
+            );
+          }
+        }
+      },
       500,
       {leading: false, trailing: true},
     );
@@ -318,23 +346,6 @@ export default class Master extends EventEmitter {
     return cb();
   }
 
-  emitDesignNeedsMergeRequest () {
-    const designs = this._designsPendingMerge;
-    if (Object.keys(designs).length > 0) {
-      logger.info('[master] merge designs requested');
-      if (this.project && this.project.getCurrentActiveComponent()) {
-        this._designsPendingMerge = {};
-        this.project.mergeDesigns(
-          designs,
-          {from: 'master'},
-          () => {
-            logger.info(`[master] finished merge designs`);
-          },
-        );
-      }
-    }
-  }
-
   batchDesignMergeRequest (relpath, abspath) {
     this._designsPendingMerge[relpath] = abspath;
     return this;
@@ -389,9 +400,29 @@ export default class Master extends EventEmitter {
     if (doSkipFile(relpath)) {
       return;
     }
+
+    if (path.basename(relpath) === 'code.js') { // Local component file
+      this.trackAsset(relpath, abspath, Date.now(), Date.now());
+    }
+
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {});
     });
+  }
+
+  trackAsset (relpath, abspath, dtModified, dtModifiedExternally) {
+    if (!this._knownLibraryAssets[relpath]) {
+      this._knownLibraryAssets[relpath] = {};
+    }
+
+    Object.assign(this._knownLibraryAssets[relpath], {
+      abspath,
+      dtModified,
+    });
+
+    if (dtModifiedExternally) {
+      this._knownLibraryAssets[relpath].dtModifiedExternally = dtModifiedExternally;
+    }
   }
 
   handleFileChange (abspath) {
@@ -399,15 +430,16 @@ export default class Master extends EventEmitter {
     if (doSkipFile(relpath)) {
       return;
     }
+
     const extname = path.extname(relpath);
     const basename = path.basename(relpath, extname);
 
     if (Asset.isDesignAsset(abspath)) {
       dumpBase64Images(abspath, relpath, this.folder, this._watcher, true);
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitComponentChange(relpath);
     }
 
@@ -444,10 +476,10 @@ export default class Master extends EventEmitter {
 
     if (Asset.isDesignAsset(abspath)) {
       dumpBase64Images(abspath, relpath, this.folder, this._watcher, true);
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitComponentChange(relpath);
     }
 
@@ -569,9 +601,9 @@ export default class Master extends EventEmitter {
         const parts = relpath.split(path.sep);
         if (DESIGN_EXTNAMES[extname]) {
           dumpBase64Images(entry.path, relpath, this.folder, this._watcher);
-          this._knownLibraryAssets[relpath] = {relpath, abspath: entry.path, dtModified: Date.now()};
+          this.trackAsset(relpath, entry.path, Date.now(), Date.now());
         } else if (parts[0] === 'code' && basename === 'code.js') { // Component bytecode file
-          this._knownLibraryAssets[relpath] = {relpath, abspath: entry.path, dtModified: Date.now()};
+          this.trackAsset(relpath, entry.path, Date.now(), Date.now());
         }
       });
       return this.getAssets(cb);

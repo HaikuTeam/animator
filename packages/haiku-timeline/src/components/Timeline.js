@@ -467,11 +467,6 @@ class Timeline extends React.Component {
           }
           break;
 
-        case 'assets-changed':
-          File.cache.clear();
-          this.project && this.project.reloadAssets(message.assets, () => {});
-          break;
-
         case 'ui:hide-intercom':
           if (window.Intercom) {
             window.Intercom('hide');

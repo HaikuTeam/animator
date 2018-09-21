@@ -1009,22 +1009,6 @@ Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions, 
       envoyHandlers,
     );
 
-    master.on('assets-changed', (master, assets) => {
-      File.cache.clear();
-      if (master.project) {
-        master.project.reloadAssets(assets, () => {
-          remote({
-            assets,
-            type: 'broadcast',
-            name: 'assets-changed',
-            folder: master.folder,
-          }, () => {
-            // no-op
-          });
-        });
-      }
-    });
-
     master.on('project-state-change', (payload) => {
       remote(lodash.assign({
         type: 'broadcast',

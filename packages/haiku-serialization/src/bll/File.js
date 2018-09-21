@@ -141,7 +141,9 @@ class File extends BaseModel {
 
     // We track this whether or not we actually write to disk so we can use it to determine
     // whether a module reload is required to retrieve the latest contents from disk.
-    this.dtLastWriteStart = Date.now()
+    // It's assumed that the last write-time is the last reload-time, i.e., the most recent
+    // in-mem snapshot with respect to what exists on disk.
+    this.component.dtLastReload = Date.now()
 
     if (!this.options.doWriteToDisk) {
       return

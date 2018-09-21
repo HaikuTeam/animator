@@ -802,11 +802,6 @@ export default class Creator extends React.Component {
         case 'show-confirm-group-popup':
           this.handleShowConfirmGroupPopup(message.groupOrUngroup);
           break;
-
-        case 'assets-changed':
-          File.cache.clear();
-          this.state.projectModel && this.state.projectModel.reloadAssets(message.assets, () => {});
-          break;
       }
     });
 

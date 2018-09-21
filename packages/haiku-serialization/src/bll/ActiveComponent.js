@@ -183,6 +183,8 @@ class ActiveComponent extends BaseModel {
       this.commitAccumulatedKeyframeMoves.bind(this),
       KEYFRAME_MOVE_DEBOUNCE_TIME
     )
+
+    this.dtLastReload = Date.now()
   }
 
   findElementRoot () {
@@ -2331,7 +2333,10 @@ class ActiveComponent extends BaseModel {
   }
 
   moduleReload (moduleReloadMethod = 'basicReload', cb) {
-    return this.fetchActiveBytecodeFile().mod[moduleReloadMethod](cb)
+    return this.fetchActiveBytecodeFile().mod[moduleReloadMethod]((err) => {
+      this.dtLastReload = Date.now()
+      cb(err)
+    })
   }
 
   doesManageCoreInstance (instance) {
@@ -2506,27 +2511,23 @@ class ActiveComponent extends BaseModel {
    * @description Run this when we need to pick up changes that have occurred on disk.
    */
   moduleReplace (cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      this.codeReloadingOn()
+    this.codeReloadingOn()
 
-      return this.reload({
-        hardReload: true,
-        moduleReloadMethod: 'reload',
-        clearCacheOptions: {
-          doClearEntityCaches: true
-        }
-      }, null, (err) => {
-        release()
+    return this.reload({
+      hardReload: true,
+      moduleReloadMethod: 'reload',
+      clearCacheOptions: {
+        doClearEntityCaches: true
+      }
+    }, null, (err) => {
+      this.codeReloadingOff()
 
-        this.codeReloadingOff()
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return this.emit('error', err)
+      }
 
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err)
-          return this.emit('error', err)
-        }
-
-        return cb()
-      })
+      return cb()
     })
   }
 

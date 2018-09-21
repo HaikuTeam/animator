@@ -527,50 +527,6 @@ class Project extends BaseModel {
     this.setInteractionMode(interactionMode, metadata, cb)
   }
 
-  /**
-   * @description Given a dictionary of known assets such as:
-   *   {'foo/bar.txt': {relpath: ..., abspath, dtModified: ...}, ...}
-   * Reload all of the assets in this project as appropriate, including components.
-   */
-  reloadAssets (assets, cb) {
-    const finish = (err) => {
-      if (err) {
-        return cb(err)
-      }
-
-      this.emit('assets-reloaded')
-
-      cb()
-    }
-
-    return async.eachOfSeries(assets, ({abspath, dtModified}, relpath, next) => {
-      const parts = relpath.split(path.sep)
-
-      if (parts[0] === 'code' && parts[2] === 'code.js') {
-        const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
-        // This call is a no-op if the ActiveComponent instance already.
-        // If an ActiveComponent needs to be created, this code path handles
-        // upserting the File instance, adding the instance to the multi-component tabs, etc.
-        return this.findOrCreateActiveComponent(scenename, next)
-      }
-
-      return next()
-    }, (err) => {
-      if (err) {
-        return finish(err)
-      }
-
-      const ac = this.getCurrentActiveComponent()
-      const changeDescriptor = assets[ac.getRelpath()]
-
-      if (ac && changeDescriptor) {
-        return ac.moduleReplace(finish)
-      }
-
-      return finish()
-    })
-  }
-
   assimilateProjectSources (sourceProjectAbspath, sourceProjectName, cb) {
     return this.websocket.method(
       'assimilateProjectSources',
@@ -643,6 +599,61 @@ class Project extends BaseModel {
       [abspath],
       cb
     )
+  }
+
+  /**
+   * @description Given a dictionary of known assets such as:
+   *   {'foo/bar.txt': {relpath: ..., abspath, dtModified: ...}, ...}
+   * Reload all of the assets in this project as appropriate, including components.
+   */
+  reloadAssets (assets, metadata, cb) {
+    File.cache.clear()
+
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      return this.updateHook('reloadAssets', assets, metadata || this.getMetadata(), (fire) => {
+        const finish = (err) => {
+          if (err) {
+            release()
+            logger.error(`[project (${this.getAlias()})]`, err)
+            return cb(err)
+          }
+
+          release()
+          fire()
+          this.emit('assets-reloaded', assets)
+          cb()
+        }
+
+        return async.eachOfSeries(assets, ({abspath, dtModified}, relpath, next) => {
+          const parts = relpath.split(path.sep)
+
+          if (parts[0] === 'code' && parts[2] === 'code.js') {
+            const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
+            // This call is a no-op if the ActiveComponent instance already.
+            // If an ActiveComponent needs to be created, this code path handles
+            // upserting the File instance, adding the instance to the multi-component tabs, etc.
+            return this.findOrCreateActiveComponent(scenename, next)
+          }
+
+          return next()
+        }, (err) => {
+          if (err) {
+            return finish(err)
+          }
+
+          const ac = this.getCurrentActiveComponent()
+          const changeDescriptor = assets[ac.getRelpath()]
+
+          if (ac && changeDescriptor) {
+            if (changeDescriptor.dtModifiedExternally > (ac.dtLastReload + 500)) {
+              return ac.moduleReplace(finish)
+            }
+          }
+
+          return finish()
+        })
+      })
+    })
   }
 
   mergeDesigns (designs, metadata, cb) {

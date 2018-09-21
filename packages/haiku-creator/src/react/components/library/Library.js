@@ -183,9 +183,14 @@ class Library extends React.Component {
     this.onSketchDialogDismiss = this.onSketchDialogDismiss.bind(this);
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
-    this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250);
+    this.handleAssetsChanged = lodash.debounce(
+      this.handleAssetsChanged.bind(this),
+      250,
+      {leading: false, trailing: true},
+    );
 
-    this.broadcastListener = this.broadcastListener.bind(this);
+    this.handleProjectAssetsChanged = this.handleProjectAssetsChanged.bind(this);
+
     this.onAuthCallback = this.onAuthCallback.bind(this);
 
     this.debouncedPerformSearch = lodash.debounce(() => {
@@ -198,29 +203,25 @@ class Library extends React.Component {
     sketchUtils.checkIfInstalled();
   }
 
-  broadcastListener ({name, assets, data}) {
-    switch (name) {
-      case 'assets-changed':
-        const additionalState = {};
-
-        if (!this.state.lockLoadingFromWatchers) {
-          additionalState.isLoading = false;
-        }
-
-        return this.handleAssetsChanged(assets, additionalState);
-    }
-  }
-
   handleAssetsChanged (assetsDictionary, otherStates) {
     const assets = Asset.ingestAssets(this.props.projectModel, assetsDictionary);
     this.setState({assets, ...otherStates});
+  }
+
+  handleProjectAssetsChanged (assetsDictionary) {
+    const additionalState = {};
+
+    if (!this.state.lockLoadingFromWatchers) {
+      additionalState.isLoading = false;
+    }
+
+    return this.handleAssetsChanged(assetsDictionary, additionalState);
   }
 
   componentDidMount () {
     this.setState({isLoading: true});
     this.reloadAssetList();
 
-    this.props.websocket.on('broadcast', this.broadcastListener);
     ipcRenderer.on('open-url:oauth', this.onAuthCallback);
 
     // TODO: perform an actual check for Illustrator
@@ -230,11 +231,13 @@ class Library extends React.Component {
       const figma = new Figma({token: figmaToken});
       this.setState({figma});
     });
+
+    this.props.projectModel.on('assets-reloaded', this.handleProjectAssetsChanged);
   }
 
   componentWillUnmount () {
-    this.props.websocket.removeListener('broadcast', this.broadcastListener);
     ipcRenderer.removeListener('open-url:oauth', this.onAuthCallback);
+    this.props.projectModel.off('assets-reloaded', this.handleProjectAssetsChanged);
   }
 
   figmaAuthCallback ({state, code}) {
@@ -750,8 +753,6 @@ class SearchResultItems extends React.Component {
                   projectPath,
                   projectName,
                   () => {
-                    // The 'assets-changed' events, which triggers the flow that results in 'assets-reloaded'
-                    // is initiated after a 500ms debounce, so it should be safe to register this listener here.
                     this.props.projectModel.once('assets-reloaded', () => {
                       this.props.globalLoaderOff();
                     });

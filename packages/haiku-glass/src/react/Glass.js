@@ -746,11 +746,6 @@ export class Glass extends React.Component {
         case 'perform-distribute':
           this.fetchProxyElementForSelection().distribute(message.xEdge, message.yEdge, message.toStage);
           break;
-
-        case 'assets-changed':
-          File.cache.clear();
-          this.project && this.project.reloadAssets(message.assets, () => {});
-          break;
       }
     });
 
