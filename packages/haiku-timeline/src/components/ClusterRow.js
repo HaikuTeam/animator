@@ -48,15 +48,9 @@ export default class ClusterRow extends React.Component {
         }}>
           <div>
             <div
-              style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              style={{
                 position: 'absolute',
                 right: 145,
-                width: 10,
-                height: 'inherit',
-                zIndex: 1005,
-              } : {
-                position: 'absolute',
-                left: 145,
                 width: 10,
                 height: 'inherit',
                 zIndex: 1005,

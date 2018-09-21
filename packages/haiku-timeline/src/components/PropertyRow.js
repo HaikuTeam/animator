@@ -93,18 +93,10 @@ export default class PropertyRow extends React.Component {
             }}>
             {(this.props.row.isFirstRowOfPropertyCluster()) &&
               <div
-                style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                style={{
                   position: 'absolute',
                   width: 14,
                   right: 150,
-                  top: -2,
-                  zIndex: 1006,
-                  textAlign: 'right',
-                  height: 'inherit',
-                } : {
-                  position: 'absolute',
-                  width: 14,
-                  left: 136,
                   top: -2,
                   zIndex: 1006,
                   textAlign: 'right',
