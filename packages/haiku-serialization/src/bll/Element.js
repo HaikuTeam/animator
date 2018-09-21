@@ -1042,6 +1042,14 @@ class Element extends BaseModel {
     })
   }
 
+  getFirstNotShimParent (current = this) {
+    if (!current.parent || !current.parent.isShimElement()) {
+      return current.parent
+    }
+
+    return current.findNoShimParent(current.parent)
+  }
+
   rehydrateRows (options = {}) {
     if (
       options.superficial ||
@@ -1056,8 +1064,9 @@ class Element extends BaseModel {
     const element = this
     const component = this.component
     const timeline = this.component.getCurrentTimeline()
+    const parent = this.getFirstNotShimParent()
 
-    const parentElementHeadingRow = this.parent && this.parent.getHeadingRow()
+    const parentElementHeadingRow = parent && parent.getHeadingRow()
 
     const currentElementHeadingRow = Row.upsert({
       uid: Row.buildHeadingUid(component, element),
