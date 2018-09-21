@@ -19,6 +19,11 @@ const enum UpgradeVersionRequirement {
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
+const HAIKU_ROOT_DEFAULT_REGEX = /^web\+haikuroot:\/\//;
+const HAIKU_ROOT_DEFAULT = 'web+haikuroot://';
+const SRC_ATTRIBUTE = 'src';
+const HREF_ATTRIBUTE = 'href';
+const XLINKHREF_ATTRIBUTE = 'xlink:href';
 
 const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionRequirement) => !coreVersion ||
   compareSemver(
@@ -37,7 +42,10 @@ export interface MigrationOptions {
   attrsHyphToCamel: {
     [key in string]: string;
   };
-  referenceUniqueness?: string;
+  mutations?: {
+    referenceUniqueness: string;
+    haikuRoot: string;
+  };
 }
 
 const ensure3dPreserved = (node: BytecodeNode) => {
@@ -168,15 +176,15 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     visitManaTree(
       '0',
       bytecode.template,
-      (elementName, attributes) => {
+      (_, attributes) => {
         if (typeof attributes !== 'object') {
           return;
         }
 
-        if (options && options.referenceUniqueness) {
+        if (options.mutations) {
           if (attributes.id) {
             const prev = attributes.id;
-            const next = prev + '-' + options.referenceUniqueness;
+            const next = prev + '-' + options.mutations.referenceUniqueness;
             attributes.id = next;
             referencesToUpdate[`#${prev}`] = `#${next}`;
             referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
@@ -195,21 +203,42 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
           return;
         }
 
-        if (attributes['xlink:href'] && referencesToUpdate[attributes['xlink:href']]) {
-          attributes['xlink:href'] = referencesToUpdate[attributes['xlink:href']];
+        const timelineProperties = bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`] || {};
+
+        // Hoist xlink:href up to the timeline if not already done. Older versions of Haiku installed xlink:href in the
+        // attributes dictionary.
+        if (attributes['xlink:href']) {
+          timelineProperties['xlink:href'] = {0: {value: attributes['xlink:href']}};
+          delete attributes['xlink:href'];
         }
 
-        const timelineProperties = bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`];
-        if (!timelineProperties) {
-          return;
+        if (options.mutations) {
+          for (const property in timelineProperties) {
+            if (property !== SRC_ATTRIBUTE && property !== XLINKHREF_ATTRIBUTE && property !== HREF_ATTRIBUTE) {
+              continue;
+            }
+
+            for (const keyframe in timelineProperties[property]) {
+              const value = timelineProperties[property][keyframe].value as string;
+              if (HAIKU_ROOT_DEFAULT_REGEX.test(value)) {
+                timelineProperties[property][keyframe].value = value.replace(
+                  HAIKU_ROOT_DEFAULT,
+                  options.mutations.haikuRoot,
+                );
+              } else if (referencesToUpdate[value]) {
+                timelineProperties[property][keyframe].value = referencesToUpdate[value];
+              }
+            }
+          }
         }
 
         // Switch the legacy 'source' attribute to the new 'haiku-source'
-        if (attributes && attributes.source) {
+        if (attributes.source) {
           attributes[HAIKU_SOURCE_ATTRIBUTE] = attributes.source;
           delete attributes.source;
         }
-        if (attributes && attributes.identifier) {
+
+        if (attributes.identifier) {
           attributes[HAIKU_VAR_ATTRIBUTE] = attributes.identifier;
           delete attributes.identifier;
         }
@@ -276,6 +305,14 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
           )
         ) {
           component.doPreserve3d = true;
+        }
+
+        if (
+          !bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`] &&
+          Object.keys(timelineProperties).length > 0
+        ) {
+          // Update with our hot object if we inadvertently created this object during migration.
+          bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`] = timelineProperties;
         }
       },
       null,

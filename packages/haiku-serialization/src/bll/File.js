@@ -5,7 +5,6 @@ const {xmlToMana} = require('haiku-common/lib/layout/xmlUtils')
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 const Lock = require('./Lock')
 const Cache = require('./Cache')
@@ -356,10 +355,6 @@ File.readMana = (folder, relpath, cb) => {
           return done(new Error(`We couldn't load the contents of ${relpath}`))
         }
 
-        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-          return done(null, Template.normalize(manaFull))
-        }
-
         return done(null, manaFull)
       }
 
@@ -368,10 +363,6 @@ File.readMana = (folder, relpath, cb) => {
 
         if (!manaOptimized) {
           throw new Error(`We couldn't load the contents of ${relpath}`)
-        }
-
-        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-          return done(null, Template.normalize(manaOptimized))
         }
 
         return done(null, manaOptimized)

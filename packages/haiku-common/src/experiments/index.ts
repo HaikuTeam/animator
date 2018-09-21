@@ -10,7 +10,6 @@ export enum Experiment {
   HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
   AsyncClientActions = 'AsyncClientActions',
-  NormalizeSvgContent = 'NormalizeSvgContent',
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
   BaseModelQueryCache = 'BaseModelQueryCache',
