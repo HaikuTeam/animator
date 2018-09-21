@@ -1161,7 +1161,6 @@ class Element extends BaseModel {
   }
 
   rehydrateChildren ({maxRehydrationDepth}) {
-    console.log('===== rehydrateChildren')
     const node = this.getStaticTemplateNode()
 
     if (typeof node.elementName === 'object') {

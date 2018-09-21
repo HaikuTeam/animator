@@ -5,6 +5,7 @@ import * as React from 'react';
 export interface SimplifiedFrameGridProps {
   timeline: any;
   timelineOffsetPadding: number;
+  propertiesPixelWidth: number;
 }
 
 export default class SimplifiedFrameGrid extends React.PureComponent<SimplifiedFrameGridProps> {
