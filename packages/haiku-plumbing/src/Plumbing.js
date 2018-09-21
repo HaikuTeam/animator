@@ -293,7 +293,7 @@ export default class Plumbing extends EventEmitter {
           const alias = websocket.params && websocket.params.alias;
           const folder = websocket.params && websocket.params.folder;
 
-          logger.info(`[plumbing] websocket for ${folder} connected (${type} ${alias})`);
+          logger.info(`[plumbing] websocket for ${folder || 'main'} connected (${type} ${alias})`);
 
           // Don't allow multiple clients of the same alias and folder
           for (let i = this.clients.length - 1; i >= 0; i--) {
@@ -313,12 +313,13 @@ export default class Plumbing extends EventEmitter {
           this.clients.push(websocket);
 
           websocket.on('close', () => {
-            logger.info(`[plumbing] websocket for ${folder} closed (${type} ${alias})`);
+            logger.info(`[plumbing] websocket for ${folder || 'main'} closed (${type} ${alias})`);
             this.removeWebsocketClient(websocket);
+            this.haltMasterForFolder(folder);
           });
 
           websocket.on('error', (err) => {
-            logger.error(`[plumbing] websocket for ${folder} errored (${type} ${alias})`, err);
+            logger.error(`[plumbing] websocket for ${folder || 'main'} errored (${type} ${alias})`, err);
             throw err;
           });
 
@@ -836,12 +837,16 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
+  haltMasterForFolder (folder) {
+    if (this.masters[folder] && this.masters[folder].active) {
+      this.masters[folder].halt();
+    }
+  }
+
   teardownMaster (folder, cb) {
     logger.info(`[plumbing] tearing down master ${folder}`);
     awaitAllLocksFree(() => {
-      if (this.masters[folder]) {
-        this.masters[folder].halt();
-      }
+      this.haltMasterForFolder(folder);
 
       // Since we're about to nav back to the dashboard, we're also about to drop the
       // connection to the websockets, so here we close them to avoid crashes
