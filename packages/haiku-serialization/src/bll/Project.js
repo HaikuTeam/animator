@@ -10,7 +10,6 @@ const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
-const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
 const Lock = require('./Lock')
@@ -26,10 +25,6 @@ const {
   getAngularSelectorName
 } = require('@haiku/sdk-client/lib/ProjectDefinitions')
 
-const ALWAYS_IGNORED_METHODS = {
-  // Handled upstream, by Creator, Glass, Timeline, etc.
-  executeFunctionSpecification: true
-}
 const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
@@ -176,7 +171,6 @@ class Project extends BaseModel {
   }
 
   isIgnoringMethodRequestsForMethod (method) {
-    if (ALWAYS_IGNORED_METHODS[method]) return true
     // HACK: This probably doesn't/shouldn't belong as a part of 'fileOptions'
     // It's a hacky way for MasterProcess to handle certain methods it cares about
     const fileOptions = this.getFileOptions()
@@ -1026,13 +1020,6 @@ Project.getProjectNameVariations = (folder) => {
     primaryAssetPath,
     defaultIllustratorAssetPath
   }
-}
-
-Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
-  if (process.env.NODE_ENV === 'production') return cb()
-  if (payload.views && payload.views.indexOf(alias) === -1) return cb()
-  const fn = reifyRFO(payload)
-  return fn.call(binding, payload, cb)
 }
 
 const integritiesMismatched = (i1, i2) => {

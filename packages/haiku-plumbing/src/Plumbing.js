@@ -29,7 +29,6 @@ import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import * as File from 'haiku-serialization/src/bll/File';
-import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {
@@ -83,17 +82,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   teardownMaster: true,
   hoverElement: true,
   unhoverElement: true,
-};
-
-const METHOD_MESSAGES_TIMEOUT = 15000;
-const METHODS_TO_AWAIT_FOREVER = {
-  bootstrapProject: true,
-  setCurrentActiveComponent: true,
-  setInteractionMode: true,
-  startProject: true,
-  initializeFolder: true,
-  saveProject: true,
-  teardownMaster: true,
 };
 
 const Q_GLASS = {alias: 'glass'};
@@ -376,43 +364,6 @@ export default class Plumbing extends EventEmitter {
   }
 
   /**
-   * @method executeFunction
-   * @param views {Array} List of all views in which to execute the function
-   * @param data {Object} Data object to pass to the function on each execution
-   * @param fn {Function} The function to execute
-   * @param cb {Function} The callback to call when finished
-   * @description Execute an arbitrary function in all of the subviews.
-   * The this-binding of the function will be an instance of Project, if available.
-   */
-  executeFunction (views, data, fn, cb) {
-    const outputs = {};
-    return async.eachSeries(views, (alias, next) => {
-      const finish = (err, result) => {
-        if (err) {
-          return next(err);
-        }
-        outputs[alias] = result;
-        return next();
-      };
-      if (alias === 'plumbing') {
-        return fn.call({plumbing: this}, data, finish);
-      }
-      const rfo = lodash.assign(functionToRFO(fn).__function, data);
-      return this.sendQueriedClientMethod(
-        lodash.assign({alias}, data),
-        'executeFunctionSpecification',
-        [rfo, {from: 'plumbing'}],
-        finish,
-      );
-    }, (err) => {
-      if (err) {
-        return cb(err);
-      }
-      return cb(null, outputs);
-    });
-  }
-
-  /**
    * @method invokeAction
    * @description Convenience wrapper around making a generic action call
    */
@@ -490,59 +441,29 @@ export default class Plumbing extends EventEmitter {
     const nextMethodMessage = this._methodMessages.shift();
 
     if (!nextMethodMessage) {
-      return setTimeout(this.executeMethodMessagesWorker.bind(this), 64);
+      return setTimeout(() => this.executeMethodMessagesWorker(), 64);
     }
 
     const {type, alias, folder, message, cb} = nextMethodMessage;
 
     this.methodMessageBeforeLog(message, alias);
 
-    // If it takes too long for us to get a response for a method, kick start the queue
-    // again so we don't hang when important new messages are being received
-    let timedOut = false;
-    let gotResponse = false;
-
-    if (!METHODS_TO_AWAIT_FOREVER[message.method]) {
-      setTimeout(() => {
-        timedOut = true;
-        if (!gotResponse) {
-          logger.warn(`[plumbing] timed out waiting for ${message.method}; restarting worker`);
-          this.executeMethodMessagesWorker();
-        }
-      }, METHOD_MESSAGES_TIMEOUT);
-    }
-
     // Actions are a special case of methods that end up routed through all of the clients,
     // glass -> timeline -> master before returning. They go through one handler as opposed
     // to the normal 'methods' which plumbing handles on a more a la carte basis
     if (message.type === 'action') {
       return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
-        if (timedOut) {
-          logger.warn(`[plumbing] received late response from timed out action ${message.method}`);
-        }
 
         this.methodMessageAfterLog(message, err, result, alias);
         cb(err, result);
-
-        if (!timedOut) {
-          gotResponse = true;
-          this.executeMethodMessagesWorker(); // Continue with the next queue entry (if any)
-        }
+        this.executeMethodMessagesWorker();
       });
     }
 
     return this.plumbingMethod(message.method, message.params || [], (err, result) => {
-      if (timedOut) {
-        logger.warn(`[plumbing] received late response from timed out method ${message.method}`);
-      }
-
       this.methodMessageAfterLog(message, err, result, alias);
       cb(err, result);
-
-      if (!timedOut) {
-        gotResponse = true;
-        this.executeMethodMessagesWorker(); // Continue with the next queue entry (if any)
-      }
+      this.executeMethodMessagesWorker();
     });
   }
 
@@ -656,7 +577,7 @@ export default class Plumbing extends EventEmitter {
 
     if (timeout <= 0) {
       logger.warn(`[plumbing] timed out waiting for client ${JSON.stringify(fixed)}`);
-      return null;
+      return cb(new Error('E_TIMEOUT'));
     }
 
     const clientMatching = find(
@@ -692,12 +613,10 @@ export default class Plumbing extends EventEmitter {
 
     logger.info(`[plumbing] relaying ${message.name} to ${message.view}`);
 
-    return this.awaitClientWithQuery(clientQuery, WAIT_DELAY, (err, client) => {
-      if (err) {
-        return logger.warn(`[plumbing] timed out awaiting relay client ${JSON.stringify(clientQuery)}`);
+    return this.awaitClientWithQuery(clientQuery, WAIT_DELAY, (_, client) => {
+      if (client) {
+        return this.sendClientMessage(client, message);
       }
-
-      return this.sendClientMessage(client, message);
     });
   }
 
@@ -707,31 +626,12 @@ export default class Plumbing extends EventEmitter {
         return cb(err);
       }
 
-      // Give a maximum of 10 seconds before forcing a crash if the client doesn't respond.
-      // If the page crashes before sending the result, we might not find out and could lose work.
-      let responseReceived = false;
-      let timedOut = false;
-
-      // In dev, we may use a debugger in which case we don't want to force a timeout
-      setTimeout(() => {
-        timedOut = true;
-
-        if (!responseReceived) {
-          logger.warn(`[plumbing] timed out sending ${method} to client ${JSON.stringify(query)}`);
-        }
-      }, WAIT_DELAY);
-
       return this.sendClientMethod(client, method, params, (error, response) => {
-        responseReceived = true;
-
-        if (!timedOut || METHODS_TO_AWAIT_FOREVER[method]) {
-          if (error) {
-            this.sentryError(method, error, {tags: query});
-            return cb(error);
-          }
-
-          return cb(null, response);
+        if (error) {
+          this.sentryError(method, error, {tags: query});
         }
+
+        return cb(error, response);
       });
     });
   }
@@ -1042,7 +942,8 @@ export default class Plumbing extends EventEmitter {
         return this.awaitMasterAndCallMethod(folder, method, params, nextStep);
       }
 
-      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, nextStep);
+      this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, () => {});
+      return nextStep();
     }, (err) => {
       return logAndHandleActionResult(err, cb, method, type, alias);
     });
