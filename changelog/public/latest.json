@@ -19,9 +19,10 @@
       "Fixed a bug causing the Actions editor to unexpectedly close.",
       "Fixed a bug preventing Timeline marquee selection to start from within collapsed rows.",
       "Added better logic to calculate the size of the Timeline multiline expressions editor on different sizes.",
-      "Do not allow Timeline rows to be dragged over the controls on the top.",
-      "Focus code editor when switching to code mode",
-      "Fixed wrong result when pressing ctrl during element mouse scaling"
+      "Timeline rows can no longer be dragged over the top controls.",
+      "The code editor is now automatically focused when switching to code mode.",
+      "Pressing Ctrl during element scaling no longer triggers the context menu.",
+      "Fixed disappearing elements when re-publishing very old Haiku."
     ]
   }
 }

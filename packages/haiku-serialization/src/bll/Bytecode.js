@@ -540,7 +540,7 @@ Bytecode.decycle = (reified, { cleanManaOptions = {}, doCleanMana }) => {
 }
 
 /**
- * @method reinitializeBytecode
+ * @method reinitialize
  * @description Make sure the in-memory bytecode object has all of the correct settings,
  * attributes, and structure. This ought to get called if the bytecode has just been
  * ingested from somewhere and you need to make sure it is right.

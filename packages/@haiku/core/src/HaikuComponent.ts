@@ -318,10 +318,14 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     const migrationOptions: MigrationOptions = {
       attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
-      // Random seed for adding instance uniqueness to ids at runtime.
-      referenceUniqueness: (config.hotEditingMode)
-        ? undefined // During editing, Haiku.app pads ids unless this is undefined
-        : Math.random().toString(36).slice(2),
+      // During editing, we handle mutations directly in the app.
+      mutations: config.hotEditingMode ? undefined : {
+        // Random seed for adding instance uniqueness to ids at runtime.
+        referenceUniqueness: (config.hotEditingMode)
+          ? undefined // During editing, Haiku.app pads ids unless this is undefined
+          : Math.random().toString(36).slice(2),
+        haikuRoot: this.getProjectRootPathWithTerminatingSlash(),
+      },
     };
 
     try {
@@ -1347,11 +1351,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                 skipCache,
               );
 
-              let {
-                computedValue,
-              } = grabbedValue;
-
               const {
+                computedValue,
                 didValueChangeSinceLastRequest,
                 didValueOriginateFromExplicitKeyframeDefinition,
               } = grabbedValue;
@@ -1380,13 +1381,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                   )
                 )
               ) {
-                if (typeof computedValue === 'string' && !this.config.hotEditingMode) {
-                  computedValue = this.maybeRewriteString(
-                    computedValue,
-                    propertyName,
-                  );
-                }
-
                 this.applyPropertyToNode(
                   matchingElement,
                   propertyName,
@@ -1407,23 +1401,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
   }
 
-  private maybeRewriteString (computedValue: string, propertyName: string): string {
-    if (
-      propertyName === 'src' ||
-      propertyName === 'xlink:href' ||
-      propertyName === 'href'
-    ) {
-      const subst = this.getProjectRootPathWithTerminatingSlash();
-      return computedValue.replace(
-        'web+haikuroot://',
-        subst,
-      );
-    }
-
-    return computedValue;
-  }
-
-  private getProjectRootPathWithTerminatingSlash (): string {
+  getProjectRootPathWithTerminatingSlash (): string {
     const metadata = this.getBytecodeMetadata();
 
     // If root is set and is not precisely this known magic string,

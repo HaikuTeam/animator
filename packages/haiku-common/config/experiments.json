@@ -4,7 +4,6 @@
   "HideInstantiatedElementUntilTimeInstantiated": false,
   "MergeDesignChangesAtCurrentTime": false,
   "AsyncClientActions": false,
-  "NormalizeSvgContent": false,
   "BaseModelQueryCache": false,
   "ComponentInfoInspector": false,
   "AdvancedMultiTransform": true,
