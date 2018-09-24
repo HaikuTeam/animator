@@ -4036,6 +4036,7 @@ class ActiveComponent extends BaseModel {
       const timelineName = this.getInstantiationTimelineName()
       const timelineTime = this.getInstantiationTimelineTime()
 
+      const groupComponentId = this.instantiateManaInBytecode(groupMana, bytecode, {}, coords)
       const nodesToRegroup = []
 
       // We only allow grouping of the top level elements, hence iterating children, not visiting
@@ -4078,7 +4079,6 @@ class ActiveComponent extends BaseModel {
         }
       }
 
-      const groupComponentId = this.instantiateManaInBytecode(groupMana, bytecode, {}, coords)
       groupMana.children[0].children = nodesToRegroup
 
       // Place the new group at the top.
