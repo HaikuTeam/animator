@@ -22,7 +22,8 @@
       "The code editor is now automatically focused when switching to code mode.",
       "Pressing `Ctrl` during element scaling no longer triggers the context menu.",
       "Fixed disappearing elements when re-publishing very old Haiku.",
-      "Fixed an issue that might cause certain versions of `lottie-android` to crash when parsing Haiku's Lottie export."
+      "Fixed an issue that might cause certain versions of `lottie-android` to crash when parsing Haiku's Lottie export.",
+      "Fixed layout issues when importing Figma shapes that have been rotated around a non-standard origin."
     ]
   }
 }

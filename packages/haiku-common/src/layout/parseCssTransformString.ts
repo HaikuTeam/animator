@@ -99,6 +99,13 @@ export default function parseCssTransformString (inStr: string) {
       case 'rotate':
         layout.rotate[2] =
           spec.values[0].unit === 'deg' ? degreesToRadians(spec.values[0].value) : spec.values[0].value;
+        if (spec.values.length === 3) {
+          // We are doing rotation about a point, so we have to offset translation….
+          const cosr = Math.cos(layout.rotate[2]);
+          const sinr =  Math.sin(layout.rotate[2]);
+          layout.translate[0] = spec.values[1].value * (1 - cosr) + sinr * spec.values[2].value;
+          layout.translate[1] = spec.values[2].value * (1 - cosr) - sinr * spec.values[1].value;
+        }
         break;
       case 'scale':
         layout.scale[0] = spec.values[0].value;
