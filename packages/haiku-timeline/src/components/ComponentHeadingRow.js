@@ -231,6 +231,7 @@ export default class ComponentHeadingRow extends React.Component {
                 isHovered={this.props.isHovered}
                 onEventHandlerTriggered={this.props.onEventHandlerTriggered}
                 onExpand={this.expandAndSelect}
+                propertiesPixelWidth={this.props.propertiesPixelWidth}
               />
             </div>
             {!depth > 1 &&

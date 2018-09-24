@@ -78,6 +78,7 @@ class RowManager extends React.PureComponent {
           hasAttachedActions={row.element.getVisibleEvents().length > 0}
           dragHandleProps={this.props.dragHandleProps}
           setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
+          timelinePropertiesWidth={this.props.timelinePropertiesWidth}
         />
       );
     }

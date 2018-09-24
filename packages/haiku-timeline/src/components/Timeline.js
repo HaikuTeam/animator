@@ -1408,6 +1408,7 @@ class Timeline extends React.Component {
         showEventHandlersEditor={this.showEventHandlersEditor}
         onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
         setEditingRowTitleStatus={this.setEditingRowTitleStatus}
+        timelinePropertiesWidth={this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()}
       />
     );
   }
