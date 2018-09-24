@@ -1047,7 +1047,7 @@ class Element extends BaseModel {
       return current.parent
     }
 
-    return current.findNoShimParent(current.parent)
+    return current.getFirstNotShimParent(current.parent)
   }
 
   rehydrateRows (options = {}) {
