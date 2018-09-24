@@ -1,29 +1,10 @@
 {
   "sections": {
     "What's new": [
-      "Now you can paste expressions or values into Timeline properties without having to open/focus the input."
+      "FIRST!"
     ],
     "Fixes": [
-      "Improved zooming behavior in the Timeline.",
-      "Snap lines now have a consistent thickness regardless of the artboard zoom level.",
-      "Export options are now disabled outside of a project.",
-      "User Menu -> Your Profile now points to the correct location.",
-      "Fixed a crash caused by forking certain projects.",
-      "Added more detail to error messages resulting from attempting to save with invalid content in code mode.",
-      "Minor fixes to the multiline Expressions editor.",
-      "GIFs and videos now always show the contents of the main component.",
-      "Fixed a bug causing Timeline inputs with numbers in exponential format to display `NaN` instead of the correct value.",
-      "Fixed a bug preventing the time/frame indicator of subcomponents to update.",
-      "Fixed a bug causing the Timeline ticker to behave unexpectedly in certain situations.",
-      "Fixed a bug causing the Actions editor to unexpectedly close.",
-      "Fixed a bug preventing Timeline marquee selection to start from within collapsed rows.",
-      "Added better logic to calculate the size of the Timeline multiline expressions editor on different sizes.",
-      "Timeline rows can no longer be dragged over the top controls.",
-      "The code editor is now automatically focused when switching to code mode.",
-      "Pressing `Ctrl` during element scaling no longer triggers the context menu.",
-      "Fixed disappearing elements when re-publishing very old Haiku.",
-      "Fixed an issue that might cause certain versions of `lottie-android` to crash when parsing Haiku's Lottie export.",
-      "Fixed layout issues when importing Figma shapes that have been rotated around a non-standard origin."
+      "FIRST!"
     ]
   }
 }
