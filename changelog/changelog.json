@@ -7992,5 +7992,197 @@
       "label": "feat",
       "message": "add endpoint for user email update."
     }
+  },
+  "4.2.1": {
+    "2a6c6ae178ac60e2bba19abcaaceedca3856cb38": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Layout weirdness when creating nested groups (834345013882114)"
+    },
+    "ceee9b163319d50d5cf9f76df74aa3ff75c1a843": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "weird rotation issues on Figma"
+    },
+    "f084883e0f42855003ae3d9ca791c6b96c645dca": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "round artboard dimensions on Lottie export to avoid crashing Android"
+    },
+    "114253694a81ed00b5a199a6ab5b0cb80833dce2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "halt master whenever a client of folder disconnects, even when unintentional"
+    },
+    "267e08c91af3b2d319fba26f26efa9050b076fd2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not block message dispatch to master waiting for replies from webview clients."
+    },
+    "a064aa9527422bf10fa2a38632080a3d979ccf9b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "adjust the editor max height based on the window height"
+    },
+    "c1047bdffe53bc81124af9402ede14a1dbc3a4bc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "allow marque to be initialized from collapsed transition bodies"
+    },
+    "cef48b8b63da45241d0710aa9806fbfb8f58aea4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "highlight current frame even if there's no previous one"
+    },
+    "178ffaedf0ce4aaaf5f5b584a7696414b0e308db": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure lottie exporter can handle when stroke-dasharray is numeric"
+    },
+    "df8ff479970a0a25b7d6d1e5ed64a88d26d9a470": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "call Globals.allKeysUp when Creator is blur"
+    },
+    "fdfbd629f6182621dc72ece57ede49be570d9237": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only auto-GIF the the main component, only once per Master"
+    },
+    "695c71ecdaff710c85dfa32a1da816a7564cdc8c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "restore yarn setup to original glory."
+    },
+    "11ff6b4a06bb39e43f1d8e5b7caf9a37ea719432": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reset gauge and pointer states on timeline when webview is blur"
+    },
+    "7a624b81ccd33456075691e58b5d1499bad0308f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update timelines for GaugeTimeReadout when switching components"
+    },
+    "adb536198f030b92dda6aa88c50fc76fa564c5af": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "fallback to computedValue if prettyValue is NaN"
+    },
+    "ce6e965b7cf6d9520af58eeadeefce6cde823e4e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable native scrollbars in multiline"
+    },
+    "4c3f7c39a0b423352ad52010039b9c05f0cac4c9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable edition only in first/last lines of multiline expressions"
+    },
+    "6ecc21b8ccd248aeb2e2f26869d2e893c516ba67": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hide actions and component buttons in code mode"
+    },
+    "46168cb61b89c1ca95a70737527b00d0b59b2bb4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not bind states that are already bound."
+    },
+    "9858e04c12c6bb47b7fe73c73299e482ed774db2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure controls define valid bytecode."
+    },
+    "0617ad2723e6e0ec9f8d0cde5547bd9188124290": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support image components in Lottie exporter."
+    },
+    "15ca2e322e6b0f9dbad0126a5d138c039a708ea1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure correct module resolution for controls when bundling."
+    },
+    "359fbec96deede0e2af6f61635674e2bba9fdf2d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure controls define valid bytecode."
+    },
+    "d6b47b1d14a3ad23970060ed5c6d512af60a558a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "breaking change in lottie-android@2.6.0 requires giving shape groups names."
+    },
+    "1b82844b56432417245c04f40f5144f36e8a417d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "adjust styles and position of ungroup modal to look like the other modals"
+    },
+    "67d93ecf6de7aa4f374a6414e6f838bed35f6af9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use orgname instead of username for the link to the user profile page"
+    },
+    "6df7310eb8b89fa9eb6a68ba981523377413eaab": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable all items in Export submenu outside of a project"
+    },
+    "e0300142ad7ced71592177951f989ad15a953977": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "allow timeline to handle pasting expressions if a row is selected"
+    },
+    "8dc3ebc3289e7bd8af17384d3124cac70dd8716d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "always hoist overflow config to mount"
+    },
+    "6b948dbb4c534580b1c1a9e83f5e8dea49bc6b36": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "un-scale component name"
+    },
+    "ce3d6031e6e6bab65f52e4695152c3b95fdc0f1a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not zoom snap lines"
+    },
+    "48f27dd779a03e254f50f0771136ff60245c803e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure the stopwatch is reset when we loop"
+    },
+    "70dc6b756168c1981385f370fd47cb894bde7fe9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "kill bugs and adjust moving parts"
+    },
+    "320210efae1269a6fd5e958a7a622b3ba0006c89": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set a min width to the timeline range scrollbar"
+    },
+    "dcded1a97d9fab73b142c2026359117395cdb9b7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "make timeline zooming less sensitive"
+    },
+    "27a06e5f28197a3b50a1cb215d746c826ad95a82": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable tabindex on timeline handles"
+    },
+    "823e1c7fe86f9f0bb6a19929da88bf2a372d1fb8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set min and max zoom limits in the timeline"
+    },
+    "0d8a643dd5875ca52d606748bd1dfe547b19da51": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hide drag handle for expanded timeline rows"
+    }
   }
 }
