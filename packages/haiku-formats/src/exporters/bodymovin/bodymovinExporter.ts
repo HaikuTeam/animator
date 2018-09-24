@@ -1511,8 +1511,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       assets: this.assets,
       layers: this.rootLayers,
       op: this.outPoint,
-      w: this.animationSize.x,
-      h: this.animationSize.y,
+      w: Math.ceil(this.animationSize.x),
+      h: Math.ceil(this.animationSize.y),
     };
   }
 
