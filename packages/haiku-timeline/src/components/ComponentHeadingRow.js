@@ -242,7 +242,6 @@ export default class ComponentHeadingRow extends React.Component {
                 propertiesPixelWidth={this.props.propertiesPixelWidth}
               />
             </div>
-            {!depth > 1 &&
             <div
               className="component-heading-row-inner-r2"
               style={{
@@ -304,7 +303,6 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
             </div>
-          }
           </div>
         </div>
         {!this.props.isExpanded &&
