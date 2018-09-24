@@ -133,14 +133,6 @@ export default class ComponentHeadingRow extends React.Component {
     });
   };
 
-  get nestedPadding () {
-    if (this.props.row.isRootRow()) {
-      return this.props.isExpanded ? 0 : 7;
-    }
-
-    return this.props.isExpanded && this.props.row.getDepthAmongRows() <= 1 ? 35 : 15;
-  }
-
   render () {
     const componentId = this.props.row.element.getComponentId();
     const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK;
@@ -172,27 +164,26 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.nestedPadding,
+          paddingLeft: this.props.row.isRootRow() ? 0 : 35,
           width: propertiesPixelWidth,
           backgroundColor,
           zIndex: zIndex.headingRow.base,
         }}>
-          {!this.props.row.isRootRow() && !this.props.isExpanded && depth <= 1 &&
-            <div
-              style={{
-                marginTop: 3,
-                marginRight: 3,
-              }}
-              className="component-heading-row-drag-handle js-avoid-marquee-init"
-              {...this.props.dragHandleProps}
-              tabIndex={null}>
-              <span
-                className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
-                style={{display: 'block'}}>
-                <DragGrip />
-              </span>
-            </div>
-          }
+          <div
+            style={{
+              marginTop: 3,
+              marginRight: 3,
+              visibility: !this.props.row.isRootRow() && !this.props.isExpanded && depth <= 1 ? 'visible' : 'hidden',
+            }}
+            className="component-heading-row-drag-handle js-avoid-marquee-init"
+            {...this.props.dragHandleProps}
+            tabIndex={null}>
+            <span
+              className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
+              style={{display: 'block'}}>
+              <DragGrip />
+            </span>
+          </div>
           <div
             className="component-heading-row-inner no-select"
             style={{
