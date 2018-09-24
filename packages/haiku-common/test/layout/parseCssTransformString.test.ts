@@ -164,6 +164,14 @@ tape(
           'scale.y': 2.72,
         },
       ],
+      // Test for rotation about a point other than (0, 0)
+      [
+        'rotate(90 10 10)',
+        {
+          'translation.x': 20,
+          'rotation.z': 1.571,
+        },
+      ],
     ];
 
     test.plan(data.length);
