@@ -982,7 +982,6 @@ class Element extends BaseModel {
         }
         descendants.push(descendantElement)
       })
-      // debugger
 
       const deeprows = []
       let currentParent = headingRow
@@ -992,7 +991,6 @@ class Element extends BaseModel {
           .filter((row) => {
             if (row.isHeading() && descendantElement.hasTitleAttribute()) {
               currentParent = row
-              row.parent = headingRow
               return true
             }
 
