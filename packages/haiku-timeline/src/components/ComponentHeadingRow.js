@@ -133,6 +133,14 @@ export default class ComponentHeadingRow extends React.Component {
     });
   };
 
+  get nestedPadding () {
+    if (this.props.row.isRootRow()) {
+      return this.props.isExpanded ? 0 : 7;
+    }
+
+    return this.props.isExpanded && this.props.row.getDepthAmongRows() <= 1 ? 35 : 15;
+  }
+
   render () {
     const componentId = this.props.row.element.getComponentId();
     const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK;
@@ -164,12 +172,12 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.props.row.isRootRow() ? (this.props.isExpanded ? 0 : 7) : (this.props.isExpanded ? 35 : 15),
+          paddingLeft: this.nestedPadding,
           width: propertiesPixelWidth,
           backgroundColor,
           zIndex: zIndex.headingRow.base,
         }}>
-          {!this.props.row.isRootRow() && !this.props.isExpanded && !depth > 1 &&
+          {!this.props.row.isRootRow() && !this.props.isExpanded && depth <= 1 &&
             <div
               style={{
                 marginTop: 3,
@@ -194,7 +202,7 @@ export default class ComponentHeadingRow extends React.Component {
               backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column',
-              paddingLeft: depth > 0 ? (27 * this.props.row.getDepthAmongRows()) : 0,
+              paddingLeft: 27 * (this.props.row.getDepthAmongRows() - 1),
             }}>
             <div
               className="component-heading-row-inner-r1"
