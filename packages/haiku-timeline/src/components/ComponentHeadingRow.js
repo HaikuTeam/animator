@@ -164,7 +164,7 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.props.row.isRootRow() ? 0 : 35,
+          paddingLeft: this.props.row.isRootRow() ? 5 : 0,
           width: propertiesPixelWidth,
           backgroundColor,
           zIndex: zIndex.headingRow.base,
@@ -173,7 +173,8 @@ export default class ComponentHeadingRow extends React.Component {
             style={{
               marginTop: 3,
               marginRight: 3,
-              visibility: !this.props.row.isRootRow() && !this.props.isExpanded && depth <= 1 ? 'visible' : 'hidden',
+              display: this.props.row.isRootRow() ? 'none' : 'inline-block',
+              visibility: this.props.isExpanded && depth >= 1 ? 'hidden' : 'visible',
             }}
             className="component-heading-row-drag-handle js-avoid-marquee-init"
             {...this.props.dragHandleProps}
