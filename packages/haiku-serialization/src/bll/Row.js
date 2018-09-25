@@ -627,13 +627,6 @@ class Row extends BaseModel {
     return 0
   }
 
-  doesTargetHostElement () {
-    return (
-      this.host &&
-      this.host === this.element
-    )
-  }
-
   next () {
     return this._next
   }

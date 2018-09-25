@@ -1017,12 +1017,6 @@ class Element extends BaseModel {
       rows.push.apply(rows, deeprows)
     }
 
-    // Hack: Assign the host so that the timeline can identify elements that are listed
-    // underneath a specific element even though they target a different one
-    rows.forEach((row) => {
-      row.host = this
-    })
-
     return rows
   }
 
