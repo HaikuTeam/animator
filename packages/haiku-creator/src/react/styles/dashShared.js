@@ -22,7 +22,6 @@ export const DASH_STYLES = {
     opacity: 0.6,
   },
   frame: {
-    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -63,15 +62,13 @@ export const DASH_STYLES = {
     borderRight: '10px solid ' + Palette.LIGHT_PINK,
   },
   projectsWrapper: {
-    position: 'absolute',
-    overflow: 'auto',
+    overflow: 'hidden',
     display: 'flex',
     justifyContent: 'space-around',
     alignContent: 'flex-start',
     flexWrap: 'wrap',
-    marginTop: 36,
     width: '100%',
-    height: '100%',
+    height: 'calc(100% - 36px - 50px)', // header and paginator
     paddingLeft: 50,
     paddingRight: 50,
     transition: 'filter 140ms',

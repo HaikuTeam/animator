@@ -15,11 +15,12 @@ import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
+import {Paginator} from 'haiku-ui-common/lib/react/Paginator';
 
 const STYLES = {
   adminButton: {
     // TODO: make this a bit more insane?
-    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+    backgroundColor: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
   },
 };
 
@@ -30,6 +31,8 @@ class ProjectBrowser extends React.Component {
     this.openPopover = this.openPopover.bind(this);
     this.closePopover = this.closePopover.bind(this);
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this);
+    this.updateDimensions = this.updateDimensions.bind(this);
+
     this.state = {
       username: null,
       error: null,
@@ -43,6 +46,9 @@ class ProjectBrowser extends React.Component {
       confirmDeleteMatches: false,
       newProjectError: null,
       newProjectIsPublic: true,
+      // Use first display project instead page num, so kept the same first displayed project on application resizing
+      firstDisplayedProject: 0,
+      numProjectsPerPage: 0,
     };
   }
 
@@ -77,6 +83,12 @@ class ProjectBrowser extends React.Component {
         }
       });
     });
+
+    window.addEventListener('resize', this.updateDimensions);
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.updateDimensions);
   }
 
   openPopover (evt) {
@@ -116,7 +128,7 @@ class ProjectBrowser extends React.Component {
         this.setState({error});
         return;
       }
-      this.setState({projectsList});
+      this.setState({projectsList}, this.updateDimensions);
       this.props.onProjectsList(projectsList);
     });
   }
@@ -307,6 +319,25 @@ class ProjectBrowser extends React.Component {
     );
   }
 
+  // Calculate how many projects can be displayed according to available dimensions
+  updateDimensions () {
+    if (this.projectBrowserOuterDiv) {
+      const bb = this.projectBrowserOuterDiv.getBoundingClientRect();
+
+      const availableWidth = bb.width - DASH_STYLES.projectsWrapper.paddingLeft - DASH_STYLES.projectsWrapper.paddingRight;
+      const perCardWidth = DASH_STYLES.card.minWidth + DASH_STYLES.projectsWrapper.paddingLeft + DASH_STYLES.projectsWrapper.paddingRight - 10;
+      const cardsPerRow = availableWidth / (perCardWidth);
+      const columns = Math.floor(cardsPerRow);
+
+      const perCardHeight = DASH_STYLES.card.height + DASH_STYLES.card.marginTop;
+      const rows = Math.floor(bb.height / (perCardHeight));
+
+      const numProjectsPerPage = columns * rows - 1;
+      console.log('DIMENSIONS columns', columns, 'Rows', rows, 'NumProjectsPerPage', numProjectsPerPage);
+      this.setState({numProjectsPerPage});
+    }
+  }
+
   projectsListElement () {
     if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
@@ -322,9 +353,17 @@ class ProjectBrowser extends React.Component {
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout();
         }, 50)}
+        ref={ (projectBrowserOuterDiv) => {
+          if (projectBrowserOuterDiv) {
+            this.projectBrowserOuterDiv = projectBrowserOuterDiv;
+          }
+        }
+        }
       >
         {this.renderNewProjectBoxorama()}
-        {this.state.projectsList.map((projectObject) => (
+        {this.state.projectsList.slice(
+          this.state.firstDisplayedProject,
+          this.state.firstDisplayedProject + this.state.numProjectsPerPage).map((projectObject) => (
           <ProjectThumbnail
             key={projectObject.projectName}
             allowDelete={this.props.isOnline || projectObject.local}
@@ -338,14 +377,6 @@ class ProjectBrowser extends React.Component {
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
           />
         ))}
-        {/* the following abomination is needed for the nifty flexbox resizing.
-            They are extra invisible spacers for the final row */}
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="123" />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="252" />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="332" />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="423" />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="532" />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="623" />
       </div>
     );
   }
@@ -584,6 +615,14 @@ class ProjectBrowser extends React.Component {
         </div>
 
         {this.projectsListElement()}
+        {this.state.numProjectsPerPage && <Paginator
+          firstItemToDisplay={this.state.firstDisplayedProject}
+          numItemsPerPage={this.state.numProjectsPerPage}
+          numTotalItems={this.state.projectsList.length}
+          onChangeFirstItemToDisplay={(firstDisplayedProject) => {
+            this.setState({firstDisplayedProject});
+          }}
+          />}
         {this.offlineElement()}
       </div>
     );
