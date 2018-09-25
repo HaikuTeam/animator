@@ -4,7 +4,7 @@
       "FIRST!"
     ],
     "Fixes": [
-      "FIRST!"
+      "Now the library shows a progress indicator when creating Sketch or Illustrator files withing Haiku."
     ]
   }
 }
