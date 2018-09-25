@@ -402,10 +402,13 @@ class Library extends React.Component {
 
     return (
       designsFolder &&
-      designsFolder.getChildAssets().length === 0 &&
-      !this.state.isLoading
+      designsFolder.getChildAssets().length === 0
     );
   }
+
+  onAssetCreatorStart = () => {
+    this.setState({isLoading: true});
+  };
 
   render () {
     return (
@@ -462,6 +465,7 @@ class Library extends React.Component {
                   onAskForFigmaAuth={this.askForFigmaAuth}
                   onImportFigmaAsset={this.importFigmaAsset}
                   onRefreshFigmaAsset={this.importFigmaAsset}
+                  onStart={this.onAssetCreatorStart}
                 />
               )}
             </div>
