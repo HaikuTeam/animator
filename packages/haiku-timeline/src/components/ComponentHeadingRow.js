@@ -241,6 +241,7 @@ export default class ComponentHeadingRow extends React.Component {
                 alignItems: 'baseline',
                 marginTop: -3,
                 width: '75%',
+                overflow: 'hidden',
                 marginLeft: this.props.row.isRootRow()
                   ? (this.props.isExpanded ? 33 : undefined)
                   : (this.props.isExpanded ? 12 : undefined),
