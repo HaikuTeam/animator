@@ -167,7 +167,7 @@ class Element extends BaseModel {
   }
 
   isShimElement () {
-    return this.getSource() === '<shim>'
+    return this.parent && this.parent.getSource() === '<group>'
   }
 
   select (metadata, softly = false) {
@@ -1935,7 +1935,6 @@ class Element extends BaseModel {
             attributes,
             {
               transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`,
-              [HAIKU_SOURCE_ATTRIBUTE]: '<shim>'
             }
           ),
           children: [Object.assign(

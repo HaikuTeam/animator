@@ -387,7 +387,6 @@ class ElementSelectionProxy extends BaseModel {
       children: [{
         elementName: 'div',
         attributes: {
-          [HAIKU_SOURCE_ATTRIBUTE]: '<shim>',
           transform: `matrix3d(${shimMatrix.join(',')})`,
           'origin.x': 0,
           'origin.y': 0,
