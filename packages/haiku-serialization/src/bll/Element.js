@@ -1934,7 +1934,7 @@ class Element extends BaseModel {
           attributes: Object.assign(
             attributes,
             {
-              transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`,
+              transform: `translate(${-MathUtils.rounded(boundingBox.x)} ${-MathUtils.rounded(boundingBox.y)})`
             }
           ),
           children: [Object.assign(
