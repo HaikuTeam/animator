@@ -52,6 +52,9 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
   };
 
   componentWillReceiveProps (nextPros: PaginatorProps) {
+    if (nextPros.numItemsPerPage === 0) {
+      return;
+    }
     const numPages = Math.ceil(nextPros.numTotalItems / nextPros.numItemsPerPage);
     const currentPage = Math.floor(nextPros.firstItemToDisplay / nextPros.numItemsPerPage);
     this.setState({numPages, currentPage});

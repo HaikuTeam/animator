@@ -47,7 +47,7 @@ class ProjectBrowser extends React.Component {
       newProjectIsPublic: true,
       // Use first display project instead page num, so kept the same first displayed project on application resizing
       firstDisplayedProject: 0,
-      numProjectsPerPage: 0,
+      numProjectsPerPage: 1,
       // Controls projects div opacity
       fadeOutProjects: true,
     };
@@ -333,8 +333,8 @@ class ProjectBrowser extends React.Component {
       const perCardHeight = DASH_STYLES.card.height + DASH_STYLES.card.marginTop;
       const rows = Math.floor(availableHeight / (perCardHeight));
 
-      // New project box takes one slot
-      const numProjectsPerPage = columns * rows - 1;
+      // New project box takes one slot. Also forces to display at least one project
+      const numProjectsPerPage = Math.max(columns * rows - 1, 1);
 
       if (this.state.numProjectsPerPage === numProjectsPerPage) {
         return;
@@ -651,14 +651,14 @@ class ProjectBrowser extends React.Component {
         </div>
 
         {this.projectsListElement()}
-        {this.state.numProjectsPerPage && <Paginator
+        <Paginator
           firstItemToDisplay={this.state.firstDisplayedProject}
           numItemsPerPage={this.state.numProjectsPerPage}
           numTotalItems={this.state.projectsList.length}
           blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal}
           fadeOut={this.state.fadeOutProjects}
           onChangeFirstItemToDisplay={this.changeFirstItemToDisplay}
-          />}
+        />
         {this.offlineElement()}
       </div>
     );

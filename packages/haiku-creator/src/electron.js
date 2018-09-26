@@ -125,6 +125,8 @@ function createWindow () {
     title: 'Haiku',
     show: false, // Don't show the window until we are ready-to-show (see below)
     titleBarStyle: 'hiddenInset',
+    minWidth: 700,
+    minHeight: 650,
   });
 
   const topmenu = new TopMenu(browserWindow.webContents);
