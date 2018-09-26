@@ -31,8 +31,6 @@ class ProjectBrowser extends React.Component {
     this.openPopover = this.openPopover.bind(this);
     this.closePopover = this.closePopover.bind(this);
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this);
-    this.updateDimensions = this.updateDimensions.bind(this);
-    this.changeFirstItemToDisplay = this.changeFirstItemToDisplay.bind(this);
 
     this.state = {
       username: null,
@@ -51,7 +49,7 @@ class ProjectBrowser extends React.Component {
       firstDisplayedProject: 0,
       numProjectsPerPage: 0,
       // Controls projects div opacity
-      fadeOutProjects: false,
+      fadeOutProjects: true,
     };
   }
 
@@ -87,11 +85,11 @@ class ProjectBrowser extends React.Component {
       });
     });
 
-    window.addEventListener('resize', this.updateDimensions);
+    window.addEventListener('resize', this.updateDimensionsThrottled);
   }
 
   componentWillUnmount () {
-    window.removeEventListener('resize', this.updateDimensions);
+    window.removeEventListener('resize', this.updateDimensionsThrottled);
   }
 
   openPopover (evt) {
@@ -323,7 +321,7 @@ class ProjectBrowser extends React.Component {
   }
 
   // Calculate how many projects can be displayed according to available dimensions
-  updateDimensions () {
+  updateDimensions = () => {
     if (this.projectBrowserOuterDiv) {
       const bb = this.projectBrowserOuterDiv.getBoundingClientRect();
 
@@ -347,7 +345,11 @@ class ProjectBrowser extends React.Component {
         }, 125);
       });
     }
-  }
+  };
+
+  updateDimensionsThrottled = lodash.throttle(() => {
+    this.updateDimensions();
+  }, 100);
 
   changeFirstItemToDisplay = (firstDisplayedProject) => {
     // Skip if not changed
