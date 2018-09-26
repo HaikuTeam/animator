@@ -344,7 +344,7 @@ class ProjectBrowser extends React.Component {
       this.setState({numProjectsPerPage, fadeOutProjects:true}, () => {
         setTimeout(() => {
           this.setState({fadeOutProjects:false});
-        }, 250);
+        }, 125);
       });
     }
   }
@@ -359,7 +359,7 @@ class ProjectBrowser extends React.Component {
     this.setState({fadeOutProjects:true}, () => {
       setTimeout(() => {
         this.setState({firstDisplayedProject, fadeOutProjects:false});
-      }, 250);
+      }, 125);
     });
   };
 
@@ -653,6 +653,8 @@ class ProjectBrowser extends React.Component {
           firstItemToDisplay={this.state.firstDisplayedProject}
           numItemsPerPage={this.state.numProjectsPerPage}
           numTotalItems={this.state.projectsList.length}
+          blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal}
+          fadeOut={this.state.fadeOutProjects}
           onChangeFirstItemToDisplay={this.changeFirstItemToDisplay}
           />}
         {this.offlineElement()}
