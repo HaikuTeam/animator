@@ -41,3 +41,5 @@ export const isDevelopment = () => getEnvironmentType() === EnvironmentType.Deve
 export const getUrl = (path: string) => `${global.process.env.HAIKU_WWW || 'https://www.haiku.ai/'}${path}`;
 export const getAccountUrl = (path: string) =>
   `${global.process.env.HAIKU_ACCOUNT || 'https://account.haiku.ai/'}${path}`;
+
+export const shouldEmitErrors = () => isProduction() || global.process.env.DEBUG_SENTRY === '1';

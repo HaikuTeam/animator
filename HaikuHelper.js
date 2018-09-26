@@ -13,16 +13,8 @@ let haiku;
 let args;
 let flags;
 
-if (process.env.NODE_ENV === 'production') {
-  const {default: Raven} = require('haiku-plumbing/lib/Raven');
-  Raven.context(() => {
-    go();
-  });
-} else {
-  go();
-}
-
-function go () {
+const {default: Raven} = require('haiku-plumbing/lib/Raven');
+Raven.context(() => {
   env = envInfo();
   haiku = haikuInfo();
   args = env.args;
@@ -56,4 +48,4 @@ function go () {
       logger.info('Haiku plumbing running');
     });
   });
-}
+});

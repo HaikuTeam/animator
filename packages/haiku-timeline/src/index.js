@@ -1,7 +1,6 @@
 import {ipcRenderer} from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import * as lodash from 'lodash';
 import * as qs from 'qs';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
@@ -9,59 +8,28 @@ import Timeline from './components/Timeline';
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
+import {shouldEmitErrors} from 'haiku-common/lib/environments';
+
+// We are in a webview; use query string parameters for boot-up configuration
+const search = (window.location.search || '').split('?')[1] || '';
+const params = qs.parse(search, {plainObjects: true});
+const config = Object.assign({}, params);
+if (config.dotenv) {
+  Object.assign(global.process.env, config.dotenv);
+}
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
-if (process.env.NODE_ENV === 'production') {
-  window.Raven.config('https://d045653ab5d44c808480fa6c3fa8e87c@sentry.io/226387', {
-    environment: process.env.NODE_ENV || 'development',
-    release: process.env.HAIKU_RELEASE_VERSION,
-    dataCallback: sentryCallback,
-  }).install();
-  window.Raven.context(go);
-} else {
-  go();
-}
+window.Raven.config('https://d045653ab5d44c808480fa6c3fa8e87c@sentry.io/226387', {
+  environment: process.env.NODE_ENV,
+  release: process.env.HAIKU_RELEASE_VERSION,
+  dataCallback: sentryCallback,
+  shouldSendCallback: shouldEmitErrors,
+});
 
-function _traceKitFormatErrorStack (error) {
-  if (!error) {
-    return null;
-  }
-  if (typeof error.stack !== 'string') {
-    return null;
-  }
-  error.stack = error.stack.split('\n').map((line) => {
-    return line.split(/ at\s+\//).join(' at (/');
-  }).join('\n');
-  return error;
-}
+window.Raven.install();
 
-const heardErrors = {};
-
-window.onerror = (msg, url, line, col, error) => {
-  if (heardErrors[msg]) {
-    return false;
-  }
-
-  heardErrors[msg] = true;
-
-  if (process.env.NODE_ENV === 'production') {
-    _traceKitFormatErrorStack(error);
-    window.Raven.captureException(error);
-  }
-
-  // Give Raven some time to transmit an error report before we crash
-  setTimeout(() => {
-    throw error;
-  }, 500);
-};
-
-function go () {
-  // We are in a webview; use query string parameters for boot-up configuration
-  const search = (window.location.search || '').split('?')[1] || '';
-  const params = qs.parse(search, {plainObjects: true});
-  const config = lodash.assign({}, params);
-
+window.Raven.context(() => {
   if (!config.folder) {
     throw new Error('A folder (the absolute path to the user project) is required');
   }
@@ -114,4 +82,4 @@ function go () {
       document.getElementById('root'),
     );
   });
-}
+});

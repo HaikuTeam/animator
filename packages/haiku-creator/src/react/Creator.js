@@ -84,9 +84,7 @@ const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5; /* 5 minutes */
 export default class Creator extends React.Component {
   constructor (props) {
     super(props);
-    if (props.haiku && props.haiku.dotenv) {
-      Object.assign(global.process.env, props.haiku.dotenv);
-    }
+
     this.authenticateUser = this.authenticateUser.bind(this);
     this.resendEmailConfirmation = this.resendEmailConfirmation.bind(this);
     this.authenticationComplete = this.authenticationComplete.bind(this);
@@ -256,12 +254,13 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:carbonite-snapshot', lodash.debounce(() => {
+      const {organizationName, projectName, projectPath} = Raven.getContext().extra;
       if (this.state.projectFolder) {
         crashReport(
           new Error('FAKE ERROR; IGNORE THIS'),
-          this.state.organizationName || 'unknown',
-          this.state.projectName || 'unknown',
-          this.state.projectFolder,
+          organizationName,
+          projectName,
+          projectPath,
         );
 
         this.createNotice({
@@ -671,6 +670,8 @@ export default class Creator extends React.Component {
     this.user.on(`${USER_CHANNEL}:load`, ({user, organization}) => {
       mixpanel.mergeToPayload({distinct_id: user.Username});
       mixpanel.haikuTrack('creator:opened');
+      window.Raven.setUserContext({email: user.Username});
+      window.Raven.setExtraContext({organizationName: organization.Name});
       this.user.checkPrivateProjectLimit().then((privateProjectLimit) => {
         this.setState({
           privateProjectLimit,
@@ -1231,14 +1232,9 @@ export default class Creator extends React.Component {
     const {projectName, projectPath} = projectObject;
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
-    window.Raven.setExtraContext({
-      projectName,
-      organizationName: this.state.organizationName,
-      projectPath: projectObject.projectPath,
-    });
-    window.Raven.setUserContext({
-      email: this.state.username,
-    });
+    if (window.Raven) {
+      window.Raven.setExtraContext({projectName, projectPath});
+    }
 
     mixpanel.haikuTrack('creator:project:launching', {
       username: this.state.username,
@@ -1514,8 +1510,9 @@ export default class Creator extends React.Component {
     }
 
     // 'Uncaught' indicates an unrecoverable error, so we need to crash
-    if (notice.type === 'error' && notice.message.slice(0, 8) === 'Uncaught') {
+    if (notice.type === 'error' && notice.message.startsWith('Uncaught')) {
       if (process.env.NODE_ENV === 'production') {
+        // TODO: make sure Raven has been able to finish reporting and carbonite has been able to finish uploading.
         remote.getCurrentWindow().close();
       }
     }
@@ -1747,6 +1744,8 @@ export default class Creator extends React.Component {
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
           interactionMode: InteractionMode.GLASS_EDIT, // So that the asset library will not be obscured on reentry
         });
+
+        window.Raven.setExtraContext({projectName: undefined, projectPath: undefined});
 
         if (cb) {
           cb();

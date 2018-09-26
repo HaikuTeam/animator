@@ -50,7 +50,7 @@ function _upload (url, filePath) {
     fs.readFile(filePath, (err, data) => {
       if (err) reject(err)
 
-      logger.info(`[carbonite] uploading ${filePath} to ${url}`)
+      logger.info(`[carbonite] uploading ${filePath} to ${url.split('?')[0]}`)
 
       request.put(
         url,
@@ -87,7 +87,7 @@ function _zipProjectFolders ({destination, sources}) {
   })
 }
 
-function crashReport (error, orgName = 'unknown', projectName = 'unknown', projectPath) {
+function crashReport (error, organizationName, projectName, projectPath) {
   if (!projectPath || !_hasElapsedEnoughTime()) {
     return
   }
@@ -98,7 +98,7 @@ function crashReport (error, orgName = 'unknown', projectName = 'unknown', proje
   const zipName = `${projectName}-${timestamp}.zip`
   const zipPath = path.join(HOMEDIR_CRASH_REPORTS_PATH, zipName)
 
-  const finalUrl = `${AWS_S3_HOST}/${orgName}/${zipName}`
+  const finalUrl = `${AWS_S3_HOST}/${organizationName}/${zipName}`
 
   crashReportFork(error, projectPath, zipName, zipPath, finalUrl)
 
@@ -106,13 +106,20 @@ function crashReport (error, orgName = 'unknown', projectName = 'unknown', proje
 }
 
 function crashReportFork (error, projectPath, zipName, zipPath, finalUrl) {
-  logger.info(`[carbonite] initiating crash report`, projectPath, zipName, zipPath, finalUrl)
+  logger.info(`[carbonite] initiating crash report`, projectPath, zipName, zipPath, finalUrl.split('?')[0])
+  // IPC send to Creator "crash is happening". Creator should show new fail whale screen with option to restart grayed out.
+  // While grayed out, fail whale screen should say "sending crash data to Haiku"
   process.env.HAIKU_CRASH_REPORT_PROJECT_PATH = projectPath
   process.env.HAIKU_CRASH_REPORT_ZIP_PATH = zipPath
   process.env.HAIKU_CRASH_REPORT_ZIP_NAME = zipName
   process.env.HAIKU_CRASH_REPORT_URL = finalUrl
   process.env.HAIKU_CRASH_REPORT_STACKTRACE = error.stack
-  fork(path.join(__dirname, 'carbonite-proc.js'), [], {stdio: 'inherit'})
+  const carboniteUpload = fork(path.join(__dirname, 'carbonite-proc.js'), [], {stdio: 'inherit'})
+  carboniteUpload.on('exit', () => {
+    this.carboniteComplete = true;
+  })
+
+  // await this.carboniteComplete && this.sentryComplete, then IPC send to creator "crash is done, enable restart button"
 }
 
 function crashReportCreate (cb) {
@@ -139,8 +146,7 @@ function crashReportCreate (cb) {
 function createErrorFromSentryData (data) {
   const info = data && data.exception && data.exception.values && data.exception.values[0]
   const name = (info && info.value) || 'Unknown'
-  const error = new Error(name) // TODO: Include info.stacktrace.frames as error.stack
-  return error
+  return new Error(name) // TODO: Include info.stacktrace.frames as error.stack
 }
 
 /**
@@ -150,6 +156,9 @@ function createErrorFromSentryData (data) {
  */
 function sentryCallback (data) {
   if (
+    // #FIXME: this is duplicative of {shouldEmitErrors} in haiku-common/lib/environments.
+    // Migrate this module to haiku-common.
+    (process.env.NODE_ENV === 'production' || process.env.DEBUG_SENTRY === '1') &&
     data &&
     data.extra &&
     data.extra.projectPath
@@ -158,14 +167,13 @@ function sentryCallback (data) {
     // We recreate it here so that the crash report function can log the error name.
     const error = createErrorFromSentryData(data)
 
-    const {organizationName, projectName, projectPath} = data.extra
-    logger.info(`[carbonite] sentry callback`, organizationName, projectName, projectPath)
-
-    data.extra.carbonite = crashReport(error, organizationName, projectName, projectPath)
-    data.extra.experiments = {}
-    for (const [key, value] of Object.entries(Experiment)) {
-      data.extra.experiments[key] = experimentIsEnabled(value)
-    }
+    data.extra.carbonite = crashReport(
+      error,
+      data.extra.organizationName,
+      data.extra.projectName,
+      data.extra.projectPath
+    )
+    data.extra.experiments = require('haiku-common/config/experiments.json')
   }
 
   return data
