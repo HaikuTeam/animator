@@ -403,6 +403,14 @@ class ProjectBrowser extends React.Component {
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
           />
         ))}
+        {/* the following abomination is needed for the nifty flexbox resizing.
+            They are extra invisible spacers for the final row */}
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="123" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="252" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="332" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="423" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="532" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="623" />
       </div>
     );
   }
