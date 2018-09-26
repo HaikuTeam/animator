@@ -65,10 +65,7 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
 
   componentWillReceiveProps (nextPros: PaginatorProps) {
     const numPages = Math.ceil(nextPros.numTotalItems / nextPros.numItemsPerPage);
-
     const currentPage = Math.floor(nextPros.firstItemToDisplay / nextPros.numItemsPerPage);
-    console.log('WILLMOUNT numPages', numPages, 'currentPage', currentPage, 'nextPros.firstItemToDisplay', nextPros.firstItemToDisplay,
-      'nextPros.numTotalItems', nextPros.numTotalItems, 'nextPros.numItemsPerPage', nextPros.numItemsPerPage);
     this.setState({numPages, currentPage});
   }
 
@@ -80,14 +77,16 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
     const pages = [];
 
     for (let page = 0; page < this.state.numPages; page++) {
+      const changePage = () => {
+        this.props.onChangeFirstItemToDisplay(page * this.props.numItemsPerPage);
+      };
       pages.push(
         <a
-        key={`pagination-${page}`}
-        onClick={() => {
-          this.props.onChangeFirstItemToDisplay(page * this.props.numItemsPerPage);
-        }}
-        style={{color: page === this.state.currentPage ? Palette.LIGHTEST_PINK : Palette.ROCK}}>
-        <span key={`pagination-${page}-span`} style={STYLES.pageNumber}>•</span>
+          key={`pagination-${page}`}
+          onClick={changePage}
+          style={{color: page === this.state.currentPage ? Palette.LIGHTEST_PINK : Palette.ROCK}}
+        >
+          <span key={`pagination-${page}-span`} style={STYLES.pageNumber}>•</span>
         </a>,
       );
     }
@@ -95,7 +94,13 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
   }
 
   render () {
-    console.log('#RENDER this.state.currentPage', this.state.currentPage, 'this.state.numPages', this.state.numPages);
+    const prevPage = () => {
+      this.props.onChangeFirstItemToDisplay(Math.max(0, this.props.firstItemToDisplay - this.props.numItemsPerPage));
+    };
+    const nextPage = () => {
+      this.props.onChangeFirstItemToDisplay(Math.min(this.props.firstItemToDisplay + this.props.numItemsPerPage, this.props.numTotalItems));
+    };
+
     return (
       <div style={STYLES.pagerWrap} id="paginatorDiv">
         <div style={STYLES.pagerHolster}>
@@ -103,9 +108,7 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
             <span
               style={STYLES.arrow}
               key="prev"
-              onClick={() => {
-                this.props.onChangeFirstItemToDisplay(Math.max(0, this.props.firstItemToDisplay - this.props.numItemsPerPage));
-              }}
+              onClick={prevPage}
             >
               ←
             </span>
@@ -115,9 +118,7 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
             <span
               style={STYLES.arrow}
               key="next"
-              onClick={() => {
-                this.props.onChangeFirstItemToDisplay(Math.min(this.props.firstItemToDisplay + this.props.numItemsPerPage, this.props.numTotalItems));
-              }}
+              onClick={nextPage}
             >
             →
             </span>

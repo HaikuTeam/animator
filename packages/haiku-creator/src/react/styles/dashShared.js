@@ -71,7 +71,7 @@ export const DASH_STYLES = {
     height: 'calc(100% - 36px - 50px)', // header and paginator
     paddingLeft: 50,
     paddingRight: 50,
-    transition: 'filter 140ms',
+    transition: 'visibility 0s linear 0s, opacity 250ms, transform ease-in 250ms, filter 140ms',
   },
   dontAtMe: {
     visibility: 'hidden',

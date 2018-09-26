@@ -32,6 +32,7 @@ class ProjectBrowser extends React.Component {
     this.closePopover = this.closePopover.bind(this);
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this);
     this.updateDimensions = this.updateDimensions.bind(this);
+    this.changeFirstItemToDisplay = this.changeFirstItemToDisplay.bind(this);
 
     this.state = {
       username: null,
@@ -49,6 +50,8 @@ class ProjectBrowser extends React.Component {
       // Use first display project instead page num, so kept the same first displayed project on application resizing
       firstDisplayedProject: 0,
       numProjectsPerPage: 0,
+      // Controls projects div opacity
+      fadeOutProjects: false,
     };
   }
 
@@ -326,17 +329,39 @@ class ProjectBrowser extends React.Component {
 
       const availableWidth = bb.width - DASH_STYLES.projectsWrapper.paddingLeft - DASH_STYLES.projectsWrapper.paddingRight;
       const perCardWidth = DASH_STYLES.card.minWidth + DASH_STYLES.projectsWrapper.paddingLeft + DASH_STYLES.projectsWrapper.paddingRight - 10;
-      const cardsPerRow = availableWidth / (perCardWidth);
-      const columns = Math.floor(cardsPerRow);
+      const columns = Math.floor(availableWidth / perCardWidth);
 
+      const availableHeight = bb.height;
       const perCardHeight = DASH_STYLES.card.height + DASH_STYLES.card.marginTop;
-      const rows = Math.floor(bb.height / (perCardHeight));
+      const rows = Math.floor(availableHeight / (perCardHeight));
 
+      // New project box takes one slot
       const numProjectsPerPage = columns * rows - 1;
-      console.log('DIMENSIONS columns', columns, 'Rows', rows, 'NumProjectsPerPage', numProjectsPerPage);
-      this.setState({numProjectsPerPage});
+
+      if (this.state.numProjectsPerPage === numProjectsPerPage) {
+        return;
+      }
+      this.setState({numProjectsPerPage, fadeOutProjects:true}, () => {
+        setTimeout(() => {
+          this.setState({fadeOutProjects:false});
+        }, 250);
+      });
     }
   }
+
+  changeFirstItemToDisplay = (firstDisplayedProject) => {
+    // Skip if not changed
+    if (firstDisplayedProject === this.state.firstDisplayedProject) {
+      return;
+    }
+
+    // Create fadeout/fadein effect
+    this.setState({fadeOutProjects:true}, () => {
+      setTimeout(() => {
+        this.setState({firstDisplayedProject, fadeOutProjects:false});
+      }, 250);
+    });
+  };
 
   projectsListElement () {
     if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
@@ -348,6 +373,7 @@ class ProjectBrowser extends React.Component {
       <div
         style={[
           DASH_STYLES.projectsWrapper,
+          {opacity: this.state.fadeOutProjects ? 0 : 1},
           (showDeleteModal || showNewProjectModal || showChangelogModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
@@ -619,9 +645,7 @@ class ProjectBrowser extends React.Component {
           firstItemToDisplay={this.state.firstDisplayedProject}
           numItemsPerPage={this.state.numProjectsPerPage}
           numTotalItems={this.state.projectsList.length}
-          onChangeFirstItemToDisplay={(firstDisplayedProject) => {
-            this.setState({firstDisplayedProject});
-          }}
+          onChangeFirstItemToDisplay={this.changeFirstItemToDisplay}
           />}
         {this.offlineElement()}
       </div>
