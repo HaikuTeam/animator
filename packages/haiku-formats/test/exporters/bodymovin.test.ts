@@ -33,18 +33,6 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     test.end();
   });
 
-  suite.test('requires svg wrapper children', (test: tape.Test) => {
-    const bytecode = {
-      ...baseBytecodeCopy(), template: {
-        ...baseBytecodeCopy().template, children: [{
-          elementName: 'div',
-        }],
-      },
-    };
-    test.throws(rawOutput.bind(undefined, bytecode), 'throws if provided a div child');
-    test.end();
-  });
-
   suite.test('uses the specified version of Bodymovin', (test: tape.Test) => {
     const {v} = rawOutput(baseBytecodeCopy());
     test.deepEqual({v}, {v: '5.1.20'}, 'gets the Bodymovin version from package.json');
@@ -691,6 +679,41 @@ tape('BodymovinExporter', (suite: tape.Test) => {
 
     test.equal(transformLayer.ty, 'tr', 'creates a translation layer for transposition');
     test.deepEqual(transformLayer.p, {a: 0, k: [-60, -90]}, 'translates the rectangle correctly');
+    test.end();
+  });
+
+  suite.test('offsets viewbox', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+    overrideShapeAttributes(bytecode, {
+      width: {0: {value: 10}},
+      height: {0: {value: 10}},
+    });
+    overrideShapeElement(bytecode, 'rect');
+
+    {
+      const {
+        layers: [{
+          shapes: [{it: [_, __, ___, transformLayer]}],
+        }],
+      } = rawOutput(bytecode);
+
+      test.deepEqual(transformLayer.p, {a: 0, k: [0, 0]}, 'offsets viewbox (no viewbox)');
+    }
+
+    {
+      bytecode.timelines.Default['haiku:svg'].viewBox = {
+        0: {value: '-10 -5 10 10'},
+      };
+
+      const {
+        layers: [{
+          shapes: [{it: [_, __, ___, transformLayer]}],
+        }],
+      } = rawOutput(bytecode);
+
+      test.deepEqual(transformLayer.p, {a: 0, k: [10, 5]}, 'offsets viewbox (with viewbox)');
+    }
+
     test.end();
   });
 

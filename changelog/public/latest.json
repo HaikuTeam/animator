@@ -4,7 +4,8 @@
       "FIRST!"
     ],
     "Fixes": [
-      "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku."
+      "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
+      "Lottie export now supports SVGs with non-standard viewboxes."
     ]
   }
 }
