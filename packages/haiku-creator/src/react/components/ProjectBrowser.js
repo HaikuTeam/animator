@@ -16,7 +16,7 @@ import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 import {Paginator} from 'haiku-ui-common/lib/react/Paginator';
-import NoCon from '@haiku/tina-nocon/react';
+import * as  NoCon from '@haiku/tina-nocon/react';
 
 const STYLES = {
   adminButton: {
@@ -260,11 +260,14 @@ class ProjectBrowser extends React.Component {
   };
 
   offlineElement () {
+    if (!this.shouldShowOfflineNotice) {
+      return null;
+    }
 
     return (
       <span style={DASH_STYLES.loadingWrap}>
         <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
-
+          <div style={{height: 160}}><NoCon loop={true} sizing="cover" /></div>
           <div style={DASH_STYLES.notice}>
             <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haiku hosting services.<br/>Are you connected to the Internet?</div>
             <div>Upgrade to Haiku Pro for offline capabilities.</div>

@@ -400,6 +400,8 @@ export const DASH_STYLES: React.CSSProperties = {
     border: '1px solid ' + Palette.LIGHT_BLUE,
     padding: '34px 50px 30px',
     textAlign: 'center',
+    position: 'relative',
+    zIndex: 1,
   },
   noticeTitle: {
     fontSize: 22,
