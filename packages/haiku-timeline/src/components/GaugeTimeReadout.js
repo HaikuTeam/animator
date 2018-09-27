@@ -87,14 +87,14 @@ export default class GaugeTimeReadout extends React.Component {
           style={{
             width: 50,
             float: 'right',
-            marginRight: 10,
+            marginRight: 3,
             fontSize: 9,
             height: 'inherit',
             verticalAlign: 'top',
             color: Palette.ROCK_MUTED,
             textAlign: 'right',
             paddingTop: 7,
-            paddingRight: 5,
+            paddingRight: 12,
             cursor: 'pointer',
           }}>
           {this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES
