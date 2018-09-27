@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds';
 import * as Timeline from 'haiku-serialization/src/bll/Timeline';
@@ -41,6 +42,7 @@ export default class GaugeTimeReadout extends React.Component {
   handleClick () {
     this.props.timeline.toggleTimeDisplayMode();
     this.props.saveTimeDisplayModeSetting();
+    mixpanel.haikuTrack(`creator:timeline:display-mode-set:${this.props.timeline.getTimeDisplayMode()}`);
   }
 
   render () {
@@ -87,27 +89,27 @@ export default class GaugeTimeReadout extends React.Component {
           style={{
             width: 50,
             float: 'right',
-            marginRight: 10,
+            marginRight: 3,
             fontSize: 9,
             height: 'inherit',
             verticalAlign: 'top',
             color: Palette.ROCK_MUTED,
             textAlign: 'right',
             paddingTop: 7,
-            paddingRight: 5,
+            paddingRight: 12,
             cursor: 'pointer',
           }}>
           {this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES
             ? (<span>
-              <div style={{color: Palette.ROCK, position: 'relative'}}>FRAMES
-                  <span style={{width: 6, height: 6, backgroundColor: Palette.ROCK, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
+              <div style={{color: Palette.SUNSTONE, position: 'relative'}}>FRAMES
+                  <span style={{width: 6, height: 6, backgroundColor: Palette.BLUE, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
               </div>
               <div style={{marginTop: '-2px'}}>SECONDS</div>
             </span>)
             : (<span>
               <div>FRAMES</div>
-              <div style={{marginTop: '-2px', color: Palette.ROCK, position: 'relative'}}>SECONDS
-                  <span style={{width: 6, height: 6, backgroundColor: Palette.ROCK, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
+              <div style={{marginTop: '-2px', color: Palette.SUNSTONE, position: 'relative'}}>SECONDS
+                  <span style={{width: 6, height: 6, backgroundColor: Palette.BLUE, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
               </div>
             </span>)
           }
