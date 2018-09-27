@@ -4,7 +4,9 @@
       "FIRST!"
     ],
     "Fixes": [
-      "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku."
+      "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
+      "Fixed an edge case causing a crash when changing the zoom of the Timeline from the scroll bar.",
+      "Increase the clickeable area to change the Timeline display mode between frames/seconds."
     ]
   }
 }
