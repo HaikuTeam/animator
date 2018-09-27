@@ -8,6 +8,8 @@ const STYLES = {
     padding: '0 20px',
     marginBottom: '30px',
     pointerEvents: 'none',
+    maxHeight: 500,
+    overflowY: 'scroll',
   },
   item: {
     width: '50%',
