@@ -101,15 +101,15 @@ export default class GaugeTimeReadout extends React.Component {
           }}>
           {this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES
             ? (<span>
-              <div style={{color: Palette.ROCK, position: 'relative'}}>FRAMES
-                  <span style={{width: 6, height: 6, backgroundColor: Palette.ROCK, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
+              <div style={{color: Palette.SUNSTONE, position: 'relative'}}>FRAMES
+                  <span style={{width: 6, height: 6, backgroundColor: Palette.BLUE, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
               </div>
               <div style={{marginTop: '-2px'}}>SECONDS</div>
             </span>)
             : (<span>
               <div>FRAMES</div>
-              <div style={{marginTop: '-2px', color: Palette.ROCK, position: 'relative'}}>SECONDS
-                  <span style={{width: 6, height: 6, backgroundColor: Palette.ROCK, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
+              <div style={{marginTop: '-2px', color: Palette.SUNSTONE, position: 'relative'}}>SECONDS
+                  <span style={{width: 6, height: 6, backgroundColor: Palette.BLUE, borderRadius: '50%', position: 'absolute', right: -11, top: 2}} />
               </div>
             </span>)
           }
