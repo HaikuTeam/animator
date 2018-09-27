@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds';
 import * as Timeline from 'haiku-serialization/src/bll/Timeline';
@@ -41,6 +42,7 @@ export default class GaugeTimeReadout extends React.Component {
   handleClick () {
     this.props.timeline.toggleTimeDisplayMode();
     this.props.saveTimeDisplayModeSetting();
+    mixpanel.haikuTrack(`creator:timeline:display-mode-set:${this.props.timeline.getTimeDisplayMode()}`);
   }
 
   render () {
