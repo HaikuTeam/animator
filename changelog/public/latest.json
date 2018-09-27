@@ -4,7 +4,8 @@
       "FIRST!"
     ],
     "Fixes": [
-      "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku."
+      "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
+      "In the rare event of a crash, users will now receive a helpful error message and a diagnostic code that can be shared with Haiku support."
     ]
   }
 }

@@ -12,6 +12,7 @@ import {EventEmitter} from 'events';
 import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer';
 import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger';
 import {EXPORTER_CHANNEL, ExporterHandler} from 'haiku-sdk-creator/lib/exporter';
+import {ERROR_CHANNEL, ErrorHandler} from 'haiku-sdk-creator/lib/bll/Error';
 import {USER_CHANNEL, UserHandler} from 'haiku-sdk-creator/lib/bll/User';
 import {PROJECT_CHANNEL, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import {GLASS_CHANNEL, GlassHandler} from 'haiku-sdk-creator/lib/glass';
@@ -23,7 +24,6 @@ import {client as sdkClient} from '@haiku/sdk-client';
 import * as serializeError from 'haiku-serialization/src/utils/serializeError';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import Master from './Master';
@@ -51,16 +51,6 @@ import Raven from './Raven';
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
 export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7);
 const WS_POLICY_VIOLATION_CODE = 1008;
-
-// For any methods that are...
-// - noisy
-// - internal use only
-// - housekeeping
-// we'll skip Sentry for now.
-const METHODS_TO_SKIP_IN_SENTRY = {
-  setTimelineTime: true,
-  masterHeartbeat: true,
-};
 
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
@@ -95,8 +85,6 @@ const HAIKU_DEFAULTS = {
   },
 };
 
-const emitter = new EventEmitter();
-
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`;
 
 const PLUMBING_INSTANCES = [];
@@ -114,41 +102,15 @@ const teardownPlumbings = (cb) => {
 // test wrapper steps in and interferes
 process.on('exit', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) exiting`);
-  teardownPlumbings(() => {
-
-  });
+  teardownPlumbings(() => {});
 });
 process.on('SIGINT', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGINT`);
-  teardownPlumbings(() => {
-    process.exit();
-  });
+  teardownPlumbings(process.exit);
 });
 process.on('SIGTERM', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGTERM`);
-  teardownPlumbings(() => {
-    process.exit();
-  });
-});
-
-// Apparently there are circumstances where we won't crash (?); ensure that we do
-process.on('uncaughtException', (err) => {
-  logger.error(err);
-
-  // Notify mixpanel so we can track improvements to the app over time
-  mixpanel.haikuTrackOnce('app:crash', {error: err.message});
-
-  if (PLUMBING_INSTANCES[0]) {
-    PLUMBING_INSTANCES[0].sentryError('?', err);
-  }
-
-  // Exit after timeout to give a chance for mixpanel to transmit
-  setTimeout(() => {
-    // Wait for teardown so we don't interrupt e.g. an important disk-write
-    teardownPlumbings(() => {
-      process.exit(1);
-    });
-  }, 1000);
+  teardownPlumbings(process.exit);
 });
 
 export default class Plumbing extends EventEmitter {
@@ -173,8 +135,10 @@ export default class Plumbing extends EventEmitter {
     this._methodMessages = [];
 
     this.executeMethodMessagesWorker();
+  }
 
-    emitter.on('teardown-requested', () => this.teardown());
+  emitError (error) {
+
   }
 
   launch (haiku = {}, cb) {
@@ -197,6 +161,10 @@ export default class Plumbing extends EventEmitter {
       haiku.envoy.host = this.envoyServer.host;
       haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN;
 
+      const error = new ErrorHandler(this.envoyServer);
+      if (global.sentryReporter) {
+        global.sentryReporter.envoy = error;
+      }
       const user = new UserHandler(this.envoyServer);
       const timeline = new TimelineHandler(this.envoyServer);
       const tour = new TourHandler(this.envoyServer);
@@ -205,6 +173,7 @@ export default class Plumbing extends EventEmitter {
       const project = new ProjectHandler(user, this.envoyServer);
       const services = new ServicesHandler(this.envoyServer);
       this.envoyHandlers = {
+        error,
         timeline,
         tour,
         exporter,
@@ -214,6 +183,7 @@ export default class Plumbing extends EventEmitter {
         services,
       };
 
+      this.envoyServer.bindHandler(ERROR_CHANNEL, ErrorHandler, this.envoyHandlers.error);
       this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, this.envoyHandlers.timeline);
       this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, this.envoyHandlers.tour);
       this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, this.envoyHandlers.exporter);
@@ -427,27 +397,31 @@ export default class Plumbing extends EventEmitter {
       return setTimeout(() => this.executeMethodMessagesWorker(), 64);
     }
 
-    const {type, alias, folder, message, cb} = nextMethodMessage;
+    try {
+      const {type, alias, folder, message, cb} = nextMethodMessage;
 
-    this.methodMessageBeforeLog(message, alias);
+      this.methodMessageBeforeLog(message, alias);
 
-    // Actions are a special case of methods that end up routed through all of the clients,
-    // glass -> timeline -> master before returning. They go through one handler as opposed
-    // to the normal 'methods' which plumbing handles on a more a la carte basis
-    if (message.type === 'action') {
-      return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
+      // Actions are a special case of methods that end up routed through all of the clients,
+      // glass -> timeline -> master before returning. They go through one handler as opposed
+      // to the normal 'methods' which plumbing handles on a more a la carte basis
+      if (message.type === 'action') {
+        return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
 
+          this.methodMessageAfterLog(message, err, result, alias);
+          cb(err, result);
+          this.executeMethodMessagesWorker();
+        });
+      }
+
+      return this.plumbingMethod(message.method, message.params || [], (err, result) => {
         this.methodMessageAfterLog(message, err, result, alias);
         cb(err, result);
         this.executeMethodMessagesWorker();
       });
+    } catch (e) {
+      Raven.captureException(e);
     }
-
-    return this.plumbingMethod(message.method, message.params || [], (err, result) => {
-      this.methodMessageAfterLog(message, err, result, alias);
-      cb(err, result);
-      this.executeMethodMessagesWorker();
-    });
   }
 
   processMethodMessage (type, alias, folder, message, cb) {
@@ -494,34 +468,6 @@ export default class Plumbing extends EventEmitter {
 
       sendMessageToClient(client, merge(message, {folder, alias}));
     });
-  }
-
-  sentryError (method, error) {
-    try {
-      if (!Raven || !error || !method || METHODS_TO_SKIP_IN_SENTRY[method]) {
-        return null;
-      }
-
-      logger.info(`[plumbing] error @ ${method}`, error);
-
-      if (typeof error === 'object' && !(error instanceof Error)) {
-        const fixed = new Error(error.message || `Plumbing.${method} error`);
-        if (error.stack) {
-          fixed.stack = error.stack;
-        }
-        error = fixed;
-      } else if (typeof error === 'string') {
-        error = new Error(error); // Unfortunately no good stack trace in this case
-      }
-
-      const {organizationName, projectName, projectPath} = Raven.getContext().extra;
-
-      crashReport(error, organizationName, projectName, projectPath);
-      return Raven.captureException(error);
-    } catch (exception) {
-      logger.info(`[plumbing] unable to send crash report`);
-      logger.error(exception);
-    }
   }
 
   plumbingMethod (method, params = [], cb) {
@@ -604,7 +550,7 @@ export default class Plumbing extends EventEmitter {
 
       return this.sendClientMethod(client, method, params, (error, response) => {
         if (error) {
-          this.sentryError(method, error);
+          throw error;
         }
 
         return cb(error, response);
@@ -958,7 +904,12 @@ Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, 
   if (!master) {
     return setTimeout(() => this.awaitMasterAndCallMethod(folder, method, params, cb), AWAIT_INTERVAL);
   }
-  return master.handleMethodMessage(method, params, cb);
+
+  try {
+    return master.handleMethodMessage(method, params, cb);
+  } catch (e) {
+    Raven.captureException(e);
+  }
 };
 
 Plumbing.prototype.findMasterByFolder = function (folder) {

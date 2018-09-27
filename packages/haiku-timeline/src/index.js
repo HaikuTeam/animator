@@ -5,7 +5,7 @@ import * as qs from 'qs';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Timeline from './components/Timeline';
-import {sentryCallback} from 'haiku-serialization/src/utils/carbonite';
+import {SentryReporter} from 'haiku-sdk-creator/lib/bll/Error';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 import {shouldEmitErrors} from 'haiku-common/lib/environments';
@@ -20,16 +20,17 @@ if (config.dotenv) {
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
+global.sentryReporter = new SentryReporter();
 window.Raven.config('https://d045653ab5d44c808480fa6c3fa8e87c@sentry.io/226387', {
   environment: process.env.NODE_ENV,
   release: process.env.HAIKU_RELEASE_VERSION,
-  dataCallback: sentryCallback,
+  dataCallback: global.sentryReporter.callback.bind(global.sentryReporter),
   shouldSendCallback: shouldEmitErrors,
 });
 
 window.Raven.install();
 
-window.Raven.context(() => {
+try {
   if (!config.folder) {
     throw new Error('A folder (the absolute path to the user project) is required');
   }
@@ -82,4 +83,8 @@ window.Raven.context(() => {
       document.getElementById('root'),
     );
   });
-});
+} catch (e) {
+  Raven.captureException(e, () => {
+    throw e;
+  });
+}

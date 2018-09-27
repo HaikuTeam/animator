@@ -6,7 +6,7 @@ import {shouldEmitErrors} from 'haiku-common/lib/environments';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Glass from './Glass';
-import {sentryCallback} from 'haiku-serialization/src/utils/carbonite';
+import {SentryReporter} from 'haiku-sdk-creator/lib/bll/Error';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
@@ -19,19 +19,21 @@ if (config.dotenv) {
   Object.assign(global.process.env, config.dotenv);
 }
 
+global.sentryReporter = new SentryReporter();
 window.Raven.config('https://287e52df9cfd48aab7f6091ec17a5921@sentry.io/226362', {
   environment: process.env.NODE_ENV,
   release: process.env.HAIKU_RELEASE_VERSION,
-  dataCallback: sentryCallback,
+  dataCallback: global.sentryReporter.callback.bind(global.sentryReporter),
   shouldSendCallback: shouldEmitErrors,
 });
 
 window.Raven.install();
 
-window.Raven.context(() => {
+try {
   if (!config.folder) {
     throw new Error('A folder (the absolute path to the user project) is required');
   }
+
   function _fixPlumbingUrl (url) {
     return url.replace(/^http/, 'ws');
   }
@@ -42,8 +44,8 @@ window.Raven.context(() => {
     }
 
     const websocket = (config.plumbing)
-    ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
-    : new MockWebsocket(ipcRenderer);
+      ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
+      : new MockWebsocket(ipcRenderer);
 
     websocket.on('open', () => {
       logger.setWebsocket(websocket);
@@ -53,7 +55,7 @@ window.Raven.context(() => {
       logger.setWebsocket(null);
     });
 
-  // Add extra context to Sentry reports, this info is also used by carbonite.
+    // Add extra context to Sentry reports, this info is also used by carbonite.
     const folderHelper = config.folder.split('/').reverse();
 
     window.Raven.setExtraContext({
@@ -84,4 +86,8 @@ window.Raven.context(() => {
       document.getElementById('root'),
     );
   });
-});
+} catch (e) {
+  Raven.captureException(e, () => {
+    throw e;
+  });
+}

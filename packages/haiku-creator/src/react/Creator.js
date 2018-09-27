@@ -37,6 +37,7 @@ import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // es
 import {PROJECT_CHANNEL} from 'haiku-sdk-creator/lib/bll/Project';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
+import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
 import {
   InteractionMode,
   isPreviewMode,
@@ -49,9 +50,9 @@ import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
 import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
-import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
-import {getAccountUrl} from 'haiku-common/lib/environments';
+import {FailWhale} from './components/Popups/FailWhale';
+import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
 
 // Useful debugging originator of calls in shared model code
@@ -166,6 +167,8 @@ export default class Creator extends React.Component {
       eventHandlerEditorOptions: {},
       showConfirmGroupUngroupPopup: false,
       groupOrUngroup: 'group',
+      showFailWhale: false,
+      failWhaleUniqueId: null,
     };
 
     this.envoyOptions = {
@@ -254,19 +257,27 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:carbonite-snapshot', lodash.debounce(() => {
-      const {organizationName, projectName, projectPath} = Raven.getContext().extra;
-      if (this.state.projectFolder) {
-        crashReport(
-          new Error('FAKE ERROR; IGNORE THIS'),
-          organizationName,
-          projectName,
-          projectPath,
-        );
+      if (global.sentryReporter && this.error) {
+        this.error.clearLastUploadTime().then(() => {
+          // Call Carbonite in the BLL.
+          const finalUrl = global.sentryReporter.freezeInCarbonite(
+            Raven.getContext().extra,
+          );
 
-        this.createNotice({
-          title: 'Done',
-          type: 'info',
-          message: `Project snapshot processing. Check your terminal logs for the upload URL.`,
+          if (finalUrl) {
+            this.createNotice({
+              title: 'Done',
+              type: 'info',
+              message: 'Project snapshot processing. Check console log for URL.',
+            });
+            console.info(`Carbonite URL: ${finalUrl}.`);
+          } else {
+            this.createNotice({
+              title: 'Unable to freeze!',
+              type: 'warning',
+              message: 'We were not able to freeze your project. Check logs for details.',
+            });
+          }
         });
       }
     }, 1000, {leading: true, trailing: false}));
@@ -839,6 +850,23 @@ export default class Creator extends React.Component {
       });
     });
 
+    this.envoyClient.get(ERROR_CHANNEL).then(
+      (error) => {
+        if (global.sentryReporter) {
+          global.sentryReporter.envoy = error;
+        }
+        this.error = error;
+        if (shouldEmitErrors()) {
+          this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId}) => {
+            this.setState({
+              showFailWhale: true,
+              failWhaleUniqueId: uniqueId || this.state.failWhaleUniqueId,
+            });
+          });
+        }
+      },
+    );
+
     this.envoyClient.get(USER_CHANNEL).then(
       (user) => {
         this.user = user;
@@ -1037,6 +1065,10 @@ export default class Creator extends React.Component {
       });
     }
   }
+
+  restart = () => {
+    ipcRenderer.send('restart');
+  };
 
   handleInteractionModeChange (interactionMode) {
     if (this.state.interactionMode === interactionMode) {
@@ -1474,6 +1506,11 @@ export default class Creator extends React.Component {
       return true;
     }
 
+    // 'Uncaught' errors will be handled in Envoy unless we're in dev mode.
+    if (notice.type === 'error' && notice.message.startsWith('Uncaught') && shouldEmitErrors()) {
+      return true;
+    }
+
     if (typeof notice.message === 'string') {
       // Ignore Intercom widget errors which are transient and confuse the user
       if (notice.message.match(/intercom/)) {
@@ -1507,14 +1544,6 @@ export default class Creator extends React.Component {
   createNotice (notice) {
     if (this.shouldNoticeBeSkipped(notice)) {
       return;
-    }
-
-    // 'Uncaught' indicates an unrecoverable error, so we need to crash
-    if (notice.type === 'error' && notice.message.startsWith('Uncaught')) {
-      if (process.env.NODE_ENV === 'production') {
-        // TODO: make sure Raven has been able to finish reporting and carbonite has been able to finish uploading.
-        remote.getCurrentWindow().close();
-      }
     }
 
     notice.id = Math.random() + '';
@@ -2305,6 +2334,7 @@ export default class Creator extends React.Component {
           </div>
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
+        {this.state.showFailWhale && <FailWhale restart={this.restart} uniqueId={this.state.failWhaleUniqueId} />}
       </div>
     );
   }

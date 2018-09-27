@@ -14,7 +14,7 @@ let args;
 let flags;
 
 const {default: Raven} = require('haiku-plumbing/lib/Raven');
-Raven.context(() => {
+try {
   env = envInfo();
   haiku = haikuInfo();
   args = env.args;
@@ -48,4 +48,6 @@ Raven.context(() => {
       logger.info('Haiku plumbing running');
     });
   });
-});
+} catch (e) {
+  Raven.captureException(e);
+}
