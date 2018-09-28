@@ -19,7 +19,7 @@ export const BTN_STYLES = {
     transform: 'scale(1)',
     cursor: 'pointer',
     transition: 'transform 200ms ease',
-    backgroundColor: Palette.FATHER_COAL,
+    background: Palette.FATHER_COAL,
     ':active': {
       transform: 'scale(.8)',
     },
