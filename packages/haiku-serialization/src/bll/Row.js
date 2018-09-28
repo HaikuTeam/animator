@@ -397,6 +397,13 @@ class Row extends BaseModel {
 
     const curveToAssign = this.getBaselineCurveAtMillisecond(ms)
 
+    // Lock sync on deep SVG attributes change
+    const parentSVG = this.element.getParentSvgElement()
+    let options = {}
+    if (parentSVG && this.element !== parentSVG) {
+      options = {setElementLockStatus: {[parentSVG.getComponentId()]: true}}
+    }
+
     // Update the bytecode directly via ActiveComponent, which updates Timeline UI.
     // Note that createKeyframe handles rehydrating the keyframes with correct indices.
     this.component.createKeyframe(
@@ -409,6 +416,7 @@ class Row extends BaseModel {
       curveToAssign,
       null, // end ms, not used?
       null, // end value, not used?
+      options,
       metadata,
       () => {}
     )

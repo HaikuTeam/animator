@@ -572,7 +572,7 @@ ActionStack.METHOD_INVERTERS = {
       if (oldValue !== undefined) {
         return {
           method: ac.createKeyframe.name,
-          params: [componentId, timelineName, elementName, propertyName, keyframeStartMs, oldValue, oldCurve, null, null]
+          params: [componentId, timelineName, elementName, propertyName, keyframeStartMs, oldValue, oldCurve, null, null, null]
         }
       } else {
         return {

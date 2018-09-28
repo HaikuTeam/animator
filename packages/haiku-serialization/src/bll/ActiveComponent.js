@@ -3835,6 +3835,7 @@ class ActiveComponent extends BaseModel {
     keyframeCurveSerial,
     keyframeEndMs,
     keyframeEndValueSerial,
+    options,
     metadata,
     cb
   ) {
@@ -3860,8 +3861,23 @@ class ActiveComponent extends BaseModel {
       Bytecode.serializeValue(keyframeCurve),
       keyframeEndMs,
       Bytecode.serializeValue(keyframeEndValue),
+      options,
       metadata,
       (fire) => {
+        const unlockedDesigns = {}
+        if (options && options.setElementLockStatus) {
+          for (const elID in options.setElementLockStatus) {
+            const node = this.findTemplateNodeByComponentId(elID)
+            const lockStatus = options.setElementLockStatus[elID]
+            if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+              node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
+              unlockedDesigns[node.attributes[HAIKU_SOURCE_ATTRIBUTE]] = true
+            } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+              node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + SYNC_LOCKED_ID_SUFFIX
+            }
+          }
+        }
+
         return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
           if (err) {
             logger.error(`[active component (${this.project.getAlias()})]`, err)
