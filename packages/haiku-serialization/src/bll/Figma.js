@@ -68,15 +68,21 @@ class Figma {
    * @returns {Promise}
    */
   importSVG ({url, projectFolder}) {
-    const {id, name} = Figma.parseProjectURL(url)
-    const abspath = path.join(projectFolder, 'designs', `${id}-${name}.figma`)
-    const assetBaseFolder = `${abspath}.contents`
+    const {id} = Figma.parseProjectURL(url)
+    let assetBaseFolder
+
 
     logger.info('[figma] about to import document with id ' + id)
     mixpanel.haikuTrack('creator:figma:fileImport:start')
 
-    return this.createFolders(assetBaseFolder)
-      .then(() => this.fetchDocument(id))
+    return this.fetchDocument(id)
+      .then((rawDocument) => {
+        const document = JSON.parse(rawDocument)
+        const abspath = path.join(projectFolder, 'designs', `${id}-${document.name}.figma`)
+        assetBaseFolder = `${abspath}.contents`
+        this.createFolders(assetBaseFolder)
+        return document
+      })
       .then((document) => this.findInstantiableElements(document, id))
       .then((elements) => this.sortElementsByPriorityToImport(elements))
       .then((elements) => this.getSVGLinks(elements, id))
@@ -234,8 +240,7 @@ class Figma {
     return result
   }
 
-  findInstantiableElements (rawFile, fileId) {
-    const file = JSON.parse(rawFile)
+  findInstantiableElements (file, fileId) {
     uniqueNameResolver[fileId] = {}
     return this.findItems(file.document.children, fileId)
   }
@@ -271,11 +276,12 @@ class Figma {
       // eslint-disable-next-line
       const [_, __, id, name] = url.pathname.split('/')
 
-      if (!id || !name) {
+      if (!id) {
         return null
       }
 
-      return { id, name }
+      // 'Untitled' is the default name assigned by Figma to unnamed projects
+      return { id, name: name || 'Untitled' }
     } catch (e) {
       return null
     }
