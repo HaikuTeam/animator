@@ -1,4 +1,3 @@
-import {FadingCircle} from 'better-react-spinkit';
 import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -47,7 +46,7 @@ import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
-import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
+import * as Hai from '@haiku/taylor-hai/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
@@ -1800,7 +1799,7 @@ export default class Creator extends React.Component {
     }
 
     return (
-      <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: '#313F41'}}>
+      <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
         <CSSTransition
           classNames="toast"
           timeout={{enter: 500, exit: 300}}
@@ -1809,8 +1808,8 @@ export default class Creator extends React.Component {
             {lodash.map(this.state.notices, this.renderNotice)}
           </div>
         </CSSTransition>
-        <div style={{display: 'block', width: '100%', height: '100%', position: 'fixed', top: 0, left: 0}}>
-          <CreatorIntro haikuOptions={{loop: false, sizing: 'contain', contextMenu: 'disabled'}} />
+        <div style={{ position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
+          <Hai haikuOptions={{loop: true, sizing: 'contain', contextMenu: 'disabled'}} />
         </div>
         <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
       </div>
@@ -2099,7 +2098,7 @@ export default class Creator extends React.Component {
       );
     }
 
-    if (!this.state.isUserAuthenticated || !this.state.username) {
+    if (!this.state.isUserAuthenticated || !this.state.username || this.state.areProjectsLoading) {
       return this.renderStartupDefaultScreen();
     }
 
@@ -2150,13 +2149,6 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        {this.state.areProjectsLoading && (
-          <div style={DASH_STYLES.dashWrap}>
-            <span style={DASH_STYLES.loadingWrap}>
-              <FadingCircle size={52} color={Palette.ROCK_MUTED} />
-            </span>
-          </div>
-        )}
         <ProjectLoader
           show={this.state.doShowProjectLoader || this.state.projectLaunching}
         />
