@@ -7,7 +7,8 @@
       "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
       "Lottie export now supports SVGs with non-standard viewboxes.",
       "Fixed an edge case causing a crash when changing the zoom of the Timeline from the scroll bar.",
-      "Increase the clickeable area to change the Timeline display mode between frames/seconds."
+      "Increase the clickeable area to change the Timeline display mode between frames/seconds.",
+      "Fixed issues and increased flexibility around Figma import URLs and project names."
     ]
   }
 }
