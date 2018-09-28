@@ -2165,6 +2165,7 @@ export default class Creator extends React.Component {
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
+                  isPro={this.state.privateProjectLimit == null}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
