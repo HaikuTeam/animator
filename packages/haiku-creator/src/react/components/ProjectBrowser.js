@@ -579,7 +579,7 @@ class ProjectBrowser extends React.Component {
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
-        <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh'}}>
+        <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh', pointerEvents: 'none'}}>
           {lodash.map(this.props.notices, this.renderNotice)}
         </TransitionGroup>
 
