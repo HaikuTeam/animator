@@ -271,7 +271,7 @@ class Asset extends BaseModel {
       figmaID: Figma.findIDFromPath(relpath),
       project,
       relpath,
-      displayName: path.basename(relpath).match(/(\w+)-([\w-]+)\./)[2],
+      displayName: Figma.findDisplayNameFromPath(relpath),
       children: [],
       slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
       groupsFolderAsset,

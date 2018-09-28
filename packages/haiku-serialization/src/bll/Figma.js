@@ -14,6 +14,7 @@ const FIGMA_URL = 'https://www.figma.com/'
 const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh'
 const IS_FIGMA_FILE_RE = /\.figma$/
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
+const FIGMA_DEFAULT_FILENAME = 'Untitled'
 
 const VALID_TYPES = {
   SLICE: 'SLICE',
@@ -70,7 +71,6 @@ class Figma {
   importSVG ({url, projectFolder}) {
     const {id} = Figma.parseProjectURL(url)
     let assetBaseFolder
-
 
     logger.info('[figma] about to import document with id ' + id)
     mixpanel.haikuTrack('creator:figma:fileImport:start')
@@ -280,8 +280,7 @@ class Figma {
         return null
       }
 
-      // 'Untitled' is the default name assigned by Figma to unnamed projects
-      return { id, name: name || 'Untitled' }
+      return { id, name: name || FIGMA_DEFAULT_FILENAME }
     } catch (e) {
       return null
     }
@@ -348,12 +347,23 @@ class Figma {
   /**
    * Tries to find an ID from a Figma path
    * @param {string} relpath
-   * @returns {string}
+   * @returns {string|boolean}
    */
   static findIDFromPath (relpath) {
     const basename = path.basename(relpath)
     const match = basename.match(/(\w+)-/)
     return match && match[1]
+  }
+
+  /**
+   * Tries to find the asset name from a Figma path
+   * @param {string} relpath
+   * @returns {string}
+   */
+  static findDisplayNameFromPath (relpath) {
+    const basename = path.basename(relpath)
+    const match = basename.match(/(\w+)-([\w-]+)\./)
+    return match ? match[2] : FIGMA_DEFAULT_FILENAME
   }
 
   static buildFigmaLinkFromPath (relpath) {
@@ -383,4 +393,4 @@ class Figma {
   }
 }
 
-module.exports = {Figma, PHONY_FIGMA_FILE}
+module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME}
