@@ -81,6 +81,26 @@ const FORK_OPERATION_TIMEOUT = 2000;
 const MAX_FORK_ATTEMPTS = 15;
 const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5; /* 5 minutes */
 
+const STYLES = {
+  globalLoaderBox: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'black',
+    opacity: 0.5,
+    zIndex: 100000,
+  },
+  globalLoaderTextBox: {
+    position: 'absolute',
+    top: '43%',
+    width: '100%',
+    textAlign: 'center',
+    fontSize: '40px',
+  },
+};
+
 export default class Creator extends React.Component {
   constructor (props) {
     super(props);
@@ -168,6 +188,8 @@ export default class Creator extends React.Component {
       eventHandlerEditorOptions: {},
       showConfirmGroupUngroupPopup: false,
       groupOrUngroup: 'group',
+      doShowGlobalLoader: false,
+      globalLoaderText: null,
     };
 
     this.envoyOptions = {
@@ -750,19 +772,17 @@ export default class Creator extends React.Component {
     });
   }
 
+  globalLoaderOn (globalLoaderText, cb) {
+    this.setState({doShowGlobalLoader: true, globalLoaderText}, cb);
+  }
+
+  globalLoaderOff (cb) {
+    this.setState({doShowGlobalLoader: false, globalLoaderText: null}, cb);
+  }
+
   componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
-        case 'remote-model:receive-sync':
-          BaseModel.receiveSync(message);
-          break;
-
-        case 'component:reload':
-          if (this.getActiveComponent()) {
-            this.getActiveComponent().moduleReplace(() => {});
-          }
-          break;
-
         case 'project-state-change':
           this.handleConnectedProjectModelStateChange(message);
           break;
@@ -781,10 +801,6 @@ export default class Creator extends React.Component {
 
         case 'show-confirm-group-popup':
           this.handleShowConfirmGroupPopup(message.groupOrUngroup);
-          break;
-
-        case 'assets-changed':
-          File.cache.clear();
           break;
       }
     });
@@ -2175,6 +2191,7 @@ export default class Creator extends React.Component {
                     createNotice={this.createNotice}
                     removeNotice={this.removeNotice}
                     conglomerateComponent={this.conglomerateComponent}
+                    projectsList={this.state.projectsList}
                     visible={this.state.activeNav === 'library'} />
                   <StateInspector
                     projectModel={this.state.projectModel}
@@ -2306,6 +2323,15 @@ export default class Creator extends React.Component {
           </div>
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
+        {this.state.doShowGlobalLoader && (
+          <div
+            style={STYLES.globalLoaderBox}>
+            <div
+              style={STYLES.globalLoaderTextBox}>
+              {this.state.globalLoaderText || 'Please wait…'}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

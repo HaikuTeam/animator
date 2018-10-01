@@ -411,9 +411,23 @@ export default class MasterGitProject extends EventEmitter {
           return reject(gitErr);
         }
 
-        logger.info('[inkstone] git HEAD resolved:', id.toString());
+        logger.info('[master-git] git HEAD resolved:', id.toString());
 
         resolve(id.toString());
+      });
+    });
+  }
+
+  resetToSha (sha) {
+    return new Promise((resolve, reject) => {
+      Git.hardReset(this.folder, sha, (gitErr) => {
+        if (gitErr) {
+          return reject(gitErr);
+        }
+
+        logger.info('[master-git] git reset to', sha);
+
+        resolve();
       });
     });
   }
@@ -713,33 +727,6 @@ export default class MasterGitProject extends EventEmitter {
     });
   }
 
-  conflictResetOrContinue (cb) {
-    // If no conficts, this save is good; ok to push and return
-    if (!this.folderState.didHaveConflicts) {
-      return cb();
-    }
-
-    // If conflicts, do a reset so a second save attempt can go through
-    // TODO: Don't clean but leave things as-is for manual intervention
-    logger.info('[master-git] cleaning merge conflicts for re-attempt');
-
-    // Only calling this to log whatever the current statuses are
-    return this.safeGitStatus({log: true}, () => {
-      return Git.cleanAllChanges(this.folder, (err) => {
-        if (err) {
-          return cb(err);
-        }
-        return Git.hardResetFromSHA(this.folder, this.folderState.commitId.toString(), (err) => {
-          if (err) {
-            return cb(err);
-          }
-          this.folderState.wasResetPerformed = true;
-          return cb();
-        });
-      });
-    });
-  }
-
   /**
    * @method doesGitHaveChanges
    * @description Given the current folder state, determine if Git has changes.
@@ -767,14 +754,6 @@ export default class MasterGitProject extends EventEmitter {
    * methods
    * =======
    */
-
-  getHaikuCoreLibVersion () {
-    if (!fse.existsSync(PLUMBING_PKG_JSON_PATH)) {
-      return null;
-    }
-    const obj = fse.readJsonSync(PLUMBING_PKG_JSON_PATH, {throws: false});
-    return obj && obj.version;
-  }
 
   pushTagDirectly (cb) {
     logger.info(`[master-git] pushing tag ${this.folderState.semverVersion} to remote (${this.folderState.projectName})`);
@@ -1011,7 +990,7 @@ export default class MasterGitProject extends EventEmitter {
 
         const actionSequence = [];
         if (this.folderState.doesGitHaveChanges) {
-          actionSequence.push('commitEverything', ...setupSteps, 'conflictResetOrContinue', ...teardownSteps);
+          actionSequence.push('commitEverything', ...setupSteps, ...teardownSteps);
         } else {
           actionSequence.push(...setupSteps, ...teardownSteps);
         }

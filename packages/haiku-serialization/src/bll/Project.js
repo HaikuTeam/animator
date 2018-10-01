@@ -60,8 +60,6 @@ class Project extends BaseModel {
       alias: this.alias
     }
 
-    this.ensurePlatformHaikuRegistry()
-
     // Batched collections of methods to send through the websocket
     this.actionStack = new ActionStack({
       uid: this.getPrimaryKey(),
@@ -242,12 +240,6 @@ class Project extends BaseModel {
     })
   }
 
-  ensurePlatformHaikuRegistry () {
-    if (!this.platform) this.platform = {}
-    if (!this.platform.haiku) this.platform.haiku = {}
-    if (!this.platform.haiku.registry) this.platform.haiku.registry = {}
-  }
-
   getName () {
     const parts = this.folder.split(path.sep)
     const last = parts[parts.length - 1]
@@ -362,10 +354,6 @@ class Project extends BaseModel {
 
   getEnvoyClient () {
     return this._envoyClient
-  }
-
-  getPlatform () {
-    return this.platform
   }
 
   undo (options, metadata, cb) {
@@ -539,6 +527,43 @@ class Project extends BaseModel {
     this.setInteractionMode(interactionMode, metadata, cb)
   }
 
+  globalLoaderOn (text, cb) {
+
+  }
+
+  globalLoaderOff () {
+
+  }
+
+  assimilateProjectSources (sourceProjectAbspath, sourceProjectName, cb) {
+    return this.globalLoaderOn('Ingesting project…', () => {
+      return this.getLatestGitSha((err, sha) => {
+        if (err) {
+          return cb(err)
+        }
+
+        return this.websocket.method(
+          'assimilateProjectSources',
+          [
+            this.getFolder(), // destProjectAbspath
+            sourceProjectAbspath,
+            sourceProjectName
+          ],
+          (err) => {
+            if (err) {
+              return cb(err)
+            }
+
+            return this.once('assets-reloaded', () => {
+              this.globalLoaderOff()
+              return cb()
+            })
+          }
+        )
+      })
+    })
+  }
+
   linkAsset (assetAbspath, cb) {
     return this.websocket.request({
       folder: this.getFolder(),
@@ -599,6 +624,77 @@ class Project extends BaseModel {
     )
   }
 
+  getLatestGitSha (cb) {
+    return this.websocket.method(
+      'getLatestGitSha',
+      [this.getFolder()],
+      cb
+    )
+  }
+
+  gitResetToGitSha (sha, cb) {
+    return this.websocket.method(
+      'gitResetToGitSha',
+      [this.getFolder(), sha],
+      cb
+    )
+  }
+
+  /**
+   * @description Given a dictionary of known assets such as:
+   *   {'foo/bar.txt': {relpath: ..., abspath, dtModified: ...}, ...}
+   * Reload all of the assets in this project as appropriate, including components.
+   */
+  reloadAssets (assets, metadata, cb) {
+    File.cache.clear()
+
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      return this.updateHook('reloadAssets', assets, metadata || this.getMetadata(), (fire) => {
+        const finish = (err) => {
+          if (err) {
+            release()
+            logger.error(`[project (${this.getAlias()})]`, err)
+            return cb(err)
+          }
+
+          release()
+          fire()
+          this.emit('assets-reloaded', assets)
+          cb()
+        }
+
+        return async.eachOfSeries(assets, ({abspath, dtModified}, relpath, next) => {
+          const parts = relpath.split(path.sep)
+
+          if (parts[0] === 'code' && parts[2] === 'code.js') {
+            const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
+            // This call is a no-op if the ActiveComponent instance already.
+            // If an ActiveComponent needs to be created, this code path handles
+            // upserting the File instance, adding the instance to the multi-component tabs, etc.
+            return this.findOrCreateActiveComponent(scenename, next)
+          }
+
+          return next()
+        }, (err) => {
+          if (err) {
+            return finish(err)
+          }
+
+          const ac = this.getCurrentActiveComponent()
+          const changeDescriptor = assets[ac.getRelpath()]
+
+          if (ac && changeDescriptor) {
+            if (changeDescriptor.dtModifiedExternally > (ac.dtLastReload + 500)) {
+              return ac.moduleReplace(finish)
+            }
+          }
+
+          return finish()
+        })
+      })
+    })
+  }
+
   mergeDesigns (designs, metadata, cb) {
     const ac = this.getCurrentActiveComponent()
 
@@ -649,12 +745,6 @@ class Project extends BaseModel {
   }
 
   addActiveComponentToRegistry (activeComponent) {
-    const activeComponentKey = path.join(
-      this.getFolder(),
-      activeComponent.getRelpath()
-    )
-    this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
-    this.platform.haiku.registry[activeComponentKey] = activeComponent
     this.addActiveComponentToMultiComponentTabs(activeComponent.getSceneName(), false)
   }
 

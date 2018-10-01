@@ -452,8 +452,12 @@ class AssetItem extends React.Component {
       } else {
         imageSrc = `${escape(this.props.asset.getAbspath())}?t=${this.props.asset.dtModified}`;
       }
+      // The key={imageSrc} bits here are important. Don't remove them or you will either see:
+      //   - The popover layout get busted
+      //   - The thumbnail not update properly when the file has changed
       return (
         <span
+          key={imageSrc}
           className="thumbnail-icon-container"
           style={STYLES.cardIcon}
           onDoubleClick={this.handleAssetDoubleClick}
@@ -467,10 +471,10 @@ class AssetItem extends React.Component {
             isOpen={this.state.isHovered && !this.state.isDragging}
             style={STYLES.cardPreview}
             preferPlace={'right'}
-            body={<embed src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
+            body={<embed key={imageSrc} src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
             tipSize={0.01}
           >
-            <embed style={STYLES.cardImage} src={`file://${imageSrc}`} />
+            <embed key={imageSrc} src={`file://${imageSrc}`} style={{...STYLES.cardImage}} />
           </Popover>
         </span>
       );

@@ -2,7 +2,9 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
 import * as Radium from 'radium';
+import * as Color from 'color';
 import {shell, ipcRenderer} from 'electron';
+import * as stringSimilarity from 'string-similarity';
 import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {isMac} from 'haiku-common/lib/environments/os';
@@ -16,6 +18,8 @@ import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';
 import FileImporter from './FileImporter';
 import DesignFileCreator from './DesignFileCreator';
+import ComponentSearchThumbnail from './../ComponentSearchThumbnail';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 const openWithDefaultProgram = (asset) => {
   shell.openItem(asset.getAbspath());
@@ -70,6 +74,81 @@ const STYLES = {
     width: '100%',
     height: 2,
   },
+  button: {
+    position: 'relative',
+    zIndex: 2,
+    padding: '3px 9px',
+    backgroundColor: Palette.DARKER_GRAY,
+    color: Palette.ROCK,
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginTop: -4,
+    borderRadius: 3,
+    cursor: 'pointer',
+    transform: 'scale(1)',
+    transition: 'transform 200ms ease',
+    ':hover': {
+      backgroundColor: Color(Palette.DARKER_GRAY).darken(0.2),
+    },
+    ':active': {
+      transform: 'scale(.8)',
+    },
+  },
+  searchHelpText: {
+    display: 'block',
+    marginTop: 15,
+    marginLeft: 15,
+  },
+  searchResultsBox: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignContent: 'space-between',
+    margin: 16,
+  },
+  searchResultLabelContainer: {
+    display: 'block',
+    color: Palette.ROCK,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    marginTop: 5,
+  },
+  searchResultContainer: {
+    width: 100,
+    marginBottom: 15,
+  },
+  librarySearchBar: {
+    position: 'absolute',
+    left: 50,
+    right: 52,
+    top: 51,
+    height: 19,
+    backgroundColor: Color(Palette.DARKER_GRAY).darken(0.4),
+    borderRadius: 4,
+    padding: '2px 6px',
+  },
+  librarySearchBarMagIcon: {
+    position: 'absolute',
+    left: 7,
+    top: -2,
+    transform: 'rotateZ(-45deg)',
+    color: '#666',
+  },
+  librarySearchInput: {
+    position: 'absolute',
+    left: 22,
+    top: 1,
+    color: Palette.ROCK,
+  },
+  librarySearchCancelButton: {
+    position: 'absolute',
+    right: 7,
+    top: 2,
+    color: '#999',
+    fontWeight: 'bold',
+  },
 };
 
 class Library extends React.Component {
@@ -90,6 +169,11 @@ class Library extends React.Component {
         isVisible: false,
         shouldAskForSketch: !didAskedForSketch(),
       },
+      isSearchActive: false,
+      isSearchLoading: false,
+      searchTerm: '',
+      searchTermPrevious: '',
+      didSearchSubmit: false,
     };
 
     this.onAssetDoubleClick = this.onAssetDoubleClick.bind(this);
@@ -99,10 +183,19 @@ class Library extends React.Component {
     this.onSketchDialogDismiss = this.onSketchDialogDismiss.bind(this);
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
-    this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250);
+    this.handleAssetsChanged = lodash.debounce(
+      this.handleAssetsChanged.bind(this),
+      250,
+      {leading: false, trailing: true},
+    );
 
-    this.broadcastListener = this.broadcastListener.bind(this);
+    this.handleProjectAssetsChanged = this.handleProjectAssetsChanged.bind(this);
+
     this.onAuthCallback = this.onAuthCallback.bind(this);
+
+    this.debouncedPerformSearch = lodash.debounce(() => {
+      this.performSearch();
+    }, 500, {leading: false, trailing: true});
 
     // We call this here because this is an expensive operation and we want to avoid
     // executing it when the user tries to open a Sketch file. This first call
@@ -110,29 +203,25 @@ class Library extends React.Component {
     sketchUtils.checkIfInstalled();
   }
 
-  broadcastListener ({name, assets, data}) {
-    switch (name) {
-      case 'assets-changed':
-        const additionalState = {};
-
-        if (!this.state.lockLoadingFromWatchers) {
-          additionalState.isLoading = false;
-        }
-
-        return this.handleAssetsChanged(assets, additionalState);
-    }
-  }
-
   handleAssetsChanged (assetsDictionary, otherStates) {
     const assets = Asset.ingestAssets(this.props.projectModel, assetsDictionary);
     this.setState({assets, ...otherStates});
+  }
+
+  handleProjectAssetsChanged (assetsDictionary) {
+    const additionalState = {};
+
+    if (!this.state.lockLoadingFromWatchers) {
+      additionalState.isLoading = false;
+    }
+
+    return this.handleAssetsChanged(assetsDictionary, additionalState);
   }
 
   componentDidMount () {
     this.setState({isLoading: true});
     this.reloadAssetList();
 
-    this.props.websocket.on('broadcast', this.broadcastListener);
     ipcRenderer.on('open-url:oauth', this.onAuthCallback);
 
     // TODO: perform an actual check for Illustrator
@@ -142,11 +231,13 @@ class Library extends React.Component {
       const figma = new Figma({token: figmaToken});
       this.setState({figma});
     });
+
+    this.props.projectModel.on('assets-reloaded', this.handleProjectAssetsChanged);
   }
 
   componentWillUnmount () {
-    this.props.websocket.removeListener('broadcast', this.broadcastListener);
     ipcRenderer.removeListener('open-url:oauth', this.onAuthCallback);
+    this.props.projectModel.off('assets-reloaded', this.handleProjectAssetsChanged);
   }
 
   figmaAuthCallback ({state, code}) {
@@ -165,7 +256,7 @@ class Library extends React.Component {
         });
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         this.props.createNotice({
           type: 'danger',
           title: 'Error',
@@ -382,7 +473,15 @@ class Library extends React.Component {
     );
   };
 
+  shouldDisplaySearchResults () {
+    return this.state.isSearchActive;
+  }
+
   shouldDisplayAssetList () {
+    if (this.shouldDisplaySearchResults()) {
+      return false;
+    }
+
     const componentshostFolder = this.state.assets.find((asset) => asset.isComponentsHostFolder());
     const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
 
@@ -398,11 +497,155 @@ class Library extends React.Component {
   }
 
   shouldDisplayAssetCreator () {
+    if (this.shouldDisplaySearchResults()) {
+      return false;
+    }
+
     const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
 
     return (
       designsFolder &&
       designsFolder.getChildAssets().length === 0
+    );
+  }
+
+  fetchFilteredSearchResults (cb) {
+    const projectsList = this.props.projectsList;
+
+    if (!this.state.searchTerm || !projectsList) {
+      return cb(null, []);
+    }
+
+    const termNormalized = this.state.searchTerm.trim().toLowerCase();
+    const termLen = termNormalized.length;
+
+    const filteredList = projectsList.filter(
+      ({projectExistsLocally, projectName}) => {
+        // For now, only allow search of projects we have a local copy of. #TODO
+        if (!projectExistsLocally) {
+          return false;
+        }
+
+        const projectNameNormalized = projectName.toLowerCase();
+
+        // If an exact match with the first substring of our term, assume a match
+        if (projectNameNormalized.slice(0, termLen) === termNormalized) {
+          return true;
+        }
+
+        // Returns a fraction between 0 and 1 representing the similarity based on Dice's coefficient
+        const stringSim = stringSimilarity.compareTwoStrings(projectNameNormalized, termNormalized);
+        return stringSim > 0.5;
+      },
+    );
+
+    return cb(null, filteredList);
+  }
+
+  renderLibrarySearchControl () {
+    return (this.state.isSearchActive)
+      ? this.renderLibrarySearchBar()
+      : this.renderLibrarySearchButton();
+  }
+
+  handleSearch (searchTerm) {
+    this.setState({
+      searchTerm,
+    }, () => {
+      if (this.state.searchTerm === this.state.searchTermPrevious) {
+        return;
+      }
+
+      this.setState({
+        searchTermPrevious: this.state.searchTerm,
+        isSearchLoading: this.state.searchTerm.length > 0,
+      }, () => {
+        this.debouncedPerformSearch();
+      });
+    });
+  }
+
+  performSearch () {
+    this.fetchFilteredSearchResults((err, searchResults = []) => {
+      if (err) {
+        console.error(err);
+      }
+
+      this.setState({
+        isSearchLoading: false,
+        searchResults,
+      });
+    });
+  }
+
+  renderLibrarySearchBar () {
+    return (
+      <div
+        id="library-search-bar"
+        style={STYLES.librarySearchBar}>
+        <div
+          id="library-search-bar-mag"
+          style={STYLES.librarySearchBarMagIcon}>
+          &#9906;{/*Magnifying glass*/}
+        </div>
+        <form
+          id="library-search-form"
+          onSubmit={(submitEvent) => {
+            submitEvent.preventDefault();
+            this.handleSearch(document.getElementById('library-search-input').value);
+          }}>
+          <input
+            id="library-search-input"
+            style={STYLES.librarySearchInput}
+            type="text"
+            placeholder="Search"
+            value={this.state.searchTerm}
+            onChange={(changeEvent) => {
+              this.handleSearch(changeEvent.target.value);
+            }}>
+          </input>
+          <button
+            type="button"
+            style={STYLES.librarySearchCancelButton}
+            onClick={() => {
+              this.setState({
+                didSearchSubmit: false,
+                isSearchActive: false,
+              });
+            }}
+            id="library-search-bar-cancel-button">
+            ×
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  renderLibrarySearchButton () {
+    return (
+      <button
+        id="library-search-button"
+        aria-label="Search for components"
+        data-tooltip={true}
+        data-tooltip-bottom={true}
+        style={{
+          ...STYLES.button,
+          ...{right: -60},
+        }}
+        onClick={() => {
+          this.setState({
+            isSearchActive: true,
+          }, () => {
+            const inputEl = document.getElementById('library-search-input');
+            inputEl.focus();
+            inputEl.select();
+          });
+        }}>
+        <span style={{
+          display: 'block',
+          transform: 'rotateZ(-45deg)',
+        }}>&#9906;{/*Magnifying glass*/}</span>
+      </button>
     );
   }
 
@@ -423,9 +666,10 @@ class Library extends React.Component {
           />
         </div>
         <div
-          id="library-scroll-wrap"
+          id="library-heading-wrapper"
           style={STYLES.sectionHeader}>
           Library
+          {experimentIsEnabled(Experiment.LocalMarketplace) && this.renderLibrarySearchControl()}
           <FileImporter
             websocket={this.props.websocket}
             projectModel={this.props.projectModel}
@@ -437,9 +681,16 @@ class Library extends React.Component {
           />
         </div>
         <div
-          id="library-scroll-wrap"
+          id="library-content-wrap"
           style={STYLES.scrollwrap}>
             <div style={STYLES.assetsWrapper}>
+            {this.shouldDisplaySearchResults() && (
+              <SearchResultItems
+                isSearchLoading={this.state.isSearchLoading}
+                searchTerm={this.state.searchTerm}
+                searchResults={this.state.searchResults}
+                projectModel={this.props.projectModel} />
+            )}
             {this.shouldDisplayAssetList() && (
               <AssetList
                 websocket={this.props.websocket}
@@ -457,17 +708,17 @@ class Library extends React.Component {
                 conglomerateComponent={this.props.conglomerateComponent}
               />
             )}
-              {this.shouldDisplayAssetCreator() && (
-                <DesignFileCreator
-                  projectModel={this.props.projectModel}
-                  websocket={this.props.websocket}
-                  figma={this.state.figma}
-                  onAskForFigmaAuth={this.askForFigmaAuth}
-                  onImportFigmaAsset={this.importFigmaAsset}
-                  onRefreshFigmaAsset={this.importFigmaAsset}
-                  onStart={this.onAssetCreatorStart}
-                />
-              )}
+            {this.shouldDisplayAssetCreator() && (
+              <DesignFileCreator
+                projectModel={this.props.projectModel}
+                websocket={this.props.websocket}
+                figma={this.state.figma}
+                onAskForFigmaAuth={this.askForFigmaAuth}
+                onImportFigmaAsset={this.importFigmaAsset}
+                onRefreshFigmaAsset={this.importFigmaAsset}
+                onStart={this.onAssetCreatorStart}
+              />
+            )}
             </div>
         </div>
         {
@@ -478,6 +729,60 @@ class Library extends React.Component {
             />
           )
         }
+      </div>
+    );
+  }
+}
+
+class SearchResultItems extends React.Component {
+  renderList () {
+    return this.props.searchResults.map(({
+      projectName,
+      projectPath,
+      projectExistsLocally,
+    }, index) => {
+      return (
+        <div
+          key={index}
+          style={STYLES.searchResultContainer}>
+          <ComponentSearchThumbnail
+            projectName={projectName}
+            projectPath={projectPath}
+            projectExistsLocally={projectExistsLocally}
+            handleIngest={() => {
+              return this.props.projectModel.assimilateProjectSources(
+                projectPath,
+                projectName,
+                () => {},
+              );
+            }}/>
+          <span
+            style={STYLES.searchResultLabelContainer}>
+            {projectName}
+          </span>
+        </div>
+      );
+    });
+  }
+
+  render () {
+    if (this.props.isSearchLoading) {
+      return <span style={STYLES.searchHelpText}>Searching…</span>;
+    }
+
+    if (!this.props.searchResults || this.props.searchResults.length < 1) {
+      // Don't show 'no results' unless the user has actually typed something
+      if (this.props.searchTerm.length < 1) {
+        return <span />;
+      }
+      return <span style={STYLES.searchHelpText}>No results.</span>;
+    }
+
+    return (
+      <div
+        id="search-results-box"
+        style={STYLES.searchResultsBox}>
+        {this.renderList()}
       </div>
     );
   }

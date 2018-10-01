@@ -461,24 +461,10 @@ class Timeline extends React.Component {
       }
 
       switch (message.name) {
-        case 'remote-model:receive-sync':
-          BaseModel.receiveSync(message);
-          break;
-
-        case 'component:reload':
-          if (this.getActiveComponent()) {
-            this.getActiveComponent().moduleReplace(() => {});
-          }
-          break;
-
         case 'event-handlers-updated':
           if (this.getActiveComponent()) {
             this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange();
           }
-          break;
-
-        case 'assets-changed':
-          File.cache.clear();
           break;
 
         case 'ui:hide-intercom':

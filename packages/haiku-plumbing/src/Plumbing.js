@@ -28,6 +28,7 @@ import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
+import * as File from 'haiku-serialization/src/bll/File';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {
@@ -35,6 +36,7 @@ import {
   copyDefaultIllustratorFile,
 } from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
+import {assimilateProjectSources} from './project-folder/assimilateProjectSources';
 import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
@@ -837,6 +839,20 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
+  assimilateProjectSources (
+    destProjectAbspath,
+    sourceProjectAbspath,
+    assimilateePrefix,
+    cb,
+  ) {
+    return assimilateProjectSources(
+      destProjectAbspath,
+      sourceProjectAbspath,
+      assimilateePrefix,
+      cb,
+    );
+  }
+
   haltMasterForFolder (folder) {
     if (this.masters[folder] && this.masters[folder].active) {
       this.masters[folder].halt();
@@ -912,6 +928,14 @@ export default class Plumbing extends EventEmitter {
 
   readAllEventHandlers (folder, relpath, cb) {
     return this.awaitMasterAndCallMethod(folder, 'readAllEventHandlers', [relpath, {from: 'master'}], cb);
+  }
+
+  getLatestGitSha (folder, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'getLatestGitSha', [{from: 'master'}], cb);
+  }
+
+  resetToGitSha (folder, sha, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'resetToGitSha', [sha, {from: 'master'}], cb);
   }
 
   handleClientAction (type, alias, folder, method, params, cb) {
@@ -998,35 +1022,13 @@ Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions, 
       envoyHandlers,
     );
 
-    master.on('assets-changed', (master, assets) => {
-      remote({
-        assets,
-        type: 'broadcast',
-        name: 'assets-changed',
-        folder: master.folder,
-      }, () => {
-
-      });
-    });
-
-    master.on('component:reload', (master, file) => {
-      remote({
-        type: 'broadcast',
-        name: 'component:reload',
-        folder: master.folder,
-        relpath: file.relpath,
-      }, () => {
-
-      });
-    });
-
     master.on('project-state-change', (payload) => {
       remote(lodash.assign({
         type: 'broadcast',
         name: 'project-state-change',
         folder: master.folder,
       }, payload), () => {
-
+        // no-op
       });
     });
 

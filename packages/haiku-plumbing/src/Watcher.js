@@ -54,7 +54,7 @@ export default class Watcher extends EventEmitter {
       ignoreInitial: true,
       persistent: true,
       usePolling: true,
-      // awaitWriteFinish: true, // Truthy delays emissions for larger files
+      awaitWriteFinish: true,
       alwaysStat: true,
     });
     emitter.on('lock-on', this.boundBlacklister);

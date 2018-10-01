@@ -22,7 +22,6 @@ import {EventEmitter} from 'events';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Watcher from './Watcher';
 import MasterGitProject from './MasterGitProject';
-import MasterModuleProject from './MasterModuleProject';
 import getExporterListener from './envoy/getExporterListener';
 import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
@@ -140,17 +139,6 @@ export default class Master extends EventEmitter {
       this.handleSemverTagChange(tag, cb);
     });
 
-    // Encapsulation of project actions that concern the live module in other views
-    this._mod = new MasterModuleProject(this.folder);
-
-    this._mod.on('component:reload', (file) => {
-      // Our bytecode and models have to be up to date before we can receive actions
-      // We update ours first since we need to reflect what will get committed to disk
-      this.getActiveComponent().moduleReplace(() => {
-        this.emit('component:reload', this, file);
-      });
-    });
-
     // To store a Watcher instance which will watch for changes on the file system
     this._watcher = null;
 
@@ -187,11 +175,42 @@ export default class Master extends EventEmitter {
     this._wereAssetsInitiallyLoaded = false;
 
     // We end up oversaturating the sockets unless we debounce this
-    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 100, {trailing: true});
-    this.debouncedEmitDesignNeedsMergeRequest = debounce(
-      this.emitDesignNeedsMergeRequest.bind(this),
+    this.debouncedEmitAssetsChanged = debounce(
+      (assets) => {
+        if (this.project && this.project.getCurrentActiveComponent()) {
+          logger.info('[master] reload assets requested');
+          this.project.reloadAssets(
+            assets,
+            {from: 'master'},
+            () => {
+              logger.info(`[master] finished reload assets`);
+            },
+          );
+        }
+      },
       500,
-      {trailing: true},
+      {leading: false, trailing: true},
+    );
+
+    this.debouncedEmitDesignNeedsMergeRequest = debounce(
+      () => {
+        const designs = this._designsPendingMerge;
+        if (Object.keys(designs).length > 0) {
+          logger.info('[master] merge designs requested');
+          if (this.project && this.project.getCurrentActiveComponent()) {
+            this._designsPendingMerge = {};
+            this.project.mergeDesigns(
+              designs,
+              {from: 'master'},
+              () => {
+                logger.info(`[master] finished merge designs`);
+              },
+            );
+          }
+        }
+      },
+      500,
+      {leading: false, trailing: true},
     );
 
     this.websocket = (global.process.env.NODE_ENV === 'test')
@@ -211,15 +230,7 @@ export default class Master extends EventEmitter {
   }
 
   handleBroadcast (message) {
-    switch (message.name) {
-      case 'remote-model:receive-sync':
-        BaseModel.receiveSync(message);
-        break;
-
-      case 'component:reload:complete':
-        this._mod.handleReloadComplete(message);
-        break;
-    }
+    // no-op
   }
 
   getActiveComponent () {
@@ -260,7 +271,6 @@ export default class Master extends EventEmitter {
 
   teardown (cb) {
     clearInterval(this._methodQueueInterval);
-    clearInterval(this._mod._modificationsInterval);
     if (this.project) {
       this.project.teardown();
     }
@@ -336,28 +346,6 @@ export default class Master extends EventEmitter {
     return cb();
   }
 
-  emitAssetsChanged (assets) {
-    File.cache.clear();
-    return this.emit('assets-changed', this, assets);
-  }
-
-  emitDesignNeedsMergeRequest () {
-    const designs = this._designsPendingMerge;
-    if (Object.keys(designs).length > 0) {
-      logger.info('[master] merge designs requested');
-      if (this.project && this.project.getCurrentActiveComponent()) {
-        this._designsPendingMerge = {};
-        this.project.mergeDesigns(
-          designs,
-          {from: 'master'},
-          () => {
-            logger.info(`[master] finished merge designs`);
-          },
-        );
-      }
-    }
-  }
-
   batchDesignMergeRequest (relpath, abspath) {
     this._designsPendingMerge[relpath] = abspath;
     return this;
@@ -412,9 +400,29 @@ export default class Master extends EventEmitter {
     if (doSkipFile(relpath)) {
       return;
     }
+
+    if (path.basename(relpath) === 'code.js') { // Local component file
+      this.trackAsset(relpath, abspath, Date.now(), Date.now());
+    }
+
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {});
     });
+  }
+
+  trackAsset (relpath, abspath, dtModified, dtModifiedExternally) {
+    if (!this._knownLibraryAssets[relpath]) {
+      this._knownLibraryAssets[relpath] = {};
+    }
+
+    Object.assign(this._knownLibraryAssets[relpath], {
+      abspath,
+      dtModified,
+    });
+
+    if (dtModifiedExternally) {
+      this._knownLibraryAssets[relpath].dtModifiedExternally = dtModifiedExternally;
+    }
   }
 
   handleFileChange (abspath) {
@@ -422,15 +430,16 @@ export default class Master extends EventEmitter {
     if (doSkipFile(relpath)) {
       return;
     }
+
     const extname = path.extname(relpath);
     const basename = path.basename(relpath, extname);
 
     if (Asset.isDesignAsset(abspath)) {
       dumpBase64Images(abspath, relpath, this.folder, this._watcher, true);
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitComponentChange(relpath);
     }
 
@@ -453,14 +462,6 @@ export default class Master extends EventEmitter {
           logger.info('[master] illustrator import done');
           return;
         }
-
-        if (extname === '.js' && basename === 'code') {
-          const file = this.getActiveComponent() && this.getActiveComponent().fetchActiveBytecodeFile();
-
-          if (file && file.relpath === relpath) {
-            this._mod.handleModuleChange(file);
-          }
-        }
       });
     });
   }
@@ -475,10 +476,10 @@ export default class Master extends EventEmitter {
 
     if (Asset.isDesignAsset(abspath)) {
       dumpBase64Images(abspath, relpath, this.folder, this._watcher, true);
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
-      this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
+      this.trackAsset(relpath, abspath, Date.now());
       this.emitComponentChange(relpath);
     }
 
@@ -600,9 +601,9 @@ export default class Master extends EventEmitter {
         const parts = relpath.split(path.sep);
         if (DESIGN_EXTNAMES[extname]) {
           dumpBase64Images(entry.path, relpath, this.folder, this._watcher);
-          this._knownLibraryAssets[relpath] = {relpath, abspath: entry.path, dtModified: Date.now()};
+          this.trackAsset(relpath, entry.path, Date.now(), Date.now());
         } else if (parts[0] === 'code' && basename === 'code.js') { // Component bytecode file
-          this._knownLibraryAssets[relpath] = {relpath, abspath: entry.path, dtModified: Date.now()};
+          this.trackAsset(relpath, entry.path, Date.now(), Date.now());
         }
       });
       return this.getAssets(cb);
@@ -775,7 +776,6 @@ export default class Master extends EventEmitter {
 
     logger.info(`[master] ${loggingPrefix}: ${this.folder}`);
 
-    this._mod.restart();
     this._git.restart();
 
     return fetchProjectConfigInfo(this.folder, (err, userconfig) => {
@@ -834,6 +834,18 @@ export default class Master extends EventEmitter {
         }
         return done(null, results[results.length - 1]);
       });
+    });
+  }
+
+  getLatestGitSha (cb) {
+    this._git.resolveSha().then((sha) => {
+      cb(null, sha);
+    });
+  }
+
+  gitResetToGitSha (sha, cb) {
+    this._git.resetToSha(sha).then(() => {
+      cb();
     });
   }
 

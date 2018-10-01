@@ -100,11 +100,10 @@ class File extends BaseModel {
     })
   }
 
-  requestAsyncContentFlush (flushSpec = {}) {
-    if (this.options.doWriteToDisk) {
-      this.pendingRequestedFlush = true
-      this.debouncedFlushContent()
-    }
+  requestAsyncContentFlush () {
+    this.pendingRequestedFlush = true
+    // Note: We don't actually write to disk unless options.doWriteToDisk is truthy
+    this.debouncedFlushContent()
   }
 
   awaitNoFurtherContentFlushes (cb) {
@@ -136,13 +135,27 @@ class File extends BaseModel {
   }
 
   flushContent () {
-    this.trackContentsAndGetCode() // <~ Populates this.contents
-
-    this.assertContents(this.contents)
-
     // When flushContent is executed, clear pending requested flush and set pendingWrite
     this.pendingRequestedFlush = false
+
+    // We track this whether or not we actually write to disk so we can use it to determine
+    // whether a module reload is required to retrieve the latest contents from disk.
+    // It's assumed that the last write-time is the last reload-time, i.e., the most recent
+    // in-mem snapshot with respect to what exists on disk.
+    this.component.dtLastReload = Date.now()
+
+    if (!this.options.doWriteToDisk) {
+      return
+    }
+
+    // The following method calls are all "heavy" and only pertain to situations where we
+    // write to disk or need the full code string, so thye are skipped in the case
+    // that the options.doWriteToDisk flag is falsy.
+    this.trackContentsAndGetCode() // <~ Populates this.contents
+    this.assertContents(this.contents)
+
     this.pendingWrite = true
+
     return this.write((err) => {
       if (err) throw err
       this.pendingWrite = false
@@ -151,7 +164,6 @@ class File extends BaseModel {
 
   flushContentForceSync () {
     this.trackContentsAndGetCode() // <~ Populates this.contents
-
     this.writeSync()
   }
 
@@ -187,10 +199,8 @@ class File extends BaseModel {
       throw new Error('[file] illegal write requested')
     }
     this.assertContents(this.contents)
-    this.dtLastWriteStart = Date.now()
     logger.info(`[file] async writing ${this.relpath} to disk`)
     return File.write(this.folder, this.relpath, this.contents, (err) => {
-      this.dtLastWriteEnd = Date.now()
       if (err) {
         logger.info(`[file] error writing ${this.relpath} to disk`, err)
         return cb(err)
@@ -204,11 +214,9 @@ class File extends BaseModel {
       throw new Error('[file] illegal write requested')
     }
     this.assertContents(this.contents)
-    this.dtLastWriteStart = Date.now()
     logger.info(`[file] sync writing ${this.relpath} to disk`)
     const abspath = path.join(this.folder, this.relpath)
     fse.outputFileSync(abspath, this.contents)
-    this.dtLastWriteEnd = Date.now()
   }
 
   getAbspath () {
