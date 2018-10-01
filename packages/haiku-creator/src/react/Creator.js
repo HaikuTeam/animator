@@ -1799,7 +1799,7 @@ export default class Creator extends React.Component {
     }
 
     return (
-      <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
+      <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
         <CSSTransition
           classNames="toast"
           timeout={{enter: 500, exit: 300}}
@@ -1808,7 +1808,7 @@ export default class Creator extends React.Component {
             {lodash.map(this.state.notices, this.renderNotice)}
           </div>
         </CSSTransition>
-        <div style={{ position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
+        <div style={{position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
           <Hai haikuOptions={{loop: true, sizing: 'contain', contextMenu: 'disabled'}} />
         </div>
         <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>

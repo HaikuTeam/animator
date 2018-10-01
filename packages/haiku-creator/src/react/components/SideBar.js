@@ -83,7 +83,7 @@ const STYLES = {
     lineHeight: 1,
     backgroundColor: Palette.BLUE,
     borderRadius: 4,
-  }
+  },
 };
 
 class SideBar extends React.Component {
