@@ -411,6 +411,7 @@ tape('Project.undo-redo[3]', (t) => {
                     'linear',
                     null,
                     null,
+                    {},
                     {from: 'test'},
                     nextN
                   )
