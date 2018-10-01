@@ -1,6 +1,52 @@
 # Changelog
 
 
+## 4.2.1
+
+### Bug Fixes
+
+ * for Layout weirdness when creating nested groups (834345013882114)
+ * weird rotation issues on Figma
+ * round artboard dimensions on Lottie export to avoid crashing Android
+ * halt master whenever a client of folder disconnects, even when unintentional
+ * do not block message dispatch to master waiting for replies from webview clients.
+ * adjust the editor max height based on the window height
+ * allow marque to be initialized from collapsed transition bodies
+ * highlight current frame even if there's no previous one
+ * ensure lottie exporter can handle when stroke-dasharray is numeric
+ * call Globals.allKeysUp when Creator is blur
+ * only auto-GIF the the main component, only once per Master
+ * restore yarn setup to original glory.
+ * reset gauge and pointer states on timeline when webview is blur
+ * update timelines for GaugeTimeReadout when switching components
+ * fallback to computedValue if prettyValue is NaN
+ * disable native scrollbars in multiline
+ * disable edition only in first/last lines of multiline expressions
+ * hide actions and component buttons in code mode
+ * do not bind states that are already bound.
+ * ensure controls define valid bytecode.
+ * support image components in Lottie exporter.
+ * ensure correct module resolution for controls when bundling.
+ * ensure controls define valid bytecode.
+ * breaking change in lottie-android@2.6.0 requires giving shape groups names.
+ * adjust styles and position of ungroup modal to look like the other modals
+ * use orgname instead of username for the link to the user profile page
+ * disable all items in Export submenu outside of a project
+ * always hoist overflow config to mount
+ * un-scale component name
+ * do not zoom snap lines
+ * ensure the stopwatch is reset when we loop
+ * kill bugs and adjust moving parts
+ * set a min width to the timeline range scrollbar
+ * make timeline zooming less sensitive
+ * disable tabindex on timeline handles
+ * set min and max zoom limits in the timeline
+ * hide drag handle for expanded timeline rows
+
+### Features
+
+ * allow timeline to handle pasting expressions if a row is selected
+
 ## 4.2.0
 
 ### Bug Fixes

@@ -54,7 +54,7 @@ function polyPointsStringToPoints (pointsString: string|[number, number][]) {
 
   // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting.
   const chunkedPoints = [];
-  const points: number[] = pointsString.replace(/,/g, ' ').split(/\s+/g).map(Number);
+  const points: number[] = pointsString.trim().replace(/,/g, ' ').split(/\s+/g).map(Number);
   for (let i = 0; i < points.length; i += 2) {
     chunkedPoints.push(points.slice(i, i + 2) as [number, number]);
   }

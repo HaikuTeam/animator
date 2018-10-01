@@ -55,22 +55,22 @@ class FileImporter extends React.PureComponent {
     };
   }
 
-  showPopover () {
+  showPopover = () => {
     this.setState({isPopoverOpen: true});
     mixpanel.haikuTrack('creator:file-importer:open-all');
-  }
+  };
 
-  hidePopover () {
+  hidePopover = () => {
     this.setState({isPopoverOpen: false});
-  }
+  };
 
-  onFileDrop (filePaths) {
+  onFileDrop = (filePaths) => {
     this.hidePopover();
 
     if (filePaths) {
       this.props.onFileDrop(filePaths);
     }
-  }
+  };
 
   conglomerateComponent = () => {
     this.props.conglomerateComponent({
@@ -91,9 +91,7 @@ class FileImporter extends React.PureComponent {
       >
         <div style={STYLES.popover.item}>
           <FileSystemImporter
-            onFileDrop={(fileDropEvent) => {
-              this.onFileDrop(fileDropEvent);
-            }}
+            onFileDrop={this.onFileDrop}
             style={STYLES.popover.text}
           />
         </div>
@@ -111,9 +109,7 @@ class FileImporter extends React.PureComponent {
             onImportFigmaAsset={this.props.onImportFigmaAsset}
             onAskForFigmaAuth={this.props.onAskForFigmaAuth}
             style={STYLES.popover.text}
-            onPopoverHide={() => {
-              this.hidePopover();
-            }}
+            onPopoverHide={this.hidePopover}
           />
         </div>
       </div>
@@ -123,9 +119,7 @@ class FileImporter extends React.PureComponent {
   render () {
     return (
       <Popover
-        onOuterAction={() => {
-          this.hidePopover();
-        }}
+        onOuterAction={this.hidePopover}
         isOpen={this.state.isPopoverOpen}
         place="below"
         tipSize={0.01}
@@ -136,9 +130,7 @@ class FileImporter extends React.PureComponent {
           data-tooltip={true}
           data-tooltip-bottom={true}
           style={STYLES.button}
-          onClick={() => {
-            this.showPopover();
-          }}
+          onClick={this.showPopover}
         >
           +
         </button>

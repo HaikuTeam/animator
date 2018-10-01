@@ -40,6 +40,7 @@ class DesignFileCreator extends React.PureComponent<any, any> {
     const {primaryAssetPath} = this.props.projectModel.getNameVariations();
     const projectPath = this.props.projectModel.getFolder();
     mixpanel.haikuTrack('creator:library:import:sketch');
+    this.props.onStart();
 
     return this.props.websocket.request(
       {method: 'copyDefaultSketchFile', params: [projectPath, primaryAssetPath]},
@@ -61,6 +62,7 @@ class DesignFileCreator extends React.PureComponent<any, any> {
     const {defaultIllustratorAssetPath} = this.props.projectModel.getNameVariations();
     const projectPath = this.props.projectModel.getFolder();
     mixpanel.haikuTrack('creator:library:import:illustrator');
+    this.props.onStart();
 
     return this.props.websocket.request(
       {method: 'copyDefaultIllustratorFile', params: [projectPath, defaultIllustratorAssetPath]},
