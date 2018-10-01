@@ -741,14 +741,6 @@ export default class MasterGitProject extends EventEmitter {
    * =======
    */
 
-  getHaikuCoreLibVersion () {
-    if (!fse.existsSync(PLUMBING_PKG_JSON_PATH)) {
-      return null;
-    }
-    const obj = fse.readJsonSync(PLUMBING_PKG_JSON_PATH, {throws: false});
-    return obj && obj.version;
-  }
-
   pushTagDirectly (cb) {
     logger.info(`[master-git] pushing tag ${this.folderState.semverVersion} to remote (${this.folderState.projectName})`);
     return Git.pushTagToRemoteDirectly(this.folder, this.folderState.projectName, this.folderState.semverVersion, cb);
