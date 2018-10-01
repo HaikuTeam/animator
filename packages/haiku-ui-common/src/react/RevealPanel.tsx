@@ -10,7 +10,7 @@ const STYLES = {
     pointerEvents: 'none',
     maxHeight: 500,
     overflowY: 'scroll',
-  },
+  } as React.CSSProperties,
   item: {
     width: '50%',
   },
