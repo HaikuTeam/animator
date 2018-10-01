@@ -143,6 +143,7 @@ export default class ExpressionInput extends React.Component {
     this.codemirror = CodeMirror(document.createElement('div'), {
       theme: 'haiku',
       mode: 'haiku',
+      tabSize: 2,
     });
     this.codemirror.setOptions = setOptions.bind(this.codemirror);
     this.codemirror.setValue('');
