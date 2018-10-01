@@ -716,7 +716,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
   /**
    * Transforms a shape layer, then pushes it onto the layer stack.
-   * TODO: Handle viewBox?
    * @param node
    */
   private handleShapeLayer (node: BytecodeNode) {
@@ -748,6 +747,27 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       },
       [LayerKey.Shapes]: [],
     });
+
+    // Compensate for a viewbox using a transform, if needed.
+    const viewBox = initialValueOrNull(timeline, 'viewBox');
+    if (viewBox) {
+      const [x, y] = viewBox.trim().split(' ').map(Number);
+      if (!isNaN(x) && !isNaN(y) && (x !== 0 || y !== 0)) {
+        const newId = `${node.attributes['haiku-id']}-viewbox-shim`;
+        node.children = [{
+          elementName: SvgTag.Group,
+          attributes: {
+            'haiku-id': newId,
+          },
+          children: node.children,
+        }];
+
+        this.bytecode.timelines.Default[`haiku:${newId}`] = {
+          'translation.x': {0: {value: -x}},
+          'translation.y': {0: {value: -y}},
+        };
+      }
+    }
   }
 
   /**
@@ -1477,7 +1497,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     this.assets.forEach((precomp) => {
       if (!Array.isArray(precomp[AssetKey.PrecompLayers])) {
-                // Skip over image assets, which have no layers.
+        // Skip over image assets, which have no layers.
         return;
       }
 

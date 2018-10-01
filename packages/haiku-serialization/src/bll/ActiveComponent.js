@@ -2948,25 +2948,29 @@ class ActiveComponent extends BaseModel {
 
     const rows = root.getHostedPropertyRows(false)
     const all = [].concat(rows)
-
-    const groups = [{
-      host: root,
-      id: root.getComponentId(),
-      rows
-    }].concat(stack.map(({haikuId}) => {
-      const child = this.findElementByComponentId(haikuId)
-
-      // Race condition when undoing multi-delete
-      if (child) {
-        const rows = child.getHostedPropertyRows(true)
-        all.push.apply(all, rows)
-        return {
-          host: child,
-          id: child.getComponentId(),
-          rows
-        }
+    const groups = [
+      {
+        host: root,
+        id: root.getComponentId(),
+        rows
       }
-    }))
+    ].concat(
+      stack.reduce((acc, {haikuId}) => {
+        const child = this.findElementByComponentId(haikuId)
+        // Race condition when undoing multi-delete
+        if (child) {
+          const rows = child.getHostedPropertyRows(true)
+          all.push.apply(all, rows)
+          acc.push({
+            host: child,
+            id: child.getComponentId(),
+            rows
+          })
+        }
+
+        return acc
+      }, [])
+    )
 
     // It's hacky to do this here but ultimately easier than finding the
     // right place to do it when rehydrating. Note that prev/next is only
