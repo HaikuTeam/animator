@@ -527,18 +527,41 @@ class Project extends BaseModel {
     this.setInteractionMode(interactionMode, metadata, cb)
   }
 
+  globalLoaderOn (text, cb) {
+
+  }
+
+  globalLoaderOff () {
+
+  }
+
   assimilateProjectSources (sourceProjectAbspath, sourceProjectName, cb) {
-    return this.websocket.method(
-      'assimilateProjectSources',
-      [
-        this.getFolder(), // destProjectAbspath
-        sourceProjectAbspath,
-        sourceProjectName
-      ],
-      (err) => {
-        return cb(err)
-      }
-    )
+    return this.globalLoaderOn('Ingesting project…', () => {
+      return this.getLatestGitSha((err, sha) => {
+        if (err) {
+          return cb(err)
+        }
+
+        return this.websocket.method(
+          'assimilateProjectSources',
+          [
+            this.getFolder(), // destProjectAbspath
+            sourceProjectAbspath,
+            sourceProjectName
+          ],
+          (err) => {
+            if (err) {
+              return cb(err)
+            }
+
+            return this.once('assets-reloaded', () => {
+              this.globalLoaderOff()
+              return cb()
+            })
+          }
+        )
+      })
+    })
   }
 
   linkAsset (assetAbspath, cb) {
@@ -597,6 +620,22 @@ class Project extends BaseModel {
     return this.websocket.method(
       'queryImageSize',
       [abspath],
+      cb
+    )
+  }
+
+  getLatestGitSha (cb) {
+    return this.websocket.method(
+      'getLatestGitSha',
+      [this.getFolder()],
+      cb
+    )
+  }
+
+  gitResetToGitSha (sha, cb) {
+    return this.websocket.method(
+      'gitResetToGitSha',
+      [this.getFolder(), sha],
       cb
     )
   }

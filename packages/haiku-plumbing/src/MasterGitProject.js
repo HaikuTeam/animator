@@ -411,9 +411,23 @@ export default class MasterGitProject extends EventEmitter {
           return reject(gitErr);
         }
 
-        logger.info('[inkstone] git HEAD resolved:', id.toString());
+        logger.info('[master-git] git HEAD resolved:', id.toString());
 
         resolve(id.toString());
+      });
+    });
+  }
+
+  resetToSha (sha) {
+    return new Promise((resolve, reject) => {
+      Git.hardReset(this.folder, sha, (gitErr) => {
+        if (gitErr) {
+          return reject(gitErr);
+        }
+
+        logger.info('[master-git] git reset to', sha);
+
+        resolve();
       });
     });
   }

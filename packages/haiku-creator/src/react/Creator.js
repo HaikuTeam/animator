@@ -2192,13 +2192,7 @@ export default class Creator extends React.Component {
                     removeNotice={this.removeNotice}
                     conglomerateComponent={this.conglomerateComponent}
                     projectsList={this.state.projectsList}
-                    visible={this.state.activeNav === 'library'}
-                    globalLoaderOn={(globalLoaderText, cb) => {
-                      this.globalLoaderOn(globalLoaderText, cb);
-                    }}
-                    globalLoaderOff={(cb) => {
-                      this.globalLoaderOff(cb);
-                    }} />
+                    visible={this.state.activeNav === 'library'} />
                   <StateInspector
                     projectModel={this.state.projectModel}
                     createNotice={this.createNotice}

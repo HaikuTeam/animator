@@ -689,9 +689,7 @@ class Library extends React.Component {
                 isSearchLoading={this.state.isSearchLoading}
                 searchTerm={this.state.searchTerm}
                 searchResults={this.state.searchResults}
-                projectModel={this.props.projectModel}
-                globalLoaderOn={this.props.globalLoaderOn}
-                globalLoaderOff={this.props.globalLoaderOff} />
+                projectModel={this.props.projectModel} />
             )}
             {this.shouldDisplayAssetList() && (
               <AssetList
@@ -752,17 +750,11 @@ class SearchResultItems extends React.Component {
             projectPath={projectPath}
             projectExistsLocally={projectExistsLocally}
             handleIngest={() => {
-              this.props.globalLoaderOn('Ingesting project…', () => {
-                return this.props.projectModel.assimilateProjectSources(
-                  projectPath,
-                  projectName,
-                  () => {
-                    this.props.projectModel.once('assets-reloaded', () => {
-                      this.props.globalLoaderOff();
-                    });
-                  },
-                );
-              });
+              return this.props.projectModel.assimilateProjectSources(
+                projectPath,
+                projectName,
+                () => {},
+              );
             }}/>
           <span
             style={STYLES.searchResultLabelContainer}>

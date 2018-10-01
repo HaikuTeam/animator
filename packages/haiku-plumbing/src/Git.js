@@ -109,18 +109,6 @@ export function status (pwd, opts, cb) {
   });
 }
 
-// The repository.getStatus call would hang when called too many times in parallel,
-// regardless of attempting to cache the repository object, so we swapped this for
-// the algorithm above.
-// export function status (pwd, opts, cb) {
-//   return open(pwd, (err, repository) => {
-//     if (err) return cb(err)
-//     return repository.getStatus().then((statuses) => {
-//       return cb(null, statuses)
-//     })
-//   })
-// }
-
 export function hardReset (pwd, targetRef, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -135,31 +123,6 @@ export function hardReset (pwd, targetRef, cb) {
           return cb(null, repository, commit);
         }, cb);
       }, cb);
-    });
-  });
-}
-
-export function removeUntrackedFiles (pwd, cb) {
-  return status(pwd, (err, statusesDict) => {
-    if (err) {
-      return cb(err);
-    }
-    if (Object.keys(statusesDict).length < 1) {
-      return cb();
-    }
-    return async.each(statusesDict, (statusItem, next) => {
-      const abspath = path.join(pwd, statusItem.path);
-      return fs.remove(abspath, (err) => {
-        if (err) {
-          return next(err);
-        }
-        return next();
-      });
-    }, (err) => {
-      if (err) {
-        return cb(err);
-      }
-      return cb();
     });
   });
 }
@@ -432,30 +395,6 @@ export function doesRemoteExist (pwd, remoteName, cb) {
   });
 }
 
-export function getCurrentCommit (pwd, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) {
-      return cb(err);
-    }
-    return repository.getHeadCommit().then((commit) => {
-      return cb(null, commit.sha(), commit, repository);
-    }, cb);
-  });
-}
-
-export function hardResetFromSHA (pwd, sha, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) {
-      return cb(err);
-    }
-    return Commit.lookup(repository, sha).then((commit) => {
-      return Reset.reset(repository, commit, Reset.TYPE.HARD).then(() => {
-        return cb();
-      }, cb);
-    }, cb);
-  });
-}
-
 export function fetchFromRemoteDirectly (pwd, remoteName, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -519,15 +458,6 @@ export function mergeBranches (pwd, branchNameOurs, branchNameTheirs, fileFavorN
 
       return cb(err);
     });
-  });
-}
-
-export function cleanAllChanges (pwd, cb) {
-  return hardReset(pwd, 'HEAD', (err, repository, commit) => {
-    if (err) {
-      return cb(err);
-    }
-    return removeUntrackedFiles(pwd, cb);
   });
 }
 

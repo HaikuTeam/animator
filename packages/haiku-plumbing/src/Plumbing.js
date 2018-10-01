@@ -930,6 +930,14 @@ export default class Plumbing extends EventEmitter {
     return this.awaitMasterAndCallMethod(folder, 'readAllEventHandlers', [relpath, {from: 'master'}], cb);
   }
 
+  getLatestGitSha (folder, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'getLatestGitSha', [{from: 'master'}], cb);
+  }
+
+  resetToGitSha (folder, sha, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'resetToGitSha', [sha, {from: 'master'}], cb);
+  }
+
   handleClientAction (type, alias, folder, method, params, cb) {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1);

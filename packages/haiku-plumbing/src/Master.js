@@ -837,6 +837,18 @@ export default class Master extends EventEmitter {
     });
   }
 
+  getLatestGitSha (cb) {
+    this._git.resolveSha().then((sha) => {
+      cb(null, sha);
+    });
+  }
+
+  gitResetToGitSha (sha, cb) {
+    this._git.resetToSha(sha).then(() => {
+      cb();
+    });
+  }
+
   /**
    * @method saveProject
    */
