@@ -260,9 +260,7 @@ export default class Creator extends React.Component {
       if (global.sentryReporter && this.error) {
         this.error.clearLastUploadTime().then(() => {
           // Call Carbonite in the BLL.
-          const finalUrl = global.sentryReporter.freezeInCarbonite(
-            Raven.getContext().extra,
-          );
+          const finalUrl = global.sentryReporter.freezeInCarbonite(Raven.getContext().extra, false);
 
           if (finalUrl) {
             this.createNotice({
@@ -856,14 +854,20 @@ export default class Creator extends React.Component {
           global.sentryReporter.envoy = error;
         }
         this.error = error;
-        if (shouldEmitErrors()) {
-          this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId}) => {
+        this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId, message}) => {
+          if (shouldEmitErrors()) {
             this.setState({
               showFailWhale: true,
               failWhaleUniqueId: uniqueId || this.state.failWhaleUniqueId,
             });
-          });
-        }
+          } else {
+            this.createNotice({
+              message,
+              type: 'error',
+              title: 'Error',
+            });
+          }
+        });
       },
     );
 

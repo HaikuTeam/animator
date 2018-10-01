@@ -38,7 +38,7 @@ try {
     return url.replace(/^http/, 'ws');
   }
 
-  return fetchProjectConfigInfo(config.folder, (err, userconfig) => {
+  fetchProjectConfigInfo(config.folder, (err, userconfig) => {
     if (err) {
       throw err;
     }

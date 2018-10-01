@@ -100,8 +100,8 @@ const teardownPlumbings = (cb) => {
 // In test environment these listeners may get wrapped so we begin listening
 // to them immediately in the hope that we can start listening before the
 // test wrapper steps in and interferes
-process.on('exit', () => {
-  logger.info(`[plumbing] plumbing process (${PINFO}) exiting`);
+process.on('exit', (code) => {
+  logger.info(`[plumbing] plumbing process (${PINFO}) exiting with code ${code}`);
   teardownPlumbings(() => {});
 });
 process.on('SIGINT', () => {
@@ -397,31 +397,27 @@ export default class Plumbing extends EventEmitter {
       return setTimeout(() => this.executeMethodMessagesWorker(), 64);
     }
 
-    try {
-      const {type, alias, folder, message, cb} = nextMethodMessage;
+    const {type, alias, folder, message, cb} = nextMethodMessage;
 
-      this.methodMessageBeforeLog(message, alias);
+    this.methodMessageBeforeLog(message, alias);
 
-      // Actions are a special case of methods that end up routed through all of the clients,
-      // glass -> timeline -> master before returning. They go through one handler as opposed
-      // to the normal 'methods' which plumbing handles on a more a la carte basis
-      if (message.type === 'action') {
-        return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
+    // Actions are a special case of methods that end up routed through all of the clients,
+    // glass -> timeline -> master before returning. They go through one handler as opposed
+    // to the normal 'methods' which plumbing handles on a more a la carte basis
+    if (message.type === 'action') {
+      return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
 
-          this.methodMessageAfterLog(message, err, result, alias);
-          cb(err, result);
-          this.executeMethodMessagesWorker();
-        });
-      }
-
-      return this.plumbingMethod(message.method, message.params || [], (err, result) => {
         this.methodMessageAfterLog(message, err, result, alias);
         cb(err, result);
         this.executeMethodMessagesWorker();
       });
-    } catch (e) {
-      Raven.captureException(e);
     }
+
+    return this.plumbingMethod(message.method, message.params || [], (err, result) => {
+      this.methodMessageAfterLog(message, err, result, alias);
+      cb(err, result);
+      this.executeMethodMessagesWorker();
+    });
   }
 
   processMethodMessage (type, alias, folder, message, cb) {
@@ -905,11 +901,7 @@ Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, 
     return setTimeout(() => this.awaitMasterAndCallMethod(folder, method, params, cb), AWAIT_INTERVAL);
   }
 
-  try {
-    return master.handleMethodMessage(method, params, cb);
-  } catch (e) {
-    Raven.captureException(e);
-  }
+  return master.handleMethodMessage(method, params, cb);
 };
 
 Plumbing.prototype.findMasterByFolder = function (folder) {

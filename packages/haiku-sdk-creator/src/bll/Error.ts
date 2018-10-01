@@ -27,7 +27,15 @@ export interface SentryExtraData {
 
 export interface SentryCallbackData {
   extra?: SentryExtraData;
+  exception?: {
+    values?: {
+      value?: string;
+    }[];
+  };
 }
+
+const getErrorMessage = (data: SentryCallbackData) => (
+  data.exception && data.exception[0] && data.exception[0].value) || 'Unknown';
 
 export class SentryReporter {
   /**
@@ -40,18 +48,19 @@ export class SentryReporter {
   /**
    * Attaches carbonite data to an SentryExtraData payload and freezes the data.
    */
-  freezeInCarbonite (extra: SentryExtraData, emit = true) {
-    const {organizationName, projectName, projectPath} = extra;
+  freezeInCarbonite (data: SentryCallbackData, emit = true) {
+    const {organizationName, projectName, projectPath} = data.extra;
     if (organizationName && projectName && projectPath) {
       const timestamp = generateUUIDv4();
       const zipName = `${projectName}-${timestamp}.zip`;
       const zipPath = join(HOMEDIR_CRASH_REPORTS_PATH, zipName);
       const uniqueId = `${organizationName}/${projectName}-${timestamp}`;
       const finalUrl = `${AWS_S3_HOST}/${organizationName}/${zipName}`;
-      extra.carbonite = finalUrl;
+      data.extra.carbonite = finalUrl;
       Promise.resolve(
         this.envoy.crashReport(
           emit,
+          getErrorMessage(data),
           projectPath,
           zipName,
           zipPath,
@@ -66,10 +75,10 @@ export class SentryReporter {
 
   /**
    * Sentry callback for Node and JS clients. If an error handler is bound, attach a carbonite URL (if appropriate)
-   * and emit
+   * and emit.
    */
   callback (data: SentryCallbackData, emit = true): SentryCallbackData {
-    if (!shouldEmitErrors() || !this.envoy) {
+    if (!this.envoy) {
       return data;
     }
 
@@ -77,10 +86,10 @@ export class SentryReporter {
       data.extra = {};
     }
 
-    if (data.extra.projectPath) {
-      this.freezeInCarbonite(data.extra, emit);
+    if (data.extra.projectPath && shouldEmitErrors()) {
+      this.freezeInCarbonite(data, emit);
     } else {
-      Promise.resolve(this.envoy.crashReport(emit));
+      Promise.resolve(this.envoy.crashReport(emit, getErrorMessage(data)));
     }
 
     return data;
@@ -100,6 +109,7 @@ export class ErrorHandler extends EnvoyHandler {
 
   crashReport (
     emit: boolean,
+    message: string,
     projectPath?: string,
     zipName?: string,
     zipPath?: string,
@@ -112,7 +122,7 @@ export class ErrorHandler extends EnvoyHandler {
       crashReportFork(projectPath, zipName, zipPath, finalUrl);
       if (emit) {
         this.server.emit(ERROR_CHANNEL, {
-          payload: {uniqueId},
+          payload: {uniqueId, message},
           name: `${ERROR_CHANNEL}:error`,
         });
       }
@@ -122,7 +132,7 @@ export class ErrorHandler extends EnvoyHandler {
 
     if (emit) {
       this.server.emit(ERROR_CHANNEL, {
-        payload: {},
+        payload: {message},
         name: `${ERROR_CHANNEL}:error`,
       });
     }
