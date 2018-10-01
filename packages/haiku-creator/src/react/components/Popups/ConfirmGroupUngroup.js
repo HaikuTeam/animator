@@ -1,22 +1,15 @@
 import * as React from 'react';
 import {ModalWrapper, ModalFooter, ModalHeader} from 'haiku-ui-common/lib/react/Modal';
 import {BTN_STYLES} from '../../styles/btnShared';
-import Palette from 'haiku-ui-common/lib/Palette';
 import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 
 const STYLES = {
-  wrapper: {
-    fontSize: 14,
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    backgroundColor: Palette.GRAY,
-  },
   modalWrapper: {
     maxWidth: '400px',
-    top: '110px',
+    top: 'calc(50% - 150px)',
     left: 'calc(50% + 150px)',
     transform: 'translateX(-50%)',
+    margin: '0px',
   },
   modalBody: {
     padding: 20,
@@ -97,49 +90,47 @@ class ConfirmGroupUngroup extends React.Component {
 
   render () {
     return this.state.showPopup && (
-      <div style={STYLES.wrapper}>
-        <ModalWrapper style={STYLES.modalWrapper}>
-          <ModalHeader>
-            <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}</div>
-          </ModalHeader>
-          <div style={STYLES.modalBody}>
-            Transitions or expressions may be lost when you {this.props.groupOrUngroup} these elements. Proceed anyway?
-          </div>
-          <ModalFooter style={STYLES.modalFooter} >
-            <div style={{display: 'inline-block', width: '100%'}} >
-              <input style={{marginTop: 5}}
-                type="checkbox"
-                name="not-show-again"
-                id="not-show-again"
-                style={STYLES.checkInput}
-                ref={(input) => {
-                  this.checkInput = input;
-                }} />
-              <label style={{marginTop: 5}} htmlFor="not-show-again">Don't show this again.</label>
+      <ModalWrapper style={STYLES.modalWrapper}>
+        <ModalHeader>
+          <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}</div>
+        </ModalHeader>
+        <div style={STYLES.modalBody}>
+          Transitions or expressions may be lost when you {this.props.groupOrUngroup} these elements. Proceed anyway?
+        </div>
+        <ModalFooter style={STYLES.modalFooter} >
+          <div style={{display: 'inline-block', width: '100%'}} >
+            <input style={{marginTop: 5}}
+              type="checkbox"
+              name="not-show-again"
+              id="not-show-again"
+              style={STYLES.checkInput}
+              ref={(input) => {
+                this.checkInput = input;
+              }} />
+            <label style={{marginTop: 5}} htmlFor="not-show-again">Don't show this again.</label>
 
-              <div style={{float: 'right'}}>
-              <button
-                key="group-no"
-                id="group-no"
-                onClick={this.cancelGroup}
-                style={STYLES.no}
-              >
-                <span>No</span>
-              </button>
+            <div style={{float: 'right'}}>
+            <button
+              key="group-no"
+              id="group-no"
+              onClick={this.cancelGroup}
+              style={STYLES.no}
+            >
+              <span>No</span>
+            </button>
 
-              <button
-                key="group-yes"
-                id="group-yes"
-                onClick={this.confirmGroup}
-                style={STYLES.yes}
-              >
-                <span>Yes</span>
-              </button>
-              </div>
+            <button
+              key="group-yes"
+              id="group-yes"
+              onClick={this.confirmGroup}
+              style={STYLES.yes}
+            >
+              <span>Yes</span>
+            </button>
             </div>
-          </ModalFooter>
-        </ModalWrapper>
-      </div>
+          </div>
+        </ModalFooter>
+      </ModalWrapper>
     );
   }
 }
