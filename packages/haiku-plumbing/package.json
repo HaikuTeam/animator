@@ -44,7 +44,6 @@
     "lodash.foreach": "^4.5.0",
     "lodash.merge": "4.6.0",
     "lodash.throttle": "4.1.1",
-    "moment": "2.18.1",
     "nodegit": "0.20.3",
     "qs": "6.4.0",
     "raven": "^2.2.1",

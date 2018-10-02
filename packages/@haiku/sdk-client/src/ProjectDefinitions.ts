@@ -1,5 +1,6 @@
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
+import * as moment from 'moment';
 import * as path from 'path';
 
 export const WHITESPACE_REGEX = /\s+/;
@@ -96,3 +97,8 @@ export const storeConfigValues = (folder: string, incoming: any, extra = {}) => 
 export const getDefaultIllustratorAssetPath = (name: string) => `designs/${getProjectNameSafeShort(name)}.ai`;
 
 export const getDefaultSketchAssetPath = (name: string) => `designs/${getProjectNameSafeShort(name)}.sketch`;
+
+export const getEmbedName = (organizationName: string, projectName: string) =>
+   `HaikuComponentEmbed_${organizationName}_${getProjectNameSafeShort(projectName)}`;
+
+export const getCurrentHumanTimestamp = () => moment().format('YYYYMMDDHHmmss');

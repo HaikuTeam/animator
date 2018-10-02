@@ -27,7 +27,8 @@
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "pascalcase": "0.1.1",
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "moment": "2.18.1"
   },
   "devDependencies": {
     "@types/dedent": "^0.7.0",
