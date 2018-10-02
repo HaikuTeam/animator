@@ -9,7 +9,9 @@
       "Fixed an edge case causing a crash when changing the zoom of the Timeline from the scroll bar.",
       "Increase the clickeable area to change the Timeline display mode between frames/seconds.",
       "Fixed issues and increased flexibility around Figma import URLs and project names.",
-      "Disable syncing with external designs when editing element nested properties on timeline"
+      "Disable syncing with external designs when editing element nested properties on timeline",
+      "Set multi-line expression editor tab width to 2 spaces",
+      "Fix confirm group/ungroup dialog position"
     ]
   }
 }
