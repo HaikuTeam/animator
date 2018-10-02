@@ -19,6 +19,7 @@ export class ExporterHandler extends EnvoyHandler {
   }
 
   save (request: ExporterRequest): MaybeAsync<void> {
+    console.log('SAAAAAAAAAAAAVEEEEEEEEEEEEEEE', request);
     this.server.emit(EXPORTER_CHANNEL, {
       payload: request,
       name: `${EXPORTER_CHANNEL}:save`,

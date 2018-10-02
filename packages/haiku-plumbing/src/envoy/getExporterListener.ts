@@ -20,6 +20,8 @@ export default (
       switch (request.format) {
         case ExporterFormat.Bodymovin:
         case ExporterFormat.HaikuStatic:
+        case ExporterFormat.StandaloneBundle:
+        case ExporterFormat.ZippedStandalone:
           exporterChannel.trackProgress(request, 0.5);
           saveExport(request, activeComponent, (err) => {
             if (err) {

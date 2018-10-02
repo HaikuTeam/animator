@@ -1,4 +1,5 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
+import {isDevelopment} from 'haiku-common/src/environments';
 import {assign, isEqual} from 'lodash';
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
@@ -267,6 +268,17 @@ export default class TopMenu {
             {
               label: 'Lottie',
               click: () => this.emitExportRequest('json', 60),
+              enabled: this.options.isProjectOpen,
+            },
+            {
+              label: 'Standalone JS',
+              click: () => this.emitExportRequest('standalone', 60),
+              enabled: this.options.isProjectOpen,
+              visible: isDevelopment(),
+            },
+            {
+              label: 'Zipped Standalone',
+              click: () => this.emitExportRequest('zippedstandalone', 60),
               enabled: this.options.isProjectOpen,
             },
           ],

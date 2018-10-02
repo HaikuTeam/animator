@@ -828,6 +828,12 @@ export default class Creator extends React.Component {
             case 'json':
               request.format = ExporterFormat.Bodymovin;
               break;
+            case 'standalone':
+              request.format = ExporterFormat.StandaloneBundle;
+              break;
+            case 'zippedstandalone':
+              request.format = ExporterFormat.ZippedStandalone;
+              break;
           }
 
           dialog.showSaveDialog(undefined, {
