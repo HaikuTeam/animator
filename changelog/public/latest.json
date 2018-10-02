@@ -12,6 +12,7 @@
       "Fixed visual glitches on certain scenarios when dragging items from the Library to the Stage.",
       "Syncing external designs is now automatically disabled after editing nested element properties on the timeline.",
       "Improved Firefox compatibility for Haikus with complex SVGs.",
+      "Fixed an issue causing the component name to sometimes appear offset from the artboard.",
       "Set multi-line expression editor tab width to 2 spaces."
     ]
   }

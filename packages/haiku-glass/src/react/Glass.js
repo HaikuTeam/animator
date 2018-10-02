@@ -3676,11 +3676,10 @@ export class Glass extends React.Component {
 
           {(!this.isPreviewMode())
             ? <div
-              id="haiku-glass-stage-title-text-container"
               style={{
                 position: 'absolute',
                 zIndex: 10,
-                bottom: container.h - mount.y,
+                bottom: Math.min(container.h, window.innerHeight) - mount.y,
                 left: mount.x + 2,
                 height: 20,
                 width: mount.w,
