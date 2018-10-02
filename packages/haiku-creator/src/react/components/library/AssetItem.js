@@ -142,8 +142,7 @@ class AssetItem extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      isHovered: false,
-      isDragging: false,
+      isThumbnailOpen: false,
       isOpened: true,
     };
 
@@ -457,14 +456,11 @@ class AssetItem extends React.Component {
           className="thumbnail-icon-container"
           style={STYLES.cardIcon}
           onDoubleClick={this.handleAssetDoubleClick}
-          onMouseOver={() => {
-            this.setState({isHovered: true});
-          }}
-          onMouseOut={() => {
-            this.setState({isHovered: false});
-          }}>
+          onMouseOver={this.showThumbnailPreview}
+          onMouseOut={this.hideThumbnailPreview}
+          onMouseDown={this.hideThumbnailPreview}>
           <Popover
-            isOpen={this.state.isHovered && !this.state.isDragging}
+            isOpen={this.state.isThumbnailOpen}
             style={STYLES.cardPreview}
             preferPlace={'right'}
             body={<embed src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
@@ -478,6 +474,14 @@ class AssetItem extends React.Component {
 
     return '';
   }
+
+  showThumbnailPreview = () => {
+    this.setState({isThumbnailOpen: true});
+  };
+
+  hideThumbnailPreview = () => {
+    this.setState({isThumbnailOpen: false});
+  };
 
   isAssetOfActiveComponent () {
     return this.props.asset.getRelpath() === this.props.projectModel.getCurrentActiveComponentRelpath();
@@ -599,6 +603,14 @@ class AssetItem extends React.Component {
     );
   }
 
+  onDragStart = () => {
+    this.props.onDragStart(this.props.asset);
+  };
+
+  onDragEnd = () => {
+    this.props.onDragEnd(this.props.asset);
+  };
+
   render () {
     if (
       this.props.asset.isPhonyOrOnlyHasPhonyChildrens() ||
@@ -619,14 +631,8 @@ class AssetItem extends React.Component {
       draggablePart = (
         <Draggable
           className="library-draggable" /* <~ do not remove this */
-          onDragEnd={(dragEndEvent) => {
-            this.setState({isDragging: false});
-            this.props.onDragEnd(this.props.asset);
-          }}
-          onDragStart={(dragStartEvent) => {
-            this.setState({isDragging: true});
-            this.props.onDragStart(this.props.asset);
-          }}>
+          onDragEnd={this.onDragEnd}
+          onDragStart={this.onDragStart}>
           <span
             className="draggable-interior-wrap"
             style={STYLES.draggableCardWrapper}
