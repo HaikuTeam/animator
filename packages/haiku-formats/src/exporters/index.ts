@@ -2,7 +2,7 @@ import {HaikuBytecode} from '@haiku/core/lib/api';
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 
 import {BodymovinExporter} from './bodymovin/bodymovinExporter';
-import {BundledExporter} from './bundled/bundledExporter';
+import {BundledExporter, BundleFormat} from './bundled/bundledExporter';
 import {GifExporter} from './gif/gifExporter';
 import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
 import {VideoExporter} from './video/videoExporter';
@@ -22,9 +22,9 @@ const getExporter = (request: ExporterRequest, bytecode: HaikuBytecode, componen
     case ExporterFormat.Video:
       return new VideoExporter(bytecode, componentFolder);
     case ExporterFormat.StandaloneBundle:
-      return new BundledExporter(bytecode, componentFolder);
+      return new BundledExporter(bytecode, componentFolder, BundleFormat.StandaloneFormat);
     case ExporterFormat.EmbedBundle:
-      return new BundledExporter(bytecode, componentFolder);
+      return new BundledExporter(bytecode, componentFolder, BundleFormat.EmbedFormat);
     default:
       throw new Error(`Unsupported format: ${request.format}`);
   }

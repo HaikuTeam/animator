@@ -818,28 +818,38 @@ export default class Creator extends React.Component {
             return;
           }
 
+          const formatExtension = '';
           switch (extension) {
             case 'gif':
               request.format = ExporterFormat.AnimatedGif;
+              formatExtension = extension;
               break;
             case 'mp4':
               request.format = ExporterFormat.Video;
+              formatExtension = extension;
               break;
             case 'json':
               request.format = ExporterFormat.Bodymovin;
+              formatExtension = extension;
               break;
-            case 'standalone':
+            case 'embedjs':
+              request.format = ExporterFormat.EmbedBundle;
+              formatExtension = 'embed.js';
+              break;
+            case 'standalonejs':
               request.format = ExporterFormat.StandaloneBundle;
+              formatExtension = 'standalone.js';
               break;
-            case 'zippedstandalone':
+            case 'standalonezip':
               request.format = ExporterFormat.ZippedStandalone;
+              formatExtension = 'standalone.zip';
               break;
           }
 
           dialog.showSaveDialog(undefined, {
             defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
             filters: [{
-              name: request.format, extensions: [extension],
+              name: request.format, extensions: [formatExtension],
             }],
           },
             (filename) => {

@@ -1,6 +1,6 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
-import {isDevelopment} from 'haiku-common/src/environments';
 import {assign, isEqual} from 'lodash';
+import {isDevelopment} from '../environments';
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
@@ -271,14 +271,20 @@ export default class TopMenu {
               enabled: this.options.isProjectOpen,
             },
             {
+              label: 'Embed JS',
+              click: () => this.emitExportRequest('embedjs', 60),
+              enabled: this.options.isProjectOpen,
+              visible: isDevelopment(),
+            },
+            {
               label: 'Standalone JS',
-              click: () => this.emitExportRequest('standalone', 60),
+              click: () => this.emitExportRequest('standalonejs', 60),
               enabled: this.options.isProjectOpen,
               visible: isDevelopment(),
             },
             {
               label: 'Zipped Standalone',
-              click: () => this.emitExportRequest('zippedstandalone', 60),
+              click: () => this.emitExportRequest('standalonezip', 60),
               enabled: this.options.isProjectOpen,
             },
           ],
