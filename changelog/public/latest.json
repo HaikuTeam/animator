@@ -11,7 +11,8 @@
       "Fixed issues and increased flexibility around Figma import URLs and project names.",
       "Disable syncing with external designs when editing element nested properties on timeline",
       "Set multi-line expression editor tab width to 2 spaces",
-      "Fix confirm group/ungroup dialog position"
+      "Fix confirm group/ungroup dialog position",
+      "Fixed visual glitches on certain scenarios when dragging items from the Library to the Stage."
     ]
   }
 }
