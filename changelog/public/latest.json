@@ -12,7 +12,8 @@
       "Fixed visual glitches on certain scenarios when dragging items from the Library to the Stage.",
       "Syncing external designs is now automatically disabled after editing nested element properties on the timeline.",
       "Improved Firefox compatibility for Haikus with complex SVGs.",
-      "Set multi-line expression editor tab width to 2 spaces."
+      "Set multi-line expression editor tab width to 2 spaces.",
+      "Fixed broken images on the `share.haiku.ai` profile page when using raster images."
     ]
   }
 }
