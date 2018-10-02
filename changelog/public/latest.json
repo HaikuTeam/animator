@@ -11,6 +11,7 @@
       "Fixed issues and increased flexibility around Figma import URLs and project names.",
       "Syncing external designs is now automatically disabled after editing nested element properties on the timeline.",
       "Improved Firefox compatibility for Haikus with complex SVGs."
+      "Set multi-line expression editor tab width to 2 spaces."
     ]
   }
 }
