@@ -18,47 +18,171 @@
   "timelines": {
     "Default": {
       "haiku:Main-03757d2ca1026e0a": {
-        "style.WebkitTapHighlightColor": "rgba(0,0,0,0)",
-        "style.position": "relative",
-        "style.overflowX": "hidden",
-        "style.overflowY": "hidden",
-        "sizeAbsolute.x": 454,
-        "sizeAbsolute.y": 190,
-        "sizeMode.x": 1,
-        "sizeMode.y": 1,
-        "sizeMode.z": 1
+        "style.WebkitTapHighlightColor": {
+          "0": {
+            "value": "rgba(0,0,0,0)"
+          }
+        },
+        "style.position": {
+          "0": {
+            "value": "relative"
+          }
+        },
+        "style.overflowX": {
+          "0": {
+            "value": "hidden"
+          }
+        },
+        "style.overflowY": {
+          "0": {
+            "value": "hidden"
+          }
+        },
+        "sizeAbsolute.x": {
+          "0": {
+            "value": 454
+          }
+        },
+        "sizeAbsolute.y": {
+          "0": {
+            "value": 190
+          }
+        },
+        "sizeMode.x": {
+          "0": {
+            "value": 1
+          }
+        },
+        "sizeMode.y": {
+          "0": {
+            "value": 1
+          }
+        },
+        "sizeMode.z": {
+          "0": {
+            "value": 1
+          }
+        }
       },
       "haiku:Make-Exportable-Screencap-9656fd0933a682b0": {
-        "style.margin": "0",
-        "sizeMode.x": 1,
-        "style.padding": "0",
-        "style.border": "0",
-        "sizeAbsolute.x": 454,
-        "style.position": "absolute",
-        "sizeAbsolute.y": 190,
-        "sizeMode.y": 1,
-        "translation.x": 227,
-        "translation.y": 95,
-        "style.zIndex": 1
+        "style.margin": {
+          "0": {
+            "value": "0"
+          }
+        },
+        "sizeMode.x": {
+          "0": {
+            "value": 1
+          }
+        },
+        "style.padding": {
+          "0": {
+            "value": "0"
+          }
+        },
+        "style.border": {
+          "0": {
+            "value": "0"
+          }
+        },
+        "sizeAbsolute.x": {
+          "0": {
+            "value": 454
+          }
+        },
+        "style.position": {
+          "0": {
+            "value": "absolute"
+          }
+        },
+        "sizeAbsolute.y": {
+          "0": {
+            "value": 190
+          }
+        },
+        "sizeMode.y": {
+          "0": {
+            "value": 1
+          }
+        },
+        "translation.x": {
+          "0": {
+            "value": 227
+          }
+        },
+        "translation.y": {
+          "0": {
+            "value": 95
+          }
+        },
+        "style.zIndex": {
+          "0": {
+            "value": 1
+          }
+        }
       },
       "haiku:Page-1-53d28a6846b09cff": {
-        "stroke": "none",
-        "strokeWidth": 1,
-        "fill": "none",
-        "fillRule": "evenodd"
+        "stroke": {
+          "0": {
+            "value": "none"
+          }
+        },
+        "strokeWidth": {
+          "0": {
+            "value": 1
+          }
+        },
+        "fill": {
+          "0": {
+            "value": "none"
+          }
+        },
+        "fillRule": {
+          "0": {
+            "value": "evenodd"
+          }
+        }
       },
       "haiku:Tutorial-865c62789ad10e4e": {
-        "translation.y": -287
+        "translation.y": {
+          "0": {
+            "value": -287
+          }
+        }
       },
       "haiku:screencaps-1cd7fdf5aff66a73": {
-        "translation.y": 287
+        "translation.y": {
+          "0": {
+            "value": 287
+          }
+        }
       },
       "haiku:make-exportable-screencap-dbd24057009e42be": {
-        "x": 0,
-        "y": 0,
-        "width": 454,
-        "height": 190,
-        "xlink:href": "web+haikuroot://assets/designs/imageine.sketch.contents/slices/make exportable screencap_image_1.png"
+        "x": {
+          "0": {
+            "value": 0
+          }
+        },
+        "y": {
+          "0": {
+            "value": 0
+          }
+        },
+        "width": {
+          "0": {
+            "value": 454
+          }
+        },
+        "height": {
+          "0": {
+            "value": 190
+          }
+        },
+        "xlink:href": {
+          "0": {
+            "value": "web+haikuroot://assets/designs/imageine.sketch.contents/slices/make exportable screencap_image_1.png"
+          }
+        }
       }
     }
   },
