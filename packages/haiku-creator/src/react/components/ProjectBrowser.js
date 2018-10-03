@@ -50,6 +50,8 @@ class ProjectBrowser extends React.Component {
       numProjectsPerPage: 1,
       // Controls projects div opacity
       fadeOutProjects: true,
+      // if cardHeight is set, it controls project card height
+      cardHeight: DASH_STYLES.card.height,
     };
   }
 
@@ -296,7 +298,7 @@ class ProjectBrowser extends React.Component {
   renderNewProjectBoxorama () {
     return (
       <div
-        style={DASH_STYLES.cardAsButton}
+        style={[DASH_STYLES.cardAsButton, this.state.cardHeight && {height: this.state.cardHeight}]}
         key="wrap">
         <div
           key="scrim"
@@ -330,7 +332,14 @@ class ProjectBrowser extends React.Component {
       const columns = Math.floor(availableWidth / perCardWidth);
 
       const availableHeight = bb.height;
-      const perCardHeight = DASH_STYLES.card.height + DASH_STYLES.card.marginTop;
+
+      const cardHeight = this.state.cardHeight;
+      if (availableHeight <= 900) {
+        cardHeight = availableHeight / 3 - DASH_STYLES.card.marginTop;
+        this.setState({cardHeight});
+      }
+
+      const perCardHeight = cardHeight + DASH_STYLES.card.marginTop;
       const rows = Math.floor(availableHeight / (perCardHeight));
 
       // New project box takes one slot. Also forces to display at least one project
@@ -403,6 +412,7 @@ class ProjectBrowser extends React.Component {
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
+            cardHeight={this.state.cardHeight}
           />
         ))}
         {/* the following abomination is needed for the nifty flexbox resizing.

@@ -20,7 +20,9 @@ class ProjectThumbnail extends React.Component {
   render () {
     return (
       <div
-        style={[DASH_STYLES.card, this.props.isDeleted && DASH_STYLES.deleted]}
+        style={[DASH_STYLES.card,
+          this.props.isDeleted && DASH_STYLES.deleted,
+          this.props.cardHeight && {height: this.props.cardHeight}]}
         id={`js-utility-${this.props.projectName}`}
         key="wrap"
         onMouseLeave={() => {
@@ -33,6 +35,7 @@ class ProjectThumbnail extends React.Component {
           key="thumb"
           style={[
             DASH_STYLES.thumb,
+            this.props.cardHeight && {height: this.props.cardHeight - 30},
             this.state.isMenuActive && DASH_STYLES.blurred,
           ]}>
           <ProjectPreview
