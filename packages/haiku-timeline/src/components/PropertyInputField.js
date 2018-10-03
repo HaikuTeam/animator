@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as lodash from 'lodash';
 import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 const CELL_WIDTH = 82;
 
@@ -113,6 +112,7 @@ class PropertyInputFieldValueDisplay extends React.Component {
   constructor (props) {
     super(props);
     this.handleUpdate = this.handleUpdate.bind(this);
+    this.valueDescriptor = props.row.getPropertyValueDescriptor();
   }
 
   componentWillUnmount () {
@@ -132,17 +132,19 @@ class PropertyInputFieldValueDisplay extends React.Component {
       return null;
     }
     if (what === 'timeline-frame') {
-      this.throttledForceUpdate();
+      const valueDescriptor = this.props.row.getPropertyValueDescriptor();
+      if (valueDescriptor.computedValue !== this.valueDescriptor.computedValue) {
+        this.valueDescriptor = valueDescriptor;
+        this.throttledForceUpdate();
+      }
     }
   }
 
   render () {
-    const valueDescriptor = this.props.row.getPropertyValueDescriptor();
-
     return (
       <span style={{whiteSpace: 'nowrap'}}>
-        {remapPrettyValue(valueDescriptor.prettyValue)}{' '}
-        <span style={{opacity: 0.5}}>{valueDescriptor.valueUnit}</span>
+        {remapPrettyValue(this.valueDescriptor.prettyValue)}{' '}
+        <span style={{opacity: 0.5}}>{this.valueDescriptor.valueUnit}</span>
       </span>
     );
   }
