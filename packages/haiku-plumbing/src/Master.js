@@ -28,11 +28,7 @@ import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
-import {createCDNBundles} from './project-folder/createCDNBundle';
-import {
-  getHaikuCoreVersion,
-  fetchProjectConfigInfo,
-} from './project-folder/ProjectDefinitions';
+import {getHaikuCoreVersion, fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 import {dumpBase64Images} from './project-folder/AssetUtils';
 
 Sketch.findAndUpdateInstallPath();

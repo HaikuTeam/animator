@@ -354,7 +354,6 @@ class Project extends BaseModel {
     return path.join(this.getFolder(), 'index.embed.js')
   }
 
-
   buildFileUid (relpath) {
     return path.join(this.getFolder(), relpath)
   }
