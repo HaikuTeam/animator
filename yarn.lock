@@ -630,13 +630,13 @@
     tslib "^1.8.1"
 
 "@haiku/core@^3.1.32":
-  version "4.2.1"
+  version "4.3.0"
 
 "@haiku/core@^3.2.16":
-  version "4.2.1"
+  version "4.3.0"
 
 "@haiku/core@^3.4.6":
-  version "4.2.1"
+  version "4.3.0"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
@@ -659,6 +659,12 @@
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-ipreview2/-/taylor-ipreview2-0.0.2.tgz#d46e790046082107bb2dc624fd72132e8ba9dd6a"
   dependencies:
     "@haiku/core" "^3.1.32"
+
+"@haiku/tina-haikuerror@^0.0.6":
+  version "0.0.6"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftina-haikuerror/-/tina-haikuerror-0.0.6.tgz#bff0617db13684118ac4e97cb5781b7eb3d4b488"
+  dependencies:
+    "@haiku/core" "^4.3.0"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -5841,10 +5847,6 @@ lodash.range@^3.1.4:
 lodash.restparam@^3.0.0:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/lodash.restparam/-/lodash.restparam-3.6.1.tgz#936a4e309ef330a7645ed4145986c85ae5b20805"
-
-lodash.set@^4.3.2:
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/lodash.set/-/lodash.set-4.3.2.tgz#d8757b1da807dde24816b0d6a84bea1a76230b23"
 
 lodash.sortby@^4.7.0:
   version "4.7.0"

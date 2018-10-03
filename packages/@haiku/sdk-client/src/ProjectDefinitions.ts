@@ -1,7 +1,5 @@
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
-// @ts-ignore
-import * as pascalcase from 'pascalcase';
 import * as path from 'path';
 
 export const WHITESPACE_REGEX = /\s+/;

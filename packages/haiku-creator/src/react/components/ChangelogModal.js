@@ -12,7 +12,6 @@ import {DASH_STYLES} from '../styles/dashShared';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll';
 import * as Changelog from 'haiku-serialization/src/bll/Changelog';
-import {getUrl} from 'haiku-common/lib/environments';
 
 const STYLES = {
   modalWrapper: {
@@ -100,7 +99,7 @@ class ChangelogModal extends React.PureComponent {
       return null;
     }
     return (
-      <div id="changelogwrap" style={DASH_STYLES.overlay} onClick={this.props.onClose}>
+      <div style={DASH_STYLES.overlay} onClick={this.props.onClose}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
             <span><h2>Release Notes</h2></span>

@@ -5,6 +5,7 @@
     ],
     "Fixes": [
       "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
+      "In the rare event of a crash, users will now receive a helpful error message and a diagnostic code that can be shared with Haiku support.",
       "Lottie export now supports SVGs with non-standard viewboxes.",
       "Fixed an edge case causing a crash when changing the zoom of the Timeline from the scroll bar.",
       "Increase the clickeable area to change the Timeline display mode between frames/seconds.",

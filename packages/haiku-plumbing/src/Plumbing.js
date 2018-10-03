@@ -5,8 +5,6 @@ import * as lodash from 'lodash';
 import * as find from 'lodash.find';
 import * as merge from 'lodash.merge';
 import * as filter from 'lodash.filter';
-import * as get from 'lodash.get';
-import * as set from 'lodash.set';
 import * as net from 'net';
 import * as qs from 'qs';
 import * as WebSocket from 'ws';
@@ -14,6 +12,7 @@ import {EventEmitter} from 'events';
 import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer';
 import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger';
 import {EXPORTER_CHANNEL, ExporterHandler} from 'haiku-sdk-creator/lib/exporter';
+import {ERROR_CHANNEL, ErrorHandler} from 'haiku-sdk-creator/lib/bll/Error';
 import {USER_CHANNEL, UserHandler} from 'haiku-sdk-creator/lib/bll/User';
 import {PROJECT_CHANNEL, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import {GLASS_CHANNEL, GlassHandler} from 'haiku-sdk-creator/lib/glass';
@@ -21,11 +20,10 @@ import {TIMELINE_CHANNEL, TimelineHandler} from 'haiku-sdk-creator/lib/timeline'
 import {TOUR_CHANNEL, TourHandler} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL, ServicesHandler} from 'haiku-sdk-creator/lib/services';
 import {inkstone} from '@haiku/sdk-inkstone';
-import {client as sdkClient, FILE_PATHS} from '@haiku/sdk-client';
+import {client as sdkClient} from '@haiku/sdk-client';
 import * as serializeError from 'haiku-serialization/src/utils/serializeError';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import Master from './Master';
@@ -53,16 +51,6 @@ import Raven from './Raven';
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
 export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7);
 const WS_POLICY_VIOLATION_CODE = 1008;
-
-// For any methods that are...
-// - noisy
-// - internal use only
-// - housekeeping
-// we'll skip Sentry for now.
-const METHODS_TO_SKIP_IN_SENTRY = {
-  setTimelineTime: true,
-  masterHeartbeat: true,
-};
 
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
@@ -97,8 +85,6 @@ const HAIKU_DEFAULTS = {
   },
 };
 
-const emitter = new EventEmitter();
-
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`;
 
 const PLUMBING_INSTANCES = [];
@@ -114,43 +100,17 @@ const teardownPlumbings = (cb) => {
 // In test environment these listeners may get wrapped so we begin listening
 // to them immediately in the hope that we can start listening before the
 // test wrapper steps in and interferes
-process.on('exit', () => {
-  logger.info(`[plumbing] plumbing process (${PINFO}) exiting`);
-  teardownPlumbings(() => {
-
-  });
+process.on('exit', (code) => {
+  logger.info(`[plumbing] plumbing process (${PINFO}) exiting with code ${code}`);
+  teardownPlumbings(() => {});
 });
 process.on('SIGINT', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGINT`);
-  teardownPlumbings(() => {
-    process.exit();
-  });
+  teardownPlumbings(process.exit);
 });
 process.on('SIGTERM', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGTERM`);
-  teardownPlumbings(() => {
-    process.exit();
-  });
-});
-
-// Apparently there are circumstances where we won't crash (?); ensure that we do
-process.on('uncaughtException', (err) => {
-  logger.error(err);
-
-  // Notify mixpanel so we can track improvements to the app over time
-  mixpanel.haikuTrackOnce('app:crash', {error: err.message});
-
-  if (PLUMBING_INSTANCES[0]) {
-    PLUMBING_INSTANCES[0].sentryError('?', err, {});
-  }
-
-  // Exit after timeout to give a chance for mixpanel to transmit
-  setTimeout(() => {
-    // Wait for teardown so we don't interrupt e.g. an important disk-write
-    teardownPlumbings(() => {
-      process.exit(1);
-    });
-  }, 1000);
+  teardownPlumbings(process.exit);
 });
 
 export default class Plumbing extends EventEmitter {
@@ -175,20 +135,10 @@ export default class Plumbing extends EventEmitter {
     this._methodMessages = [];
 
     this.executeMethodMessagesWorker();
-
-    emitter.on('teardown-requested', () => this.teardown());
   }
 
-  /**
-   * Mostly-internal methods
-   */
+  emitError (error) {
 
-  get (key) {
-    return get(this.state, key);
-  }
-
-  set (key, value) {
-    return set(this.state, key, value);
   }
 
   launch (haiku = {}, cb) {
@@ -211,6 +161,10 @@ export default class Plumbing extends EventEmitter {
       haiku.envoy.host = this.envoyServer.host;
       haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN;
 
+      const error = new ErrorHandler(this.envoyServer);
+      if (global.sentryReporter) {
+        global.sentryReporter.envoy = error;
+      }
       const user = new UserHandler(this.envoyServer);
       const timeline = new TimelineHandler(this.envoyServer);
       const tour = new TourHandler(this.envoyServer);
@@ -219,6 +173,7 @@ export default class Plumbing extends EventEmitter {
       const project = new ProjectHandler(user, this.envoyServer);
       const services = new ServicesHandler(this.envoyServer);
       this.envoyHandlers = {
+        error,
         timeline,
         tour,
         exporter,
@@ -228,6 +183,7 @@ export default class Plumbing extends EventEmitter {
         services,
       };
 
+      this.envoyServer.bindHandler(ERROR_CHANNEL, ErrorHandler, this.envoyHandlers.error);
       this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, this.envoyHandlers.timeline);
       this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, this.envoyHandlers.tour);
       this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, this.envoyHandlers.exporter);
@@ -236,12 +192,10 @@ export default class Plumbing extends EventEmitter {
       this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, this.envoyHandlers.project);
       this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, this.envoyHandlers.services);
 
-      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({user: {Username}}) => {
+      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({user: {Username}, organization: {Name}}) => {
         mixpanel.mergeToPayload({distinct_id: Username});
         if (Raven) {
-          Raven.setContext({
-            user: {email: Username},
-          });
+          Raven.mergeContext({user: {email: Username}, extra: {organizationName: Name}});
         }
       });
 
@@ -512,41 +466,6 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  sentryError (method, error, extras) {
-    try {
-      logger.info(`[plumbing] error @ ${method}`, error, extras);
-      if (!Raven) {
-        return null;
-      }
-      if (method && METHODS_TO_SKIP_IN_SENTRY[method]) {
-        return null;
-      }
-      if (!error) {
-        return null;
-      }
-      if (typeof error === 'object' && !(error instanceof Error)) {
-        const fixed = new Error(error.message || `Plumbing.${method} error`);
-        if (error.stack) {
-          fixed.stack = error.stack;
-        }
-        error = fixed;
-      } else if (typeof error === 'string') {
-        error = new Error(error); // Unfortunately no good stack trace in this case
-      }
-      const organization = this.envoyHandlers.user.getOrganization();
-      crashReport(
-        error,
-        organization && organization.Name,
-        this.get('lastOpenedProjectName'),
-        this.get('lastOpenedProjectPath'),
-      );
-      return Raven.captureException(error, extras);
-    } catch (exception) {
-      logger.info(`[plumbing] unable to send crash report`);
-      logger.error(exception);
-    }
-  }
-
   plumbingMethod (method, params = [], cb) {
     if (typeof this[method] !== 'function') {
       return cb(new Error(`Plumbing has no method '${method}'`));
@@ -627,7 +546,7 @@ export default class Plumbing extends EventEmitter {
 
       return this.sendClientMethod(client, method, params, (error, response) => {
         if (error) {
-          this.sentryError(method, error, {tags: query});
+          throw error;
         }
 
         return cb(error, response);
@@ -724,6 +643,14 @@ export default class Plumbing extends EventEmitter {
     project,
     finish,
   ) {
+    Raven.mergeContext({
+      extra: {
+        ...Raven.getContext().extra,
+        projectName: project.projectName,
+        projectPath: project.projectPath,
+      },
+    });
+
     storeConfigValues(
       project.projectPath,
       {
@@ -769,7 +696,6 @@ export default class Plumbing extends EventEmitter {
       },
     ], (err) => {
       if (err) {
-        this.sentryError('bootstrapProject', err);
         return finish(err);
       }
 
@@ -779,9 +705,6 @@ export default class Plumbing extends EventEmitter {
           if (err) {
             return finish(err);
           }
-
-          this.set('lastOpenedProjectName', project.projectName);
-          this.set('lastOpenedProjectPath', project.projectPath);
 
           return finish(null);
         },
@@ -872,6 +795,14 @@ export default class Plumbing extends EventEmitter {
       }
 
       BaseModel.extensions.forEach((klass) => klass.purge());
+
+      Raven.mergeContext({
+        extra: {
+          ...Raven.getContext().extra,
+          projectName: undefined,
+          projectPath: undefined,
+        },
+      });
 
       cb();
     });
@@ -969,6 +900,7 @@ Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, 
   if (!master) {
     return setTimeout(() => this.awaitMasterAndCallMethod(folder, method, params, cb), AWAIT_INTERVAL);
   }
+
   return master.handleMethodMessage(method, params, cb);
 };
 

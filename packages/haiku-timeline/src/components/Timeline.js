@@ -27,6 +27,8 @@ import HorzScrollShadow from './HorzScrollShadow';
 import ScrollView from './ScrollView';
 import Marquee from './Marquee';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
+import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
+import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
@@ -227,6 +229,21 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true;
+
+    if (!this.props.envoy.mock) {
+      this.envoyClient = new EnvoyClient({
+        token: this.props.envoy.token,
+        port: this.props.envoy.port,
+        host: this.props.envoy.host,
+        WebSocket: window.WebSocket,
+      });
+
+      this.envoyClient.get(ERROR_CHANNEL).then((error) => {
+        if (global.sentryReporter) {
+          global.sentryReporter.envoy = error;
+        }
+      });
+    }
 
     this.instantiateMarquee();
 

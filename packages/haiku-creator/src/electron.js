@@ -142,6 +142,11 @@ function createWindow () {
     topmenu.update(nextTopmenuOptions);
   });
 
+  ipcMain.on('restart', () => {
+    app.relaunch();
+    browserWindow.close();
+  });
+
   // Emitted by Creator during project bootstrapping, this ensures image URLs like web+haikuroot://assets/designs/…
   // display correctly in thumbnails.
   ipcMain.on('protocol:register', (_, projectPath) => {
