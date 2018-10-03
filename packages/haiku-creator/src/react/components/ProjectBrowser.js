@@ -131,6 +131,8 @@ class ProjectBrowser extends React.Component {
         this.setState({error});
         return;
       }
+      // newprojectbox is a placeholder for newProject boxorama
+      projectsList.unshift('newprojectbox');
       this.setState({projectsList}, this.updateDimensions);
       this.props.onProjectsList(projectsList);
     });
@@ -298,16 +300,19 @@ class ProjectBrowser extends React.Component {
   renderNewProjectBoxorama () {
     return (
       <div
-        style={[DASH_STYLES.cardAsButton, this.state.cardHeight && {height: this.state.cardHeight}]}
+        style={[
+          DASH_STYLES.cardAsButton,
+          this.state.cardHeight && {height: this.state.cardHeight},
+        ]}
         key="wrap">
         <div
           key="scrim"
           className="js-utility-project-launcher"
-          style={Object.assign(
-            {},
+          style={[
             DASH_STYLES.scrimAsButton,
             {opacity: 1},
-          )}
+            this.state.cardHeight && {height: this.state.cardHeight - 30},
+          ]}
           onClick={() => this.showNewProjectModal()}>
           <span
             style={{
@@ -333,17 +338,20 @@ class ProjectBrowser extends React.Component {
 
       const availableHeight = bb.height;
 
-      const cardHeight = this.state.cardHeight;
+      let cardHeight = this.state.cardHeight;
       if (availableHeight <= 900) {
         cardHeight = availableHeight / 3 - DASH_STYLES.card.marginTop;
-        this.setState({cardHeight});
+      } else {
+        cardHeight = 220;
       }
+
+      this.setState({cardHeight});
 
       const perCardHeight = cardHeight + DASH_STYLES.card.marginTop;
       const rows = Math.floor(availableHeight / (perCardHeight));
 
-      // New project box takes one slot. Also forces to display at least one project
-      const numProjectsPerPage = Math.max(columns * rows - 1, 1);
+      // New project box is counted as a new project
+      const numProjectsPerPage = Math.max(columns * rows, 1);
 
       if (this.state.numProjectsPerPage === numProjectsPerPage) {
         return;
@@ -397,10 +405,11 @@ class ProjectBrowser extends React.Component {
         }
         }
       >
-        {this.renderNewProjectBoxorama()}
         {this.state.projectsList.slice(
           this.state.firstDisplayedProject,
           this.state.firstDisplayedProject + this.state.numProjectsPerPage).map((projectObject) => (
+          // newprojectbox is a placeholder for newProject boxorama
+          projectObject === 'newprojectbox' ? this.renderNewProjectBoxorama() :
           <ProjectThumbnail
             key={projectObject.projectName}
             allowDelete={this.props.isOnline || projectObject.local}

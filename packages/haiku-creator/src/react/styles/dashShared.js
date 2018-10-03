@@ -204,7 +204,7 @@ export const DASH_STYLES = {
   },
   single: {
     position: 'absolute',
-    top: 83,
+    top: 'calc(50%-20)',
     left: '50%',
     transform: 'translateY(0px) translateX(-50%)',
   },

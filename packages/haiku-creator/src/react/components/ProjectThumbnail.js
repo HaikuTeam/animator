@@ -50,6 +50,7 @@ class ProjectThumbnail extends React.Component {
           className="js-utility-project-launcher"
           style={[
             DASH_STYLES.scrim,
+            this.props.cardHeight && {height: this.props.cardHeight - 30},
             (this.state.isMenuActive || this.state.isHovered) && {opacity: 1},
           ]}
           onClick={() => {
