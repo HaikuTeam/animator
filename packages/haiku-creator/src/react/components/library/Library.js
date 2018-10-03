@@ -212,7 +212,6 @@ class Library extends React.Component {
         const message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.';
         const reportData = {url, message};
 
-        Raven.captureException(new Error(message), reportData);
         mixpanel.haikuTrack('creator:figma:fileImport:fail', reportData);
         this.setState({isLoading: false, progress: null, speed: null});
 
