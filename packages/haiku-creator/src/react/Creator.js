@@ -37,6 +37,7 @@ import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // es
 import {PROJECT_CHANNEL} from 'haiku-sdk-creator/lib/bll/Project';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
+import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
 import {
   InteractionMode,
   isPreviewMode,
@@ -49,9 +50,9 @@ import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
 import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
-import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
-import {getAccountUrl} from 'haiku-common/lib/environments';
+import {FailWhale} from './components/Popups/FailWhale';
+import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
 
 // Useful debugging originator of calls in shared model code
@@ -84,9 +85,7 @@ const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5; /* 5 minutes */
 export default class Creator extends React.Component {
   constructor (props) {
     super(props);
-    if (props.haiku && props.haiku.dotenv) {
-      Object.assign(global.process.env, props.haiku.dotenv);
-    }
+
     this.authenticateUser = this.authenticateUser.bind(this);
     this.resendEmailConfirmation = this.resendEmailConfirmation.bind(this);
     this.authenticationComplete = this.authenticationComplete.bind(this);
@@ -168,6 +167,8 @@ export default class Creator extends React.Component {
       eventHandlerEditorOptions: {},
       showConfirmGroupUngroupPopup: false,
       groupOrUngroup: 'group',
+      showFailWhale: false,
+      failWhaleUniqueId: null,
     };
 
     this.envoyOptions = {
@@ -256,18 +257,25 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:carbonite-snapshot', lodash.debounce(() => {
-      if (this.state.projectFolder) {
-        crashReport(
-          new Error('FAKE ERROR; IGNORE THIS'),
-          this.state.organizationName || 'unknown',
-          this.state.projectName || 'unknown',
-          this.state.projectFolder,
-        );
+      if (global.sentryReporter && this.error) {
+        this.error.clearLastUploadTime().then(() => {
+          // Call Carbonite in the BLL.
+          const finalUrl = global.sentryReporter.freezeInCarbonite(Raven.getContext().extra, false);
 
-        this.createNotice({
-          title: 'Done',
-          type: 'info',
-          message: `Project snapshot processing. Check your terminal logs for the upload URL.`,
+          if (finalUrl) {
+            this.createNotice({
+              title: 'Done',
+              type: 'info',
+              message: 'Project snapshot processing. Check console log for URL.',
+            });
+            console.info(`Carbonite URL: ${finalUrl}.`);
+          } else {
+            this.createNotice({
+              title: 'Unable to freeze!',
+              type: 'warning',
+              message: 'We were not able to freeze your project. Check logs for details.',
+            });
+          }
         });
       }
     }, 1000, {leading: true, trailing: false}));
@@ -671,6 +679,8 @@ export default class Creator extends React.Component {
     this.user.on(`${USER_CHANNEL}:load`, ({user, organization}) => {
       mixpanel.mergeToPayload({distinct_id: user.Username});
       mixpanel.haikuTrack('creator:opened');
+      window.Raven.setUserContext({email: user.Username});
+      window.Raven.setExtraContext({organizationName: organization.Name});
       this.user.checkPrivateProjectLimit().then((privateProjectLimit) => {
         this.setState({
           privateProjectLimit,
@@ -837,6 +847,29 @@ export default class Creator extends React.Component {
         });
       });
     });
+
+    this.envoyClient.get(ERROR_CHANNEL).then(
+      (error) => {
+        if (global.sentryReporter) {
+          global.sentryReporter.envoy = error;
+        }
+        this.error = error;
+        this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId, message}) => {
+          if (shouldEmitErrors()) {
+            this.setState({
+              showFailWhale: true,
+              failWhaleUniqueId: uniqueId || this.state.failWhaleUniqueId,
+            });
+          } else {
+            this.createNotice({
+              message,
+              type: 'error',
+              title: 'Error',
+            });
+          }
+        });
+      },
+    );
 
     this.envoyClient.get(USER_CHANNEL).then(
       (user) => {
@@ -1037,6 +1070,10 @@ export default class Creator extends React.Component {
     }
   }
 
+  restart = () => {
+    ipcRenderer.send('restart');
+  };
+
   handleInteractionModeChange (interactionMode) {
     if (this.state.interactionMode === interactionMode) {
       return;
@@ -1231,14 +1268,9 @@ export default class Creator extends React.Component {
     const {projectName, projectPath} = projectObject;
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
-    window.Raven.setExtraContext({
-      projectName,
-      organizationName: this.state.organizationName,
-      projectPath: projectObject.projectPath,
-    });
-    window.Raven.setUserContext({
-      email: this.state.username,
-    });
+    if (window.Raven) {
+      window.Raven.setExtraContext({projectName, projectPath});
+    }
 
     mixpanel.haikuTrack('creator:project:launching', {
       username: this.state.username,
@@ -1478,6 +1510,11 @@ export default class Creator extends React.Component {
       return true;
     }
 
+    // 'Uncaught' errors will be handled in Envoy unless we're in dev mode.
+    if (notice.type === 'error' && notice.message.startsWith('Uncaught') && shouldEmitErrors()) {
+      return true;
+    }
+
     if (typeof notice.message === 'string') {
       // Ignore Intercom widget errors which are transient and confuse the user
       if (notice.message.match(/intercom/)) {
@@ -1511,13 +1548,6 @@ export default class Creator extends React.Component {
   createNotice (notice) {
     if (this.shouldNoticeBeSkipped(notice)) {
       return;
-    }
-
-    // 'Uncaught' indicates an unrecoverable error, so we need to crash
-    if (notice.type === 'error' && notice.message.slice(0, 8) === 'Uncaught') {
-      if (process.env.NODE_ENV === 'production') {
-        remote.getCurrentWindow().close();
-      }
     }
 
     notice.id = Math.random() + '';
@@ -1747,6 +1777,8 @@ export default class Creator extends React.Component {
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
           interactionMode: InteractionMode.GLASS_EDIT, // So that the asset library will not be obscured on reentry
         });
+
+        window.Raven.setExtraContext({projectName: undefined, projectPath: undefined});
 
         if (cb) {
           cb();
@@ -2306,6 +2338,7 @@ export default class Creator extends React.Component {
           </div>
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
+        {this.state.showFailWhale && <FailWhale restart={this.restart} uniqueId={this.state.failWhaleUniqueId} />}
       </div>
     );
   }
