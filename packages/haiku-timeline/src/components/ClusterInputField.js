@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 export default class ClusterInputField extends React.Component {
   render () {
@@ -38,6 +37,7 @@ class ClusterInputFieldValueDisplay extends React.Component {
     super(props);
     this.handleUpdate = this.handleUpdate.bind(this);
     this.complexValueElementsEllipsis = [<span key={0}>{'{…}'}</span>];
+    this.clusterValues = props.row.getClusterValues();
   }
 
   componentWillUnmount () {
@@ -52,24 +52,31 @@ class ClusterInputFieldValueDisplay extends React.Component {
     this.props.timeline.on('update', this.handleUpdate);
   }
 
+  areClusterValuesEqual (originalValues, newValues) {
+    return originalValues.every((value, index) => value.computedValue === newValues[index].computedValue);
+  }
+
   handleUpdate (what) {
     if (!this.mounted) {
       return null;
     }
     if (what === 'timeline-frame') {
-      this.throttledForceUpdate();
+      const clusterValues = this.props.row.getClusterValues();
+      if (!this.areClusterValuesEqual(clusterValues, this.clusterValues)) {
+        this.clusterValues = clusterValues;
+        this.throttledForceUpdate();
+      }
     }
   }
 
   render () {
-    const clusterValues = this.props.row.getClusterValues();
     const clusterName = this.props.row.getClusterNameString();
 
     let valueElements;
 
-    if (clusterValues.length < 4 && clusterName !== 'Style') {
-      valueElements = clusterValues.map((clusterVal, index) => {
-        const semi = (index === (clusterValues.length - 1)) ? '' : '; ';
+    if (this.clusterValues.length < 4 && clusterName !== 'Style') {
+      valueElements = this.clusterValues.map((clusterVal, index) => {
+        const semi = (index === (this.clusterValues.length - 1)) ? '' : '; ';
         return <span key={index}>{remapPrettyValue(clusterVal.prettyValue)}{semi}</span>;
       });
     } else {

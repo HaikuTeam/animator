@@ -1,7 +1,8 @@
-import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as React from 'react';
 
-export const DASH_STYLES = {
+export const DASH_STYLES: React.CSSProperties = {
   upcase: {
     textTransform: 'uppercase',
   },

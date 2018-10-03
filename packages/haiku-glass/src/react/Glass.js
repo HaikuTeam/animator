@@ -48,6 +48,8 @@ import {clipboard, shell, remote, ipcRenderer} from 'electron';
 import * as fse from 'haiku-fs-extra';
 import * as moment from 'moment';
 import {HOMEDIR_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
+import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
+import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
 
 // #FIXME: Why is this the responsibility of Glass???
 fse.mkdirpSync(HOMEDIR_PATH);
@@ -502,6 +504,21 @@ export class Glass extends React.Component {
   }
 
   componentDidMount () {
+    if (!this.props.envoy.mock) {
+      this.envoyClient = new EnvoyClient({
+        token: this.props.envoy.token,
+        port: this.props.envoy.port,
+        host: this.props.envoy.host,
+        WebSocket: window.WebSocket,
+      });
+
+      this.envoyClient.get(ERROR_CHANNEL).then((error) => {
+        if (global.sentryReporter) {
+          global.sentryReporter.envoy = error;
+        }
+      });
+    }
+
     const resetKeyStates = () => {
       Globals.allKeysUp();
 
@@ -3676,11 +3693,10 @@ export class Glass extends React.Component {
 
           {(!this.isPreviewMode())
             ? <div
-              id="haiku-glass-stage-title-text-container"
               style={{
                 position: 'absolute',
                 zIndex: 10,
-                bottom: container.h - mount.y,
+                bottom: Math.min(container.h, window.innerHeight) - mount.y,
                 left: mount.x + 2,
                 height: 20,
                 width: mount.w,

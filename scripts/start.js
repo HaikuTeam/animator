@@ -282,6 +282,14 @@ function go () {
     case 'everything':
       global.process.env.HAIKU_DEBUG = '1';
       binaryArgs.push('electron', '--inspect=9220', '--remote-debugging-port=9222', '.');
+
+      // Fix drag and drop linux bug on debug build. A Heisenbug according to
+      // https://github.com/electron/electron/issues/12820
+      if (global.process.env.HAIKU_RELEASE_ENVIRONMENT === 'development' && getReleasePlatform() === 'linux') {
+        log.hat('Disable GPU accel as workaround for drag and drop bug');
+        binaryArgs.push('--disable-gpu');
+      }
+
       // On Windows and Linux, custom protocol handler is
       // passed as argument, so here we forward it
       if (haikuURI) {

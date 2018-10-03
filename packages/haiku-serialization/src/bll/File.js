@@ -93,6 +93,8 @@ class File extends BaseModel {
 
     this.dtModified = Date.now()
 
+    this.cache.clear()
+
     return this.mod.update(bytecode, () => {
       // Helps detect whether we need to assert that bytecode is present
       this._numBytecodeUpdates++
@@ -270,10 +272,11 @@ class File extends BaseModel {
    * mutate the returned object and expect that to affect the live in-memory bytecode, nor the file system.
    */
   getSerializedBytecode () {
-    const reified = this.getReifiedDecycledBytecode()
-    Bytecode.cleanBytecode(reified)
-    const serialized = expressionToRO(reified) // This returns a *new* object
-    return serialized
+    return this.cache.fetch('getSerializedBytecode', () => {
+      const reified = this.getReifiedDecycledBytecode()
+      Bytecode.cleanBytecode(reified)
+      return expressionToRO(reified) // This returns a *new* object
+    })
   }
 }
 

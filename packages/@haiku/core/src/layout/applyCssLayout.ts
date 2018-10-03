@@ -5,7 +5,6 @@
 import Layout3D from '../Layout3D';
 import formatTransform from './formatTransform';
 import scopeOfElement from './scopeOfElement';
-import setStyleMatrix from './setStyleMatrix';
 
 const SVG = 'svg';
 
@@ -136,40 +135,31 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
   }
 
   if (computedLayout.matrix) {
-    const attributeTransform = domElement.getAttribute('transform');
-    // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
-    // and if we are inside an IE context, use the transform attribute itself
-    if (context.config.platform.isIE || context.config.platform.isEdge) {
-      if (elementScope === SVG) {
-        const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format);
-        if (matrixString !== domElement.haiku.cachedTransform) {
-          domElement.haiku.cachedTransform = matrixString;
-          domElement.setAttribute('transform', matrixString);
-        }
-      } else {
-        setStyleMatrix(
-          domElement,
-          nodeLayout.format,
-          computedLayout.matrix,
-        );
-      }
-    } else {
-      // An domElement might have an explicit transform override set, in which case, don't
+    const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format);
+    if (matrixString === domElement.haiku.cachedTransform) {
+      return;
+    }
+
+    domElement.haiku.cachedTransform = matrixString;
+
+    if (
+      elementScope === SVG &&
+      // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG, and if we are
+      // inside an IE context, use the transform attribute itself. Always prefer the transform attribute for 2D inner
+      // SVG attributes, which have more consistent cross-browser behavior.
+      (
+        nodeLayout.format === Layout3D.FORMATS.TWO ||
+        context.config.platform.isIE ||
+        context.config.platform.isEdge
+      )
+    ) {
+      domElement.setAttribute('transform', matrixString);
+    } else if (
+      !hasExplicitStyle(domElement, 'transform') && !domElement.getAttribute('transform')
+    ) {
+      // A domElement might have an explicit transform override set, in which case, don't
       // attach the style transform to this node, because we will likely clobber what they've set
-      if (!hasExplicitStyle(domElement, 'transform')) {
-        if (
-          !attributeTransform ||
-          attributeTransform === ''
-        ) {
-          setStyleMatrix(
-            domElement,
-            nodeLayout.format,
-            computedLayout.matrix,
-          );
-        }
-      }
+      domElement.style.transform = matrixString;
     }
   }
-
-  return domElement.style;
 }

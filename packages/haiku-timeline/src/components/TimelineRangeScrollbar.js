@@ -94,8 +94,10 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragLeft (dragEvent, dragData) {
-    const left = this.props.timeline.mapXCoordToFrame(dragEvent.clientX);
-    this.props.timeline.zoomByLeftAndRightEndpoints(left, this.frameInfoOnDragStart.friB, true);
+    if (this.isDraggingLeft) {
+      const left = this.props.timeline.mapXCoordToFrame(dragEvent.clientX);
+      this.props.timeline.zoomByLeftAndRightEndpoints(left, this.frameInfoOnDragStart.friB, true);
+    }
   }
 
   onStartDragRight (dragEvent, dragData) {
@@ -109,9 +111,10 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragRight (dragEvent, dragData) {
-    const timeline = this.props.timeline;
-    const right = timeline.mapXCoordToFrame(dragEvent.clientX);
-    this.props.timeline.zoomByLeftAndRightEndpoints(this.frameInfoOnDragStart.friA, right, true);
+    if (this.isDraggingRight) {
+      const right = this.props.timeline.mapXCoordToFrame(dragEvent.clientX);
+      this.props.timeline.zoomByLeftAndRightEndpoints(this.frameInfoOnDragStart.friA, right, true);
+    }
   }
 
   render () {

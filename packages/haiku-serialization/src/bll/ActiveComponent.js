@@ -2948,25 +2948,29 @@ class ActiveComponent extends BaseModel {
 
     const rows = root.getHostedPropertyRows(false)
     const all = [].concat(rows)
-
-    const groups = [{
-      host: root,
-      id: root.getComponentId(),
-      rows
-    }].concat(stack.map(({haikuId}) => {
-      const child = this.findElementByComponentId(haikuId)
-
-      // Race condition when undoing multi-delete
-      if (child) {
-        const rows = child.getHostedPropertyRows(true)
-        all.push.apply(all, rows)
-        return {
-          host: child,
-          id: child.getComponentId(),
-          rows
-        }
+    const groups = [
+      {
+        host: root,
+        id: root.getComponentId(),
+        rows
       }
-    }))
+    ].concat(
+      stack.reduce((acc, {haikuId}) => {
+        const child = this.findElementByComponentId(haikuId)
+        // Race condition when undoing multi-delete
+        if (child) {
+          const rows = child.getHostedPropertyRows(true)
+          all.push.apply(all, rows)
+          acc.push({
+            host: child,
+            id: child.getComponentId(),
+            rows
+          })
+        }
+
+        return acc
+      }, [])
+    )
 
     // It's hacky to do this here but ultimately easier than finding the
     // right place to do it when rehydrating. Note that prev/next is only
@@ -3831,6 +3835,7 @@ class ActiveComponent extends BaseModel {
     keyframeCurveSerial,
     keyframeEndMs,
     keyframeEndValueSerial,
+    options,
     metadata,
     cb
   ) {
@@ -3856,8 +3861,23 @@ class ActiveComponent extends BaseModel {
       Bytecode.serializeValue(keyframeCurve),
       keyframeEndMs,
       Bytecode.serializeValue(keyframeEndValue),
+      options,
       metadata,
       (fire) => {
+        const unlockedDesigns = {}
+        if (options && options.setElementLockStatus) {
+          for (const elID in options.setElementLockStatus) {
+            const node = this.findTemplateNodeByComponentId(elID)
+            const lockStatus = options.setElementLockStatus[elID]
+            if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+              node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
+              unlockedDesigns[node.attributes[HAIKU_SOURCE_ATTRIBUTE]] = true
+            } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+              node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + SYNC_LOCKED_ID_SUFFIX
+            }
+          }
+        }
+
         return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
           if (err) {
             logger.error(`[active component (${this.project.getAlias()})]`, err)

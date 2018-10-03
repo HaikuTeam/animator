@@ -1,4 +1,3 @@
-import * as lodash from 'lodash';
 import * as React from 'react';
 import {render} from 'react-dom';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
@@ -12,7 +11,7 @@ function _fixPlumbingUrl (url) {
   return url.replace(/^http/, 'ws');
 }
 
-export default function dom (modus, haiku) {
+export default function dom (haiku) {
   const listeners = {};
 
   const props = {

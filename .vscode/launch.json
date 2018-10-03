@@ -7,6 +7,16 @@
         "core-demo-server",
         "core-demo-client"
       ]
+    },
+    {
+        "name": "attach-haiku",
+        "configurations": [
+          "attach-main",
+          "attach-master",
+          "attach-creator",
+          "attach-glass",
+          "attach-timeline"
+        ]
     }
   ],
   "configurations": [

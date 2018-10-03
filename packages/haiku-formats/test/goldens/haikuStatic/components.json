@@ -147,6 +147,11 @@
             "value": "loop",
             "edited": true
           }
+        },
+        "width": {
+          "0": {
+            "value": 38
+          }
         }
       }
     }
@@ -164,8 +169,12 @@
             "core": "3.5.1"
           },
           "options": {},
-          "states": {},
-          "eventHandlers": {},
+          "states": {
+            "width": {
+              "type": "number",
+              "value": 38
+            }
+          },
           "timelines": {
             "Default": {
               "haiku:1c2aee223193": {

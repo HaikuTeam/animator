@@ -1,6 +1,6 @@
 const {URL} = require('url')
 const tape = require('tape')
-const {Figma} = require('./../../src/bll/Figma')
+const {Figma, FIGMA_DEFAULT_FILENAME} = require('./../../src/bll/Figma')
 const SampleFileFixture = require('../fixtures/figma/sample-file.json')
 const SampleImageResponseFixture = require('../fixtures/figma/images.json')
 
@@ -19,6 +19,15 @@ tape('Figma.parseProjectURL parses an URL and returns an object with the id and 
 tape('Figma.parseProjectURL returns null if the URL can\'t be parsed properly', (t) => {
   t.notOk(Figma.parseProjectURL('https://www.figma.com/'))
   t.notOk(Figma.parseProjectURL('asdfasd'))
+  t.end()
+})
+
+tape('Figma.parseProjectURL allows URLs without project names', (t) => {
+  const parsedURL = Figma.parseProjectURL(`https://www.figma.com/file/${fileKey}`)
+
+  t.equal(typeof parsedURL, 'object', 'the parsed URL is an object')
+  t.equal(parsedURL.name, FIGMA_DEFAULT_FILENAME, 'the parsed URL contains the default filename')
+  t.equal(parsedURL.id, fileKey, 'the parsed URL contains the id of the file')
   t.end()
 })
 
@@ -48,7 +57,7 @@ tape('Figma.findInstantiableElements', (t) => {
   const groupKey = '8:0'
   const subgroupKey = '9:0'
   const figma = new Figma({token})
-  const elements = figma.findInstantiableElements(JSON.stringify(SampleFileFixture))
+  const elements = figma.findInstantiableElements(SampleFileFixture)
 
   t.ok(Array.isArray(elements), 'returns an array of elements')
   t.equal(elements.length, 6, 'returns an array that includes all elements required to be found')
@@ -70,7 +79,7 @@ tape('Figma.getSVGLinks', async (t) => {
       callback(null, {statusCode: 200}, JSON.stringify(SampleImageResponseFixture))
     }})
 
-    const elements = figma.findInstantiableElements(JSON.stringify(SampleFileFixture))
+    const elements = figma.findInstantiableElements(SampleFileFixture)
     const links = await figma.getSVGLinks(elements, fileKey)
     t.ok(Array.isArray(links), 'returns an array of elements')
     t.equal(links.length, elements.length, 'adds links to all elements')
@@ -122,5 +131,15 @@ tape('Figma.findIDFromPath', (t) => {
 
   t.equal(Figma.findIDFromPath(figmaPath), fileKey, 'returns the correct ID if an ID can be found')
   t.notOk(Figma.findIDFromPath(otherPath), 'returns a falsey value if it cannot find an ID')
+  t.end()
+})
+
+tape('Figma.findDisplayNameFromPath', (t) => {
+  const assetName = 'fournier'
+  const validPath = `/designs/${fileKey}-${assetName}.figma.contents/`
+  const invalidPath = `/designs/${fileKey}-.figma.contents/`
+
+  t.equal(Figma.findDisplayNameFromPath(validPath), assetName, 'returns the correct name if a name can be found')
+  t.equal(Figma.findDisplayNameFromPath(invalidPath), FIGMA_DEFAULT_FILENAME, 'returns the Figma default filename if the file name cannot be found')
   t.end()
 })
