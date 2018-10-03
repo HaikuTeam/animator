@@ -15,11 +15,12 @@ import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
+import {Paginator} from 'haiku-ui-common/lib/react/Paginator';
 
 const STYLES = {
   adminButton: {
     // TODO: make this a bit more insane?
-    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+    backgroundColor: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
   },
 };
 
@@ -30,6 +31,7 @@ class ProjectBrowser extends React.Component {
     this.openPopover = this.openPopover.bind(this);
     this.closePopover = this.closePopover.bind(this);
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this);
+
     this.state = {
       username: null,
       error: null,
@@ -43,6 +45,13 @@ class ProjectBrowser extends React.Component {
       confirmDeleteMatches: false,
       newProjectError: null,
       newProjectIsPublic: true,
+      // Use first display project instead page num, so kept the same first displayed project on application resizing
+      firstDisplayedProject: 0,
+      numProjectsPerPage: 1,
+      // Controls projects div opacity
+      fadeOutProjects: true,
+      // if cardHeight is set, it controls project card height
+      cardHeight: DASH_STYLES.card.height,
     };
   }
 
@@ -77,6 +86,12 @@ class ProjectBrowser extends React.Component {
         }
       });
     });
+
+    window.addEventListener('resize', this.updateDimensionsThrottled);
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.updateDimensionsThrottled);
   }
 
   openPopover (evt) {
@@ -116,7 +131,9 @@ class ProjectBrowser extends React.Component {
         this.setState({error});
         return;
       }
-      this.setState({projectsList});
+      // newprojectbox is a placeholder for newProject boxorama
+      projectsList.unshift('newprojectbox');
+      this.setState({projectsList}, this.updateDimensions);
       this.props.onProjectsList(projectsList);
     });
   }
@@ -283,16 +300,19 @@ class ProjectBrowser extends React.Component {
   renderNewProjectBoxorama () {
     return (
       <div
-        style={DASH_STYLES.cardAsButton}
+        style={[
+          DASH_STYLES.cardAsButton,
+          this.state.cardHeight && {height: this.state.cardHeight},
+        ]}
         key="wrap">
         <div
           key="scrim"
           className="js-utility-project-launcher"
-          style={Object.assign(
-            {},
+          style={[
             DASH_STYLES.scrimAsButton,
             {opacity: 1},
-          )}
+            this.state.cardHeight && {height: this.state.cardHeight - 30},
+          ]}
           onClick={() => this.showNewProjectModal()}>
           <span
             style={{
@@ -307,6 +327,61 @@ class ProjectBrowser extends React.Component {
     );
   }
 
+  // Calculate how many projects can be displayed according to available dimensions
+  updateDimensions = () => {
+    if (this.projectBrowserOuterDiv) {
+      const bb = this.projectBrowserOuterDiv.getBoundingClientRect();
+
+      const availableWidth = bb.width - DASH_STYLES.projectsWrapper.paddingLeft - DASH_STYLES.projectsWrapper.paddingRight;
+      const perCardWidth = DASH_STYLES.card.minWidth + DASH_STYLES.projectsWrapper.paddingLeft + DASH_STYLES.projectsWrapper.paddingRight - 10;
+      const columns = Math.floor(availableWidth / perCardWidth);
+
+      const availableHeight = bb.height;
+
+      let cardHeight = this.state.cardHeight;
+      if (availableHeight <= 900) {
+        cardHeight = availableHeight / 3 - DASH_STYLES.card.marginTop;
+      } else {
+        cardHeight = 220;
+      }
+
+      this.setState({cardHeight});
+
+      const perCardHeight = cardHeight + DASH_STYLES.card.marginTop;
+      const rows = Math.floor(availableHeight / (perCardHeight));
+
+      // New project box is counted as a new project
+      const numProjectsPerPage = Math.max(columns * rows, 1);
+
+      if (this.state.numProjectsPerPage === numProjectsPerPage) {
+        return;
+      }
+      this.setState({numProjectsPerPage, fadeOutProjects:true}, () => {
+        setTimeout(() => {
+          this.setState({fadeOutProjects:false});
+        }, 125);
+      });
+    }
+  };
+
+  updateDimensionsThrottled = lodash.throttle(() => {
+    this.updateDimensions();
+  }, 100);
+
+  changeFirstItemToDisplay = (firstDisplayedProject) => {
+    // Skip if not changed
+    if (firstDisplayedProject === this.state.firstDisplayedProject) {
+      return;
+    }
+
+    // Create fadeout/fadein effect
+    this.setState({fadeOutProjects:true}, () => {
+      setTimeout(() => {
+        this.setState({firstDisplayedProject, fadeOutProjects:false});
+      }, 125);
+    });
+  };
+
   projectsListElement () {
     if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
@@ -317,14 +392,24 @@ class ProjectBrowser extends React.Component {
       <div
         style={[
           DASH_STYLES.projectsWrapper,
+          {opacity: this.state.fadeOutProjects ? 0 : 1},
           (showDeleteModal || showNewProjectModal || showChangelogModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout();
         }, 50)}
+        ref={ (projectBrowserOuterDiv) => {
+          if (projectBrowserOuterDiv) {
+            this.projectBrowserOuterDiv = projectBrowserOuterDiv;
+          }
+        }
+        }
       >
-        {this.renderNewProjectBoxorama()}
-        {this.state.projectsList.map((projectObject) => (
+        {this.state.projectsList.slice(
+          this.state.firstDisplayedProject,
+          this.state.firstDisplayedProject + this.state.numProjectsPerPage).map((projectObject) => (
+          // newprojectbox is a placeholder for newProject boxorama
+          projectObject === 'newprojectbox' ? this.renderNewProjectBoxorama() :
           <ProjectThumbnail
             key={projectObject.projectName}
             allowDelete={this.props.isOnline || projectObject.local}
@@ -336,6 +421,7 @@ class ProjectBrowser extends React.Component {
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
+            cardHeight={this.state.cardHeight}
           />
         ))}
         {/* the following abomination is needed for the nifty flexbox resizing.
@@ -512,7 +598,7 @@ class ProjectBrowser extends React.Component {
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
-        <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh'}}>
+        <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh', pointerEvents: 'none'}}>
           {lodash.map(this.props.notices, this.renderNotice)}
         </TransitionGroup>
 
@@ -584,6 +670,14 @@ class ProjectBrowser extends React.Component {
         </div>
 
         {this.projectsListElement()}
+        <Paginator
+          firstItemToDisplay={this.state.firstDisplayedProject}
+          numItemsPerPage={this.state.numProjectsPerPage}
+          numTotalItems={this.state.projectsList.length}
+          blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal}
+          fadeOut={this.state.fadeOutProjects}
+          onChangeFirstItemToDisplay={this.changeFirstItemToDisplay}
+        />
         {this.offlineElement()}
       </div>
     );

@@ -63,6 +63,7 @@ const STYLES = {
     color: Palette.SUNSTONE,
     overflow: 'hidden',
     boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)',
+    pointerEvents: 'auto',
   },
   title: {
     fontSize: '14.5px',

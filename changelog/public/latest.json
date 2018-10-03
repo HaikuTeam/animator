@@ -1,7 +1,7 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Add pagination to dashboard projects."
     ],
     "Fixes": [
       "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
