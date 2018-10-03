@@ -43,6 +43,8 @@ module.exports = {
           0: {value: 'loop', edited: true},
           1000: {value: 'loop', edited: true},
         },
+        // State value.
+        width: 38,
       },
     },
   },
@@ -56,7 +58,9 @@ module.exports = {
             core: '3.5.1',
           },
           options: {},
-          states: {},
+          states: {
+            width: {type: 'number', value: 10},
+          },
           eventHandlers: {},
           timelines: {
             Default: {
@@ -67,7 +71,17 @@ module.exports = {
                 'style.position': {0: {value: 'relative'}},
                 'style.overflowX': {0: {value: 'visible'}},
                 'style.overflowY': {0: {value: 'visible'}},
-                'sizeAbsolute.x': {0: {value: 38}},
+                'sizeAbsolute.x': {
+                  0: {
+                    // The default state is 10, but by attribute pass-down, this should evaluate to 38.
+                    value: Haiku.inject(
+                      function (width) {
+                        return width;
+                      },
+                      'width',
+                    ),
+                  },
+                },
                 'sizeAbsolute.y': {0: {value: 45}},
                 'sizeMode.x': {0: {value: 1}},
                 'sizeMode.y': {0: {value: 1}},

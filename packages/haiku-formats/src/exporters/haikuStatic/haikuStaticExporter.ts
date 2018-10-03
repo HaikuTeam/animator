@@ -1,4 +1,7 @@
+import {BytecodeNode} from '@haiku/core/lib/api';
 import {writeFile} from 'fs-extra';
+// @ts-ignore
+import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import {ExporterInterface} from '..';
@@ -21,6 +24,9 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
     delete this.bytecode.eventHandlers;
     this.visitAllTimelineProperties((timeline, property) => {
       const timelineProperty = timeline[property];
+      if (typeof timeline[property] !== 'object') {
+        timeline[property] = {0: {value: timeline[property]}};
+      }
       for (const keyframe in timelineProperty) {
         const {value} = timelineProperty[keyframe];
         if (typeof value !== 'function') {
@@ -33,6 +39,27 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
         };
       }
     });
+
+    // Replace subcomponents with their static children, being mindful of state bindings.
+    Template.visitTemplate(
+      this.bytecode.template,
+      null,
+      (node: BytecodeNode) => {
+        if (typeof node.elementName === 'string' || !node.elementName.template || !node.elementName.states) {
+          return;
+        }
+
+        node.elementName.metadata.root = this.bytecode.metadata.root;
+        const timeline = this.bytecode.timelines.Default[`haiku:${node.attributes['haiku-id']}`];
+        for (const property in timeline) {
+          if (node.elementName.states[property]) {
+            node.elementName.states[property].value = timeline[property][0] && timeline[property][0].value;
+          }
+        }
+
+        node.elementName = (new HaikuStaticExporter(node.elementName, this.componentFolder)).rawOutput();
+      },
+    );
   }
 
   /**
