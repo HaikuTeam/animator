@@ -131,8 +131,6 @@ class ProjectBrowser extends React.Component {
         this.setState({error});
         return;
       }
-      // newprojectbox is a placeholder for newProject boxorama
-      projectsList.unshift('newprojectbox');
       this.setState({projectsList}, this.updateDimensions);
       this.props.onProjectsList(projectsList);
     });
@@ -405,7 +403,7 @@ class ProjectBrowser extends React.Component {
         }
         }
       >
-        {this.state.projectsList.slice(
+        {['newprojectbox', ...this.state.projectsList].slice(
           this.state.firstDisplayedProject,
           this.state.firstDisplayedProject + this.state.numProjectsPerPage).map((projectObject) => (
           // newprojectbox is a placeholder for newProject boxorama
