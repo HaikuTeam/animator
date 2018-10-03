@@ -4,10 +4,9 @@ import * as fs from 'fs';
 import * as fse from 'fs-extra';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import path = require('path');
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
-import {BundledExporter, BundleFormat} from './bundledExporter';
+import {StandaloneBundlerExporter} from './standaloneBundlerExporter';
 
 export class BundledZipExporter extends BaseExporter implements ExporterInterface {
 
@@ -19,7 +18,7 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
 
   writeToFile (filename: string, framerate: number): Promise<void> {
 
-    const standaloneExporter = new BundledExporter(this.bytecode, this.componentFolder, BundleFormat.StandaloneFormat);
+    const standaloneExporter = new StandaloneBundlerExporter(this.bytecode, this.componentFolder);
     standaloneExporter.generateStandAloneBundle().then((content: string) => {
       const output = fs.createWriteStream(filename);
       const archive = archiver('zip', {
