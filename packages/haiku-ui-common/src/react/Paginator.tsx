@@ -13,6 +13,7 @@ const STYLES = {
     transition: 'opacity 125ms, filter 140ms',
   },
   pagerHolster: {
+    transform: 'translateY(-12px)',
     pointerEvents: 'auto',
   },
   pageNumber: {
