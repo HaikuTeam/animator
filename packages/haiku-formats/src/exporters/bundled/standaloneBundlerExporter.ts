@@ -51,13 +51,11 @@ export class StandaloneBundlerExporter extends BaseExporter implements ExporterI
   }
 
   writeToFile (filename: string, framerate: number): Promise<void> {
-
-    this.generateStandAloneBundle().then((content) => {
+    return this.generateStandAloneBundle().then((content) => {
       return fse.writeFile(filename, content);
     }).catch((error) => {
       logger.error(`[formats] caught exception during bundled StandaloneBundlerExporter: ${error.toString()}`);
+      return fse.writeFile(filename, '{}');
     });
-
-    return fse.writeFile(filename, '{}');
   }
 }

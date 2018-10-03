@@ -840,9 +840,9 @@ export default class Creator extends React.Component {
               request.format = ExporterFormat.StandaloneBundle;
               formatExtension = 'standalone.js';
               break;
-            case 'standalonezip':
+            case 'zip':
               request.format = ExporterFormat.ZippedStandalone;
-              formatExtension = 'standalone.zip';
+              formatExtension = extension;
               break;
           }
 

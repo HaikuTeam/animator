@@ -284,7 +284,7 @@ export default class TopMenu {
             },
             {
               label: 'Zipped Standalone',
-              click: () => this.emitExportRequest('standalonezip', 60),
+              click: () => this.emitExportRequest('zip', 60),
               enabled: this.options.isProjectOpen,
             },
           ],

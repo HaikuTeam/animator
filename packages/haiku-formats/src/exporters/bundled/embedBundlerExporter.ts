@@ -47,12 +47,12 @@ export class EmbedBundlerExporter extends BaseExporter implements ExporterInterf
 
   writeToFile (filename: string, framerate: number): Promise<void> {
 
-    this.generateEmbedBundle().then((content) => {
+    return this.generateEmbedBundle().then((content) => {
       return fse.writeFile(filename, content);
     }).catch((error) => {
       logger.error(`[formats] caught exception during bundled export EmbedBundlerExporter: ${error.toString()}`);
+      return fse.writeFile(filename, '{}');
     });
 
-    return fse.writeFile(filename, '{}');
   }
 }
