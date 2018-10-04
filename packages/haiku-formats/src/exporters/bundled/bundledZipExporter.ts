@@ -7,7 +7,7 @@ import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import jszip from 'jszip';
+import * as JSZip from 'jszip';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {createCoreMinContent} from '../bundled/createCoreMin';
