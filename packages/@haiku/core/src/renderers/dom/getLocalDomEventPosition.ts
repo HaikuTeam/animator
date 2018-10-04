@@ -2,7 +2,21 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import getDomEventPosition from './getDomEventPosition';
+const getDomEventPosition = (event: MouseEvent, doc: HTMLDocument) => {
+  let x = -1;
+  let y = -1;
+  if (event.hasOwnProperty('pageX')) {
+    x = event.pageX;
+    y = event.pageY;
+  } else if (event.clientX || event.clientY) {
+    x = event.clientX + doc.body.scrollLeft + doc.documentElement.scrollLeft;
+    y = event.clientY + doc.body.scrollTop + doc.documentElement.scrollTop;
+  }
+  return {
+    x: ~~x,
+    y: ~~y,
+  };
+};
 
 export default (event: MouseEvent, domElement: HTMLElement) => {
   const doc = domElement.ownerDocument;
