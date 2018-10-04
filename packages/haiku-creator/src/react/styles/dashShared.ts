@@ -91,7 +91,9 @@ export const DASH_STYLES: React.CSSProperties = {
     WebkitUserSelect: 'none',
     filter: 'blur(0px)',
     backgroundColor: Palette.COAL,
-    backgroundImage: `linear-gradient(45deg, ${Palette.FATHER_COAL} 25%, transparent 25%, transparent 75%, ${Palette.FATHER_COAL} 75%, ${Palette.FATHER_COAL}), linear-gradient(45deg, ${Palette.FATHER_COAL} 25%, transparent 25%, transparent 75%, ${Palette.FATHER_COAL} 75%, ${Palette.FATHER_COAL})`,
+    backgroundImage: `linear-gradient(45deg, ${Palette.FATHER_COAL} 25%, transparent 25%, transparent 75%, ` +
+      `${Palette.FATHER_COAL} 75%, ${Palette.FATHER_COAL}), linear-gradient(45deg, ${Palette.FATHER_COAL} 25%, ` +
+      `transparent 25%, transparent 75%, ${Palette.FATHER_COAL} 75%, ${Palette.FATHER_COAL})`,
     backgroundSize: '10px 10px',
     backgroundPosition: '0 0, 5px 5px',
     boxShadow: '0 10px 40px 0 rgba(21,32,34,0.39)',
