@@ -1794,22 +1794,10 @@ export default class Creator extends React.Component {
   }
 
   renderStartupDefaultScreen () {
-    if (this.props.haiku.proxy.active) {
-      return <ProxyHelpScreen />;
-    }
-
     return (
       <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
-        <CSSTransition
-          classNames="toast"
-          timeout={{enter: 500, exit: 300}}
-        >
-          <div style={{position: 'absolute', right: 0, top: 0, width: 300}}>
-            {lodash.map(this.state.notices, this.renderNotice)}
-          </div>
-        </CSSTransition>
         <div style={{position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
-          <Hai haikuOptions={{loop: true, sizing: 'contain', contextMenu: 'disabled'}} />
+          <Hai loop={true} sizing="contain" contextMenu="disabled" />
         </div>
         <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
       </div>
@@ -2070,6 +2058,14 @@ export default class Creator extends React.Component {
     });
   };
 
+  get showAuthenticationUI () {
+    return this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username);
+  }
+
+  get showGenericLoader () {
+    return !this.state.isUserAuthenticated || !this.state.username || this.state.areProjectsLoading;
+  }
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -2084,7 +2080,11 @@ export default class Creator extends React.Component {
       );
     }
 
-    if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
+    if (this.props.haiku.proxy.active) {
+      return <ProxyHelpScreen />;
+    }
+
+    if (this.showAuthenticationUI) {
       return (
         <StyleRoot>
           <AuthenticationUI
@@ -2098,16 +2098,20 @@ export default class Creator extends React.Component {
       );
     }
 
-    if (!this.state.isUserAuthenticated || !this.state.username || this.state.areProjectsLoading) {
-      return this.renderStartupDefaultScreen();
-    }
-
     return (
       <div style={{position: 'relative', width: '100%', height: '100%'}}>
+        <CSSTransition
+          classNames="toast"
+          timeout={{enter: 500, exit: 300}}
+        >
+          <div style={{position: 'absolute', right: 0, top: 44, width: 300}}>
+            {lodash.map(this.state.notices, this.renderNotice)}
+          </div>
+        </CSSTransition>
         {this.renderChangelogModal()}
         {this.renderOfflineExportUpgradeModal()}
         {this.renderNewProjectModal()}
-        {!this.state.tearingDown &&
+        {!this.state.tearingDown && this.envoyClient &&
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
@@ -2120,7 +2124,7 @@ export default class Creator extends React.Component {
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        {this.state.dashboardVisible && <ProjectBrowser
+        {this.state.dashboardVisible && this.envoyClient && this.envoyProject && <ProjectBrowser
           ref="ProjectBrowser"
           explorePro={this.explorePro}
           areProjectsLoading={this.state.areProjectsLoading}
@@ -2154,14 +2158,6 @@ export default class Creator extends React.Component {
         />
         {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
-            <CSSTransition
-              classNames="toast"
-              timeout={{enter: 500, exit: 300}}
-            >
-              <div style={{position: 'absolute', right: 0, top: 44, width: 300}}>
-                {lodash.map(this.state.notices, this.renderNotice)}
-              </div>
-            </CSSTransition>
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
@@ -2332,6 +2328,7 @@ export default class Creator extends React.Component {
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
         {this.state.showFailWhale && <FailWhale restart={this.restart} uniqueId={this.state.failWhaleUniqueId} />}
+        {this.showGenericLoader && this.renderStartupDefaultScreen()}
       </div>
     );
   }
