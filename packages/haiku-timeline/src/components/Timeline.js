@@ -23,10 +23,8 @@ import {TrackedExporterRequests} from './TrackedExporterRequests';
 import Gauge from './Gauge';
 import GaugeTimeReadout from './GaugeTimeReadout';
 import TimelineRangeScrollbar from './TimelineRangeScrollbar';
-import HorzScrollShadow from './HorzScrollShadow';
 import ScrollView from './ScrollView';
 import Marquee from './Marquee';
-import PostMaxKeyframeArea from './PostMaxKeyframeArea';
 import PropertiesPanelResizer from './PropertiesPanelResizer';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
@@ -1593,7 +1591,6 @@ class Timeline extends React.Component {
           propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
           updatePropertiesPanelSize={this.updatePropertiesPanelSize}
         />
-        <HorzScrollShadow timeline={timeline} />
         {this.renderTopControls()}
         <ScrollView
           timeline={timeline}
