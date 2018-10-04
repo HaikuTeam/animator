@@ -3,12 +3,11 @@ import {
   getHaikuCoreVersion,
   getOrganizationNameOrFallback,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
-// @ts-ignore
-import * as archiver from 'archiver';
 import * as dedent from 'dedent';
-import * as fs from 'fs';
+import * as fse from 'fs-extra';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import jszip from 'jszip';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {createCoreMinContent} from '../bundled/createCoreMin';
@@ -16,41 +15,21 @@ import {EmbedBundlerExporter} from './embedBundlerExporter';
 
 export class BundledZipExporter extends BaseExporter implements ExporterInterface {
 
-  createZipArchive (filename: string,
+  createZipArchive (
     indexHtmlContent: string,
     embedJsContent: string,
     coreMinContent: string,
-    coreVersion: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      console.log('Prepare to create zip');
-      const output = fs.createWriteStream(filename);
-      const archive = archiver('zip', {
-        zlib: {level: 9}, // Sets the compression level.
-      });
-
-      output.on('close', () => {
-        logger.info(`[BundledZipExporter] Bundled zip created, with ${archive.pointer() / 1024.0} bytes`);
-        resolve();
-      });
-
-      // good practice to catch this error explicitly
-      archive.on('error', (err: any) => {
-        logger.error(`[BundledZipExporter] Error when writing bundled zip: ${err}`);
-        reject(err);
-      });
-
-      // append a file from string
-      archive.append(indexHtmlContent, {name: 'index.html'});
-      archive.append(embedJsContent, {name: 'index.embed.js'});
-      archive.append(coreMinContent, {name: `HaikuCore.${coreVersion}.min.js`});
-
-      // pipe archive data to the file
-      archive.pipe(output);
-
-      // finalize the archive (ie we are done appending files but streams have to finish yet)
-      // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
-      archive.finalize();
-    });
+    coreVersion: string): Promise<Buffer> {
+    const zip = new JSZip();
+    zip.file('index.html', indexHtmlContent);
+    zip.file('index.embed.js', embedJsContent);
+    zip.file(`HaikuCore.${coreVersion}.min.js`, coreMinContent);
+    return zip.generateAsync({
+      type:'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: {
+        level: 9,
+      }});
   }
 
   async  writeToFile (filename: string, framerate: number): Promise<void> {
@@ -62,13 +41,16 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
     const organizationName = getOrganizationNameOrFallback(projOrganizationName);
     const embedName = getEmbedName(organizationName, projName);
 
+    logger.info(`[BundledZipExporter] Generating Haiku core...`);
     // Generate HaikuCore.min.js content
     const coreMinContent = await createCoreMinContent();
 
+    logger.info(`[BundledZipExporter] Generating embed...`);
     // Generate index.embed.js content
     const embedExporter = new EmbedBundlerExporter(this.bytecode, this.componentFolder);
     const embedJsContent = await embedExporter.generateEmbedBundle();
 
+    logger.info(`[BundledZipExporter] Generating index.html...`);
     // Generate index.html content
     const indexHtmlContent = dedent`
     <!doctype html>
@@ -91,6 +73,13 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
     </html>
     `;
 
-    return this.createZipArchive(filename, indexHtmlContent, embedJsContent, coreMinContent, coreVersion);
+    return this.createZipArchive(indexHtmlContent, embedJsContent, coreMinContent, coreVersion).then((content) => {
+      logger.info(`[BundledZipExporter] writing file ${filename}`);
+      return fse.writeFile(filename, content);
+    }).catch((error) => {
+      logger.error(`[formats] caught exception during bundled export EmbedBundlerExporter: ${error.toString()}`);
+      return fse.writeFile(filename, '{}');
+    });
   }
+
 }

@@ -30,18 +30,18 @@ export const createCoreBundle = (input: string, name: string, doUglify = false) 
   return rollup.rollup({
     input,
     plugins,
-  }).then((bundle) => bundle.generate({
+  }).then((bundle: any) => bundle.generate({
     name,
     format: 'iife',
   }));
 };
 
 export const createCoreMinContent = (): Promise<string> => {
-  const input = require.resolve(path.join('@haiku/core', 'dom/index.js'));
+  const input = require.resolve(path.join('@haiku/core', 'dom', 'index.js'));
   const name = 'HaikuDOMAdapter';
 
   return new Promise<string>((resolve) => {
-    createCoreBundle(input, name, true).then(({code}) => {
+    createCoreBundle(input, name, true).then(({code}: any) => {
       resolve(code);
     });
   });
