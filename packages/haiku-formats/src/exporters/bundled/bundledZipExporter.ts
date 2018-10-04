@@ -1,18 +1,26 @@
-import {getEmbedName, getOrganizationNameOrFallback} from '@haiku/sdk-client/lib/ProjectDefinitions';
+import {
+  getEmbedName,
+  getHaikuCoreVersion,
+  getOrganizationNameOrFallback,
+} from '@haiku/sdk-client/lib/ProjectDefinitions';
 // @ts-ignore
 import * as archiver from 'archiver';
 import * as dedent from 'dedent';
 import * as fs from 'fs';
-import * as fse from 'fs-extra';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
+import {createCoreMinContent} from '../bundled/createCoreMin';
 import {EmbedBundlerExporter} from './embedBundlerExporter';
 
 export class BundledZipExporter extends BaseExporter implements ExporterInterface {
 
-  createZipArchive (filename: string, indexHtmlContent: string, embedJsContent: string): Promise<void> {
+  createZipArchive (filename: string,
+    indexHtmlContent: string,
+    embedJsContent: string,
+    coreMinContent: string,
+    coreVersion: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       console.log('Prepare to create zip');
       const output = fs.createWriteStream(filename);
@@ -21,21 +29,20 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
       });
 
       output.on('close', () => {
-        console.log(archive.pointer() + ' total bytes');
-        console.log('archiver has been finalized and the output file descriptor has closed.');
+        logger.info(`[BundledZipExporter] Bundled zip created, with ${archive.pointer() / 1024.0} bytes`);
         resolve();
       });
 
       // good practice to catch this error explicitly
       archive.on('error', (err: any) => {
+        logger.error(`[BundledZipExporter] Error when writing bundled zip: ${err}`);
         reject(err);
       });
 
       // append a file from string
       archive.append(indexHtmlContent, {name: 'index.html'});
-
-      // append a file from string
       archive.append(embedJsContent, {name: 'index.embed.js'});
+      archive.append(coreMinContent, {name: `HaikuCore.${coreVersion}.min.js`});
 
       // pipe archive data to the file
       archive.pipe(output);
@@ -43,17 +50,26 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
       // finalize the archive (ie we are done appending files but streams have to finish yet)
       // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
       archive.finalize();
-
     });
   }
 
-  writeToFile (filename: string, framerate: number): Promise<void> {
+  async  writeToFile (filename: string, framerate: number): Promise<void> {
+    logger.info(`[BundledZipExporter] Generating bundled zip...`);
 
+    const coreVersion = getHaikuCoreVersion();
     const projOrganizationName = this.bytecode.metadata.organization;
     const projName = this.bytecode.metadata.project;
     const organizationName = getOrganizationNameOrFallback(projOrganizationName);
     const embedName = getEmbedName(organizationName, projName);
 
+    // Generate HaikuCore.min.js content
+    const coreMinContent = await createCoreMinContent();
+
+    // Generate index.embed.js content
+    const embedExporter = new EmbedBundlerExporter(this.bytecode, this.componentFolder);
+    const embedJsContent = await embedExporter.generateEmbedBundle();
+
+    // Generate index.html content
     const indexHtmlContent = dedent`
     <!doctype html>
     <html lang=en>
@@ -63,7 +79,7 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
       </head>
       <body>
         <div id="mount-${organizationName}-${projName}"></div>
-        <script src="./HaikuCore.4.1.0.min.js"></script>
+        <script src="./HaikuCore.${coreVersion}.min.js"></script>
         <script src="./index.embed.js"></script>
         <script>
           ${embedName}(
@@ -75,14 +91,6 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
     </html>
     `;
 
-    const embedExporter = new EmbedBundlerExporter(this.bytecode, this.componentFolder);
-    return embedExporter.generateEmbedBundle().then((embedJsContent: string) => {
-      return this.createZipArchive(filename, indexHtmlContent, embedJsContent);
-    })
-    .catch((error) => {
-      logger.error(`[formats] caught exception during bundled zip export: ${error.toString()}`);
-    });
-
-    return fse.writeFile(filename, '{}');
+    return this.createZipArchive(filename, indexHtmlContent, embedJsContent, coreMinContent, coreVersion);
   }
 }

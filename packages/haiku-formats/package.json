@@ -32,6 +32,7 @@
     "haiku-common": "4.3.0",
     "haiku-sdk-creator": "4.3.0",
     "haiku-serialization": "4.3.0",
+    "dedent": "^0.7.0",
     "image-size": "^0.6.3",
     "lodash": "^4.17.4",
     "rollup": "^0.53.3",
