@@ -2,12 +2,14 @@ import {
   getEmbedName,
   getHaikuCoreVersion,
   getOrganizationNameOrFallback,
+  readPackageJson,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as JSZip from 'jszip';
+import * as path from 'path';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {createCoreMinContent} from '../bundled/createCoreMin';
@@ -36,8 +38,12 @@ export class BundledZipExporter extends BaseExporter implements ExporterInterfac
     logger.info(`[BundledZipExporter] Generating bundled zip...`);
 
     const coreVersion = getHaikuCoreVersion();
-    const projOrganizationName = this.bytecode.metadata.organization;
-    const projName = this.bytecode.metadata.project;
+
+    const projPath = path.resolve(this.componentFolder, '..', '..');
+    const packageJson = readPackageJson(projPath);
+    const projOrganizationName = packageJson.haiku.organization;
+    const projName = packageJson.haiku.project;
+
     const organizationName = getOrganizationNameOrFallback(projOrganizationName);
     const embedName = getEmbedName(organizationName, projName);
 
