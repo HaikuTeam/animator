@@ -630,13 +630,13 @@
     tslib "^1.8.1"
 
 "@haiku/core@^3.1.32":
-  version "4.2.1"
+  version "4.3.0"
 
 "@haiku/core@^3.2.16":
-  version "4.2.1"
+  version "4.3.0"
 
 "@haiku/core@^3.4.6":
-  version "4.2.1"
+  version "4.3.0"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"

@@ -24,6 +24,7 @@ const {
   readPackageJson,
   getAngularSelectorName
 } = require('@haiku/sdk-client/lib/ProjectDefinitions')
+const {assimilateProjectSources} = require('haiku-plumbing/lib/project-folder/assimilateProjectSources');
 
 const SILENT_METHODS = {
   hoverElement: true,
@@ -527,40 +528,48 @@ class Project extends BaseModel {
     this.setInteractionMode(interactionMode, metadata, cb)
   }
 
-  globalLoaderOn (text, cb) {
-
-  }
-
-  globalLoaderOff () {
-
+  projectLoaderOn (text, cb) {
+    return Lock.request(Lock.LOCKS.ProjectLoader, (release) => {
+      this.emit('loader-on', text)
+      return cb(null, () => {
+        this.emit('loader-off')
+        release()
+      })
+    })
   }
 
   assimilateProjectSources (sourceProjectAbspath, sourceProjectName, cb) {
-    return this.globalLoaderOn('Ingesting project…', () => {
-      return this.getLatestGitSha((err, sha) => {
-        if (err) {
-          return cb(err)
-        }
+    return this.projectLoaderOn('Importing project…', (loaderOff) => {
+      if (err) {
+        return cb(err)
+      }
 
-        return this.websocket.method(
-          'assimilateProjectSources',
-          [
-            this.getFolder(), // destProjectAbspath
-            sourceProjectAbspath,
-            sourceProjectName
-          ],
-          (err) => {
-            if (err) {
-              return cb(err)
-            }
+      if 
 
-            return this.once('assets-reloaded', () => {
-              this.globalLoaderOff()
-              return cb()
-            })
+      return this.websocket.method(
+        'assimilateProjectSources',
+        [
+          this.getFolder(), // destProjectAbspath
+          sourceProjectAbspath,
+          sourceProjectName
+        ],
+        (err) => {
+          if (err) {
+            return cb(err)
           }
-        )
-      })
+
+          return this.once('assets-reloaded', () => {
+            loaderOff()
+            return cb()
+          })
+        }
+      )
+    })
+  }
+
+  purgeProjectSources (sourcesDict, cb) {
+    return this.projectLoaderOn('Removing components…', (loaderOff) => {
+
     })
   }
 

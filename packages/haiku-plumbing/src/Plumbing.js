@@ -36,7 +36,6 @@ import {
   copyDefaultIllustratorFile,
 } from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
-import {assimilateProjectSources} from './project-folder/assimilateProjectSources';
 import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
@@ -837,20 +836,6 @@ export default class Plumbing extends EventEmitter {
 
       cb();
     });
-  }
-
-  assimilateProjectSources (
-    destProjectAbspath,
-    sourceProjectAbspath,
-    assimilateePrefix,
-    cb,
-  ) {
-    return assimilateProjectSources(
-      destProjectAbspath,
-      sourceProjectAbspath,
-      assimilateePrefix,
-      cb,
-    );
   }
 
   haltMasterForFolder (folder) {

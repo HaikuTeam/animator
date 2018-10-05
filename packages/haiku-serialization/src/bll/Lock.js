@@ -9,7 +9,8 @@ const LOCKS = {
   FileReadWrite: (abspath) => { return `FileReadWrite:${abspath}` },
   ProjectMethodHandler: 'ProjectMethodHandler',
   ActionStackUndoRedo: 'ActionStackUndoRedo',
-  SetCurrentActiveComponent: 'SetCurrentActiveComponent'
+  SetCurrentActiveComponent: 'SetCurrentActiveComponent',
+  ProjectLoader: 'ProjectLoader'
 }
 
 const emitter = new EventEmitter()

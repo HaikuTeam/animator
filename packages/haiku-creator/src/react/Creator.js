@@ -772,14 +772,6 @@ export default class Creator extends React.Component {
     });
   }
 
-  globalLoaderOn (globalLoaderText, cb) {
-    this.setState({doShowGlobalLoader: true, globalLoaderText}, cb);
-  }
-
-  globalLoaderOff (cb) {
-    this.setState({doShowGlobalLoader: false, globalLoaderText: null}, cb);
-  }
-
   componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
@@ -1383,6 +1375,14 @@ export default class Creator extends React.Component {
             // Trigger tab UI and library panel updates
             projectModel.on('active-component:upserted', () => {
               this.forceUpdate();
+            });
+
+            projectModel.on('loader-on', (globalLoaderText) => {
+              this.setState({doShowGlobalLoader: true, globalLoaderText});
+            });
+
+            projectModel.on('loader-off', () => {
+              this.setState({doShowGlobalLoader: false, globalLoaderText: null});
             });
           },
         );

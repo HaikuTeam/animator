@@ -126,7 +126,7 @@ export default class ComponentsearchThumbnail extends React.Component {
               ...STYLES.option,
               ...(!this.state.isMenuActive && STYLES.gone),
             }}>
-            INGEST
+            IMPORT
           </span>}
         </div>
       </div>
