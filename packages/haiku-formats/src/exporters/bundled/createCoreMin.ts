@@ -41,6 +41,9 @@ export const createCoreMinContent = (): Promise<string> => {
   const name = 'HaikuDOMAdapter';
 
   return new Promise<string>((resolve) => {
+    // TODO: setting doUglify to true (uglifying the resultin bundle) is not working on linux
+    // production build, probably it can be solved by changing rollup-plugin-uglify-es to
+    // rollup-plugin-terser or updating rollup itself
     createCoreBundle(input, name, true).then(({code}: any) => {
       resolve(code);
     });

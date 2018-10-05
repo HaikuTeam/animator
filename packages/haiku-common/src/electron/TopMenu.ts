@@ -271,18 +271,6 @@ export default class TopMenu {
               enabled: this.options.isProjectOpen,
             },
             {
-              label: 'Embed JS',
-              click: () => this.emitExportRequest('embedjs', 60),
-              enabled: this.options.isProjectOpen,
-              visible: isDevelopment(),
-            },
-            {
-              label: 'Standalone JS',
-              click: () => this.emitExportRequest('standalonejs', 60),
-              enabled: this.options.isProjectOpen,
-              visible: isDevelopment(),
-            },
-            {
               label: 'Zipped Standalone',
               click: () => this.emitExportRequest('zip', 60),
               enabled: this.options.isProjectOpen,

@@ -1,7 +1,8 @@
 {
   "sections": {
     "What's new": [
-      "Add pagination to dashboard projects."
+      "Add pagination to dashboard projects.",
+      "Added option to export zip file to be used in production."
     ],
     "Fixes": [
       "Now the library shows a progress indicator when creating Sketch or Illustrator files within Haiku.",
