@@ -207,9 +207,9 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
 
         // Hoist xlink:href up to the timeline if not already done. Older versions of Haiku installed xlink:href in the
         // attributes dictionary.
-        if (attributes['xlink:href']) {
-          timelineProperties['xlink:href'] = {0: {value: attributes['xlink:href']}};
-          delete attributes['xlink:href'];
+        if (attributes[XLINKHREF_ATTRIBUTE]) {
+          timelineProperties[XLINKHREF_ATTRIBUTE] = {0: {value: attributes[XLINKHREF_ATTRIBUTE]}};
+          delete attributes[XLINKHREF_ATTRIBUTE];
         }
 
         if (options.mutations) {
