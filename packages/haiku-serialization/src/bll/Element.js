@@ -904,10 +904,6 @@ class Element extends BaseModel {
     return elementName
   }
 
-  hasTitleAttribute () {
-    return !!this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE]
-  }
-
   getTitle () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
     return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || `<${this.getNameString()}>`
@@ -986,10 +982,14 @@ class Element extends BaseModel {
       const deeprows = []
       let currentParent = headingRow
       descendants.forEach((descendantElement) => {
+        if (!descendantElement._clusterAndPropertyRows.length) {
+          return
+        }
+
         const subrows = descendantElement
           .getHostedPropertyRows(false)
           .filter((row) => {
-            if (row.isHeading() && descendantElement.hasTitleAttribute()) {
+            if (row.isHeading() && descendantElement.hasInternalPropertiesDefinedCached()) {
               currentParent = row
               return true
             }
@@ -1009,6 +1009,8 @@ class Element extends BaseModel {
               row.parent = currentParent
               return true
             }
+
+            return false
           })
 
         deeprows.push.apply(deeprows, subrows)
