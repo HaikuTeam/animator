@@ -201,7 +201,6 @@ export default class ComponentHeadingRow extends React.Component {
               style={{
                 height: this.props.rowHeight,
                 display: 'flex',
-                alignItems: this.props.isExpanded ? 'baseline' : 'center',
                 width: '100%',
               }}
               onClick={this.expandAndSelect}
@@ -210,10 +209,12 @@ export default class ComponentHeadingRow extends React.Component {
                 className="component-heading-chevron-box"
                 style={{
                   width: 11,
-                  marginTop: 3,
-                  marginLeft: -3,
-                  marginRight: 3,
                   padding: '0 3px',
+                  ...(!this.props.row.isRootRow() && {
+                    marginTop: 3,
+                    marginLeft: -3,
+                    marginRight: 3,
+                  }),
                 }}
                 onClick={this.toggleExpandAndSelect}
               >
