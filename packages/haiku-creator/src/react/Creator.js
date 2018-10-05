@@ -2153,9 +2153,12 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        <ProjectLoader
-          show={this.state.doShowProjectLoader || this.state.projectLaunching}
-        />
+        <ProjectLoader show={this.state.doShowProjectLoader || this.state.projectLaunching || this.showGenericLoader}>
+          {this.showGenericLoader
+            ? <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
+            : <span style={{marginTop: 450, zIndex: 1}}>Initializing project…</span>
+          }
+        </ProjectLoader>
         {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
@@ -2328,7 +2331,6 @@ export default class Creator extends React.Component {
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
         {this.state.showFailWhale && <FailWhale restart={this.restart} uniqueId={this.state.failWhaleUniqueId} />}
-        {this.showGenericLoader && this.renderStartupDefaultScreen()}
       </div>
     );
   }

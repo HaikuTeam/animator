@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as path from 'path';
-import {ipcRenderer} from 'electron';
 import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
@@ -30,10 +29,6 @@ const STYLES = {
     backgroundColor: Palette.COAL,
     transition: 'opacity 0.5s ease-in-out',
   },
-  message: {
-    marginTop: 450,
-    zIndex: 1,
-  },
 };
 
 const mountArguments = {
@@ -49,7 +44,12 @@ const mountArguments = {
 };
 
 class ProjectLoader extends React.PureComponent {
+  state = {
+    ready: false,
+  };
+
   destroyMountChildren () {
+    this.setState({ready: false});
     while (this.mount.firstChild) {
       this.mount.removeChild(this.mount.firstChild);
     }
@@ -63,6 +63,14 @@ class ProjectLoader extends React.PureComponent {
     this.webview.style.height = '100%';
     this.webview.addEventListener('dom-ready', () => {
       this.webview.send('mount', mountArguments);
+    });
+
+    this.webview.addEventListener('ipc-message', ({channel}) => {
+      if (channel === 'haiku-webview-ready') {
+        requestAnimationFrame((() => {
+          this.setState({ready: true});
+        }));
+      }
     });
 
     this.destroyMountChildren();
@@ -91,9 +99,22 @@ class ProjectLoader extends React.PureComponent {
 
   render () {
     return (
-      <div style={{...STYLES.fullScreenCenterWrap, transform: this.props.show ? 'none' : 'translateX(-100%)'}} id="js-helper-project-loader">
-        <span style={STYLES.message}>Initializing project...</span>
-        <div style={{...STYLES.loadingScreen}} ref={this.persistMount} />
+      <div
+        style={{
+          ...STYLES.fullScreenCenterWrap,
+          transform: this.props.show ? 'none' : 'translateX(-100%)',
+        }}
+        id="js-helper-project-loader"
+      >
+        <div
+          style={{
+            ...STYLES.loadingScreen,
+            opacity: this.state.ready ? 1 : 0,
+            transition: 'opacity 1s linear',
+          }}
+          ref={this.persistMount}
+        />
+        {this.props.children}
       </div>
     );
   }
