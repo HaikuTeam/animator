@@ -989,7 +989,7 @@ class Element extends BaseModel {
         const subrows = descendantElement
           .getHostedPropertyRows(false)
           .filter((row) => {
-            if (row.isHeading() && descendantElement.hasInternalPropertiesDefinedCached()) {
+            if (descendantElement.isComponent() || (row.isHeading() && descendantElement.hasInternalPropertiesDefinedCached())) {
               currentParent = row
               return true
             }
