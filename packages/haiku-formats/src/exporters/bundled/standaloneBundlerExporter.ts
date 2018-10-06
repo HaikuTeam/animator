@@ -1,7 +1,7 @@
 import * as fse from 'fs-extra';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import path = require('path');
+import * as path from 'path';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {createBundle} from './createBundle';
@@ -11,7 +11,6 @@ import {
   getCurrentHumanTimestamp,
   getOrganizationNameOrFallback,
   getStandaloneName,
-  readPackageJson,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 export enum BundleFormat {
@@ -22,10 +21,9 @@ export enum BundleFormat {
 export class StandaloneBundlerExporter extends BaseExporter implements ExporterInterface {
 
   generateStandAloneBundle (): Promise<string> {
-    const projPath = path.resolve(this.componentFolder, '..', '..');
-    const packageJson = readPackageJson(projPath);
-    const projOrganizationName = packageJson.haiku.organization;
-    const projName = packageJson.haiku.project;
+    const projPath = this.getProjectFolder();
+    const projName = this.getProjectName();
+    const projOrganizationName = this.getProjectOrganizationName();
 
     const organizationName = getOrganizationNameOrFallback(projOrganizationName);
     const standaloneName = getStandaloneName(organizationName, projName);

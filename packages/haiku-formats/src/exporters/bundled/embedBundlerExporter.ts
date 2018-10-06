@@ -11,16 +11,14 @@ import {
   getCurrentHumanTimestamp,
   getEmbedName,
   getOrganizationNameOrFallback,
-  readPackageJson,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 export class EmbedBundlerExporter extends BaseExporter implements ExporterInterface {
 
   generateEmbedBundle (): Promise<string> {
-    const projPath = path.resolve(this.componentFolder, '..', '..');
-    const packageJson = readPackageJson(projPath);
-    const projOrganizationName = packageJson.haiku.organization;
-    const projName = packageJson.haiku.project;
+    const projPath = this.getProjectFolder();
+    const projName = this.getProjectName();
+    const projOrganizationName = this.getProjectOrganizationName();
 
     const organizationName = getOrganizationNameOrFallback(projOrganizationName);
     const embedName = getEmbedName(organizationName, projName);
