@@ -149,7 +149,7 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
         for (const property in bytecode.timelines[timelineName][selector]) {
-          if (!bytecode.timelines[timelineName][selector][property]) {
+          if (bytecode.timelines[timelineName][selector][property] === null) {
             delete bytecode.timelines[timelineName][selector][property];
           } else if (typeof bytecode.timelines[timelineName][selector][property] !== 'object') {
             bytecode.timelines[timelineName][selector][property] = {
