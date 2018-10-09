@@ -17,7 +17,8 @@
       "Improve the performance of the Timeline when many rows are open.",
       "Fixed an issue causing the component name to sometimes appear offset from the artboard.",
       "Set multi-line expression editor tab width to 2 spaces.",
-      "Corrected the position of mouse events when the artboard is zoomed."
+      "Corrected the position of mouse events when the artboard is zoomed.",
+      "Fixed issues with missing raster images after duplicating a project."
     ]
   }
 }

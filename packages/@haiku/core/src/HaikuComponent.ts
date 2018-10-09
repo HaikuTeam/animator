@@ -2096,7 +2096,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     if (this.layoutAncestryMatrices) {
       const matrix = Layout3D.multiplyArrayOfMatrices(this.layoutAncestryMatrices.reverse());
       const inverse = invert([], matrix);
-      HaikuElement.transformPointInPlace(point, inverse);
+      if (inverse !== null) {
+        HaikuElement.transformPointInPlace(point, inverse);
+      }
     }
 
     return point;

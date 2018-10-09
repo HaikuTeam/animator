@@ -1948,7 +1948,7 @@ class Element extends BaseModel {
             {
               elementName: 'defs',
               attributes: {},
-              children: defs.map(lodash.cloneDeep)
+              children: defs.map(Template.reuseHotMana)
             },
             // Note: by resetting IDs here, we willfully destroy any animations that are inside defs. Since this is an atypical
             // construct which can only be achieved by editing bytecode directly today, it's "acceptable".
@@ -1957,7 +1957,7 @@ class Element extends BaseModel {
         )
       }
 
-      node.children.unshift(...extraNodes.map(lodash.cloneDeep))
+      node.children.unshift(...extraNodes.map(Template.reuseHotMana))
       nodes.push(node)
     })
   }

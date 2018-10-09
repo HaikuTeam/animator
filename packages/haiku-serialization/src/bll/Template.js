@@ -774,7 +774,19 @@ Template.visitManaTree = (mana, iteratee) => {
   return visitManaTree(ROOT_LOCATOR, mana, iteratee)
 }
 
-Template.clone = (out, mana) => {
+Template.reuseHotMana = (mana) => {
+  const clone = Template.clone({}, mana, (copy, original) => {
+    if (original.layout && original.layout.computed && original.layout.computed.matrix) {
+      // If we are reusing rendered mana with layout, hoist its computed matrix into the transform attribute.
+      // Ingestion will automagically hoist these layout properties up to the timeline.
+      copy.attributes.transform = `matrix3d(${original.layout.computed.matrix.join(',')})`
+    }
+  })
+
+  return clone
+}
+
+Template.clone = (out, mana, worker) => {
   // No point continuing if null or false;
   // it could also be "text": a string or number
   if (!mana || typeof mana !== 'object') {
@@ -802,11 +814,15 @@ Template.clone = (out, mana) => {
     }
   }
 
+  if (worker) {
+    worker(out, mana)
+  }
+
   if (mana.children) {
     out.children = []
 
     for (let i = 0; i < mana.children.length; i++) {
-      out.children[i] = Template.clone({}, mana.children[i])
+      out.children[i] = Template.clone({}, mana.children[i], worker)
     }
   }
 
