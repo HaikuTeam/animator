@@ -157,7 +157,8 @@ export const pointOnPolyLineSegment = (
 
 export const transform2DPoint = (point: Vec2, ancestryMatrices: any[]): Vec2 => {
   const offset = Layout3D.multiplyArrayOfMatrices(ancestryMatrices);
-  const invertedOffset = create(); invert(invertedOffset, offset);
+  const invertedOffset = create();
+  invert(invertedOffset, offset);
   const p = [point.x, point.y, 0, 1];
   return {
     x: invertedOffset[0] * p[0] + invertedOffset[4] * p[1] + invertedOffset[8] * p[2] + invertedOffset[12] * p[3],
