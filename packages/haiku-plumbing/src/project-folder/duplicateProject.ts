@@ -1,53 +1,17 @@
-import * as fse from 'fs-extra';
+import {copySync, existsSync, rmdirSync} from 'fs-extra';
 import {HaikuProject} from 'haiku-sdk-creator/lib/bll/Project';
-// @ts-ignore
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {escapeRegExp} from 'lodash';
-import * as path from 'path';
+import {join} from 'path';
 
 export function duplicateProject (destinationProject: HaikuProject, sourceProject: HaikuProject, cb: any) {
   try {
-    // Create a haiku config file.
-    fse.mkdirpSync(destinationProject.projectPath);
-
-    // Use the project name as the folder basename
-    const sourceBaseName = sourceProject.projectName;
-    const sourcePathPattern = new RegExp(escapeRegExp(sourceBaseName), 'g');
-    const destinationBasename = destinationProject.projectName;
-    logger.info(`using ${sourceBaseName}, ${destinationBasename}, ${sourcePathPattern}`);
-
-    // Replace paths in each scene bytecode
-    const scenes = fse.readdirSync(path.join(sourceProject.projectPath, 'code'));
-    scenes.forEach((sceneName: string) => {
-      const bytecodePath = path.join(sourceProject.projectPath, 'code', sceneName, 'code.js');
-      if (!fse.existsSync(bytecodePath)) {
-        return;
-      }
-
-      const destinationScenePath = path.join(destinationProject.projectPath, 'code', sceneName);
-      fse.mkdirpSync(destinationScenePath);
-
-      const bytecode = fse.readFileSync(bytecodePath)
-        .toString()
-        .replace(sourcePathPattern, destinationBasename);
-      fse.outputFileSync(path.join(destinationScenePath, 'code.js'), bytecode);
-    });
-
-    // Move design assets, if the asset starts with `sourceProject.projectName`, rename
-    // it to `destinationProject.projectName`
-    const designAssets = fse.readdirSync(path.join(sourceProject.projectPath, 'designs'));
-    designAssets.forEach((designAssetName: string) => {
-      const destinationDesignAsset = designAssetName.startsWith(sourceBaseName)
-        ? designAssetName.replace(sourceBaseName, destinationBasename)
-        : designAssetName;
-      fse.copySync(
-        path.join(sourceProject.projectPath, 'designs', designAssetName),
-        path.join(destinationProject.projectPath, 'designs', destinationDesignAsset),
-      );
-    });
-
+    // Make a dumb copy of the original project folder, minus all things Git.
+    copySync(sourceProject.projectPath, destinationProject.projectPath);
+    const gitPath = join(destinationProject.projectPath, '.git');
+    if (existsSync(gitPath)) {
+      rmdirSync(gitPath);
+    }
     cb();
   } catch (err) {
-    return cb(err);
+    cb(err);
   }
 }
