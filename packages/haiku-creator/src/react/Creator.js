@@ -260,7 +260,7 @@ export default class Creator extends React.Component {
       if (global.sentryReporter && this.error) {
         this.error.clearLastUploadTime().then(() => {
           // Call Carbonite in the BLL.
-          const finalUrl = global.sentryReporter.freezeInCarbonite(Raven.getContext().extra, false);
+          const finalUrl = global.sentryReporter.freezeInCarbonite(Raven.getContext(), false);
 
           if (finalUrl) {
             this.createNotice({
