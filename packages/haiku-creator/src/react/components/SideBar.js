@@ -74,6 +74,16 @@ const STYLES = {
     height: 'calc(100% - 36px)',
     width: 'calc(100% - 36px)', // ADDSTATEINSPECTOR
   },
+  proBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 101,
+    padding: '3px 5px',
+    fontSize: 10,
+    lineHeight: 1,
+    backgroundColor: Palette.BLUE,
+    borderRadius: 4,
+  },
 };
 
 class SideBar extends React.Component {
@@ -106,6 +116,9 @@ class SideBar extends React.Component {
       <div style={STYLES.container} className="layout-box" id="sidebar">
         <div style={[STYLES.bar, {paddingLeft: this.state.isFullscreen ? 15 : 82}]} className="frame">
           <LogoMiniSVG />
+          {this.props.isPro &&
+            <div style={[STYLES.proBadge, this.state.isFullscreen && {left: 34}]}>PRO</div>
+          }
           <button
             id="go-to-dashboard"
             key="dashboard"

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   wrapper: {
     width: '200%',
     display: 'flex',
@@ -8,6 +8,8 @@ const STYLES = {
     padding: '0 20px',
     marginBottom: '30px',
     pointerEvents: 'none',
+    maxHeight: 500,
+    overflowY: 'scroll',
   },
   item: {
     width: '50%',

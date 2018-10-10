@@ -54,10 +54,12 @@ class BytecodeErrorPopup extends React.Component {
       }
     }
 
-    return (<div>
-      <div >Please fix error(s) on line <b>{lineNum}</b> and try again.</div>
-      <pre style={STYLES.code}>{errorMessage}</pre>
-    </div>);
+    return (
+      <div>
+        <div >Please fix error(s) on line <b>{lineNum}</b> and try again.</div>
+        <pre style={STYLES.code}>{errorMessage}</pre>
+      </div>
+    );
   }
 
   render () {

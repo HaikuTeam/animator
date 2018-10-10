@@ -666,6 +666,12 @@
   dependencies:
     "@haiku/core" "^4.3.0"
 
+"@haiku/tina-nocon@^0.0.3":
+  version "0.0.3"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftina-nocon/-/tina-nocon-0.0.3.tgz#8dbaa0c108b2f6dfb9c741e80c633037abffe2a3"
+  dependencies:
+    "@haiku/core" "^4.0.0"
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
