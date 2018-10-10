@@ -114,6 +114,10 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
   };
 
   render () {
+    if (this.props.numTotalItems <= this.props.numItemsPerPage) {
+      return null;
+    }
+
     return (
       <div
         style={{
