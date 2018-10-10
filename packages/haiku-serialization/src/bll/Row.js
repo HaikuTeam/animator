@@ -637,11 +637,11 @@ class Row extends BaseModel {
 
   shouldBeDisplayed (row) {
     if (this.isHeading()) {
-      return true;
+      return true
     }
 
     if (this.isCluster()) {
-      return true;
+      return true
     }
 
     if (
@@ -653,10 +653,10 @@ class Row extends BaseModel {
       )
     ) {
       this.parent = row
-      return true;
+      return true
     }
 
-    return false;
+    return false
   }
 
   silentlyExpandSelfAndParents () {

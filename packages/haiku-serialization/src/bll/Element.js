@@ -929,6 +929,24 @@ class Element extends BaseModel {
     return Row.where({component: this.component, element: this})
   }
 
+  get topmostHeadingRow () {
+    const headingRow = this.getHeadingRow()
+
+    if (!this.parent) {
+      return headingRow
+    }
+
+    if (
+      (headingRow && headingRow.children.length && this.parent.children.length > 1) ||
+      headingRow.parent.isRootRow()
+    ) {
+      headingRow.parent.silentlyExpandSelfAndParents()
+      return headingRow
+    } else {
+      return this.parent.topmostHeadingRow
+    }
+  }
+
   shouldBeDisplayed () {
     return (
       !this.isTextNode() &&
@@ -959,44 +977,22 @@ class Element extends BaseModel {
       }
     }
 
-
-    const teste = (descendantElement) => {
-      if (!descendantElement) {
-        return headingRow;
-      }
-
-      const descendantHeading = descendantElement.getHeadingRow();
-
-      if (
-        (descendantHeading &&
-          descendantHeading.children.length &&
-          descendantElement.parent &&
-          descendantElement.parent.children.length > 1) ||
-        descendantHeading.parent.isRootRow()
-      ) {
-        descendantHeading.parent.silentlyExpandSelfAndParents();
-        return descendantHeading;
-      } else {
-        return teste(descendantElement.parent);
-      }
-    };
-
     if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-      const deeprows = [];
+      const deeprows = []
       this.visitDescendants((descendantElement) => {
         if (!descendantElement.shouldBeDisplayed()) {
-          return;
+          return
         }
 
-        const currentHeadingRow = teste(descendantElement);
+        const currentHeadingRow = descendantElement.topmostHeadingRow || headingRow
         const subrows = descendantElement
           .getHostedPropertyRows(false)
           .filter((row) => row.shouldBeDisplayed(currentHeadingRow))
 
-        deeprows.push.apply(deeprows, subrows);
-      });
+        deeprows.push.apply(deeprows, subrows)
+      })
 
-      rows.push.apply(rows, deeprows);
+      rows.push.apply(rows, deeprows)
     }
 
     return rows
