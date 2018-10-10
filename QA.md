@@ -1,4 +1,4 @@
-🏁 QA CHECKLIST 4.2.0 🏁
+🏁 QA CHECKLIST <version> 🏁
 
 Please complete all sections under YOUR NAME.
 
@@ -31,8 +31,7 @@ I can instantiate two different slices, change one in Sketch, and then rapidly i
 
 Trouble Spot: Duplicating/Opening Projects
 
-I can open a duplicated project and the default Sketch file and its references have been renamed
-I can open a duplicated project and the default Adobe Illustrator file and its references have been renamed
+I can open a duplicated project and everything syncs correctly from the copied (but not renamed) files
 I can open an existing project 5 times (navigating back and forth from editor to dashboard)
 I can open a new project 5 times (navigating back and forth from editor to dashboard)
 
@@ -136,7 +135,7 @@ I can duplicate a project
 The name of duplicated project `Xyz` is suggested `XyzCopy`
 If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
 I can't create a project with the same name as an existing project
-After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
+After launching a duplicated project, slices from the default Sketch file are still synced to stage
 When naming a project, spaces and underscores and hyphens (etc) are not allowed
 When naming a project, the project name length is max 32
 When naming a project, if I choose a project name that already exists I am blocked with an error
@@ -379,8 +378,6 @@ If I am over my private project limit and try to publish a private project, I re
 
 
 
-*MATTHEW*
-
 Cut/Copy/Paste (Stage)
 
 I can cut/copy elements on stage using keyboard controls
@@ -577,8 +574,6 @@ I can set the playback value for a grandchild via a child, and it works correctl
 
 
 
-*ROBERTO*
-
 Sketch
 
 I can right click the library and open a design asset in Sketch
@@ -728,8 +723,6 @@ I am able to deselect a segment by right-clicking a keyframe
 
 
 
-*JONAS*
-
 CLI
 
 I can use Haiku CLI to login and logout
@@ -786,8 +779,6 @@ When I directly edit vertices, I see the updated property/keyframe change in the
 I can directly edit shape attributes like `d` in the Timeline, and see the change reflect on Stage
 
 
-
-*SASHA*
 
 Multi-select/Multi-transform
 
@@ -888,8 +879,6 @@ A GIF shows up in Slack when the link is shared in Slack
 
 - - - -
 
-*ENGINEERING*
-
 *The items below require special setup/access and are not required for normal QA.*
 
 Distro
@@ -976,8 +965,6 @@ When opening a project, removing `~/.haiku/auth`, then navigating back to projec
 
 
 - - - -
-
-*SLAM*
 
 *When doing a Haiku SLAM, consider all of the following:*
 
