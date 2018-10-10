@@ -1,5 +1,6 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
+import {isDevelopment} from '../environments';
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
@@ -267,6 +268,11 @@ export default class TopMenu {
             {
               label: 'Lottie',
               click: () => this.emitExportRequest('json', 60),
+              enabled: this.options.isProjectOpen,
+            },
+            {
+              label: 'Zipped Standalone',
+              click: () => this.emitExportRequest('zip', 60),
               enabled: this.options.isProjectOpen,
             },
           ],

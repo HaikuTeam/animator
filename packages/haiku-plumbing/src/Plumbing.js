@@ -33,9 +33,7 @@ import {
   copyDefaultIllustratorFile,
 } from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
-import {
-  storeConfigValues,
-} from './project-folder/ProjectDefinitions';
+import {storeConfigValues} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 global.eval = () => {
   // noop: eval is forbidden

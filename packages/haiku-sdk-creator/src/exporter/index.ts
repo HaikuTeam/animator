@@ -6,6 +6,9 @@ export enum ExporterFormat {
   AnimatedGif = 'GIF',
   Video = 'Video',
   Still = 'Still',
+  StandaloneBundle = 'StandaloneBundle',
+  EmbedBundle = 'EmbedBundle',
+  ZippedStandalone = 'ZippedStandalone',
 }
 
 export interface ExporterRequest {

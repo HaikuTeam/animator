@@ -28,11 +28,7 @@ import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
-import {createCDNBundles} from './project-folder/createCDNBundle';
-import {
-  getHaikuCoreVersion,
-  fetchProjectConfigInfo,
-} from './project-folder/ProjectDefinitions';
+import {getHaikuCoreVersion, fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 import {dumpBase64Images} from './project-folder/AssetUtils';
 
 Sketch.findAndUpdateInstallPath();
@@ -922,50 +918,6 @@ export default class Master extends EventEmitter {
         }).catch(cb);
       },
 
-      // Write out any enabled exported formats.
-      (cb) => {
-        // Just in case this ran somehow before the project was initialized
-        if (!this.project) {
-          return cb();
-        }
-
-        // Just in case we haven't initialized any active components yet
-        const acs = this.project.getAllActiveComponents();
-        if (acs.length < 1) {
-          return cb();
-        }
-
-        // Create a fault-tolerant async series to process all requested formats for all components
-        return async.eachSeries(acs, (ac, nextComponent) => {
-          logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
-          return async.series([ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic].map((format) => (nextFormat) => {
-                    // For now, we only support one exported format: lottie.json
-            let filename;
-            switch (format) {
-              case ExporterFormat.Bodymovin:
-                filename = ac.getAbsoluteLottieFilePath();
-                break;
-              case ExporterFormat.HaikuStatic:
-                filename = ac.getAbsoluteHaikuStaticFilePath();
-                break;
-            }
-
-            return saveExport({format, filename, outlet: 'cdn'}, ac, (err) => {
-              if (err) {
-                logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`);
-              }
-
-              return nextFormat();
-            });
-          }), nextComponent);
-        }, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb();
-        });
-      },
-
       // Ensure we bump the semver before proceeding.
       (cb) => {
         return this._git.bumpSemverAppropriately(cb);
@@ -1023,10 +975,65 @@ export default class Master extends EventEmitter {
         createProjectFiles(project, cb);
       },
 
-      // Build CDN bundles
+      // Write out any enabled exported formats.
       (cb) => {
-        logger.info('[master] project save: creating cdn bundle');
-        createCDNBundles(project, cb);
+        // Just in case this ran somehow before the project was initialized
+        if (!this.project) {
+          return cb();
+        }
+
+        // Just in case we haven't initialized any active components yet
+        const acs = this.project.getAllActiveComponents();
+        if (acs.length < 1) {
+          return cb();
+        }
+
+        // Create a fault-tolerant async series to process all requested formats for all components
+        return async.eachSeries(acs, (ac, nextComponent) => {
+          logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
+          return async.series([
+            ExporterFormat.Bodymovin,
+            ExporterFormat.HaikuStatic,
+            ExporterFormat.StandaloneBundle,
+            ExporterFormat.EmbedBundle,
+          ].map((format) => (nextFormat) => {
+
+            // We only export standalone and embed bundle from main (DEFAULT_SCENE_NAME) component
+            if ((format === ExporterFormat.StandaloneBundle || format === ExporterFormat.EmbedBundle) &&
+          ac.getSceneName() !== 'main') {
+              return nextFormat();
+            }
+
+            let filename;
+            switch (format) {
+              case ExporterFormat.Bodymovin:
+                filename = ac.getAbsoluteLottieFilePath();
+                break;
+              case ExporterFormat.HaikuStatic:
+                filename = ac.getAbsoluteHaikuStaticFilePath();
+                break;
+              case ExporterFormat.StandaloneBundle:
+                filename = this.project.getAbsoluteStandaloneJs();
+                break;
+              case ExporterFormat.EmbedBundle:
+                filename = this.project.getAbsoluteEmbedJs();
+                break;
+            }
+
+            return saveExport({format, filename, outlet: 'cdn'}, ac, (err) => {
+              if (err) {
+                logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`);
+              }
+
+              return nextFormat();
+            });
+          }), nextComponent);
+        }, (err) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb();
+        });
       },
 
       (cb) => {

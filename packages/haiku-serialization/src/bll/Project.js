@@ -346,6 +346,14 @@ class Project extends BaseModel {
     return this.alias
   }
 
+  getAbsoluteStandaloneJs () {
+    return path.join(this.getFolder(), 'index.standalone.js')
+  }
+
+  getAbsoluteEmbedJs () {
+    return path.join(this.getFolder(), 'index.embed.js')
+  }
+
   buildFileUid (relpath) {
     return path.join(this.getFolder(), relpath)
   }

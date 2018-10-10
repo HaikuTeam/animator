@@ -11,7 +11,10 @@ export default (request: ExporterRequest, activeComponent: ActiveComponent, cb: 
   });
 
   // These formats are mutative (update bytecode in place), so we snapshot bytecode instead of using it directly.
-  const doSnapshot = request.format === ExporterFormat.Bodymovin || request.format === ExporterFormat.HaikuStatic;
+  const doSnapshot = request.format === ExporterFormat.Bodymovin ||
+                     request.format === ExporterFormat.HaikuStatic ||
+                     request.format === ExporterFormat.StandaloneBundle ||
+                     request.format === ExporterFormat.EmbedBundle;
   handleExporterSaveRequest(
     request,
     doSnapshot ? Bytecode.snapshot(bytecode) : bytecode,
