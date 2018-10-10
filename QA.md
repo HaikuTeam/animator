@@ -52,10 +52,6 @@ I can create a subcomponent, give it animations, and when I scrub via the host, 
 I can create a subcomponent, give it animations, and use Preview Mode to see the animations in the host and child
 I can copy+paste a component
 
-
-
-*TAYLOR*
-
 Basics
 
 I can launch Haiku without seeing a crash/error
@@ -169,10 +165,6 @@ Forking
 I can fork a published, public project in the wild via right-click menu
 I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
 I can fork a project by running `open haiku://fork/:organizationName/:projectName`
-
-
-
-*TINA*
 
 New Project
 
