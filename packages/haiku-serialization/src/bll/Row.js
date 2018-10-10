@@ -635,6 +635,38 @@ class Row extends BaseModel {
     return this._prev
   }
 
+  shouldBeDisplayed (row) {
+    if (this.isHeading()) {
+      return true;
+    }
+
+    if (this.isCluster()) {
+      return true;
+    }
+
+    if (
+      Property.includeInAddressables(
+        this.getPropertyNameString(),
+        this.element,
+        this.property,
+        this.getKeyframesDescriptor()
+      )
+    ) {
+      this.parent = row
+      return true;
+    }
+
+    return false;
+  }
+
+  silentlyExpandSelfAndParents () {
+    this._isExpanded = true
+    if (this.parent) {
+      console.log(this.parent.element.getTitle())
+      this.parent.silentlyExpandSelfAndParents()
+    }
+  }
+
   /**
    * @method dump
    * @description When debugging, use this to log a concise shorthand of this entity.
@@ -808,3 +840,4 @@ module.exports = Row
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Keyframe = require('./Keyframe')
 const Timeline = require('./Timeline')
+const Property = require('./Property')

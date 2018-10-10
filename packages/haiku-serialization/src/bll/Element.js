@@ -15,21 +15,6 @@ const BaseModel = require('./BaseModel')
 const TransformCache = require('./TransformCache')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
-const ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW = {
-  div: true,
-  svg: true,
-  g: true,
-  rect: true,
-  circle: true,
-  ellipse: true,
-  line: true,
-  polyline: true,
-  polygon: true,
-  path: true,
-  tspan: true,
-  text: true
-}
-
 /**
  * Tag names with no presentational context on their own. These are usually found inside <defs>, but technically don't
  * have to be.
@@ -845,10 +830,6 @@ class Element extends BaseModel {
     this.emit('update', 'element-removed')
   }
 
-  isTreeViewableType () {
-    return !!ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW[Element.safeElementName(this.getStaticTemplateNode())]
-  }
-
   isRepeater () {
     const rkfs = this.getRepeaterKeyframes()
     return !!(rkfs && Object.keys(rkfs).length > 0)
@@ -948,6 +929,14 @@ class Element extends BaseModel {
     return Row.where({component: this.component, element: this})
   }
 
+  shouldBeDisplayed () {
+    return (
+      !this.isTextNode() &&
+      !this.isShimElement() &&
+      this._clusterAndPropertyRows.length
+    )
+  }
+
   getHostedPropertyRows (doRecurse = false) {
     const rows = []
 
@@ -970,53 +959,44 @@ class Element extends BaseModel {
       }
     }
 
+
+    const teste = (descendantElement) => {
+      if (!descendantElement) {
+        return headingRow;
+      }
+
+      const descendantHeading = descendantElement.getHeadingRow();
+
+      if (
+        (descendantHeading &&
+          descendantHeading.children.length &&
+          descendantElement.parent &&
+          descendantElement.parent.children.length > 1) ||
+        descendantHeading.parent.isRootRow()
+      ) {
+        descendantHeading.parent.silentlyExpandSelfAndParents();
+        return descendantHeading;
+      } else {
+        return teste(descendantElement.parent);
+      }
+    };
+
     if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-      const descendants = []
+      const deeprows = [];
       this.visitDescendants((descendantElement) => {
-        if (descendantElement.isTextNode() || !descendantElement.isTreeViewableType() || descendantElement.isShimElement()) {
-          return
-        }
-        descendants.push(descendantElement)
-      })
-
-      const deeprows = []
-      let currentParent = headingRow
-      descendants.forEach((descendantElement) => {
-        if (!descendantElement._clusterAndPropertyRows.length) {
-          return
+        if (!descendantElement.shouldBeDisplayed()) {
+          return;
         }
 
+        const currentHeadingRow = teste(descendantElement);
         const subrows = descendantElement
           .getHostedPropertyRows(false)
-          .filter((row) => {
-            if (descendantElement.isComponent() || (row.isHeading() && descendantElement.hasInternalPropertiesDefinedCached())) {
-              currentParent = row
-              return true
-            }
+          .filter((row) => row.shouldBeDisplayed(currentHeadingRow))
 
-            if (row.isCluster()) {
-              return true
-            }
+        deeprows.push.apply(deeprows, subrows);
+      });
 
-            if (
-              Property.includeInAddressables(
-                row.getPropertyNameString(),
-                descendantElement,
-                row.property,
-                row.getKeyframesDescriptor()
-              )
-            ) {
-              row.parent = currentParent
-              return true
-            }
-
-            return false
-          })
-
-        deeprows.push.apply(deeprows, subrows)
-      })
-
-      rows.push.apply(rows, deeprows)
+      rows.push.apply(rows, deeprows);
     }
 
     return rows
