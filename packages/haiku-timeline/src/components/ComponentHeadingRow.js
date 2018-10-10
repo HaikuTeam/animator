@@ -1,10 +1,9 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG';
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip';
-import {SyncIconSVG, LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading';
@@ -250,9 +249,7 @@ export default class ComponentHeadingRow extends React.Component {
             >
               <div
                 className="layer-lock-button light-on-hover"
-                aria-label={this.props.row.element.isLocked() ? 'Unlock element' : 'Lock element'}
-                data-tooltip={true}
-                data-tooltip-right={true}
+                title={this.props.row.element.isLocked() ? 'Unlock element' : 'Lock element'}
                 style={{
                   ...STYLES.actionButton,
                   display: this.props.row.element.getSource() ? 'block' : 'none',
@@ -266,9 +263,7 @@ export default class ComponentHeadingRow extends React.Component {
                 }
               </div>
               <div
-                aria-label="Edit element Actions"
-                data-tooltip={true}
-                data-tooltip-right={true}
+                title="Edit element Actions"
                 className="event-handler-triggerer-button light-on-hover"
                 style={{
                   ...STYLES.actionButton,
@@ -283,9 +278,7 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
               <div
-                aria-label="Add property"
-                data-tooltip={true}
-                data-tooltip-right={true}
+                title="Add property"
                 className="property-manager-button light-on-hover"
                 style={{
                   ...STYLES.actionButton,
