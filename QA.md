@@ -1,7 +1,5 @@
 🏁 QA CHECKLIST <version> 🏁
 
-Please complete all sections under YOUR NAME.
-
 If you find a bug, file it in Asana and label it here.
 
 Put your initials to the right of any items you have checked.
@@ -11,9 +9,7 @@ Use the following legend:
   🐛=minor bug (use for known bugs, bugs already in prod, or small stuff)
   💚=fixed issue
 
-
-
-*EVERYONE*
+- - - -
 
 Tour
 
