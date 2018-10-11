@@ -100,24 +100,19 @@ class RowManager extends React.PureComponent {
     const elements = this.props.group.rows
       .filter((row) => !row.isWithinCollapsedRow())
       .reduce((acc, row, idx, src) => {
-        // console.log('row.element.getTitle()', row.element.getTitle(), row.isClusterHeading(), row.isHeading());
         if (row.isHeading()) {
-          // console.log('pushing and cleaning');
           acc.push(<div style={STYLE.headingGroup} key={Math.random()}>{currentElementRows.slice(0)}</div>);
           currentElementRows = [];
         }
 
-        // console.log('pushing');
         currentElementRows.push(this.renderComponentRow(row));
 
         if (idx === src.length - 1) {
-          console.log('asdf');
           acc.push(<div style={STYLE.headingGroup} key={Math.random()}>{currentElementRows.slice(0)}</div>);
         }
 
         return acc;
       }, []);
-    console.log(elements);
     return (
       <div>
         {elements}
