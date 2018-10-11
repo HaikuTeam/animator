@@ -55,8 +55,6 @@ export default class PropertyRow extends React.Component {
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo();
-
     const componentId = this.props.row.element.getComponentId();
     const propertyName = this.props.row.getPropertyNameString();
     const humanName = humanizePropertyName(propertyName);
