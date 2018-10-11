@@ -453,6 +453,7 @@ class AssetItem extends React.Component {
       }
       return (
         <span
+        key={`wrap:${imageSrc}`}
           className="thumbnail-icon-container"
           style={STYLES.cardIcon}
           onDoubleClick={this.handleAssetDoubleClick}
@@ -463,10 +464,10 @@ class AssetItem extends React.Component {
             isOpen={this.state.isThumbnailOpen}
             style={STYLES.cardPreview}
             preferPlace={'right'}
-            body={<embed src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
+            body={<embed key={`popover:${imageSrc}`} src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
             tipSize={0.01}
           >
-            <embed style={STYLES.cardImage} src={`file://${imageSrc}`} />
+            <embed key={imageSrc} style={STYLES.cardImage} src={`file://${imageSrc}`} />
           </Popover>
         </span>
       );
