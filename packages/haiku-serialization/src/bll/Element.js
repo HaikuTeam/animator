@@ -86,6 +86,8 @@ function anyEditedKeyframesInKeyframesObject (keyframesObject) {
   return values.filter((object) => { return object && object.edited }).length > 0
 }
 
+const cleanHaikuId = (str) => titlecase(decamelize((str + '').trim()).replace(/[\W_:]/g, ' '))
+
 /**
  * @class Element
  * @description
@@ -2193,7 +2195,7 @@ Element.getFriendlyLabel = (node) => {
   }
 
   if (id && !title) {
-    return id + '' // The id may be a number (?!) so cast it to a string
+    return cleanHaikuId(id)
   }
 
   let out = ''
@@ -2204,10 +2206,7 @@ Element.getFriendlyLabel = (node) => {
     out += `${name}`
   }
 
-  out = out.trim()
-  out = titlecase(decamelize(out).replace(/[\W_]/g, ' '))
-
-  return out
+  return cleanHaikuId(out)
 }
 
 Element.upsertElementFromVirtualElement = (
