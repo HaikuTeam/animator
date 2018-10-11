@@ -25,6 +25,8 @@ const STYLES = {
     fontSize: 35,
     verticalAlign: 'text-bottom',
     cursor: 'pointer',
+    display: 'inline-block',
+    marginBottom: -2,
   },
 };
 
