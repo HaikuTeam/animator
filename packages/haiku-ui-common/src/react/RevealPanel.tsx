@@ -8,8 +8,6 @@ const STYLES: React.CSSProperties = {
     padding: '0 20px',
     marginBottom: '30px',
     pointerEvents: 'none',
-    maxHeight: 500,
-    overflowY: 'scroll',
   },
   item: {
     width: '50%',
@@ -28,6 +26,7 @@ export interface RevealPanelProps {
   showDetail: boolean;
   leftPanel?: React.ReactNode;
   rightPanel?: React.ReactNode;
+  wrapperStyles?: React.CSSProperties;
 }
 
 export class RevealPanel extends React.PureComponent<RevealPanelProps> {
@@ -36,6 +35,7 @@ export class RevealPanel extends React.PureComponent<RevealPanelProps> {
       <div
         style={{
           ...STYLES.wrapper,
+          ...this.props.wrapperStyles,
           transform: `translateX(${this.props.showDetail ? '-50%' : '0'})`,
         }}
       >

@@ -177,6 +177,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
 
         <RevealPanel
           showDetail={this.state.showDetail}
+          wrapperStyles={{maxHeight: 500, overflowY: 'scroll'}}
           leftPanel={
             <EmbedList
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
