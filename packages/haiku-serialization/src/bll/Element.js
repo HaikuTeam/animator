@@ -929,6 +929,10 @@ class Element extends BaseModel {
     return Row.where({component: this.component, element: this})
   }
 
+  get isVisuallySelectable () {
+    return this.parent && this.parent.isRootElement()
+  }
+
   get topmostHeadingRow () {
     const headingRow = this.getHeadingRow()
 

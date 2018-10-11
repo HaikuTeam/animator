@@ -2391,9 +2391,22 @@ ElementSelectionProxy.snaps = []
 // instance up to `drag` method on newly created ElementSelectionProxy instance
 ElementSelectionProxy._shouldCaptureMousePosition = false
 
-ElementSelectionProxy.fromSelection = (selection, query) => {
-  const uid = selection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'
-  return ElementSelectionProxy.findById(uid) || ElementSelectionProxy.upsert(Object.assign({ uid, selection }, query))
+ElementSelectionProxy.fromSelection = (rawSelection, query) => {
+  const uid = rawSelection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'
+
+  return ElementSelectionProxy.findById(uid) || ElementSelectionProxy.upsert(
+    Object.assign({
+      uid,
+      selection: rawSelection.reduce((accumulator, element) => {
+        while (!element.isVisuallySelectable && element.parent) {
+          element = element.parent
+        }
+        accumulator.push(element)
+        return accumulator
+      }, [])
+    },
+    query
+  ))
 }
 
 const PASTEABLES = []
