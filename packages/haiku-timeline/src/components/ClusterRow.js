@@ -1,9 +1,7 @@
 import * as React from 'react';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import Palette from 'haiku-ui-common/lib/Palette';
-import truncate from 'haiku-ui-common/lib/helpers/truncate';
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG';
-import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG';
 import ClusterInputField from './ClusterInputField';
 import RowSegments from './RowSegments';
 import ClusterRowHeading from './ClusterRowHeading';
@@ -12,41 +10,6 @@ import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 
 export default class ClusterRow extends React.Component {
-  maybeRenderFamilyLabel () {
-    if (!this.props.prev) {
-      return false;
-    }
-    if (this.props.row.doesTargetHostElement()) {
-      return false;
-    }
-    if (!this.props.row.isFirstRowOfSubElementSet()) {
-      return false;
-    }
-    return (
-      <div
-        className="family-label-for-cluster"
-        style={{
-          position: 'absolute',
-          top: 4,
-          left: 50,
-          zIndex: 10000,
-        }}>
-        <FamilySVG color={Palette.BLUE} />
-        <span
-          style={{
-            position: 'absolute',
-            fontSize: '8px',
-            marginLeft: 6,
-            color: Palette.BLUE,
-            top: 4,
-            whiteSpace: 'nowrap',
-          }}>
-          {truncate(this.props.row.element.getFriendlyLabel(), 7)}
-        </span>
-      </div>
-    );
-  }
-
   render () {
     const componentId = this.props.row.element.getComponentId();
     const clusterName = this.props.row.getClusterNameString();
@@ -87,14 +50,13 @@ export default class ClusterRow extends React.Component {
             <div
               style={{
                 position: 'absolute',
-                left: 145,
+                right: 145,
                 width: 10,
                 height: 'inherit',
                 zIndex: 1005,
               }}>
               <span className="utf-icon" style={{top: -2, left: -3}}><RightCarrotSVG /></span>
             </div>
-            {this.maybeRenderFamilyLabel()}
             <div
               className="property-cluster-row-label no-select"
               draggable="false"
@@ -104,10 +66,7 @@ export default class ClusterRow extends React.Component {
                 height: this.props.rowHeight,
                 paddingTop: 3,
                 paddingRight: 10,
-                borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
-                backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
-                borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
-                borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
+                backgroundColor: Palette.GRAY,
                 zIndex: 1004,
                 textAlign: 'right',
               }}>

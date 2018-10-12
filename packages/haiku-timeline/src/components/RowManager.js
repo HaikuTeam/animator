@@ -2,7 +2,6 @@ import * as React from 'react';
 import ClusterRow from './ClusterRow';
 import PropertyRow from './PropertyRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
-
 class RowManager extends React.PureComponent {
   constructor (props) {
     super(props);
@@ -32,10 +31,9 @@ class RowManager extends React.PureComponent {
     });
   }
 
-  renderComponentRow (row, prev) {
+  renderComponentRow = (row, index, group) => {
     // Cluster rows only display if collapsed, otherwise we show their properties
     const activeComponent = this.props.getActiveComponent();
-
     if (row.isClusterHeading() && !row.isExpanded()) {
       return (
         <ClusterRow
@@ -43,7 +41,6 @@ class RowManager extends React.PureComponent {
           rowHeight={this.props.rowHeight}
           timeline={activeComponent.getCurrentTimeline()}
           component={activeComponent}
-          prev={prev}
           row={row}
         />
       );
@@ -57,7 +54,8 @@ class RowManager extends React.PureComponent {
           rowHeight={this.props.rowHeight}
           timeline={activeComponent.getCurrentTimeline()}
           component={activeComponent}
-          prev={prev}
+          prev={group[index - 1]}
+          next={group[index + 1]}
           row={row}
         />
       );
@@ -71,7 +69,6 @@ class RowManager extends React.PureComponent {
           timeline={activeComponent.getCurrentTimeline()}
           component={activeComponent}
           row={row}
-          prev={prev}
           onEventHandlerTriggered={this.props.showEventHandlersEditor}
           isExpanded={row.isExpanded()}
           isHidden={row.isHidden()}
@@ -79,39 +76,22 @@ class RowManager extends React.PureComponent {
           hasAttachedActions={row.element.getVisibleEvents().length > 0}
           dragHandleProps={this.props.dragHandleProps}
           setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
+          timelinePropertiesWidth={this.props.timelinePropertiesWidth}
         />
       );
     }
 
     // If we got here, display nothing since we don't know what to render
     return null;
-  }
-
-  isCollapsedAndPreviousExpanded (curr, prev) {
-    return (
-      curr && prev &&
-      prev.rows && prev.rows.length && prev.rows[0].isExpanded() &&
-      curr.rows && curr.rows.length && !curr.rows[0].isExpanded()
-    );
-  }
+  };
 
   render () {
-    const {group, prevGroup} = this.props;
-
-    const elements = group.rows
+    const elements = this.props.group.rows
       .filter((row) => !row.isWithinCollapsedRow())
-      .map((row, indexOfRowWithinGroup) => {
-        let prevRow = group.rows[indexOfRowWithinGroup - 1];
-
-        if (!prevRow && prevGroup) {
-          prevRow = prevGroup.rows[prevGroup.length - 1];
-        }
-
-        return this.renderComponentRow(row, Boolean(prevRow));
-      });
+      .map(this.renderComponentRow);
 
     return (
-      <div style={{paddingTop: this.isCollapsedAndPreviousExpanded(group, prevGroup) ? 1 : undefined}}>
+      <div>
         {elements}
       </div>
     );

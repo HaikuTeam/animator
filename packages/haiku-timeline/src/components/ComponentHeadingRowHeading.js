@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {ComponentIconSVG, RepeaterIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import * as Color from 'color';
 
@@ -48,21 +47,21 @@ export default class ComponentHeadingRowHeading extends React.Component {
     }
   }
 
-  handleRowTitleChange (event) {
+  handleRowTitleChange = (event) => {
     this.setState({
       rowTitle: event.target.value,
     });
-  }
+  };
 
-  handleRowTitleKeyDown (event) {
+  handleRowTitleKeyDown = (event) => {
     event.stopPropagation();
     // Submit on Enter
     if (event.which === 13) {
       this.persistRowTitle();
     }
-  }
+  };
 
-  persistRowTitle () {
+  persistRowTitle = () => {
     this.props.row.element.setTitle(this.state.rowTitle, {from: 'timeline'}, (err, rowTitle) => {
       if (err) {
         // ...
@@ -73,7 +72,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
         isEditingRowTitle: false,
       });
     });
-  }
+  };
 
   getIcon () {
     if (this.props.row.element.isRepeater()) {
@@ -195,11 +194,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 ref="rowTitleInput"
                 type="text"
                 value={this.state.rowTitle}
-                onChange={(e) => this.handleRowTitleChange(e)}
-                onKeyDown={(e) => this.handleRowTitleKeyDown(e)}
-                onBlur={() => {
-                  this.persistRowTitle();
-                }}
+                onChange={this.handleRowTitleChange}
+                onKeyDown={this.handleRowTitleKeyDown}
+                onBlur={this.persistRowTitle}
               />
               : this.state.rowTitle
             }

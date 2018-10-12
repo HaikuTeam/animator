@@ -1,10 +1,9 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG';
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip';
-import {SyncIconSVG, LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading';
@@ -46,11 +45,13 @@ export default class ComponentHeadingRow extends React.Component {
     if (!this.mounted) {
       return null;
     }
+
     if (
       what === 'drag-group-start' ||
       what === 'drag-group-end' ||
       what === 'row-rehydrated' ||
-      what === 'element-locked-toggle'
+      what === 'element-locked-toggle' ||
+      what === 'row-expanded'
     ) {
       this.forceUpdate();
     }
@@ -61,7 +62,8 @@ export default class ComponentHeadingRow extends React.Component {
       (this.props.isExpanded ^ nextProps.isExpanded) ||
       (this.props.isHidden ^ nextProps.isHidden) ||
       (this.props.isSelected ^ nextProps.isSelected) ||
-      (this.props.hasAttachedActions ^ nextProps.hasAttachedActions)
+      (this.props.hasAttachedActions ^ nextProps.hasAttachedActions) ||
+      (this.props.timelinePropertiesWidth ^ nextProps.timelinePropertiesWidth)
     );
   }
 
@@ -117,23 +119,25 @@ export default class ComponentHeadingRow extends React.Component {
     }
   }
 
-  toggleSync () {
+  toggleSync = () => {
     const locked = !this.props.row.element.isSyncLocked();
     this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
       this.forceUpdate();
     });
-  }
+  };
 
-  toggleLock () {
+  toggleLock = () => {
     this.props.row.element.toggleLocked({from: 'timeline'}, () => {
       mixpanel.haikuTrack('creator:timeline:layer:lock-toggled');
     });
-  }
+  };
 
   render () {
     const componentId = this.props.row.element.getComponentId();
     const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK;
     const propertiesPixelWidth = this.props.timeline.getPropertiesPixelWidth();
+    const depth = this.props.row.getDepthAmongRows();
+    const backgroundColor = this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY;
 
     return (
       <div
@@ -149,8 +153,8 @@ export default class ComponentHeadingRow extends React.Component {
           position: this.props.isExpanded ? 'sticky' : 'relative',
           float: this.props.isExpanded ? 'left' : undefined,
           width: this.props.isExpanded ? 100 : undefined,
-          left: this.props.isExpanded ? 4 : undefined,
-          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
+          left: 0,
+          backgroundColor,
           opacity: this.props.isHidden ? 0.75 : 1.0,
           zIndex: this.props.isExpanded ? zIndex.headingRowExpanded.base : undefined,
         }}>
@@ -159,27 +163,27 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.props.row.isRootRow() ? (this.props.isExpanded ? 0 : 7) : (this.props.isExpanded ? 35 : 15),
+          paddingLeft: this.props.row.isRootRow() ? 5 : 0,
           width: propertiesPixelWidth,
-          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
+          backgroundColor,
           zIndex: zIndex.headingRow.base,
         }}>
-          {!this.props.row.isRootRow() && !this.props.isExpanded &&
-            <div
-              style={{
-                marginTop: 3,
-                marginRight: 3,
-              }}
-              className="component-heading-row-drag-handle js-avoid-marquee-init"
-              {...this.props.dragHandleProps}
-              tabIndex={null}>
-              <span
-                className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
-                style={{display: 'block'}}>
-                <DragGrip />
-              </span>
-            </div>
-          }
+          <div
+            style={{
+              marginTop: 3,
+              marginRight: 3,
+              display: this.props.row.isRootRow() ? 'none' : 'inline-block',
+              visibility: this.props.isExpanded || depth >= 2 ? 'hidden' : 'visible',
+            }}
+            className="component-heading-row-drag-handle js-avoid-marquee-init"
+            {...this.props.dragHandleProps}
+            tabIndex={null}>
+            <span
+              className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
+              style={{display: 'block'}}>
+              <DragGrip />
+            </span>
+          </div>
           <div
             className="component-heading-row-inner no-select"
             style={{
@@ -189,13 +193,13 @@ export default class ComponentHeadingRow extends React.Component {
               backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column',
+              paddingLeft: 27 * (this.props.row.getDepthAmongRows() - 1),
             }}>
             <div
               className="component-heading-row-inner-r1"
               style={{
                 height: this.props.rowHeight,
                 display: 'flex',
-                alignItems: this.props.isExpanded ? 'baseline' : 'center',
                 width: '100%',
               }}
               onClick={this.expandAndSelect}
@@ -204,10 +208,12 @@ export default class ComponentHeadingRow extends React.Component {
                 className="component-heading-chevron-box"
                 style={{
                   width: 11,
-                  marginTop: 3,
-                  marginLeft: -3,
-                  marginRight: 3,
                   padding: '0 3px',
+                  ...(!this.props.row.isRootRow() && {
+                    marginTop: 3,
+                    marginLeft: -3,
+                    marginRight: 3,
+                  }),
                 }}
                 onClick={this.toggleExpandAndSelect}
               >
@@ -225,6 +231,7 @@ export default class ComponentHeadingRow extends React.Component {
                 isHovered={this.props.isHovered}
                 onEventHandlerTriggered={this.props.onEventHandlerTriggered}
                 onExpand={this.expandAndSelect}
+                propertiesPixelWidth={this.props.propertiesPixelWidth}
               />
             </div>
             <div
@@ -234,6 +241,7 @@ export default class ComponentHeadingRow extends React.Component {
                 alignItems: 'baseline',
                 marginTop: -3,
                 width: '75%',
+                overflow: 'hidden',
                 marginLeft: this.props.row.isRootRow()
                   ? (this.props.isExpanded ? 33 : undefined)
                   : (this.props.isExpanded ? 12 : undefined),
@@ -241,9 +249,7 @@ export default class ComponentHeadingRow extends React.Component {
             >
               <div
                 className="layer-lock-button light-on-hover"
-                aria-label={this.props.row.element.isLocked() ? 'Unlock element' : 'Lock element'}
-                data-tooltip={true}
-                data-tooltip-right={true}
+                title={this.props.row.element.isLocked() ? 'Unlock element' : 'Lock element'}
                 style={{
                   ...STYLES.actionButton,
                   display: this.props.row.element.getSource() ? 'block' : 'none',
@@ -257,9 +263,7 @@ export default class ComponentHeadingRow extends React.Component {
                 }
               </div>
               <div
-                aria-label="Edit element Actions"
-                data-tooltip={true}
-                data-tooltip-right={true}
+                title="Edit element Actions"
                 className="event-handler-triggerer-button light-on-hover"
                 style={{
                   ...STYLES.actionButton,
@@ -274,9 +278,7 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
               <div
-                aria-label="Add property"
-                data-tooltip={true}
-                data-tooltip-right={true}
+                title="Add property"
                 className="property-manager-button light-on-hover"
                 style={{
                   ...STYLES.actionButton,
@@ -302,7 +304,9 @@ export default class ComponentHeadingRow extends React.Component {
               component={this.props.component}
               timeline={this.props.timeline}
               rowHeight={this.props.rowHeight}
-              row={this.props.row} />
+              row={this.props.row}
+              backgroundColor={backgroundColor}
+              isNested={this.isNested}/>
           : ''}
         </div>
       }

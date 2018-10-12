@@ -23,9 +23,9 @@ import {TrackedExporterRequests} from './TrackedExporterRequests';
 import Gauge from './Gauge';
 import GaugeTimeReadout from './GaugeTimeReadout';
 import TimelineRangeScrollbar from './TimelineRangeScrollbar';
-import HorzScrollShadow from './HorzScrollShadow';
 import ScrollView from './ScrollView';
 import Marquee from './Marquee';
+import PropertiesPanelResizer from './PropertiesPanelResizer';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
@@ -38,16 +38,6 @@ import Globals from 'haiku-ui-common/lib/Globals';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'timeline';
-
-/* z-index guide
-  keyframe: 1002
-  transition body: 1002
-  keyframe draggers: 1003
-  inputs: 1004, (1005 active)
-  trim-area 1006
-  scrubber: 1006
-  bottom controls: 10000 <- ka-boom!
-*/
 
 const {webFrame} = require('electron');
 if (webFrame) {
@@ -289,9 +279,9 @@ class Timeline extends React.Component {
     );
   }
 
-  getActiveComponent () {
+  getActiveComponent = () => {
     return this.project && this.project.getCurrentActiveComponent();
-  }
+  };
 
   awaitRef (name, cb) {
     if (this.refs[name]) {
@@ -1260,6 +1250,7 @@ class Timeline extends React.Component {
       (
           <SimplifiedFrameGrid
             key="frame-grid"
+            propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
             timeline={timeline}
             timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
@@ -1355,13 +1346,13 @@ class Timeline extends React.Component {
     }
   }
 
-  setGlassInteractionToEditMode () {
+  setGlassInteractionToEditMode = () => {
     if (this.state.isPreviewModeActive) {
       this.project.setInteractionMode(InteractionMode.GLASS_EDIT, {from: 'timeline'}, () => {
         this.setState({isPreviewModeActive: false});
       });
     }
-  }
+  };
 
   setEditingRowTitleStatus = (status) => {
     this.isEditingRowTitle = status;
@@ -1415,12 +1406,32 @@ class Timeline extends React.Component {
         showEventHandlersEditor={this.showEventHandlersEditor}
         onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
         setEditingRowTitleStatus={this.setEditingRowTitleStatus}
+        timelinePropertiesWidth={this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()}
       />
     );
   }
 
+  updatePropertiesPanelSize = (width) => {
+    this.getActiveComponent().getCurrentTimeline().setPropertiesPixelWidth(width);
+    this.forceUpdate();
+  };
+
+  onScrollViewMouseDown = (mouseEvent) => {
+    if (
+      !Globals.isShiftKeyDown &&
+      !Globals.isControlKeyDown &&
+      mouseEvent.nativeEvent.which !== 3
+    ) {
+      Keyframe.deselectAndDeactivateAllKeyframes({
+        component: this.getActiveComponent(),
+      });
+    }
+  };
+
   renderComponentRows () {
-    const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder();
+    const activeComponent = this.getActiveComponent();
+    const groups = activeComponent.getDisplayableRowsGroupedByElementInZOrder();
+    const timeline = activeComponent.getCurrentTimeline();
 
     return (
       <DragDropContext
@@ -1436,10 +1447,10 @@ class Timeline extends React.Component {
 
           this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
 
-          this.getActiveComponent().zShiftIndices(
+          activeComponent.zShiftIndices(
             result.draggableId,
-            this.getActiveComponent().getInstantiationTimelineName(),
-            this.getActiveComponent().getInstantiationTimelineTime(),
+            activeComponent.getInstantiationTimelineName(),
+            activeComponent.getInstantiationTimelineTime(),
             reflection - 1,
             {from: 'timeline'},
             () => {
@@ -1520,21 +1531,22 @@ class Timeline extends React.Component {
     if (!this.getActiveComponent() || !this.getActiveComponent().getCurrentTimeline()) {
       return (
         <div
-          id="timeline"
-          className="no-select"
-          style={{
-            position: 'absolute',
-            backgroundColor: Palette.GRAY,
-            color: Palette.ROCK,
-            top: 0,
-            left: 0,
-            height: '100%',
-            width: '100%',
-          }} />
+        id="timeline"
+        className="no-select"
+        style={{
+          position: 'absolute',
+          backgroundColor: Palette.GRAY,
+          color: Palette.ROCK,
+          top: 0,
+          left: 0,
+          height: '100%',
+          width: '100%',
+        }} />
       );
     }
 
-    const timeline = this.getActiveComponent().getCurrentTimeline();
+    const activeComponent = this.getActiveComponent();
+    const timeline = activeComponent.getCurrentTimeline();
     const propertiesPixelWidth = timeline.getPropertiesPixelWidth();
 
     return (
@@ -1543,7 +1555,7 @@ class Timeline extends React.Component {
         id="timeline"
         className="no-select"
         onClick={(clickEvent) => {
-          this.getActiveComponent().getRows().forEach((row) => {
+          activeComponent.getRows().forEach((row) => {
             row.blur({from: 'timeline'});
             row.deselect({from: 'timeline'}, true);
           });
@@ -1571,28 +1583,19 @@ class Timeline extends React.Component {
                 zIndex: zIndex.previewModeBlocker.base,
                 backgroundColor: Palette.COAL,
               }}
-              onClick={() => {
-                this.setGlassInteractionToEditMode();
-              }}
+              onClick={this.setGlassInteractionToEditMode}
             />
           )
         }
-        <HorzScrollShadow timeline={timeline} />
+        <PropertiesPanelResizer
+          propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
+          updatePropertiesPanelSize={this.updatePropertiesPanelSize}
+        />
         {this.renderTopControls()}
         <ScrollView
           timeline={timeline}
           propertiesPixelWidth={propertiesPixelWidth}
-          onMouseDown={(mouseEvent) => {
-            if (
-              !Globals.isShiftKeyDown &&
-              !Globals.isControlKeyDown &&
-              mouseEvent.nativeEvent.which !== 3
-            ) {
-              Keyframe.deselectAndDeactivateAllKeyframes({
-                component: this.getActiveComponent(),
-              });
-            }
-          }}
+          onMouseDown={this.onScrollViewMouseDown}
         >
           {this.renderComponentRows()}
         </ScrollView>
@@ -1600,18 +1603,18 @@ class Timeline extends React.Component {
         <ExpressionInput
           ref="expressionInput"
           reactParent={this}
-          component={this.getActiveComponent()}
+          component={activeComponent}
           timeline={timeline}
           onCommitValue={this.onCommitValue}
           windowHeight={window.innerHeight}
           onFocusRequested={() => {
-            const selected = this.getActiveComponent().getSelectedRows()[0];
+            const selected = activeComponent.getSelectedRows()[0];
             if (selected.isProperty()) {
               selected.focus({from: 'timeline'});
             }
           }}
           onNavigateRequested={(navDir, doFocus) => {
-            this.getActiveComponent().focusSelectNext(navDir, doFocus, {from: 'timeline'});
+            activeComponent.focusSelectNext(navDir, doFocus, {from: 'timeline'});
           }} />
       </div>
     );

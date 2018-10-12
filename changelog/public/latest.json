@@ -7,7 +7,8 @@
       "Lottie export now supports SVGs with non-standard viewboxes.",
       "Increased the clickable area for changing the Timeline display mode between frames and seconds.",
       "Syncing external designs is now automatically disabled after editing nested element properties on the timeline.",
-      "Improved the performance of the Timeline when many rows are open."
+      "Improved the performance of the Timeline when many rows are open.",
+      "You can now see nested groups and elements in the Timeline."
     ],
     "Fixes": [
       "Fixed an edge case causing a crash when changing the zoom of the Timeline from the scroll bar.",

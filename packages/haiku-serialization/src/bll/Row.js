@@ -486,25 +486,6 @@ class Row extends BaseModel {
     return this.property && this.property.type === 'state'
   }
 
-  isFirstRowOfSubElementSet () {
-    if (this.isHeading()) return true
-    const prev = this.prev()
-    if (!prev) return true
-    if (prev.element !== this.element) return true
-    if (prev.isHeading()) return true
-    if (prev.isClusterHeading()) {
-      return prev.isFirstRowOfSubElementSet()
-    }
-    return false
-  }
-
-  isLastRowOfSubElementSet () {
-    const next = this.next()
-    if (!next) return true
-    if (next.element !== this.element) return true
-    return false
-  }
-
   isFirstRowOfPropertyCluster () {
     return this.cluster && this.property && this.getIndexWithinParentRow() === 0
   }
@@ -646,19 +627,43 @@ class Row extends BaseModel {
     return 0
   }
 
-  doesTargetHostElement () {
-    return (
-      this.host &&
-      this.host === this.element
-    )
-  }
-
   next () {
     return this._next
   }
 
   prev () {
     return this._prev
+  }
+
+  shouldBeDisplayed (row) {
+    if (this.isHeading()) {
+      return true
+    }
+
+    if (this.isCluster()) {
+      return true
+    }
+
+    if (
+      Property.includeInAddressables(
+        this.getPropertyNameString(),
+        this.element,
+        this.property,
+        this.getKeyframesDescriptor()
+      )
+    ) {
+      this.parent = row
+      return true
+    }
+
+    return false
+  }
+
+  silentlyExpandSelfAndParents () {
+    this._isExpanded = true
+    if (this.parent) {
+      this.parent.silentlyExpandSelfAndParents()
+    }
   }
 
   /**
@@ -834,3 +839,4 @@ module.exports = Row
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Keyframe = require('./Keyframe')
 const Timeline = require('./Timeline')
+const Property = require('./Property')

@@ -5,6 +5,7 @@ import * as React from 'react';
 export interface SimplifiedFrameGridProps {
   timeline: any;
   timelineOffsetPadding: number;
+  propertiesPixelWidth: number;
 }
 
 export default class SimplifiedFrameGrid extends React.PureComponent<SimplifiedFrameGridProps> {
@@ -69,15 +70,13 @@ export default class SimplifiedFrameGrid extends React.PureComponent<SimplifiedF
   };
 
   render () {
-    const propertiesWidth = this.props.timeline.getPropertiesPixelWidth();
-
     return (
       <div
         id="frame-grid"
         style={{
           position: 'sticky',
           top: 0,
-          width: propertiesWidth + this.props.timeline.calculateFullTimelineWidth(),
+          width: this.props.propertiesPixelWidth + this.props.timeline.calculateFullTimelineWidth(),
           transform: `translateX(${this.props.timelineOffsetPadding}px)`,
         }}
       >
@@ -91,7 +90,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent<SimplifiedF
                   height: 'calc(100vh - 80px)',
                   position: 'absolute',
                   borderLeft: this.defaultFrameBorder,
-                  left: pixelOffsetLeft + propertiesWidth,
+                  left: pixelOffsetLeft + this.props.propertiesPixelWidth,
                   top: 34,
                 }}
               />

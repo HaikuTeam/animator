@@ -1,17 +1,42 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName';
-import truncate from 'haiku-ui-common/lib/helpers/truncate';
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
-import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG';
 import PropertyInputField from './PropertyInputField';
 import Palette from 'haiku-ui-common/lib/Palette';
 import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import PropertyTimelineSegments from './PropertyTimelineSegments';
 import PropertyRowHeading from './PropertyRowHeading';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
+
+const STYLE = {
+  helper: {
+    position: 'sticky',
+    left: 0,
+    clear: 'both',
+    width: 300,
+    height: 14,
+    zIndex: 10,
+    backgroundColor: Palette.GRAY,
+
+    position: 'sticky',
+    left: '0px',
+    clear: 'both',
+    width: '300px',
+    height: '36px',
+    zIndex: 9,
+    backgroundColor: 'rgb(52, 63, 65)',
+    marginBottom: '0px',
+    transform: 'translateY(-8px) scaleY(1.46)',
+  },
+  wrapper: {
+    zIndex: '8',
+    position: 'sticky',
+    left: '0',
+    backgroundColor: Palette.GRAY,
+  },
+};
 
 export default class PropertyRow extends React.Component {
   constructor (props) {
@@ -56,49 +81,17 @@ export default class PropertyRow extends React.Component {
     this.props.row.unhover({from: 'timeline'});
   }
 
-  maybeRenderFamilyLabel () {
-    if (!this.props.prev) {
-      return false;
-    }
-    if (this.props.row.doesTargetHostElement()) {
-      return false;
-    }
-    if (!this.props.row.isFirstRowOfSubElementSet()) {
-      return false;
-    }
-    return (
-      <div
-        className="family-label-for-property no-select"
-        style={{
-          position: 'absolute',
-          top: 4,
-          left: 50,
-          zIndex: 10000,
-        }}>
-        <FamilySVG color={Palette.BLUE} />
-        <span
-          style={{
-            position: 'absolute',
-            fontSize: '8px',
-            marginLeft: 6,
-            color: Palette.BLUE,
-            top: 4,
-            whiteSpace: 'nowrap',
-          }}>
-          {truncate(this.props.row.element.getFriendlyLabel(), 7)}
-        </span>
-      </div>
-    );
+  get isSoleProperty () {
+    return this.props.next && this.props.next.isHeading() && this.props.prev && this.props.prev.isHeading();
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo();
-
     const componentId = this.props.row.element.getComponentId();
     const propertyName = this.props.row.getPropertyNameString();
     const humanName = humanizePropertyName(propertyName);
 
     return (
+      <div>
       <div
         id={`property-row-${this.props.row.getAddress()}-${componentId}-${propertyName}`}
         className="property-row"
@@ -133,7 +126,7 @@ export default class PropertyRow extends React.Component {
                 style={{
                   position: 'absolute',
                   width: 14,
-                  left: 136,
+                  right: 150,
                   top: -2,
                   zIndex: 1006,
                   textAlign: 'right',
@@ -141,7 +134,6 @@ export default class PropertyRow extends React.Component {
                 }}>
                 <span className="utf-icon" style={{top: -4, left: -3}}><DownCarrotSVG /></span>
               </div>}
-            {this.maybeRenderFamilyLabel()}
             <div
               draggable="false"
               className="property-row-label no-select"
@@ -150,10 +142,7 @@ export default class PropertyRow extends React.Component {
                 width: this.props.timeline.getPropertiesPixelWidth() - 120,
                 height: this.props.rowHeight,
                 textAlign: 'right',
-                borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
-                backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
-                borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
-                borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
+                backgroundColor: Palette.GRAY,
                 zIndex: 1004,
                 position: 'relative',
                 paddingTop: 6,
@@ -225,6 +214,10 @@ export default class PropertyRow extends React.Component {
             row={this.props.row}
             preventDragging={this.props.row.element.isLocked()} />
         </div>
+      </div>
+      {this.isSoleProperty && (
+        <div key={`sole-property-helper-${this.props.row.getAddress()}-${componentId}-${propertyName}`} style={STYLE.helper} className="helper" />
+      )}
       </div>
     );
   }
