@@ -2,17 +2,6 @@ import * as React from 'react';
 import ClusterRow from './ClusterRow';
 import PropertyRow from './PropertyRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
-import Palette from 'haiku-ui-common/lib/Palette';
-
-const STYLE = {
-  headingGroup: {
-    position: 'sticky',
-    left: 0,
-    backgroundColor: Palette.GRAY,
-    clear: 'both',
-  },
-};
-
 class RowManager extends React.PureComponent {
   constructor (props) {
     super(props);
@@ -42,7 +31,7 @@ class RowManager extends React.PureComponent {
     });
   }
 
-  renderComponentRow (row) {
+  renderComponentRow = (row, index, group) => {
     // Cluster rows only display if collapsed, otherwise we show their properties
     const activeComponent = this.props.getActiveComponent();
     if (row.isClusterHeading() && !row.isExpanded()) {
@@ -65,6 +54,8 @@ class RowManager extends React.PureComponent {
           rowHeight={this.props.rowHeight}
           timeline={activeComponent.getCurrentTimeline()}
           component={activeComponent}
+          prev={group[index - 1]}
+          next={group[index + 1]}
           row={row}
         />
       );
@@ -92,27 +83,13 @@ class RowManager extends React.PureComponent {
 
     // If we got here, display nothing since we don't know what to render
     return null;
-  }
+  };
 
   render () {
-    let currentElementRows = [];
-
     const elements = this.props.group.rows
       .filter((row) => !row.isWithinCollapsedRow())
-      .reduce((acc, row, idx, src) => {
-        if (row.isHeading()) {
-          acc.push(<div style={STYLE.headingGroup} key={Math.random()}>{currentElementRows.slice(0)}</div>);
-          currentElementRows = [];
-        }
+      .map(this.renderComponentRow);
 
-        currentElementRows.push(this.renderComponentRow(row));
-
-        if (idx === src.length - 1) {
-          acc.push(<div style={STYLE.headingGroup} key={Math.random()}>{currentElementRows.slice(0)}</div>);
-        }
-
-        return acc;
-      }, []);
     return (
       <div>
         {elements}

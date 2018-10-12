@@ -8,8 +8,35 @@ import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import PropertyTimelineSegments from './PropertyTimelineSegments';
 import PropertyRowHeading from './PropertyRowHeading';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
+
+const STYLE = {
+  helper: {
+    position: 'sticky',
+    left: 0,
+    clear: 'both',
+    width: 300,
+    height: 14,
+    zIndex: 10,
+    backgroundColor: Palette.GRAY,
+
+    position: 'sticky',
+    left: '0px',
+    clear: 'both',
+    width: '300px',
+    height: '36px',
+    zIndex: 9,
+    backgroundColor: 'rgb(52, 63, 65)',
+    marginBottom: '0px',
+    transform: 'translateY(-8px) scaleY(1.46)',
+  },
+  wrapper: {
+    zIndex: '8',
+    position: 'sticky',
+    left: '0',
+    backgroundColor: Palette.GRAY,
+  },
+};
 
 export default class PropertyRow extends React.Component {
   constructor (props) {
@@ -54,12 +81,17 @@ export default class PropertyRow extends React.Component {
     this.props.row.unhover({from: 'timeline'});
   }
 
+  get isSoleProperty () {
+    return this.props.next && this.props.next.isHeading() && this.props.prev && this.props.prev.isHeading();
+  }
+
   render () {
     const componentId = this.props.row.element.getComponentId();
     const propertyName = this.props.row.getPropertyNameString();
     const humanName = humanizePropertyName(propertyName);
 
     return (
+      <div>
       <div
         id={`property-row-${this.props.row.getAddress()}-${componentId}-${propertyName}`}
         className="property-row"
@@ -182,6 +214,10 @@ export default class PropertyRow extends React.Component {
             row={this.props.row}
             preventDragging={this.props.row.element.isLocked()} />
         </div>
+      </div>
+      {this.isSoleProperty && (
+        <div key={Math.random()} style={STYLE.helper} className="helper" />
+      )}
       </div>
     );
   }

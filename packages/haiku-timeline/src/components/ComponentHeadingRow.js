@@ -137,7 +137,7 @@ export default class ComponentHeadingRow extends React.Component {
     const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK;
     const propertiesPixelWidth = this.props.timeline.getPropertiesPixelWidth();
     const depth = this.props.row.getDepthAmongRows();
-    const backgroundColor = depth > 1 || this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY;
+    const backgroundColor = this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY;
 
     return (
       <div
