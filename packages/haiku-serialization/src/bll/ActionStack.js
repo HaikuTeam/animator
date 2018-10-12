@@ -590,7 +590,7 @@ ActionStack.METHOD_INVERTERS = {
       const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName)
       return {
         method: ac.createKeyframe.name,
-        params: [componentId, timelineName, elementName, propertyName, keyframeMs, oldValue, oldCurve, null, null]
+        params: [componentId, timelineName, elementName, propertyName, keyframeMs, oldValue, oldCurve, null, null, null]
       }
     }
   },
