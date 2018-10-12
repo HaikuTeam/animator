@@ -216,7 +216,7 @@ export default class PropertyRow extends React.Component {
         </div>
       </div>
       {this.isSoleProperty && (
-        <div key={Math.random()} style={STYLE.helper} className="helper" />
+        <div key={`sole-property-helper-${this.props.row.getAddress()}-${componentId}-${propertyName}`} style={STYLE.helper} className="helper" />
       )}
       </div>
     );
