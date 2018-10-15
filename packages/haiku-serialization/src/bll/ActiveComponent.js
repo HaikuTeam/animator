@@ -229,31 +229,23 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  findTemplateNodeByComponentId (componentId) {
-    const mana = this.getReifiedBytecode().template
-
-    let foundNode
+  findTemplateNodeByComponentId (mana, componentId) {
+    if (!mana) {
+      return
+    }
 
     if (mana.attributes && mana.attributes[HAIKU_ID_ATTRIBUTE] === componentId) {
       return mana
     }
 
-    if (mana && Array.isArray(mana.children)) {
+    if (Array.isArray(mana.children)) {
       for (let i = 0; i < mana.children.length; i++) {
-        const node = mana.children[i]
-
-        if (
-          node &&
-          node.attributes &&
-          node.attributes[HAIKU_ID_ATTRIBUTE] === componentId
-        ) {
-          foundNode = node
-          break
+        const maybeChild = this.findTemplateNodeByComponentId(mana.children[i], componentId)
+        if (maybeChild) {
+          return maybeChild
         }
       }
     }
-
-    return foundNode
   }
 
   findElementByUid (uid) {
@@ -3097,7 +3089,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getElementNameOfComponentId (componentId) {
-    const element = this.findTemplateNodeByComponentId(componentId)
+    const element = this.findTemplateNodeByComponentId(this.getReifiedBytecode().template, componentId)
     return element && element.elementName
   }
 
@@ -3625,7 +3617,10 @@ class ActiveComponent extends BaseModel {
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
-          const node = this.findTemplateNodeByComponentId(elID)
+          const node = this.findTemplateNodeByComponentId(this.getReifiedBytecode().template, elID)
+          if (!node || !node.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+            continue
+          }
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
             node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
@@ -3757,7 +3752,10 @@ class ActiveComponent extends BaseModel {
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
-          const node = this.findTemplateNodeByComponentId(elID)
+          const node = this.findTemplateNodeByComponentId(this.getReifiedBytecode().template, elID)
+          if (!node || !node.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+            continue
+          }
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
             node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
@@ -3867,7 +3865,10 @@ class ActiveComponent extends BaseModel {
         const unlockedDesigns = {}
         if (options && options.setElementLockStatus) {
           for (const elID in options.setElementLockStatus) {
-            const node = this.findTemplateNodeByComponentId(elID)
+            const node = this.findTemplateNodeByComponentId(this.getReifiedBytecode().template, elID)
+            if (!node || !node.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+              continue
+            }
             const lockStatus = options.setElementLockStatus[elID]
             if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
               node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
