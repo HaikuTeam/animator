@@ -9,7 +9,7 @@
   "WarnOnUndefinedStateVariables": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": true,
-  "AllowBitmapImages": true,
+  "AllowBitmapImages": false,
   "SizeInsteadOfScaleWhenPossible": true,
   "Snapping": true,
   "PinchToZoomInGlass": true,
