@@ -2992,8 +2992,8 @@ export class Glass extends React.Component {
   }
 
   fetchProxyElementForSelection () {
-    const selection = Element.where({component: this.getActiveComponent(), _isSelected: true});
-    return ElementSelectionProxy.fromSelection(selection, {component: this.getActiveComponent()});
+    const component = this.getActiveComponent();
+    return ElementSelectionProxy.fromSelection(Element.where({component, _isSelected: true}), component);
   }
 
   renderDirectSelection (element, selectedAnchorIndices, overlays) {

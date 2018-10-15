@@ -1833,12 +1833,19 @@ class ActiveComponent extends BaseModel {
 
                   // We can't go further unless we actually have the reified bytecode
                   return ac.moduleReload('basicReload', () => {
-                    // In order to render correctly, the template.elementName needs to have the full
-                    // bytecode object; note that core should automatically instantiate a HaikuComponent
-                    lodash.assign(nested, ac.getReifiedBytecode())
+                    ac.doesMatchOrHostComponent(this, (_, answer) => {
+                      // First check (and silently skip) if we are a host of this bytecode. This error state
+                      // can be created by e.g. pasting a component instance from its host into itself.
+                      if (!answer) {
+                        // In order to render correctly, the template.elementName needs to have the full
+                        // bytecode object; note that core should automatically instantiate a HaikuComponent
+                        lodash.assign(nested, ac.getReifiedBytecode())
 
-                    haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
-                    return next()
+                        haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
+                      }
+
+                      return next()
+                    })
                   })
                 })
               }
