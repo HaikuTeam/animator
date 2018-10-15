@@ -370,9 +370,13 @@ class ActionStack extends BaseModel {
         // Note that we use the cursor mode we snapshotted when the method was initiated
         if (
           // No cursor mode is equivalent to the default cursor mode
-          !metadata.cursor ||
-          metadata.cursor === ActionStack.CURSOR_MODES.undo
+          !metadata.cursor
         ) {
+          did = true
+          this.addUndoable(inverter, ac)
+          // Reset the redo stack.
+          this.redoables.length = 0
+        } else if (metadata.cursor === ActionStack.CURSOR_MODES.undo) {
           did = true
           this.addUndoable(inverter, ac)
         } else if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
