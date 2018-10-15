@@ -95,7 +95,7 @@ If I load the dashboard while offline, I receive an error with a CTA to go pro
 If I am at or over the private project limit: When I try to publish a new project for the first time, I cannot select "Private" with a CTA to go pro
 If I am at or over the private project limit: For public projects, if I try to toggle Public->Private in the share modal, I receive a notice with a CTA to go pro
 If I am at or over the private project limit: For existing private projects, I am able to toggle Private->Public->Private as desired
-If I try to offline export a project with Cmd+E or the project menu, I am blocked with a CTA to go pro
+If I try to offline export a project with the project menu, I am blocked with a CTA to go pro
 When I publish a project, the Video option is grayed out and the GIF option is lower quality (15 FPS)
 
 Paid User UX (while logged in as a paid user)
@@ -105,7 +105,7 @@ While offline, I can load the dashboard
 While offline, I cannot delete projects that were created while online
 While offline, I cannot delete projects that were created offline and later published
 While offline, I can create a project
-With a project open, I can Cmd+E to offline export as an Animated GIF, Video, or Lottie
+With a project open, I can offline export as an Animated GIF, Video, or Lottie
 The offline exported file format appears as a pill in the bottom right of the timeline
 While the offline export is in progress, a loading bar appears and the pill is unclickable
 After the offline export completes, clicking the pill opens the exported file in Finder/Explorer
