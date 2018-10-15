@@ -332,8 +332,7 @@ class AssetItem extends React.Component {
       this.isFigmaAndCanBeOpened() ||
       this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
-      this.props.asset.isComponentOtherThanMain() ||
-      this.props.asset.isFont()
+      this.props.asset.isComponentOtherThanMain()
     ) {
       return (
         <span

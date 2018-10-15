@@ -47,14 +47,6 @@ try {
       ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline', null, config.socket.token)
       : new MockWebsocket(ipcRenderer);
 
-    websocket.on('open', () => {
-      logger.setWebsocket(websocket);
-    });
-
-    websocket.on('close', () => {
-      logger.setWebsocket(null);
-    });
-
     // Add extra context to Sentry reports, this info is also used by carbonite.
     const folderHelper = config.folder.split('/').reverse();
     window.Raven.setExtraContext({

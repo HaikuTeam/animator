@@ -65,8 +65,7 @@ class Asset extends BaseModel {
     return (
       (this.isComponent() && this.isComponentOtherThanMain()) ||
       this.isVector() ||
-      this.isImage() ||
-      this.isFont()
+      this.isImage()
     )
   }
 
@@ -357,10 +356,6 @@ class Asset extends BaseModel {
     return !!this.relpath.match(FRAMES_REGEX)
   }
 
-  isFont () {
-    return Asset.isFont(this.relpath)
-  }
-
   isPhony () {
     return this.relpath.includes(PHONY_FIGMA_FILE)
   }
@@ -455,18 +450,6 @@ Asset.ingestAssets = (project, dict) => {
     dtModified: Date.now()
   })
 
-  const fontFolderAsset = Asset.upsert({
-    uid: path.join(project.getFolder(), 'fonts'),
-    type: Asset.TYPES.CONTAINER,
-    kind: Asset.KINDS.FOLDER,
-    proximity: Asset.PROXIMITIES.LOCAL,
-    project,
-    relpath: 'fonts',
-    displayName: 'Fonts',
-    children: [],
-    dtModified: Date.now()
-  })
-
   const rootAssets = [designFolderAsset]
 
   rootAssets.unshift(componentFolderAsset)
@@ -538,12 +521,6 @@ Asset.ingestAssets = (project, dict) => {
         )
       }
 
-      if (experimentIsEnabled(Experiment.MultiComponentControlsLibrary)) {
-        componentFolderAsset.insertChild(controlComponentAsset(project, 'Image', 'controls/Image'))
-        componentFolderAsset.insertChild(controlComponentAsset(project, 'Text', 'controls/Text'))
-        // componentFolderAsset.insertChild(controlComponentAsset(project, 'HTML', 'controls/HTML'))
-      }
-
       componentFolderAsset.children = sortedChildrenOfComponentFolderAsset(componentFolderAsset)
     } else if (
       IMAGE_ASSET_EXTNAMES[extname] &&
@@ -562,50 +539,10 @@ Asset.ingestAssets = (project, dict) => {
       })
 
       designFolderAsset.insertChild(imageAsset)
-    } else if (
-      FONT_ASSET_EXTNAMES[extname] &&
-      experimentIsEnabled(Experiment.AllowWebfontAssets)
-    ) {
-      const fontAsset = Asset.upsert({
-        uid: path.join(project.getFolder(), relpath),
-        type: Asset.TYPES.FILE,
-        kind: Asset.KINDS.FONT,
-        proximity: Asset.PROXIMITIES.LOCAL,
-        project,
-        relpath,
-        displayName: path.basename(relpath, extname),
-        children: [],
-        dtModified: dict[relpath].dtModified
-      })
-
-      fontFolderAsset.insertChild(fontAsset)
-    }
-  }
-
-  if (experimentIsEnabled(Experiment.AllowWebfontAssets)) {
-    if (fontFolderAsset.children.length > 0) {
-      rootAssets.push(fontFolderAsset)
     }
   }
 
   return rootAssets
-}
-
-function controlComponentAsset (project, displayName, partial) {
-  const relpath = path.join('@haiku/core/components', partial, 'code/main/code.js')
-  return Asset.upsert({
-    uid: relpath,
-    type: Asset.TYPES.FILE,
-    kind: Asset.KINDS.COMPONENT,
-    icon: `Control${displayName}`,
-    proximity: Asset.PROXIMITIES.REMOTE,
-    isControl: true,
-    project,
-    relpath,
-    displayName,
-    children: [],
-    dtModified: 1
-  })
 }
 
 const sortedChildrenOfComponentFolderAsset = (asset) => {
@@ -685,20 +622,9 @@ const IMAGE_ASSET_EXTNAMES = {
   '.gif': true
 }
 
-const FONT_ASSET_EXTNAMES = {
-  '.ttf': true,
-  '.oft': true,
-  '.woff': true
-}
-
 Asset.isImage = (filepath) => {
   const extname = path.extname(filepath).toLowerCase()
   return IMAGE_ASSET_EXTNAMES[extname]
-}
-
-Asset.isFont = (filepath) => {
-  const extname = path.extname(filepath).toLowerCase()
-  return FONT_ASSET_EXTNAMES[extname]
 }
 
 Asset.isDesignAsset = (abspath) => {
@@ -708,8 +634,7 @@ Asset.isDesignAsset = (abspath) => {
     Sketch.isSketchFile(abspath) ||
     Illustrator.isIllustratorFile(abspath) ||
     extname === '.svg' ||
-    Asset.isImage(abspath) ||
-    Asset.isFont(abspath)
+    Asset.isImage(abspath)
   )
 }
 

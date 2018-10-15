@@ -110,20 +110,7 @@ class BaseModel extends EventEmitter {
     // Now that we're done constructing, assume we're ready to send syncs
     this.__sync = true
 
-    if (this.constructor.config.useQueryCache) {
-      this.__proxy = new Proxy(this, {
-        set: (object, property, value) => {
-          this.constructor.dirtyQueryCacheKeys.add(property)
-          object[property] = value
-          return true
-        }
-      })
-    } else {
-      this.__proxy = this
-    }
-
-    this.constructor.add(this.__proxy)
-    return this.__proxy
+    this.constructor.add(this)
   }
 
   /**
@@ -154,8 +141,8 @@ class BaseModel extends EventEmitter {
   }
 
   emit (...args) {
-    super.emit.call(this.__proxy, ...args)
-    this.constructor.emit(args[0], this.__proxy, ...args.slice(1))
+    super.emit.call(this, ...args)
+    this.constructor.emit(args[0], this, ...args.slice(1))
   }
 
   mark () {
@@ -603,20 +590,6 @@ BaseModel.extend = function extend (klass, opts) {
   }
 }
 
-const getStableCacheKey = (prefix, criteria) => {
-  if (typeof criteria !== 'object') {
-    return false
-  }
-
-  const cacheKeyComponents = [prefix]
-  for (const key in criteria) {
-    const value = (criteria[key] && criteria[key].toString()) || criteria[key] + ''
-    cacheKeyComponents.push(key, value)
-  }
-
-  return cacheKeyComponents.join('|')
-}
-
 const KNOWN_MODEL_CLASSES = {}
 
 BaseModel.getModelClassByClassName = (className) => {
@@ -636,41 +609,6 @@ const createCollection = (klass, opts) => {
   // hashmap collection for fast primary key lookups.
   const arrayCollection = []
   const hashmapCollection = {}
-
-  let queryCache = {}
-  klass.dirtyQueryCacheKeys = new Set()
-
-  const purgeDirtyQueryCacheKeys = (keys) => {
-    keys.forEach((dirtyKey) => {
-      if (klass.dirtyQueryCacheKeys.has(dirtyKey)) {
-        klass.dirtyQueryCacheKeys.delete(dirtyKey)
-        Object.keys(queryCache).filter((name) => name.includes(dirtyKey)).forEach((dirtyCacheKey) => {
-          delete queryCache[dirtyCacheKey]
-        })
-      }
-    })
-  }
-
-  const cachedQuery = (prefix, criteria, iteratee) => {
-    const cacheKey = getStableCacheKey(prefix, criteria)
-    if (cacheKey === false) {
-      return klass.filter(iteratee)
-    }
-
-    purgeDirtyQueryCacheKeys(Object.keys(criteria))
-    if (!queryCache[cacheKey]) {
-      queryCache[cacheKey] = klass.filter(iteratee)
-    }
-
-    return queryCache[cacheKey]
-  }
-
-  const clearQueryCache = () => {
-    if (klass.config.useQueryCache) {
-      queryCache = {}
-      klass.dirtyQueryCacheKeys.clear()
-    }
-  }
 
   klass.idx = (instance) => {
     for (let i = 0; i < arrayCollection.length; i++) {
@@ -695,7 +633,6 @@ const createCollection = (klass, opts) => {
 
   klass.add = (instance) => {
     if (!klass.has(instance)) {
-      clearQueryCache()
       arrayCollection.push(instance)
       hashmapCollection[instance.getPrimaryKey()] = instance
     }
@@ -711,7 +648,6 @@ const createCollection = (klass, opts) => {
       arrayCollection.splice(idx, 1)
     }
     delete hashmapCollection[instance.getPrimaryKey()]
-    clearQueryCache()
   }
 
   klass.all = () => arrayCollection
@@ -721,18 +657,10 @@ const createCollection = (klass, opts) => {
   klass.filter = (iteratee) => klass.all().filter(iteratee)
 
   klass.where = (criteria) => {
-    if (klass.config.useQueryCache) {
-      return cachedQuery('where', criteria, (instance) => instance.hasAll(criteria))
-    }
-
     return klass.filter((instance) => instance.hasAll(criteria))
   }
 
   klass.any = (criteria) => {
-    if (klass.config.useQueryCache) {
-      cachedQuery('any', criteria, (instance) => instance.hasAny(criteria))
-    }
-
     return klass.filter((instance) => instance.hasAll(criteria))
   }
 

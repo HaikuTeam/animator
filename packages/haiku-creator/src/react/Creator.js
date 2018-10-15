@@ -15,7 +15,6 @@ import AuthenticationUI from './components/AuthenticationUI';
 import ProjectBrowser from './components/ProjectBrowser';
 import SideBar from './components/SideBar';
 import Library from './components/library/Library';
-import ComponentInfoInspector from './components/ComponentInfoInspector/ComponentInfoInspector';
 import StateInspector from './components/StateInspector/StateInspector';
 import SplitPanel from './components/SplitPanel';
 import Stage from './components/Stage';
@@ -113,7 +112,6 @@ export default class Creator extends React.Component {
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this);
     this.handleShowConfirmGroupPopup = this.handleShowConfirmGroupPopup.bind(this);
     this.hideConfirmGroupUngroupPopup = this.hideConfirmGroupUngroupPopup.bind(this);
-    this.openPreviewDevTools = this.openPreviewDevTools.bind(this);
     this.layout = new EventEmitter();
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this));
     // Keep tracks of not found identifiers and notice id
@@ -1030,45 +1028,6 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack(`creator:interaction-mode:${interactionName}`);
   }
 
-  openPreviewDevTools () {
-    if (this.state.interactionMode !== InteractionMode.GLASS_PREVIEW ||
-        !experimentIsEnabled(Experiment.UserFacingDevTools)) {
-      return;
-    }
-
-    const glassView = document.getElementById('glass-webview');
-    const devtoolsView = document.getElementById('devtools');
-
-    if (glassView && devtoolsView) {
-      const glassBrowser = glassView.getWebContents();
-
-      let devContents = devtoolsView.getWebContents();
-
-      const devInterval = setInterval(() => {
-        devContents = devtoolsView.getWebContents();
-
-        if (devContents) {
-          clearInterval(devInterval);
-
-          glassBrowser.setDevToolsWebContents(devContents);
-
-          glassBrowser.openDevTools();
-
-          const cssInterval = setInterval(() => {
-            if (glassBrowser.devToolsWebContents) {
-              clearInterval(cssInterval);
-
-              // Uncomment to opens dev tools for the dev tools
-              // glassBrowser.devToolsWebContents.openDevTools({
-              //   mode: 'detach'
-              // });
-            }
-          });
-        }
-      });
-    }
-  }
-
   restart = () => {
     ipcRenderer.send('restart');
   };
@@ -1102,7 +1061,6 @@ export default class Creator extends React.Component {
     }
 
     this.setState({interactionMode}, () => {
-      this.openPreviewDevTools();
       if (interactionMode === InteractionMode.CODE_EDITOR) {
         this.refs.stage.focusCodeEditor();
       }
@@ -1948,20 +1906,6 @@ export default class Creator extends React.Component {
     );
   }
 
-  get shouldShowUserConsole () {
-    return (
-      experimentIsEnabled(Experiment.UserConsole) &&
-      this.state.interactionMode === InteractionMode.GLASS_PREVIEW
-    );
-  }
-
-  get shouldShowUserFacingDevTools () {
-    return (
-      experimentIsEnabled(Experiment.UserFacingDevTools) &&
-      this.state.interactionMode === InteractionMode.GLASS_PREVIEW
-    );
-  }
-
   saveEventHandlers (targetElement, serializedEvents) {
     const selectorName = 'haiku:' + targetElement.getComponentId();
     this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'creator'}, () => {});
@@ -2207,13 +2151,6 @@ export default class Creator extends React.Component {
                     folder={this.state.projectFolder}
                     websocket={this.props.websocket}
                     visible={this.state.activeNav === 'state_inspector'} />
-                  <ComponentInfoInspector
-                    projectModel={this.state.projectModel}
-                    createNotice={this.createNotice}
-                    removeNotice={this.removeNotice}
-                    folder={this.state.projectFolder}
-                    websocket={this.props.websocket}
-                    visible={this.state.activeNav === 'component_info_inspector'} />
                 </SideBar>
                 <div style={{position: 'relative', width: '100%', height: '100%'}}>
                     {
@@ -2294,7 +2231,6 @@ export default class Creator extends React.Component {
                     height: '100%',
                     top: '0px',
                     overflow: 'auto',
-                    visibility: this.shouldShowUserConsole ? 'hidden' : 'visible',
                   }}>
                   <Timeline
                     ref="timeline"
@@ -2307,24 +2243,6 @@ export default class Creator extends React.Component {
                     removeNotice={this.removeNotice}
                     onReady={this.onTimelineMounted} />
                 </div>
-                {this.shouldShowUserFacingDevTools && <div style={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  top: '0px',
-                  overflow: 'auto',
-                }}>
-                  <webview
-                    id="devtools"
-                    style={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '100%',
-                      top: '0px',
-                      overflow: 'hidden',
-                      zIndex: 2,
-                    }}/>
-                </div>}
               </div>
             </SplitPanel>
           </div>

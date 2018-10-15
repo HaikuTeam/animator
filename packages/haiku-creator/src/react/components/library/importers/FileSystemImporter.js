@@ -19,14 +19,6 @@ class FileSystemImporter extends React.PureComponent {
       );
     }
 
-    if (experimentIsEnabled(Experiment.AllowWebfontAssets)) {
-      validExtensions.push(
-        'ttf',
-        'otf',
-        'woff',
-      );
-    }
-
     // Only mac offers support for Sketch
     if (isMac()) {
       validExtensions.push('sketch');

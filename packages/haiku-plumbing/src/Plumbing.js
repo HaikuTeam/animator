@@ -351,13 +351,6 @@ export default class Plumbing extends EventEmitter {
       return this.sendBroadcastMessage(message, folder, alias);
     }
 
-    if (message.type === 'log') {
-      logger.raw(message.message);
-
-      // We want logs on creator, lets send it there
-      return this.sendMessageToCreator(message, folder, alias);
-    }
-
     if (message.id && this.requests[message.id]) {
       // If we have an entry in this.requests, that means this is a reply
       const {callback} = this.requests[message.id];

@@ -1,6 +1,5 @@
 const test = require('tape')
 const path = require('path')
-const {Experiment,experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Asset = require('./../../src/bll/Asset')
 const {PHONY_FIGMA_FILE} = require('./../../src/bll/Figma')
 
@@ -70,9 +69,7 @@ test('Asset.assetsToDirectoryStructure', (t) => {
 
   t.ok(assets[0],'asset exists')
 
-  const idx = (experimentIsEnabled(Experiment.MultiComponentControlsLibrary))
-    ? 1
-    : 0
+  const idx = 0
 
   t.equal(assets[idx].kind, 'folder', 'base asset is folder')
   t.equal(assets[idx].type, 'container', 'base asset is container')

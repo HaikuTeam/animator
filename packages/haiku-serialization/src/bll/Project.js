@@ -892,15 +892,10 @@ class Project extends BaseModel {
       const relpath = ac.getRelpath()
 
       const {
-        hash,
-        source
+        hash
       } = ac.getInsertionPointInfo()
 
       descriptor[relpath] = {hash}
-
-      if (experimentIsEnabled(Experiment.IncludeSourceInIntegrityHash)) {
-        descriptor[relpath].source = source
-      }
     })
 
     return descriptor

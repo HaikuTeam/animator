@@ -1,4 +1,3 @@
-const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty')
 
@@ -686,7 +685,7 @@ Row.DEFAULT_OPTIONS = {
   }
 }
 
-BaseModel.extend(Row, { useQueryCache: experimentIsEnabled(Experiment.BaseModelQueryCache) })
+BaseModel.extend(Row)
 
 Row.top = (criteria) => {
   return Row.find(Object.assign({ parent: null }, criteria))

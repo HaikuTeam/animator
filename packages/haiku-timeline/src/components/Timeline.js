@@ -114,10 +114,6 @@ class Timeline extends React.Component {
     this.copySelectedCurve = this.copySelectedCurve.bind(this);
     this.pasteSelectedCurve = this.pasteSelectedCurve.bind(this);
 
-    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
-    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
-    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
-    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
     this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
     this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
     this.handleZoomThrottled = lodash.throttle(this.handleZoom.bind(this), THROTTLE_TIME);
@@ -408,28 +404,20 @@ class Timeline extends React.Component {
           break;
 
         case 'global-menu:copy':
-          if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
-            this.handleCopyDebounced(relayable);
-          } else {
-            // Delegate copy only if the user is not editing something here
-            if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
-              this.props.websocket.send(relayable);
-            }
+          // Delegate copy only if the user is not editing something here
+          if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
+            this.props.websocket.send(relayable);
           }
           break;
 
         case 'global-menu:paste':
-          if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
-            this.handlePasteDebounced(relayable);
-          } else {
-            // Delegate paste only if the user is not editing something here
-            if (document.hasFocus()) {
-              if (!this.isTextInputFocused() && !this._isIntercomOpen && !this.refs.expressionInput.willHandlePasteEvent()) {
-                this.props.websocket.send(relayable);
-              }
-            } else {
+          // Delegate paste only if the user is not editing something here
+          if (document.hasFocus()) {
+            if (!this.isTextInputFocused() && !this._isIntercomOpen && !this.refs.expressionInput.willHandlePasteEvent()) {
               this.props.websocket.send(relayable);
             }
+          } else {
+            this.props.websocket.send(relayable);
           }
           break;
 
@@ -694,20 +682,6 @@ class Timeline extends React.Component {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, {from: 'timeline'});
       }),
     });
-
-    if (experimentIsEnabled(Experiment.CopyPasteTweens)) {
-      items.push({
-        label: 'Copy Tween',
-        enabled: type === 'keyframe-transition' && isSingular,
-        onClick: this.copySelectedCurve,
-      });
-
-      items.push({
-        label: 'Paste Tween',
-        enabled: isTweenableTransitionSegment && Boolean(this._lastCopiedCurve),
-        onClick: this.pasteSelectedCurve,
-      });
-    }
 
     items.push({
       label: isSingular ? 'Remove Tween' : 'Remove Tweens',
@@ -1033,52 +1007,6 @@ class Timeline extends React.Component {
       Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()});
       this.project.redo({}, {from: 'timeline'}, () => {});
     }
-  }
-
-  handleCut () {
-    // Not yet implemented
-  }
-
-  handleCopy (relayable) {
-    if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
-      // Delegate copy only if the user is not editing something here
-      if (document.hasFocus()) {
-        if (this.isTextSelected() || this._isIntercomOpen) {
-          // let electron handle
-        } else if (this.getActiveComponent().getFirstSelectedCurve()) {
-          this.copySelectedCurve();
-        } else {
-          this.props.websocket.send(relayable);
-        }
-      } else {
-        this.props.websocket.send(relayable);
-      }
-    }
-  }
-
-  handlePaste (relayable) {
-    if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
-      // Delegate paste only if the user is not editing something here
-      if (document.hasFocus()) {
-        if (this.isTextInputFocused() || this._isIntercomOpen) {
-          // let electron handle
-        } else if (this._lastCopiedCurve) {
-          this.handlePasteDebounced();
-        } else {
-          this.props.websocket.send(relayable);
-        }
-      } else {
-        this.props.websocket.send(relayable);
-      }
-    }
-  }
-
-  handleDelete () {
-    // Not yet implemented
-  }
-
-  handleSelectAll () {
-    // Not yet implemented
   }
 
   saveTimeDisplayModeSetting = () => {
