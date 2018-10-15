@@ -504,73 +504,50 @@ const NEVER = () => false
 
 const ALWAYS = () => true
 
-const NON_ROOT_ONLY = (name, element) => {
-  return !element.isRootElement()
-}
+const NON_ROOT_ONLY = (name, element) => !element.isRootElement()
 
-const ROOT_ONLY = (name, element) => {
-  return element.isRootElement()
-}
+const ROOT_ONLY = (name, element) => element.isRootElement()
 
-const NON_COMPONENT_ONLY = (name, element) => {
-  return !element.isComponent()
-}
+const NON_COMPONENT_ONLY = (name, element) => !element.isComponent()
 
-const COMPONENT_ONLY = (name, element) => {
-  return element.isComponent()
-}
+const COMPONENT_ONLY = (name, element) => element.isComponent()
 
-const IF_EXPLICIT_OR_DEFINED = (name, element, property, keyframes) => {
-  return (
-    IF_EXPLICIT(name, element, property, keyframes) ||
-    IF_DEFINED(name, element, property, keyframes)
+const ROOT_CHILD_ONLY = (name, element, property, keyframes) => element.isVisuallySelectable
+
+const IF_EXPLICIT_OR_DEFINED = (name, element, property, keyframes) => (
+  IF_EXPLICIT(name, element, property, keyframes) ||
+  IF_DEFINED(name, element, property, keyframes)
+)
+
+const IF_EXPLICIT = (name, element, property, keyframes) => !!element._visibleProperties[name]
+
+const IF_DEFINED = (name, element, property, keyframes) => (
+  keyframes &&
+  (
+    Object.keys(keyframes).length > 0 ||
+    (keyframes[0] && keyframes[0].edited)
   )
-}
+)
 
-const IF_EXPLICIT = (name, element, property, keyframes) => {
-  return !!element._visibleProperties[name]
-}
+const IF_NOT_NONE = (name, element, property, keyframes) => (
+  keyframes &&
+  (
+    keyframes.length > 1 ||
+    (keyframes && keyframes[0] && keyframes[0].value !== 'none')
+  )
+)
 
-const IF_DEFINED = (name, element, property, keyframes) => {
-  return keyframes && Object.keys(keyframes).length > 0
-}
+const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => wasChangedFromPrepopValue(name, keyframes)
 
-const IF_NOT_NONE = (name, element, property, keyframes) => {
-  if (!keyframes) {
-    return false
-  }
+const IF_IN_SCHEMA = (name, element) => hasInSchema(element.getSafeDomFriendlyName(), name)
 
-  if (keyframes.length > 1) {
-    return true
-  }
-
-  const value = keyframes && keyframes[0] && keyframes[0].value
-  return value !== 'none'
-}
-
-const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => {
-  return wasChangedFromPrepopValue(name, keyframes)
-}
-
-const IF_IN_SCHEMA = (name, element) => {
-  const elementName = element.getSafeDomFriendlyName()
-  return hasInSchema(elementName, name)
-}
-
-const IF_TEXT_CONTENT_ENABLED = (name, element, property, keyframes) => {
-  if (element.children.length < 1) {
-    return true
-  }
-
+const IF_TEXT_CONTENT_ENABLED = (name, element, property, keyframes) => (
+  element.children.length < 1 ||
   // Sketch-produced SVGs often have <text><tspan>content, but since <text>
   // can also have raw content inside it, we do this check to exclude it if
   // it happens to contain an inner <tspan>
-  if (typeof element.children[0] !== 'string') {
-    return false
-  }
-
-  return true
-}
+  typeof element.children[0] === 'string'
+)
 
 const wasChangedFromPrepopValue = (name, keyframes) => {
   const fallback = Property.PREPOPULATED_VALUES[name]
@@ -587,12 +564,10 @@ const wasChangedFromPrepopValue = (name, keyframes) => {
   )
 }
 
-const hasInSchema = (elementName, propertyName) => {
-  return (
-    Property.BUILTIN_DOM_SCHEMAS[elementName] &&
-    Property.BUILTIN_DOM_SCHEMAS[elementName][propertyName]
-  )
-}
+const hasInSchema = (elementName, propertyName) => (
+  Property.BUILTIN_DOM_SCHEMAS[elementName] &&
+  Property.BUILTIN_DOM_SCHEMAS[elementName][propertyName]
+)
 
 Property.areAnyKeyframesDefined = (elementName, propertyName, keyframesObject) => {
   const mss = Object.keys(keyframesObject)
@@ -632,23 +607,23 @@ Property.DISPLAY_RULES = {
   'haiku-title': {jit: [NEVER], add: [NEVER]},
   'haiku-var': {jit: [NEVER], add: [NEVER]},
   'height': {jit: [NEVER], add: [NEVER]},
-  'offset.x': {jit: [NEVER], add: [IF_EXPLICIT_OR_DEFINED]},
-  'offset.y': {jit: [NEVER], add: [IF_EXPLICIT_OR_DEFINED]},
-  'offset.z': {jit: [NEVER], add: [IF_EXPLICIT_OR_DEFINED]},
+  'offset.x': {jit: [NEVER], add: [NEVER]},
+  'offset.y': {jit: [NEVER], add: [NEVER]},
+  'offset.z': {jit: [NEVER], add: [NEVER]},
   'opacity': {jit: [NEVER], add: [ALWAYS]},
-  'origin.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'origin.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'origin.x': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
+  'origin.y': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
   'origin.z': {jit: [NEVER], add: [NEVER]},
   'playback': {jit: [NEVER], add: [NON_ROOT_ONLY, COMPONENT_ONLY]},
-  'rotation.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'rotation.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'rotation.z': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'scale.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'scale.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'scale.z': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'shear.xy': {jit: [NON_ROOT_ONLY], add: [NEVER]},
-  'shear.xz': {jit: [NON_ROOT_ONLY], add: [NEVER]},
-  'shear.yz': {jit: [NON_ROOT_ONLY], add: [NEVER]},
+  'rotation.x': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
+  'rotation.y': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
+  'rotation.z': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
+  'scale.x': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
+  'scale.y': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY]},
+  'scale.z': {jit: [NEVER], add: [NEVER]},
+  'shear.xy': {jit: [NEVER], add: [NEVER]},
+  'shear.xz': {jit: [NEVER], add: [NEVER]},
+  'shear.yz': {jit: [NEVER], add: [NEVER]},
   'shown': {jit: [NEVER], add: [NEVER]},
   'sizeAbsolute.x': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
   'sizeAbsolute.y': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
@@ -694,9 +669,9 @@ Property.DISPLAY_RULES = {
   'style.zIndex': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
   'transform': {jit: [NEVER], add: [NEVER]},
   'transformOrigin': {jit: [NEVER], add: [NEVER]},
-  'translation.x': {jit: [NEVER], add: [NON_ROOT_ONLY]},
-  'translation.y': {jit: [NEVER], add: [NON_ROOT_ONLY]},
-  'translation.z': {jit: [NEVER], add: [NON_ROOT_ONLY]},
+  'translation.x': {jit: [NEVER], add: [ROOT_CHILD_ONLY]},
+  'translation.y': {jit: [NEVER], add: [ROOT_CHILD_ONLY]},
+  'translation.z': {jit: [NEVER], add: [NEVER]},
   'width': {jit: [NEVER], add: [NEVER]},
   // Primitives
   'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
@@ -745,29 +720,7 @@ Property.includeInAddressables = (name, element, property, keyframes) => {
 // indicate that the property should be displayed for the given element
 Property.includeInDisplay = (type, name, element, property, keyframes) => {
   const rule = Property.DISPLAY_RULES[name]
-  const tests = rule && rule[type]
-
-  if (!tests) {
-    return false
-  }
-
-  let include = true
-
-  for (let i = 0; i < tests.length; i++) {
-    // Early exit if we've found that one of the truth tests returned false
-    if (!include) {
-      break
-    }
-
-    include = tests[i](
-      name,
-      element,
-      property,
-      keyframes
-    )
-  }
-
-  return include
+  return rule && rule[type] && rule[type].every((test) => test(name, element, property, keyframes))
 }
 
 Property.buildFilterObject = (
@@ -800,25 +753,15 @@ Property.buildFilterObject = (
   const hasOneKeyframe = keyframesObject && Object.keys(keyframesObject).length === 1
   const wasZerothKeyframeEdited = keyframesObject && keyframesObject[0] && keyframesObject[0].edited
 
-  // If the property has any keyframes defined (or explicitly edited), then we show it.
-  if (hasManyKeyframes) {
-    filtered[propertyName] = propertyObject
-    return
-  }
-
-  if (hasOneKeyframe && !keyframesObject[0]) {
-    filtered[propertyName] = propertyObject
-    return
-  }
-
-  if (wasZerothKeyframeEdited) {
-    filtered[propertyName] = propertyObject
-    return
-  }
-
-  // Finally, we drop through to custom per-property rules that may depend on the element type,
-  // its location in the tree, or what the value of its property is.
-  if (Property.includeInAddressables(propertyName, hostElement, propertyObject, keyframesObject)) {
+  if (
+    // If the property has any keyframes defined (or explicitly edited), then we show it.
+    hasManyKeyframes ||
+    (hasOneKeyframe && !keyframesObject[0]) ||
+    wasZerothKeyframeEdited ||
+    // Finally, we drop through to custom per-property rules that may depend on the element type,
+    // its location in the tree, or what the value of its property is.
+    Property.includeInAddressables(propertyName, hostElement, propertyObject, keyframesObject)
+  ) {
     filtered[propertyName] = propertyObject
   }
 }

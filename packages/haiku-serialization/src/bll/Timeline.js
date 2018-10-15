@@ -952,7 +952,7 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
     prettyValue = {
       // TODO: remove this check when https://github.com/adamwdraper/Numeral-js/pull/629 is merged
-      text: isNaN(formattedPrettyValue) ? computedValue : formattedPrettyValue,
+      text: isNaN(formattedPrettyValue) ? computedValue : formattedPrettyValue
     }
   }
 
