@@ -133,9 +133,10 @@ class PropertyInputFieldValueDisplay extends React.Component {
     }
     if (what === 'timeline-frame') {
       const valueDescriptor = this.props.row.getPropertyValueDescriptor();
-      if (valueDescriptor.computedValue !== this.valueDescriptor.computedValue) {
+      if (valueDescriptor.prettyValue && valueDescriptor.prettyValue.text !== this.valueDescriptor.prettyValue.text) {
         this.valueDescriptor = valueDescriptor;
         this.throttledForceUpdate();
+        this.forceUpdate();
       }
     }
   }
