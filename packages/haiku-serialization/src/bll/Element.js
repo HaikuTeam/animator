@@ -65,12 +65,6 @@ function getAncestry (ancestors, elementInstance) {
   return ancestors
 }
 
-function anyEditedKeyframesInKeyframesObject (keyframesObject) {
-  if (!keyframesObject) return false
-  const values = Object.values(keyframesObject)
-  return values.filter((object) => { return object && object.edited }).length > 0
-}
-
 const cleanHaikuId = (str) => titlecase(decamelize((str + '').trim()).replace(/[\W_:]/g, ' '))
 
 /**
@@ -104,7 +98,7 @@ class Element extends BaseModel {
 
   afterInitialize () {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
-    this.populateVisiblePropertiesFromKeyframes()
+    if (!this._visibleProperties) this._visibleProperties = {}
   }
 
   oneListener ($el, uid, type, fn) {
@@ -1529,19 +1523,7 @@ class Element extends BaseModel {
   }
 
   getDisplayedAddressableProperties () {
-    const ours = this.getCollatedAddressableProperties().filtered
-    return ours
-  }
-
-  populateVisiblePropertiesFromKeyframes () {
-    if (!this._visibleProperties) this._visibleProperties = {}
-    const completeAddressableProperties = this.getCompleteAddressableProperties()
-    for (const propertyName in completeAddressableProperties) {
-      const keyframesObject = this.getPropertyKeyframesObject(propertyName)
-      if (keyframesObject && anyEditedKeyframesInKeyframesObject(keyframesObject)) {
-        this._visibleProperties[propertyName] = completeAddressableProperties[propertyName]
-      }
-    }
+    return this.getCollatedAddressableProperties().filtered
   }
 
   getExplicitlyVisibleAddressableProperties () {
