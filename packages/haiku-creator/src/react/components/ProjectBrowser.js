@@ -9,6 +9,7 @@ import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Toast from './notifications/Toast';
 import NotificationExplorer from './notifications/NotificationExplorer';
 import ProjectThumbnail from './ProjectThumbnail';
+import {TourUtils} from 'haiku-common/lib/types/enums';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
@@ -77,13 +78,11 @@ class ProjectBrowser extends React.Component {
       // FIXME | HACK: since the project browser now supports scrolling, we
       // must ensure the tour project is in viewport when displaying
       // the OpenProject step in the tour.
-      this.tourChannel.on('tour:requestShowStep', ({component, selector}) => {
-        if (component === 'OpenProject') {
-          const target = document.querySelector(selector);
-          // HACK: Unsure why, but sometimes this isn't present
-          if (target && target.parentNode) {
-            target.parentNode.scrollTop = target.offsetTop - 350;
-          }
+      this.tourChannel.on('tour:requestShowStep', ({component}) => {
+        if (component === 'Welcome') {
+          this.setState({
+            firstDisplayedProject: this.state.projectsList.findIndex((project) => project.projectName === TourUtils.ProjectName),
+          });
         }
       });
     });
