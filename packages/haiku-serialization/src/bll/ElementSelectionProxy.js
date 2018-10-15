@@ -2391,8 +2391,8 @@ ElementSelectionProxy.snaps = []
 // instance up to `drag` method on newly created ElementSelectionProxy instance
 ElementSelectionProxy._shouldCaptureMousePosition = false
 
-ElementSelectionProxy.fromSelection = (rawSelection, query) => {
-  const uid = rawSelection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'
+ElementSelectionProxy.fromSelection = (rawSelection, component) => {
+  const uid = `${component && component.getPrimaryKey()}+${rawSelection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'}`
 
   return ElementSelectionProxy.findById(uid) || ElementSelectionProxy.upsert(
     Object.assign({
@@ -2405,7 +2405,7 @@ ElementSelectionProxy.fromSelection = (rawSelection, query) => {
         return accumulator
       }, [])
     },
-    query
+    {component}
   ))
 }
 

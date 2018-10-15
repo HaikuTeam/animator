@@ -575,10 +575,8 @@ class StageTitleBar extends React.Component {
 
   fetchProxyElementForSelection () {
     const component = this.getActiveComponent();
-
     if (component) {
-      const selection = Element.where({component, _isSelected: true});
-      return ElementSelectionProxy.fromSelection(selection, {component});
+      return ElementSelectionProxy.fromSelection(Element.where({component, _isSelected: true}), component);
     }
   }
 
