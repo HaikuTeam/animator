@@ -16,7 +16,7 @@
   "WarnOnUndefinedStateVariables": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": true,
-  "AllowBitmapImages": true,
+  "AllowBitmapImages": false,
   "AllowWebfontAssets": false,
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
