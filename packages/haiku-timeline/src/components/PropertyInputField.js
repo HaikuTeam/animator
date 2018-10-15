@@ -167,7 +167,7 @@ function remapPrettyValue (prettyValue) {
   if (prettyValue && prettyValue.render === 'react') {
     return <span style={prettyValue.style}>{safeText(prettyValue.text)}</span>;
   }
-  return safeText(prettyValue);
+  return safeText(prettyValue.text);
 }
 
 PropertyInputField.propTypes = {
