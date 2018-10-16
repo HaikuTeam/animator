@@ -9,7 +9,6 @@ import * as Element from 'haiku-serialization/src/bll/Element';
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading';
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments';
 import EventHandlerTriggerer from './EventHandlerTriggerer';
-import PropertyManager from './PropertyManager';
 import zIndex from './styles/zIndex';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 
@@ -275,18 +274,6 @@ export default class ComponentHeadingRow extends React.Component {
                     boltColor={boltColor}
                     onEventHandlerTriggered={this.props.onEventHandlerTriggered}
                     />
-                  : ''}
-              </div>
-              <div
-                title="Add property"
-                className="property-manager-button light-on-hover"
-                style={{
-                  ...STYLES.actionButton,
-                }}>
-                {(this.props.isExpanded)
-                  ? <PropertyManager
-                    element={this.props.row.element}
-                  />
                   : ''}
               </div>
             </div>
