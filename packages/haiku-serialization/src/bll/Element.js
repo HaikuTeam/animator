@@ -1058,10 +1058,13 @@ class Element extends BaseModel {
 
     const clusters = {}
 
+    this.hasAddressableProperties = false
+
     this.eachAddressableProperty((
       propertyGroupDescriptor,
       addressableName
     ) => {
+      this.hasAddressableProperties = true
       if (propertyGroupDescriptor.cluster) {
         // Properties that are 'clustered', like rotation.x,y,z
         const clusterId = Row.buildClusterUid(
