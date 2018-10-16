@@ -29,13 +29,13 @@ tape('ActiveComponent.prototype.instantiateComponent-with-z', (t) => {
         (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
         (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' } ]); return cb() },
         (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-efe81609c3126d58' } ]); return cb() },
+        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' } ]); return cb() },
         (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-efe81609c3126d58' }, { zIndex: 3, haikuId: 'Circle-2c5057e77fe0398a' } ]); return cb() },
+        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' }, { zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f' } ]); return cb() },
         (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-efe81609c3126d58' }, { zIndex: 3, haikuId: 'Circle-2c5057e77fe0398a' }, { zIndex: 4, haikuId: 'Circle-c650035be072d924' } ]); return cb() },
+        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' }, { zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f' }, { zIndex: 4, haikuId: 'Circle-e176f05781147ca7' } ]); return cb() },
         (cb) => { return ac0.zMoveBackward('a1ace0824b5d', 'Default', 0, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-efe81609c3126d58' }, { zIndex: 3, haikuId: 'Circle-2c5057e77fe0398a' }, { zIndex: 4, haikuId: 'Circle-c650035be072d924' } ]); return cb() },
+        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' }, { zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f' }, { zIndex: 4, haikuId: 'Circle-e176f05781147ca7' } ]); return cb() },
       ], (err) => {
         if (err) throw err
         fse.removeSync(folder)
