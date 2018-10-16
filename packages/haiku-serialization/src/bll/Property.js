@@ -270,7 +270,9 @@ Property.BUILTIN_DOM_SCHEMAS = {
     strokeOpacity: 'string',
     fill: 'string',
     fillRule: 'string',
-    fillOpacity: 'string'
+    fillOpacity: 'string',
+    width: 'number',
+    height: 'number'
   },
   line: {
     x1: 'string',
@@ -566,7 +568,7 @@ Property.DISPLAY_RULES = {
   'haiku-source': {jit: [NEVER], add: [NEVER]},
   'haiku-title': {jit: [NEVER], add: [NEVER]},
   'haiku-var': {jit: [NEVER], add: [NEVER]},
-  'height': {jit: [NEVER], add: [NEVER]},
+  'height': {jit: [NEVER], add: [IF_DEFINED, IF_IN_SCHEMA]},
   'offset.x': {jit: [NEVER], add: [NEVER]},
   'offset.y': {jit: [NEVER], add: [NEVER]},
   'offset.z': {jit: [NEVER], add: [NEVER]},
@@ -632,7 +634,7 @@ Property.DISPLAY_RULES = {
   'translation.x': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'translation.y': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'translation.z': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
-  'width': {jit: [NEVER], add: [NEVER]},
+  'width': {jit: [NEVER], add: [IF_DEFINED, IF_IN_SCHEMA]},
   // Primitives
   'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'cx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
