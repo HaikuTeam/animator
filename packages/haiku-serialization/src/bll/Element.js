@@ -590,7 +590,7 @@ class Element extends BaseModel {
         // into its children and compute their sizes, and so-on.
         elementName: targetNode.elementName,
         attributes: targetNode.attributes,
-        children: targetNode.__memory.children || targetNode.children,
+        children: (targetNode.__memory && targetNode.__memory.children) || targetNode.children,
         __memory: targetNode.__memory
       },
       { // parentNode
