@@ -1,7 +1,7 @@
 const path = require('path')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
-const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
+const {rounded, transformFourVectorByMatrix, basicallyEquals} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
 const {default: Layout3D} = require('@haiku/core/lib/Layout3D')
 const {default: HaikuElement} = require('@haiku/core/lib/HaikuElement')
@@ -2363,6 +2363,11 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
 
   for (const propertyName in propertyGroup) {
     if (!out[timelineName][componentId][propertyName]) {
+      if (basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value)) {
+        // Are we setting a layout property to the default value for the first time? If yes, just skip it.
+        // Because of rounding errors, we should allow a reasonable margin of error.
+        continue
+      }
       out[timelineName][componentId][propertyName] = {}
     }
 
