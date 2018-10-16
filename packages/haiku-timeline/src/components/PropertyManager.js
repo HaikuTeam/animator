@@ -1,17 +1,23 @@
 import * as React from 'react';
-import CirclePlusSVG from 'haiku-ui-common/lib/react/icons/CirclePlusSVG';
 import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+
+const STYLE = {
+  button: {
+    color: Palette.PALE_GRAY,
+    fontSize: '11px',
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    borderRadius: '2px',
+    background: Palette.DARK_GRAY,
+    padding: '2px 10px',
+  },
+};
 
 export default class PropertyManager extends React.Component {
   constructor (props) {
     super(props);
     this.launchMenu = this.launchMenu.bind(this);
-  }
-
-  getIconColor () {
-    return Palette.DARK_ROCK;
   }
 
   launchMenu (event) {
@@ -24,16 +30,21 @@ export default class PropertyManager extends React.Component {
   }
 
   render () {
+    const width = 60;
     return (
-      <div className="property-manager">
+      <div className="property-manager" style={{
+        width,
+        textAlign: 'center',
+        height: 30,
+        paddingTop: 4,
+        marginLeft: this.props.timelinePropertiesWidth - width - 5,
+      }}>
         <div
           onClick={this.launchMenu}
+          style={STYLE.button}
           className="menu-trigger"
-          style={{
-            transform: 'scale(0.75)',
-          }}>
-          <CirclePlusSVG
-            color={this.getIconColor()} />
+          >
+          + ADD
         </div>
       </div>
     );
@@ -42,4 +53,5 @@ export default class PropertyManager extends React.Component {
 
 PropertyManager.propTypes = {
   element: React.PropTypes.object.isRequired,
+  timelinePropertiesWidth: React.PropTypes.number,
 };

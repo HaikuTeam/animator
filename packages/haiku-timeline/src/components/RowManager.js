@@ -2,6 +2,7 @@ import * as React from 'react';
 import ClusterRow from './ClusterRow';
 import PropertyRow from './PropertyRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
+import PropertyManager from './PropertyManager';
 class RowManager extends React.PureComponent {
   constructor (props) {
     super(props);
@@ -62,23 +63,26 @@ class RowManager extends React.PureComponent {
     }
 
     if (row.isHeading()) {
-      return (
-        <ComponentHeadingRow
-          key={row.getUniqueKey()}
-          rowHeight={this.props.rowHeight}
-          timeline={activeComponent.getCurrentTimeline()}
-          component={activeComponent}
-          row={row}
-          onEventHandlerTriggered={this.props.showEventHandlersEditor}
-          isExpanded={row.isExpanded()}
-          isHidden={row.isHidden()}
-          isSelected={row.isSelected()}
-          hasAttachedActions={row.element.getVisibleEvents().length > 0}
-          dragHandleProps={this.props.dragHandleProps}
-          setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
-          timelinePropertiesWidth={this.props.timelinePropertiesWidth}
-        />
-      );
+      return [
+        (
+          <ComponentHeadingRow
+            key={row.getUniqueKey()}
+            rowHeight={this.props.rowHeight}
+            timeline={activeComponent.getCurrentTimeline()}
+            component={activeComponent}
+            row={row}
+            onEventHandlerTriggered={this.props.showEventHandlersEditor}
+            isExpanded={row.isExpanded()}
+            isHidden={row.isHidden()}
+            isSelected={row.isSelected()}
+            hasAttachedActions={row.element.getVisibleEvents().length > 0}
+            dragHandleProps={this.props.dragHandleProps}
+            setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
+            timelinePropertiesWidth={this.props.timelinePropertiesWidth}
+          />
+        ),
+        (row.isExpanded() && <PropertyManager key={`wereree-${row.getUniqueKey()}`} element={row.element} timelinePropertiesWidth={this.props.timelinePropertiesWidth}/>),
+      ];
     }
 
     // If we got here, display nothing since we don't know what to render
