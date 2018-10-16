@@ -500,19 +500,7 @@ const IF_EXPLICIT_OR_DEFINED = (name, element, property, keyframes) => (
 const IF_EXPLICIT = (name, element, property, keyframes) => !!element._visibleProperties[name]
 
 const IF_DEFINED = (name, element, property, keyframes) => (
-  keyframes &&
-  (
-    Object.keys(keyframes).length > 0 ||
-    (keyframes[0] && keyframes[0].edited)
-  )
-)
-
-const IF_NOT_NONE = (name, element, property, keyframes) => (
-  keyframes &&
-  (
-    keyframes.length > 1 ||
-    (keyframes && keyframes[0] && keyframes[0].value !== 'none')
-  )
+  keyframes && Object.keys(keyframes).length > 0
 )
 
 const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => wasChangedFromPrepopValue(name, keyframes)
@@ -650,7 +638,7 @@ Property.DISPLAY_RULES = {
   'cx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'cy': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'd': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
-  'fill': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED, IF_NOT_NONE]},
+  'fill': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'fillOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'fillRule': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'fontFamily': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
@@ -667,7 +655,7 @@ Property.DISPLAY_RULES = {
   'rx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'ry': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'stopColor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
-  'stroke': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED, IF_NOT_NONE]},
+  'stroke': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'strokeOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'strokeWidth': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
   'textAnchor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT]},
