@@ -192,7 +192,7 @@ export default class ComponentHeadingRow extends React.Component {
               backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column',
-              paddingLeft: 27 * (this.props.row.getDepthAmongRows() - 1),
+              paddingLeft: 27 * (depth - 1),
             }}>
             <div
               className="component-heading-row-inner-r1"

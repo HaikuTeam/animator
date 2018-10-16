@@ -8,9 +8,14 @@ const STYLE = {
     fontSize: '11px',
     fontFamily: 'inherit',
     cursor: 'pointer',
-    borderRadius: '2px',
-    background: Palette.DARK_GRAY,
-    padding: '2px 10px',
+    borderRadius: 2,
+    background: Palette.COAL,
+    padding: '1px 10px',
+  },
+  plus: {
+    fontSize: 18,
+    lineHeight: 0,
+    verticalAlign: 'middle',
   },
 };
 
@@ -30,21 +35,21 @@ export default class PropertyManager extends React.Component {
   }
 
   render () {
-    const width = 60;
+    const width = 64;
     return (
       <div className="property-manager" style={{
         width,
         textAlign: 'center',
         height: 30,
-        paddingTop: 4,
-        marginLeft: this.props.timelinePropertiesWidth - width - 5,
+        paddingTop: 6,
+        marginLeft: this.props.timelinePropertiesWidth - width - 9,
       }}>
         <div
           onClick={this.launchMenu}
           style={STYLE.button}
           className="menu-trigger"
           >
-          + ADD
+          <span style={STYLE.plus}>+</span> ADD
         </div>
       </div>
     );

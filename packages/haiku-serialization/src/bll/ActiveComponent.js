@@ -3664,14 +3664,13 @@ class ActiveComponent extends BaseModel {
 
                 // Not all views necessarily have the same collection of elements
                 if (element) {
+                  element.rehydrateRows()
                   Row.where({ component: this, element }).forEach((row) => {
                     if (experimentIsEnabled(Experiment.ExpandTimelinePropertiesFromStageChanges)) {
                       if (row.property && keyframeUpdates[timelineName][componentId][row.property.name]) {
                         row.expand(metadata)
                       }
                     }
-
-                    row.rehydrate()
                   })
                 }
               }

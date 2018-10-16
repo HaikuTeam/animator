@@ -605,7 +605,9 @@ class Row extends BaseModel {
     let depth = 0
     let parent = this.parent
     while (parent) {
-      depth += 1
+      if (parent.element.hasAddressableProperties) {
+        depth += 1
+      }
       parent = parent.parent
     }
     return depth

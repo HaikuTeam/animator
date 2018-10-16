@@ -24,6 +24,16 @@ class RowManager extends React.PureComponent {
     });
   }
 
+  componentWillUpdate ({group}) {
+    group.rows.forEach((row) => {
+      if (row.isHeading() || row.isClusterHeading()) {
+        // In case we already had a bound listener, remove it.
+        row.removeListener('update', this.handleUpdate);
+        row.on('update', this.handleUpdate);
+      }
+    });
+  }
+
   componentWillUnmount () {
     this.props.group.rows.forEach((row) => {
       if (row.isHeading() || row.isClusterHeading()) {
