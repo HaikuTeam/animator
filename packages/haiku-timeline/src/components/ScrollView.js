@@ -61,7 +61,6 @@ class ScrollView extends React.PureComponent {
       >
         {this.props.children}
         <div style={{
-          background: Palette.GRAY,
           zIndex: zIndex.backgroundHelper.base,
           flex: 1,
           width: this.props.propertiesPixelWidth,
