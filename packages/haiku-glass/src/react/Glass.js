@@ -1384,6 +1384,9 @@ export class Glass extends React.Component {
 
         // Convert between corners and curves
         if (Globals.isSpecialKeyDown() && Element.directlySelected.type === 'path' && meta == null) {
+          if (!Element.directlySelected.attributes.d) {
+            break;
+          }
           const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d);
          // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
           const convertToCorner = (
@@ -1836,6 +1839,9 @@ export class Glass extends React.Component {
                     break;
                   }
                   case 'path': {
+                    if (!Element.directlySelected.attributes.d) {
+                      break;
+                    }
                     const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d);
                     const approximationResolution = 80;
                     const [lutPoints] = buildPathLUT(points, approximationResolution);
@@ -2546,6 +2552,9 @@ export class Glass extends React.Component {
               }
 
               case 'path': {
+                if (!this.selectedOriginalClickState.attributes.d) {
+                  break;
+                }
                 const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d);
                 const closed = points[points.length - 1].closed || points[points.length - 2].closed;
 
@@ -2739,6 +2748,9 @@ export class Glass extends React.Component {
               }
 
               case 'path': {
+                if (!this.selectedOriginalClickState.attributes.d) {
+                  break;
+                }
                 const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d);
                 for (let i = 0; i < points.length; i++) {
                   points[i].x += transformedTotalDelta.x;
