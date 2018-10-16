@@ -252,6 +252,9 @@ function lineToPoints (x1: number, y1: number, x2: number, y2: number) {
 }
 
 function pathToPoints (pathString: string): CurveSpec[] {
+  if (!pathString) {
+    return [];
+  }
   const shape = {type: 'path', d: pathString} as PathSpec;
   return svgPoints.toPoints(shape);
 }
