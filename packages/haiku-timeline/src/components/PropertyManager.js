@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import zIndex from './styles/zIndex';
 
 const STYLE = {
   button: {
@@ -10,7 +11,10 @@ const STYLE = {
     cursor: 'pointer',
     borderRadius: 2,
     background: Palette.COAL,
-    padding: '1px 10px',
+    padding: '1px 14px',
+    display: 'inline-block',
+    float: 'right',
+    marginRight: 11,
   },
   plus: {
     fontSize: 18,
@@ -35,14 +39,16 @@ export default class PropertyManager extends React.Component {
   }
 
   render () {
-    const width = 64;
     return (
       <div className="property-manager" style={{
-        width,
+        width: this.props.timelinePropertiesWidth,
         textAlign: 'center',
         height: 30,
         paddingTop: 6,
-        marginLeft: this.props.timelinePropertiesWidth - width - 9,
+        position: 'sticky',
+        zIndex: zIndex.addButton.base,
+        background: Palette.GRAY,
+        left: 0,
       }}>
         <div
           onClick={this.launchMenu}

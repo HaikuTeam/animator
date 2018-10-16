@@ -42,6 +42,9 @@ const zIndex = {
   headingRowExpanded: {
     base: 10,
   },
+  addButton: {
+    base: 9,
+  },
 
   // Cluster row (a row with sub-items that is collapsed)
   clusterRowHeading: {
