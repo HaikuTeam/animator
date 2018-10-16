@@ -12,29 +12,15 @@ import zIndex from './styles/zIndex';
 
 const STYLE = {
   helper: {
-    position: 'sticky',
     left: 0,
     clear: 'both',
     width: 300,
-    height: 14,
     zIndex: 10,
-    backgroundColor: Palette.GRAY,
-
     position: 'sticky',
-    left: '0px',
-    clear: 'both',
-    width: '300px',
-    height: '36px',
+    height: 1,
     zIndex: 9,
-    backgroundColor: 'rgb(52, 63, 65)',
-    marginBottom: '0px',
+    marginBottom: 0,
     transform: 'translateY(-8px) scaleY(1.46)',
-  },
-  wrapper: {
-    zIndex: '8',
-    position: 'sticky',
-    left: '0',
-    backgroundColor: Palette.GRAY,
   },
 };
 
