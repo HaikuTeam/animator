@@ -155,7 +155,7 @@ Template.mirrorHaikuUids = (fromNode, toNode) => {
   }
 }
 
-Template.manaWithOnlyMinimalProps = (mana, referenceSerializer) => {
+Template.manaWithOnlyMinimalProps = (mana, referenceSerializer, includeChildren = true) => {
   if (mana && typeof mana === 'object') {
     const out = {}
 
@@ -187,14 +187,15 @@ Template.manaWithOnlyMinimalProps = (mana, referenceSerializer) => {
     }
 
     // Don't include the children if this node is a component, since those aren't in scope
-    if (typeof mana.elementName !== 'object' && mana.children) {
+    if (includeChildren && typeof mana.elementName !== 'object' && mana.children) {
       out.children = mana.children.filter((child) => {
         // Exclude any empty or content-string elements.
         // This sidesteps the problem where one process shows e.g. children:["BLAH"]
         // but another process shows children:[], which results in unstable hashes
         return child && typeof child !== 'string'
       }).map((child) => {
-        return Template.manaWithOnlyMinimalProps(child, referenceSerializer)
+        // Skip children of children. This should prevent mergeDesigns-related integrity crashes.
+        return Template.manaWithOnlyMinimalProps(child, referenceSerializer, false)
       })
     } else {
       out.children = []
