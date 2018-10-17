@@ -1190,7 +1190,7 @@ class ElementSelectionProxy extends BaseModel {
     const accumulatedUpdates = {}
     ElementSelectionProxy.accumulateKeyframeUpdates(
       accumulatedUpdates,
-      targetElement.getComponentId(),
+      targetElement,
       this.component.getCurrentTimelineName(),
       this.component.getCurrentTimelineTime(),
       propertyGroup
@@ -1246,7 +1246,7 @@ class ElementSelectionProxy extends BaseModel {
 
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
-        element.getComponentId(),
+        element,
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
         propertyGroup
@@ -1593,7 +1593,7 @@ class ElementSelectionProxy extends BaseModel {
 
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
-        element.getComponentId(),
+        element,
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
         propertyGroupNorm
@@ -1706,7 +1706,7 @@ class ElementSelectionProxy extends BaseModel {
 
     ElementSelectionProxy.accumulateKeyframeUpdates(
       accumulatedUpdates,
-      element.getComponentId(),
+      element,
       timelineName,
       timelineTime,
       finalSize
@@ -1806,7 +1806,7 @@ class ElementSelectionProxy extends BaseModel {
     this.selection.forEach((element) => {
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
-        element.getComponentId(),
+        element,
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
         Object.assign(
@@ -2348,7 +2348,7 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
  */
 ElementSelectionProxy.accumulateKeyframeUpdates = (
   out,
-  componentId,
+  element,
   timelineName,
   timelineTime,
   propertyGroup
@@ -2357,21 +2357,30 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
     out[timelineName] = {}
   }
 
+  const componentId = element.getComponentId()
   if (!out[timelineName][componentId]) {
     out[timelineName][componentId] = {}
   }
 
+  const currentProperties = TimelineProperty.getPropertiesBase(
+    element.component.getReifiedBytecode().timelines,
+    timelineName,
+    componentId
+  ) || {}
+
   for (const propertyName in propertyGroup) {
+    if (
+      // Are we setting a layout property to the default value for the first time? If yes, just skip it.
+      // Because of rounding errors, we should allow a reasonable margin of error. Because translation is
+      // snappable, definitely always set this even if it appears to be trivial.
+      !currentProperties[propertyName] &&
+      basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value) &&
+      !propertyName.startsWith('translation')
+    ) {
+      continue
+    }
+
     if (!out[timelineName][componentId][propertyName]) {
-      if (
-        // Are we setting a layout property to the default value for the first time? If yes, just skip it.
-        // Because of rounding errors, we should allow a reasonable margin of error. Because translation is
-        // snappable, definitely always set this even if it appears to be trivial.
-        basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value) &&
-        !propertyName.startsWith('translation')
-      ) {
-        continue
-      }
       out[timelineName][componentId][propertyName] = {}
     }
 
@@ -2435,3 +2444,4 @@ module.exports = ElementSelectionProxy
 const Element = require('./Element')
 const Property = require('./Property')
 const Template = require('./Template')
+const TimelineProperty = require('./TimelineProperty')
