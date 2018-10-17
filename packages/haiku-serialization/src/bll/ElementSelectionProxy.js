@@ -2363,9 +2363,13 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
 
   for (const propertyName in propertyGroup) {
     if (!out[timelineName][componentId][propertyName]) {
-      if (basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value)) {
+      if (
         // Are we setting a layout property to the default value for the first time? If yes, just skip it.
-        // Because of rounding errors, we should allow a reasonable margin of error.
+        // Because of rounding errors, we should allow a reasonable margin of error. Because translation is
+        // snappable, definitely always set this even if it appears to be trivial.
+        basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value) &&
+        !propertyName.startsWith('translation')
+      ) {
         continue
       }
       out[timelineName][componentId][propertyName] = {}
