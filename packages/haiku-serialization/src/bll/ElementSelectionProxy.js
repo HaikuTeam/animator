@@ -1793,10 +1793,16 @@ class ElementSelectionProxy extends BaseModel {
       globals
     )
 
-    const rotationGroup = ElementSelectionProxy.computeRotationPropertyGroup(
-      this,
-      rotationZ,
-      fixedPoint
+    const rotationGroup = Object.assign(
+      {
+        // Ensure we always get a default out in case rotation is snapping to 0.
+        'rotation.z': {value: 0}
+      },
+      ElementSelectionProxy.computeRotationPropertyGroup(
+        this,
+        rotationZ,
+        fixedPoint
+      )
     )
 
     for (const property in rotationGroup) {
