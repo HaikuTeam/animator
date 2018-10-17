@@ -937,9 +937,9 @@ class Element extends BaseModel {
     } else if (headingRow) {
       headingRow.parent.silentlyExpandSelfAndParents()
       return headingRow
-    } {
-      return this.parent.topmostHeadingRow
     }
+
+    return this.parent.topmostHeadingRow
   }
 
   shouldBeDisplayed () {
