@@ -9,7 +9,7 @@ const rounded = (n, d = 3) => {
   return Math.round(n * powerOfTen) / powerOfTen
 }
 
-const basicallyEquals = (n, m) => Math.abs(n - m) < 1e-4
+const basicallyEquals = (n, m) => typeof n === 'number' && typeof m === 'number' && Math.abs(n - m) < 1e-3
 
 const isCoordInsideBoxPoints = (px, py, boxPoints) => pointInPolygon(
   [px, py], [

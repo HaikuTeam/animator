@@ -523,7 +523,27 @@ const wasChangedFromPrepopValue = (name, keyframes) => {
     return true
   }
 
-  return keyframes && Object.values(keyframes).some((keyframe) => keyframe.value !== Property.PREPOPULATED_VALUES[name])
+  if (!keyframes) {
+    return false
+  }
+
+  const keys = Object.keys(keyframes)
+
+  // Consider the prepolated value effectively changed…
+  return (
+    // If there is more than one key…
+    keys.length > 1 ||
+    (
+      // …or if there is exactly one key…
+      keys.length === 1 &&
+      (
+        // …which is either nonzero (this should never happen)…
+        keys[0] !== 0 ||
+        // …or different from the prepopulated value.
+        keyframes[0].value !== Property.PREPOPULATED_VALUES[name]
+      )
+    )
+  )
 }
 
 const hasInSchema = (elementName, propertyName) => (
@@ -582,10 +602,10 @@ Property.DISPLAY_RULES = {
   'rotation.z': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'scale.x': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'scale.y': {jit: [ROOT_CHILD_ONLY], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
-  'scale.z': {jit: [NEVER], add: [NEVER]},
-  'shear.xy': {jit: [NEVER], add: [NEVER]},
-  'shear.xz': {jit: [NEVER], add: [NEVER]},
-  'shear.yz': {jit: [NEVER], add: [NEVER]},
+  'scale.z': {jit: [NEVER], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'shear.xy': {jit: [NEVER], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'shear.xz': {jit: [NEVER], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'shear.yz': {jit: [NEVER], add: [ROOT_CHILD_ONLY, IF_CHANGED_FROM_PREPOPULATED_VALUE]},
   'shown': {jit: [NEVER], add: [NEVER]},
   'sizeAbsolute.x': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
   'sizeAbsolute.y': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
