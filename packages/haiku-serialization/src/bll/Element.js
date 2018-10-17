@@ -932,9 +932,12 @@ class Element extends BaseModel {
   get topmostHeadingRow () {
     const headingRow = this.getHeadingRow()
 
-    if (!this.parent || headingRow) {
+    if (!this.parent) {
       return headingRow
-    } else {
+    } else if (headingRow) {
+      headingRow.parent.silentlyExpandSelfAndParents()
+      return headingRow
+    } {
       return this.parent.topmostHeadingRow
     }
   }
