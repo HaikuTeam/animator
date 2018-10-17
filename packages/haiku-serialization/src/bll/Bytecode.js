@@ -383,6 +383,10 @@ Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
               targetObj.curve = sourceObj.curve
             }
 
+            if (sourceObj && sourceObj.edited !== undefined) {
+              targetObj.edited = sourceObj.edited
+            }
+
             if (sourceObj && sourceObj.value !== undefined) {
               if (targetObj.value !== sourceObj.value) {
                 if (doMergeValueFn) {
