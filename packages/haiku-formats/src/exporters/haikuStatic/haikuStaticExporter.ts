@@ -34,7 +34,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
         }
 
         timelineProperty[keyframe] = {
-          value: evaluateInjectedFunctionInExportContext(value, this.bytecode.states || {}),
+          value: evaluateInjectedFunctionInExportContext(value, this.bytecode),
           curve: timelineProperty[keyframe].curve,
         };
       }
