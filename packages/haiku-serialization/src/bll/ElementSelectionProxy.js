@@ -2380,8 +2380,7 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
       // Because of rounding errors, we should allow a reasonable margin of error. Because translation is
       // snappable, definitely always set this even if it appears to be trivial.
       !currentProperties[propertyName] &&
-      basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value) &&
-      !propertyName.startsWith('translation')
+      basicallyEquals(Property.PREPOPULATED_VALUES[propertyName], propertyGroup[propertyName].value)
     ) {
       continue
     }
