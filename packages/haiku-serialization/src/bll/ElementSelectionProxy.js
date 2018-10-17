@@ -2385,6 +2385,21 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
       continue
     }
 
+    // We can also skip if the last defined keyframe for the same property is unchanged.
+    if (currentProperties[propertyName]) {
+      const lastKeyframe = Object.keys(currentProperties[propertyName])
+        .map(Number)
+        .filter((time) => time <= timelineTime)
+        .sort((a, b) => a - b)
+        .pop()
+      if (
+        lastKeyframe !== undefined &&
+        basicallyEquals(currentProperties[propertyName][lastKeyframe].value, propertyGroup[propertyName].value)
+      ) {
+        continue
+      }
+    }
+
     if (!out[timelineName][componentId][propertyName]) {
       out[timelineName][componentId][propertyName] = {}
     }
