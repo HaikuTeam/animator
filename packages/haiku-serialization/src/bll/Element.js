@@ -1351,17 +1351,6 @@ class Element extends BaseModel {
       let prefix = propertyObj.prefix
       let suffix = propertyObj.suffix
 
-      // Wrap e.g. clipPath into attributes.clipPath so the menu
-      // displays the items in a more reasonable way
-      if (prefix && !suffix) {
-        // Only show attributes if we're showing sub-elements in the JIT
-        // menu; without sub-elements, attributes just cause noise
-        if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-          suffix = prefix
-          prefix = 'Attributes'
-        }
-      }
-
       if (!grouped[prefix]) {
         grouped[prefix] = {
           element: this,
