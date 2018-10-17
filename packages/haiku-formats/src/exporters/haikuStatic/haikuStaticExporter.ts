@@ -40,6 +40,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
       }
     });
 
+    delete this.bytecode.helpers;
     // Replace subcomponents with their static children, being mindful of state bindings.
     Template.visitTemplate(
       this.bytecode.template,
