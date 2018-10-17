@@ -934,15 +934,10 @@ class Element extends BaseModel {
 
     if (!this.parent) {
       return headingRow
-    }
-
-    if (
-      (headingRow && headingRow.children.length && this.parent.children.length > 1) ||
-      headingRow.parent.isRootRow()
-    ) {
+    } else if (headingRow) {
       headingRow.parent.silentlyExpandSelfAndParents()
       return headingRow
-    } else {
+    } {
       return this.parent.topmostHeadingRow
     }
   }
@@ -1279,11 +1274,20 @@ class Element extends BaseModel {
 
     // If this is a component, then add any of our componentAddressables states as builtinAddressables
     if (this.isComponent()) {
-      const instance = this.getCoreTargetComponentInstance()
-      if (instance) {
-        // Note that the states also contain .value() for lazy evaluation of current state
-        // Also note that states values should have a type='state' property
-        instance.getAddressableProperties(componentAddressables)
+      const node = this.getLiveRenderedNode()
+      if (node && node.elementName && node.elementName.states) {
+        for (const name in node.elementName.states) {
+          const state = node.elementName.states[name]
+          componentAddressables[name] = {
+            name,
+            type: 'state',
+            prefix: name,
+            suffix: undefined,
+            fallback: state.value,
+            typedef: state.type,
+            mock: state.mock
+          }
+        }
       }
     }
 
@@ -1349,17 +1353,6 @@ class Element extends BaseModel {
 
       let prefix = propertyObj.prefix
       let suffix = propertyObj.suffix
-
-      // Wrap e.g. clipPath into attributes.clipPath so the menu
-      // displays the items in a more reasonable way
-      if (prefix && !suffix) {
-        // Only show attributes if we're showing sub-elements in the JIT
-        // menu; without sub-elements, attributes just cause noise
-        if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-          suffix = prefix
-          prefix = 'Attributes'
-        }
-      }
 
       if (!grouped[prefix]) {
         grouped[prefix] = {
@@ -1940,14 +1933,6 @@ class Element extends BaseModel {
       node.children.unshift(...extraNodes.map(Template.reuseHotMana))
       nodes.push(node)
     })
-  }
-
-  getCoreTargetComponentInstance () {
-    if (!this.isComponent()) return null
-    const liveRenderedNode = this.getLiveRenderedNode()
-    if (!liveRenderedNode) return null
-    if (!liveRenderedNode.__memory) return null
-    return liveRenderedNode.__memory.subcomponent
   }
 
   getAttribute (key) {

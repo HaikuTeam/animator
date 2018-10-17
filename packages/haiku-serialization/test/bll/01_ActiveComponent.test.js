@@ -29,7 +29,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         if (err) throw err
         t.equal(mana.attributes['haiku-source'], 'designs/Path.svg', 'rel source is in mana attribute')
         const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'translation.x': { 0: { value: 275 } }, 'translation.y': { 0: { value: 200 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
+        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'translation.x': { 0: { edited: true, value: 275 } }, 'translation.y': { 0: { edited: true, value: 200 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
         const subtemplate = ac0.getReifiedBytecode().template.children[0]
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return waitUntilFileProbablyWroteToDisk(() => {

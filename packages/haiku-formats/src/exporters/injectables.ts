@@ -1,8 +1,8 @@
 /** @file Generic handling for injectables through export. */
 import {
-  BytecodeStates,
   BytecodeStateType,
   BytecodeSummonable,
+  HaikuBytecode,
 } from '@haiku/core/lib/api';
 
 /**
@@ -32,6 +32,10 @@ class DefaultStub {
 
     return new DefaultStub();
   }
+
+  apply () {
+    return new DefaultStub();
+  }
 }
 
 /**
@@ -43,13 +47,26 @@ class DefaultStub {
  *   The state tree we should evaluate parameters against.
  * @returns {any}
  */
-export const evaluateInjectedFunctionInExportContext = (bytecodeSummonable: BytecodeSummonable,
-                                                        states: BytecodeStates): BytecodeStateType => {
+export const evaluateInjectedFunctionInExportContext = (
+  bytecodeSummonable: BytecodeSummonable,
+  bytecode: HaikuBytecode,
+): BytecodeStateType => {
+  const states = bytecode.states || {};
+  const helpers = bytecode.helpers || {};
   const defaultStub = new DefaultStub();
   const params = bytecodeSummonable.specification.params.map(
-    (param: string) => (global[param] || states.hasOwnProperty(param))
-      ? (global[param] || states[param].value)
-      : defaultStub,
+    (param: string) => {
+      if (param === '$helpers') {
+        return helpers;
+      }
+      return (global[param] || states.hasOwnProperty(param))
+        ? (global[param] || states[param].value)
+        : defaultStub;
+    },
   );
-  return bytecodeSummonable.apply(undefined, params) || 0;
+  try {
+    return bytecodeSummonable.apply(undefined, params) || 0;
+  } catch (e) {
+    return 0;
+  }
 };

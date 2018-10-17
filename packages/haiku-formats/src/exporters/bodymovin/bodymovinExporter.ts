@@ -1277,7 +1277,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         if (typeof timeline[property][keyframe].value === 'function') {
           timeline[property][keyframe].value = evaluateInjectedFunctionInExportContext(
             timeline[property][keyframe].value as BytecodeSummonable,
-            this.bytecode.states || {},
+            this.bytecode,
           );
         }
       }

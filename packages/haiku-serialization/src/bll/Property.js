@@ -538,7 +538,7 @@ const wasChangedFromPrepopValue = (name, keyframes) => {
       keys.length === 1 &&
       (
         // …which is either nonzero (this should never happen)…
-        keys[0] !== 0 ||
+        !keyframes[0] ||
         // …or different from the prepopulated value.
         keyframes[0].value !== Property.PREPOPULATED_VALUES[name]
       )
