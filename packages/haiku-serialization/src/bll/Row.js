@@ -662,7 +662,12 @@ class Row extends BaseModel {
   }
 
   silentlyExpandSelfAndParents () {
+    if (this.isRootRow()) {
+      return
+    }
+
     this._isExpanded = true
+
     if (this.parent) {
       this.parent.silentlyExpandSelfAndParents()
     }
