@@ -2124,7 +2124,7 @@ export default class Creator extends React.Component {
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        {this.state.dashboardVisible && this.envoyClient && this.envoyProject && <ProjectBrowser
+        {this.state.dashboardVisible && this.envoyClient && this.envoyProject && this.state.username && <ProjectBrowser
           ref="ProjectBrowser"
           explorePro={this.explorePro}
           areProjectsLoading={this.state.areProjectsLoading}
