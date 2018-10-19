@@ -1779,18 +1779,19 @@ class Element extends BaseModel {
     const svgElement = this.getHaikuElement()
     const ungroupables = this.getUngroupables()
     const bytecode = this.component.getReifiedBytecode()
-    // First isolate defs.
+    // First isolate defs 'n' friends.
     svgElement.visit((descendantHaikuElement) => {
-      if (descendantHaikuElement.tagName === 'defs') {
-        defs.push(...descendantHaikuElement.node.children)
-        return false
-      } else if (descendantHaikuElement.tagName === 'style' && descendantHaikuElement.memory && descendantHaikuElement.memory.children) {
+      if (descendantHaikuElement.tagName === 'style' && descendantHaikuElement.memory && descendantHaikuElement.memory.children) {
         const styleNode = Template.cleanMana(lodash.cloneDeep(descendantHaikuElement.node), {resetIds: true})
         styleNode.children = [descendantHaikuElement.memory.children[0]]
         extraNodes.push(styleNode)
         return false
-      } else if (DEFABLE_TAG_NAMES[descendantHaikuElement.tagName]) {
+      } else if (
+        (descendantHaikuElement.parent && descendantHaikuElement.parent.tagName === 'defs') ||
+        DEFABLE_TAG_NAMES[descendantHaikuElement.tagName]
+      ) {
         defs.push(descendantHaikuElement.node)
+        return false
       }
     })
 
