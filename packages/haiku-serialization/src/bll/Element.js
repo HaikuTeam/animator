@@ -1391,9 +1391,7 @@ class Element extends BaseModel {
             // represented elsewhere in the displayed element tree,
             // or which don't warrant display at all (text nodes)
             if (
-              name === 'defs' ||
-              name === 'title' ||
-              name === 'desc' ||
+              !Property.BUILTIN_DOM_SCHEMAS[name] ||
               child.isTextNode()
             ) {
               return false
