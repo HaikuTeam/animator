@@ -8184,5 +8184,257 @@
       "label": "fix",
       "message": "hide drag handle for expanded timeline rows"
     }
+  },
+  "4.3.0": {
+    "76aad2f7a833dbc609637aa2824da37c2385d5f7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not allow user-select on the new JIT button"
+    },
+    "5e2789d203369b9350070eb4fc9c834ebe9c8aa9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "make sure we can also handle <style> tags that appear inside <defs> when we ungroup"
+    },
+    "e6ab116fed0851d00d07ffb902d59b1b2838b817": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure our user has actually loaded before we load projects."
+    },
+    "d75f72c73c0cee618995fc08a210e67e3d1943b2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove needless translation exclusion"
+    },
+    "c2771118e0fee89c512b62758fbbb4081829321d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "allow the root row to be collapsed"
+    },
+    "38c42f94cd0a25e6fccd122c53fc9736598ad59e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "resolve issue that might cause bounding box to become unstuck from element when it is rotated to 0"
+    },
+    "776422c4eef3bc7f7d8901503a22d4d247ff3794": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use better criteria for suppressing a layout property update"
+    },
+    "49ffced211d62dc907c542ae53f1b6202487b5b1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "clear out helpers before JSONifying"
+    },
+    "94565ff944a63bb7d77803c0d101c30910430d91": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "restore silent expansion, which apparently contained dark JIT magic"
+    },
+    "9e9cbe903d39ccbfc8970f1131024caf67eac92c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not try to hoist rows"
+    },
+    "317eee844a909cedcca9cbf9f4f1e5445e2d2085": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use correct equality check for checking if only keyframe is not at 0"
+    },
+    "09927b541b29d165f359b577bcfd1ce3279db7e2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "no snap-drift on corners"
+    },
+    "342cef5ba1551823b3b81c2cd3a3e37770d8fb9b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "give helpers more opportunities to succeed, and also allow them to fail."
+    },
+    "3acbddec8c182275af864b3624c7a936f4206438": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use a less racy technique to build addressable states."
+    },
+    "5816c00e21fcd177458403660264c68e596da32d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "preserve \"edited\" construct when cloning bytecode"
+    },
+    "e23e3fc58a6062f1219b4cda5e00ff06c4b2cf64": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "apply a more accepting, most correct version IF_CHANGED_FROM_PREPOPULATED_VALUE :-("
+    },
+    "5cb47d4ed7d32d5dd063e98212fa09f08f992dab": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "expose width/height properties for <rect /> elements."
+    },
+    "3eb05c122d130714ffdab0d6175f8cc7bd5feda8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add stickiness to the ADD button in the timeline"
+    },
+    "15e03e76c756431fa7d971a00a30590f96b543f5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not include grandchildren of template node when computing integrity"
+    },
+    "1e5a666023b55bdadb343206e47d8eab02f604b1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not add extra margin to the controls row of the main component"
+    },
+    "23263a9f962190abd2c8c715af61f09c638c3f47": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash on SVGPoints-related races during direct selection"
+    },
+    "47ec1d4de588dfa72344f2a8cfe63fedb3c61a39": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not give height-altering or content-covering power to the mysterious sole-property-helper"
+    },
+    "991c941ab1272a3a94cc9089d8c9f5de41411313": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove needless (?) background color for ScrollView stick-er."
+    },
+    "1a630793156d428ab13ef6cb4e8484aeea7310f7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure we can receive RowManager events for JIT'ed cluster headings."
+    },
+    "b74e879ced8ae1b793d5f5b0dcf2d414e397f45d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure prettyValue.text is always defined"
+    },
+    "e312f535f298ba43c4bf5c948b3682ae9875f5a6": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "include an ADD button to define JIT properties"
+    },
+    "67bc50a47723b19c7224d96149c45b8ab84e79be": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Got a crash testing the [multi-component] section of the QA list"
+    },
+    "d9bdc3e2b1fb8ed92817ea5e5e227e825106b3c7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "automatically go to the page in which the tour project is located on start"
+    },
+    "d1419c2461fec6cac898b43292f54a30d4861219": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for direct selection crash"
+    },
+    "fc738e5c4cbc17fd88731b92716028e73be4f584": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not allow pasting a component instance into itself."
+    },
+    "1d9cbc81f10c6da06c4345bcd11acf5f62d65667": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if a property row should be updated based on its pretty value"
+    },
+    "898bfe9e01a3b577a81e5b582de6de51586e50e9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure unique UIDs when forming cached ElementSelectionProxy"
+    },
+    "93a35cc7b928652d68c7501fa98eeeab93ade348": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reset the redoable stack when we perform a regular (non-undo/redo) action"
+    },
+    "9948503372e628f22de9dfb3107fba3a35a735fd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for CRASH when testing \"I can undo a change from a keyframe value to an expression, and vice versa\""
+    },
+    "1240fd28bca050468cf263f3d170cd2a350a12c7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "test"
+    },
+    "cc022629138d2deff942296c77d953f88c333140": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use a real key value"
+    },
+    "5d8cd309d2880955d3492d617ad5f56cdc2cbb98": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "address issues related to single-property rows"
+    },
+    "dfbf596248ac927b804775d24ea3b778879c3bf4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not break the timeline if an element has only one property"
+    },
+    "bd6be377e2bb7246d7c67ad159d3fe733af4aefb": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not generate haiku IDs containing colons"
+    },
+    "b6f0e469d84133951f0c66e5c22cd631a29bd601": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "correct vertical alignment of pagination arrows."
+    },
+    "a697000ee636d6e6e0f65c3a796d99eccdb5f69e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "cherry-pick of @mrtrost's fix for asset library thumbnails not updating"
+    },
+    "3a748af91eb4d01ef052b6fd894bbf63eb134b06": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only select visually selectable elements."
+    },
+    "585b4c432f9403c34d4f58f228dde0fef106898d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "refactor and implement better logic to display deeply nested shells"
+    },
+    "a510fc5ff1ce4f1f5473746faafadb1c4b67bec7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set the correct position for chevrons"
+    },
+    "8e1460d5982f33bde57a16ff424a13987adb608e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hide drag handle for nested rows"
+    },
+    "c86bcbfe4d1b45b41313b13ce4ec64605b15620f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "allow nested subcomponents in shells ui"
+    },
+    "94abcc2fee6e30069cb7533eeac69ee95b410474": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the logic to detect non-displayable rows"
+    },
+    "c1a6ec1597a1465becbdb9a3d71a0f85b9387281": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove HorzScrollShadow as is no longer needed"
+    },
+    "51dabf49ff32cb07851aa5fa1e364a8f9f097208": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use a backwards compatible way to detect shim group wrappers"
+    },
+    "1c3e922129dc08ec18b1713287aad25158be43f8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hide overflow of heading row controls"
+    }
   }
 }

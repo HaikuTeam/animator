@@ -1,6 +1,64 @@
 # Changelog
 
 
+## 4.3.0
+
+### Bug Fixes
+
+ * do not allow user-select on the new JIT button
+ * make sure we can also handle <style> tags that appear inside <defs> when we ungroup
+ * ensure our user has actually loaded before we load projects.
+ * remove needless translation exclusion
+ * allow the root row to be collapsed
+ * resolve issue that might cause bounding box to become unstuck from element when it is rotated to 0
+ * use better criteria for suppressing a layout property update
+ * clear out helpers before JSONifying
+ * restore silent expansion, which apparently contained dark JIT magic
+ * do not try to hoist rows
+ * use correct equality check for checking if only keyframe is not at 0
+ * no snap-drift on corners
+ * give helpers more opportunities to succeed, and also allow them to fail.
+ * use a less racy technique to build addressable states.
+ * preserve "edited" construct when cloning bytecode
+ * apply a more accepting, most correct version IF_CHANGED_FROM_PREPOPULATED_VALUE :-(
+ * expose width/height properties for <rect /> elements.
+ * add stickiness to the ADD button in the timeline
+ * do not include grandchildren of template node when computing integrity
+ * do not add extra margin to the controls row of the main component
+ * do not crash on SVGPoints-related races during direct selection
+ * do not give height-altering or content-covering power to the mysterious sole-property-helper
+ * remove needless (?) background color for ScrollView stick-er.
+ * ensure we can receive RowManager events for JIT'ed cluster headings.
+ * ensure prettyValue.text is always defined
+ * for Got a crash testing the [multi-component] section of the QA list
+ * automatically go to the page in which the tour project is located on start
+ * for direct selection crash
+ * do not allow pasting a component instance into itself.
+ * check if a property row should be updated based on its pretty value
+ * ensure unique UIDs when forming cached ElementSelectionProxy
+ * reset the redoable stack when we perform a regular (non-undo/redo) action
+ * for CRASH when testing "I can undo a change from a keyframe value to an expression, and vice versa"
+ * test
+ * use a real key value
+ * address issues related to single-property rows
+ * do not break the timeline if an element has only one property
+ * do not generate haiku IDs containing colons
+ * correct vertical alignment of pagination arrows.
+ * cherry-pick of @mrtrost's fix for asset library thumbnails not updating
+ * only select visually selectable elements.
+ * refactor and implement better logic to display deeply nested shells
+ * set the correct position for chevrons
+ * hide drag handle for nested rows
+ * allow nested subcomponents in shells ui
+ * improve the logic to detect non-displayable rows
+ * remove HorzScrollShadow as is no longer needed
+ * use a backwards compatible way to detect shim group wrappers
+ * hide overflow of heading row controls
+
+### Features
+
+ * include an ADD button to define JIT properties
+
 ## 4.2.1
 
 ### Bug Fixes
