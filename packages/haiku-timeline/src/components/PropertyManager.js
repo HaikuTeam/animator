@@ -15,6 +15,7 @@ const STYLE = {
     display: 'inline-block',
     float: 'right',
     marginRight: 11,
+    userSelect: 'none',
   },
   plus: {
     fontSize: 18,
@@ -54,7 +55,7 @@ export default class PropertyManager extends React.Component {
           onClick={this.launchMenu}
           style={STYLE.button}
           className="menu-trigger"
-          >
+        >
           <span style={STYLE.plus}>+</span> ADD
         </div>
       </div>
