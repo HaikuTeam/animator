@@ -1,6 +1,5 @@
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 
 /**
@@ -831,7 +830,7 @@ Keyframe.DEFAULT_OPTIONS = {
   }
 }
 
-BaseModel.extend(Keyframe, { useQueryCache: experimentIsEnabled(Experiment.BaseModelQueryCache) })
+BaseModel.extend(Keyframe)
 
 Keyframe.deselectAndDeactivateAllKeyframes = (criteria) => {
   Keyframe.where(criteria).forEach((keyframe) => {

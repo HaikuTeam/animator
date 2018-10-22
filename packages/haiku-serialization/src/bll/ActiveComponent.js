@@ -123,11 +123,6 @@ class ActiveComponent extends BaseModel {
       artboard: this.artboard
     })
 
-    this.devConsole = DevConsole.upsert({
-      uid: this.getPrimaryKey(),
-      component: this
-    })
-
     this.project.addActiveComponentToRegistry(this)
 
     // Used to control how we render in an editing environment, e.g. preview mode
@@ -865,35 +860,19 @@ class ActiveComponent extends BaseModel {
   }
 
   getInstantiationTimelineName () {
-    if (experimentIsEnabled(Experiment.HideInstantiatedElementUntilTimeInstantiated)) {
-      return this.getCurrentTimelineName()
-    } else {
-      return Timeline.DEFAULT_NAME
-    }
+    return Timeline.DEFAULT_NAME
   }
 
   getInstantiationTimelineTime () {
-    if (experimentIsEnabled(Experiment.HideInstantiatedElementUntilTimeInstantiated)) {
-      return this.getCurrentTimelineTime()
-    } else {
-      return 0
-    }
+    return 0
   }
 
   getMergeDesignTimelineName () {
-    if (experimentIsEnabled(Experiment.MergeDesignChangesAtCurrentTime)) {
-      return this.getCurrentTimelineName()
-    } else {
-      return Timeline.DEFAULT_NAME
-    }
+    return Timeline.DEFAULT_NAME
   }
 
   getMergeDesignTimelineTime () {
-    if (experimentIsEnabled(Experiment.MergeDesignChangesAtCurrentTime)) {
-      return this.getCurrentTimelineTime()
-    } else {
-      return 0
-    }
+    return 0
   }
 
   createInTransitionInTimelineObject (timelineObj, propertyName, fromTime, fromValue, toTime, toValue, curveName) {
@@ -1389,26 +1368,6 @@ class ActiveComponent extends BaseModel {
                   done
                 )
               })
-            }
-
-            if (Asset.isFont(relpath)) {
-              const fontComponent = FontComponent.upsert({
-                project: this.project,
-                relpath
-              })
-
-              return this.instantiateReference(
-                fontComponent, // subcomponent
-                fontComponent.identifier, // identifier
-                fontComponent.modpath, // modpath
-                coords, // coords
-                { // overrides
-                  name: fontComponent.getTitle(),
-                  href: fontComponent.getLocalHref()
-                },
-                metadata,
-                done
-              )
             }
 
             return done(new Error(`Problem instantiating ${relpath}`))
@@ -4758,12 +4717,10 @@ const Artboard = require('./Artboard')
 const Asset = require('./Asset')
 const AST = require('./AST')
 const Bytecode = require('./Bytecode')
-const DevConsole = require('./DevConsole')
 const Element = require('./Element')
 const ElementSelectionProxy = require('./ElementSelectionProxy')
 const File = require('./File')
 const ImageComponent = require('./ImageComponent')
-const FontComponent = require('./FontComponent')
 const InstalledComponent = require('./InstalledComponent')
 const Keyframe = require('./Keyframe')
 const ModuleWrapper = require('./ModuleWrapper')

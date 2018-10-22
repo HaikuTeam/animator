@@ -378,31 +378,9 @@ export class Glass extends React.Component {
   handleInteractionModeChange () {
     if (this.isPreviewMode()) {
       this._playing = false;
-      this.openUserFacingDevTools();
-    } else {
-      this.closeUserFacingDevTools();
     }
 
     this.forceUpdate();
-  }
-
-  openUserFacingDevTools () {
-    if (!experimentIsEnabled(Experiment.UserFacingDevTools)) {
-      return;
-    }
-
-    console.clear();
-
-    // Note that our dev tools window is mounted to a <webview> in Creator
-    if (this.getActiveComponent()) {
-      this.getActiveComponent().devConsole.logBanner();
-    }
-  }
-
-  closeUserFacingDevTools () {
-    if (!experimentIsEnabled(Experiment.UserFacingDevTools)) {
-      return;
-    }
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -3146,10 +3124,6 @@ export class Glass extends React.Component {
       return;
     }
 
-    if (experimentIsEnabled(Experiment.GlassControlPointShadows)) {
-      overlays.push(defsMana);
-    }
-
     const zoom = this.getActiveComponent().getArtboard().getZoom();
     const points = proxy.getBoxPointsTransformed();
 
@@ -3200,7 +3174,6 @@ export class Glass extends React.Component {
           point,
           index,
           canControlHandles ? 'none' : this.getCursorCssRule(),
-          experimentIsEnabled(Experiment.GlassControlPointShadows),
         ));
       }
     });
@@ -3212,7 +3185,6 @@ export class Glass extends React.Component {
           origin.x,
           origin.y,
           Globals.isSpecialKeyDown(),
-          experimentIsEnabled(Experiment.GlassControlPointShadows),
         ));
       }
     }
@@ -3549,8 +3521,6 @@ export class Glass extends React.Component {
         enabled: proxy.doesManageSingleElement(),
         onClick: (event) => {
           if (remote) {
-            this.openUserFacingDevTools();
-
             const publicComponentModel = this.getActiveComponent().$instance;
             const internalElementModel = proxy.getElement();
 

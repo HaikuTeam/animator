@@ -32,12 +32,7 @@ export default function dom (haiku) {
       )
     : new MockWebsocket();
 
-  websocket.on('open', () => {
-    logger.setWebsocket(websocket);
-  });
-
   websocket.on('close', () => {
-    logger.setWebsocket(null);
     const currentWindow = remote.getCurrentWindow();
     if (currentWindow) {
       currentWindow.destroy();
