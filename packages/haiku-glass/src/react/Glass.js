@@ -3112,10 +3112,6 @@ export class Glass extends React.Component {
       return;
     }
 
-    if (experimentIsEnabled(Experiment.GlassControlPointShadows)) {
-      overlays.push(defsMana);
-    }
-
     const zoom = this.getActiveComponent().getArtboard().getZoom();
     const points = proxy.getBoxPointsTransformed();
 
@@ -3166,7 +3162,6 @@ export class Glass extends React.Component {
           point,
           index,
           canControlHandles ? 'none' : this.getCursorCssRule(),
-          experimentIsEnabled(Experiment.GlassControlPointShadows),
         ));
       }
     });
@@ -3178,7 +3173,6 @@ export class Glass extends React.Component {
           origin.x,
           origin.y,
           Globals.isSpecialKeyDown(),
-          experimentIsEnabled(Experiment.GlassControlPointShadows),
         ));
       }
     }
