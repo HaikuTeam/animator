@@ -15,6 +15,8 @@ export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
 // Number of segments to create when approximating a cubic bezier segment
 export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 80;
 
+export const isClosedPath = (maybePath: CurveSpec|null) => maybePath && maybePath.closed;
+
 export const bezierCubic = (a: Vec2, h1: Vec2, h2: Vec2, b: Vec2, t: number): Vec2 => {
   const t2 = t * t;
   const t3 = t2 * t;
@@ -32,10 +34,10 @@ export const buildPathLUT = (
   segmentResolution: number = CUBIC_BEZIER_APPROXIMATION_RESOLUTION,
 ): [Vec2[], boolean] => {
   const out = [];
-  for (let i = 0; i < points.length; i++) {
+  for (let i = 1; i < points.length; i++) {
     if (points[i].moveTo) {
       continue;
-    } // TODO: Assert that points[0] is moveTo?
+    }
     if (points[i].curve) {
       for (let t = 0; t < 1; t += 1 / segmentResolution) {
         out.push(bezierCubic(
@@ -56,7 +58,7 @@ export const buildPathLUT = (
     }
   }
 
-  return [out, points[points.length - 1].closed || points[points.length - 2].closed];
+  return [out, isClosedPath(points[points.length - 1]) || isClosedPath(points[points.length - 2])];
 };
 
 export const pointInsideRect = (pt: Vec2, corner1: Vec2, corner2: Vec2): boolean => {
