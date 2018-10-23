@@ -3,10 +3,8 @@ import * as React from 'react';
 import * as Radium from 'radium';
 import * as Popover from 'react-popover';
 import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
-import {CSSTransition, TransitionGroup} from 'react-transition-group';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import Toast from './notifications/Toast';
 import NotificationExplorer from './notifications/NotificationExplorer';
 import ProjectThumbnail from './ProjectThumbnail';
 import {TourUtils} from 'haiku-common/lib/types/enums';
@@ -29,7 +27,6 @@ const STYLES = {
 class ProjectBrowser extends React.Component {
   constructor (props) {
     super(props);
-    this.renderNotice = this.renderNotice.bind(this);
     this.openPopover = this.openPopover.bind(this);
     this.closePopover = this.closePopover.bind(this);
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this);
@@ -443,21 +440,6 @@ class ProjectBrowser extends React.Component {
     this.props.launchProject(projectObject);
   }
 
-  renderNotice (content, i) {
-    return (
-      <CSSTransition timeout={400} classNames="toast" key={i + content.title}>
-        <Toast
-          toastType={content.type}
-          toastTitle={content.title}
-          toastMessage={content.message}
-          closeText={content.closeText}
-          myKey={i}
-          removeNotice={this.props.removeNotice}
-          lightScheme={content.lightScheme} />
-      </CSSTransition>
-    );
-  }
-
   closeModals () {
     this.setState({
       showDeleteModal: false,
@@ -597,10 +579,6 @@ class ProjectBrowser extends React.Component {
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
-        <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh', pointerEvents: 'none'}}>
-          {lodash.map(this.props.notices, this.renderNotice)}
-        </TransitionGroup>
-
         {/* This hack allows the italic and strong variants of the font to be preloaded, avoiding FOUT */}
         <span style={{visibility: 'hidden', width: 0, height: 0}}>
           <span style={DASH_STYLES.projToDelete} />

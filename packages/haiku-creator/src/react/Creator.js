@@ -2091,9 +2091,7 @@ export default class Creator extends React.Component {
           loadProjects={this.loadProjects}
           launchProject={this.launchProject}
           createNotice={this.createNotice}
-          removeNotice={this.removeNotice}
           logOut={this.logOut}
-          notices={this.state.notices}
           envoyClient={this.envoyClient}
           {...this.props} />
         }
