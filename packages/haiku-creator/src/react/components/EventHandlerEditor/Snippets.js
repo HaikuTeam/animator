@@ -161,18 +161,28 @@ class Snippets extends React.PureComponent {
     this.props.editor.pushUndoStop();
   }
 
+  setPlusRef = (element) => {
+    this._plus = element
+  }
+
+  setRightGradientDivRef = (element) => {
+    this._rightGradientDiv = element
+  }
+
+  launchPopoverMenu = (event) => {
+    PopoverMenu.launch({event, items: this.snippetOptions});
+  }
+
   render () {
     return (
       <div>
-        <div style={STYLES.wrapper} ref={(element) => (this._plus = element)}
-          onClick={(event) => {
-            PopoverMenu.launch({event, items: this.snippetOptions});
-          }}>
+        <div style={STYLES.wrapper} ref={this.setPlusRef}
+          onClick={this.launchPopoverMenu}>
           <div style={STYLES.button}>
             +
           </div>
         </div>
-        <div style={STYLES.rightGradientDiv} ref={(element) => (this._rightGradientDiv = element)} />
+        <div style={STYLES.rightGradientDiv} ref={this.setRightGradientDivRef} />
       </div>
     );
   }
