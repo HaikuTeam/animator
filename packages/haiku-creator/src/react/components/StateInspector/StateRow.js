@@ -214,24 +214,18 @@ class StateRow extends React.Component {
   }
 
   submitChanges () {
-    const didValueChange = this.state.desc.value !== this.state.valuePreEdit;
     const didNameChange = this.state.name !== this.props.stateName;
 
-    if (didNameChange && didValueChange) {
+    // If the name has changed and this is not a newly created state, instead of changing
+    // the name of the current state, we delete the state and create a new state with the
+    // new name and the old value.
+    if (didNameChange && !this.props.isNew) {
       return this.props.deleteStateValue(this.props.stateName, () => {
         return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
       });
     }
 
-    if (didNameChange) {
-      return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
-      });
-    }
-
-    if (didValueChange) {
-      return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
-    }
+    return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
   }
 
   handleClickOutside () {
