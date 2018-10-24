@@ -26,11 +26,6 @@
     let bytecode, component;
 
     ipcRenderer.on('mount', (_, {bytecodePath, width, height, options}) => {
-      if (component) {
-        ipcRenderer.sendToHost('haiku-webview-ready');
-        return;
-      }
-
       try {
         bytecode = requireFromFile(bytecodePath);
         mount.style.width = width;
@@ -40,9 +35,6 @@
           mount,
           {
             ...options,
-            onComponentDidMount: () => {
-              ipcRenderer.sendToHost('haiku-webview-ready');
-            },
           },
         );
 

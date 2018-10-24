@@ -27,7 +27,6 @@ const STYLES = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.COAL,
-    transition: 'opacity 0.5s ease-in-out',
   },
 };
 
@@ -44,12 +43,7 @@ const mountArguments = {
 };
 
 class ProjectLoader extends React.PureComponent {
-  state = {
-    ready: false,
-  };
-
   destroyMountChildren () {
-    this.setState({ready: false});
     while (this.mount.firstChild) {
       this.mount.removeChild(this.mount.firstChild);
     }
@@ -63,14 +57,6 @@ class ProjectLoader extends React.PureComponent {
     this.webview.style.height = '100%';
     this.webview.addEventListener('dom-ready', () => {
       this.webview.send('mount', mountArguments);
-    });
-
-    this.webview.addEventListener('ipc-message', ({channel}) => {
-      if (channel === 'haiku-webview-ready') {
-        requestAnimationFrame((() => {
-          this.setState({ready: true});
-        }));
-      }
     });
 
     this.destroyMountChildren();
@@ -107,11 +93,7 @@ class ProjectLoader extends React.PureComponent {
         id="js-helper-project-loader"
       >
         <div
-          style={{
-            ...STYLES.loadingScreen,
-            opacity: this.state.ready ? 1 : 0,
-            transition: 'opacity 1s linear',
-          }}
+          style={STYLES.loadingScreen}
           ref={this.persistMount}
         />
         {this.props.children}

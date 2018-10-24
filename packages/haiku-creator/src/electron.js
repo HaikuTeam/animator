@@ -127,6 +127,7 @@ function createWindow () {
     titleBarStyle: 'hiddenInset',
     minWidth: 700,
     minHeight: 650,
+    backgroundColor: '#343f41',
   });
 
   const topmenu = new TopMenu(browserWindow.webContents);
