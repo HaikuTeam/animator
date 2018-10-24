@@ -132,6 +132,7 @@ export default class Creator extends React.Component {
       projectModel: null, // Instance of the Project model
       dashboardVisible: !this.props.folder,
       readyForAuth: false,
+      hasLoadedOnce: false,
       isUserAuthenticated: false,
       username: null,
       isAdmin: false,
@@ -686,10 +687,7 @@ export default class Creator extends React.Component {
           organizationName: organization.Name,
         });
 
-        // Delay so the default startup screen doesn't just flash then go away
-        setTimeout(() => {
-          this.setState({isUserAuthenticated: true});
-        }, this.state.readyForAuth ? 0 : 2500);
+        this.setState({isUserAuthenticated: true});
       });
 
       this.user.checkOfflinePrivileges().then((allowOffline) => {
@@ -700,46 +698,43 @@ export default class Creator extends React.Component {
     });
 
     this.user.load().then(({user, organization}) => {
-      // Delay so the default startup screen doesn't just flash then go away
-      setTimeout(() => {
-        this.setState({
-          readyForAuth: true,
-          isUserAuthenticated: user && organization,
-        }, () => {
-          if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
-            this._postAuthCallback();
-            delete this._postAuthCallback;
-          } else if (this.props.folder) {
-            // Launch folder directly - i.e. allow a 'subl' like experience without having to go
-            // through the projects index
-            const handleFailure = (launchError) => {
-              if (launchError) {
-                logger.error(launchError);
-                this.setState({folderLoadingError: launchError});
-                return this.createNotice({
-                  type: 'error',
-                  title: 'Oh no!',
-                  message: 'We were unable to open the folder. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
-                  closeText: 'Okay',
-                  lightScheme: true,
-                });
-              }
-            };
+      this.setState({
+        readyForAuth: true,
+        isUserAuthenticated: user && organization,
+      }, () => {
+        if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
+          this._postAuthCallback();
+          delete this._postAuthCallback;
+        } else if (this.props.folder) {
+          // Launch folder directly - i.e. allow a 'subl' like experience without having to go
+          // through the projects index
+          const handleFailure = (launchError) => {
+            if (launchError) {
+              logger.error(launchError);
+              this.setState({folderLoadingError: launchError});
+              return this.createNotice({
+                type: 'error',
+                title: 'Oh no!',
+                message: 'We were unable to open the folder. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
+                closeText: 'Okay',
+                lightScheme: true,
+              });
+            }
+          };
 
-            this.launchFolder(
-              // Load up the necessary metadata in Plumbing to launch normally.
-              {
-                projectPath: this.props.folder,
-                authorName: 'user@haiku.ai',
-                organizationName: 'Haiku',
-                projectName: path.basename(this.props.folder),
-                branchName: 'master',
-              },
-              handleFailure,
-            );
-          }
-        });
-      }, this.props.folder ? 0 : 2500);
+          this.launchFolder(
+            // Load up the necessary metadata in Plumbing to launch normally.
+            {
+              projectPath: this.props.folder,
+              authorName: 'user@haiku.ai',
+              organizationName: 'Haiku',
+              projectName: path.basename(this.props.folder),
+              branchName: 'master',
+            },
+            handleFailure,
+          );
+        }
+      });
     });
 
     this.user.getConfig(UserSettings.LastViewedChangelog).then((changelogVersion) => {
@@ -1145,7 +1140,7 @@ export default class Creator extends React.Component {
     // If "silent", do not show the loading state.
     this.setState(silent ? {} : {areProjectsLoading: true}, () => {
       this.envoyProject.getProjectsList().then((projectsList) => {
-        this.setState({areProjectsLoading: false, projectsList});
+        this.setState({areProjectsLoading: false, hasLoadedOnce: true, projectsList});
         ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
         return cb(null, projectsList);
       }).catch((error) => {
@@ -2007,7 +2002,7 @@ export default class Creator extends React.Component {
   }
 
   get showGenericLoader () {
-    return !this.state.isUserAuthenticated || !this.state.username || this.state.areProjectsLoading;
+    return this.state.areProjectsLoading && this.state.hasLoadedOnce;
   }
 
   render () {

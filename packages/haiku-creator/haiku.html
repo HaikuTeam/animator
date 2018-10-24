@@ -27,7 +27,6 @@
 
     ipcRenderer.on('mount', (_, {bytecodePath, width, height, options}) => {
       if (component) {
-        ipcRenderer.sendToHost('haiku-webview-ready');
         return;
       }
 
@@ -40,9 +39,6 @@
           mount,
           {
             ...options,
-            onComponentDidMount: () => {
-              ipcRenderer.sendToHost('haiku-webview-ready');
-            },
           },
         );
 
