@@ -1043,7 +1043,7 @@ export default class Creator extends React.Component {
     // - Pressing design button: go to desing and restore left panel
     // - Pressing code button: go to code editor and open state inspector on left panel
     if (interactionMode === InteractionMode.GLASS_PREVIEW) {
-      this.forceHideEventHandlersEditor();
+      this.forceHideEventHandlersEditor({trySave: true});
     } else if (this.state.interactionMode === InteractionMode.GLASS_PREVIEW && interactionMode === InteractionMode.GLASS_EDIT) {
       this.setState({activeNav: this.lastWidgetState.activeNav});
     } else if (interactionMode === InteractionMode.GLASS_EDIT) {
@@ -1907,7 +1907,11 @@ export default class Creator extends React.Component {
     this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'creator'}, () => {});
   }
 
-  forceHideEventHandlersEditor () {
+  forceHideEventHandlersEditor ({trySave} = {trySave: false}) {
+    if (trySave && this.editor && !this.editor.canBeClosedExternally()) {
+      this.editor.doSave();
+    }
+
     this.setState({
       targetElement: null,
       showEventHandlerEditor: false,
