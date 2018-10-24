@@ -1702,7 +1702,7 @@ export default class Creator extends React.Component {
       {method: 'teardownMaster', params: [this.state.projectModel.getFolder()]},
       () => {
         logger.info('[creator] master torn down');
-        this.setState({dashboardVisible: true, tearingDown: false});
+        this.setState({dashboardVisible: true, tearingDown: false, notices: []});
         this.onTimelineUnmounted();
 
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready');
@@ -2091,9 +2091,7 @@ export default class Creator extends React.Component {
           loadProjects={this.loadProjects}
           launchProject={this.launchProject}
           createNotice={this.createNotice}
-          removeNotice={this.removeNotice}
           logOut={this.logOut}
-          notices={this.state.notices}
           envoyClient={this.envoyClient}
           {...this.props} />
         }
