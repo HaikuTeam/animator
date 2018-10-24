@@ -1043,7 +1043,7 @@ export default class Creator extends React.Component {
     // - Pressing design button: go to desing and restore left panel
     // - Pressing code button: go to code editor and open state inspector on left panel
     if (interactionMode === InteractionMode.GLASS_PREVIEW) {
-      this.safelyHideEventHandlersEditor();
+      this.forceHideEventHandlersEditor();
     } else if (this.state.interactionMode === InteractionMode.GLASS_PREVIEW && interactionMode === InteractionMode.GLASS_EDIT) {
       this.setState({activeNav: this.lastWidgetState.activeNav});
     } else if (interactionMode === InteractionMode.GLASS_EDIT) {
@@ -1055,10 +1055,6 @@ export default class Creator extends React.Component {
     this.lastWidgetState = {interactionMode: this.state.interactionMode, activeNav: this.state.activeNav};
 
     this.mixpanelReportPreviewMode(interactionMode);
-
-    if (interactionMode === InteractionMode.GLASS_PREVIEW) {
-      this.safelyHideEventHandlersEditor();
-    }
 
     this.setState({interactionMode}, () => {
       if (interactionMode === InteractionMode.CODE_EDITOR) {
