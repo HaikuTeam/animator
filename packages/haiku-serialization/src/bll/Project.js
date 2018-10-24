@@ -29,12 +29,6 @@ const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
 }
-const RACEY_METHODS = {
-  hoverElement: true,
-  unhoverElement: true,
-  selectElement: true,
-  unselectElement: true
-}
 
 /**
  * @class Project
@@ -192,52 +186,39 @@ class Project extends BaseModel {
   handleMethodCall (method, params, message, cb) {
     return Lock.request(Lock.LOCKS.ProjectMethodHandler, false, (release) => {
       // Try matching a method on a given active component
-      const ac = (typeof params[0] === 'string')
-        ? this.findActiveComponentBySourceIfPresent(params[0])
-        : null
-
-      if (ac && typeof ac[method] === 'function') {
-        if (!SILENT_METHODS[method]) {
-          logger.info(
-            `[project (${this.getAlias()})] component handling method ${method}`
-          )
-        }
-
-        return ac[method].apply(ac, params.slice(1).concat((err, out) => {
-          release()
-
-          if (err) {
-            return cb(err)
+      if (typeof params[0] === 'string' && ActiveComponent.prototype[method] instanceof Function) {
+        return this.findActiveComponentBySource(params[0], (findAcError, ac) => {
+          if (findAcError) {
+            release()
+            return cb(findAcError)
           }
 
-          return cb() // Skip objects that don't play well with Websockets
-        }))
+          if (!SILENT_METHODS[method]) {
+            logger.info(
+              `[project (${this.getAlias()})] component handling method ${method}`
+            )
+          }
+
+          return ac[method].apply(ac, params.slice(1).concat((err) => {
+            release()
+            return cb(err)
+          }))
+        })
       }
 
       // If we have a method here at the top, call it
-      if (typeof this[method] === 'function') {
+      if (this[method] instanceof Function) {
         if (!SILENT_METHODS) {
           logger.info(`[project (${this.getAlias()})] project handling method ${method}`)
         }
 
-        return this[method].apply(this, params.concat((err, result) => {
+        return this[method].apply(this, params.concat((err) => {
           release()
-
-          if (err) {
-            return cb(err)
-          }
-
-          return cb() // Skip objects that don't play well with Websockets
+          return cb(err)
         }))
       }
 
       release()
-
-      if (RACEY_METHODS[method]) {
-        logger.info(`[project ${this.getAlias()}] letting method ${method} fall through`)
-        return cb()
-      }
-
       throw new Error(`Unknown project method ${method}`)
     })
   }
