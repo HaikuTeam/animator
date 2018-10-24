@@ -1140,7 +1140,6 @@ export default class Creator extends React.Component {
     // If "silent", do not show the loading state.
     this.setState(silent ? {} : {areProjectsLoading: true}, () => {
       this.envoyProject.getProjectsList().then((projectsList) => {
-        console.log('got projects');
         this.setState({areProjectsLoading: false, hasLoadedOnce: true, projectsList});
         ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
         return cb(null, projectsList);
