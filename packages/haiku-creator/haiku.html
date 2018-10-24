@@ -26,6 +26,10 @@
     let bytecode, component;
 
     ipcRenderer.on('mount', (_, {bytecodePath, width, height, options}) => {
+      if (component) {
+        return;
+      }
+
       try {
         bytecode = requireFromFile(bytecodePath);
         mount.style.width = width;
