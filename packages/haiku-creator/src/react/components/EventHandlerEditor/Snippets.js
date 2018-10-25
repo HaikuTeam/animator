@@ -162,16 +162,16 @@ class Snippets extends React.PureComponent {
   }
 
   setPlusRef = (element) => {
-    this._plus = element
-  }
+    this._plus = element;
+  };
 
   setRightGradientDivRef = (element) => {
-    this._rightGradientDiv = element
-  }
+    this._rightGradientDiv = element;
+  };
 
   launchPopoverMenu = (event) => {
     PopoverMenu.launch({event, items: this.snippetOptions});
-  }
+  };
 
   render () {
     return (

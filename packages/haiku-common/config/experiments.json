@@ -20,5 +20,6 @@
   "ControlFlowRepeat": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "DumpBase64Images": true,
-  "WindowMenu": false
+  "WindowMenu": false,
+  "AutoTweenNewKeyframes": true
 }

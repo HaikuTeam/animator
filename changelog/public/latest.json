@@ -1,7 +1,7 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Newly created keyframes are now automatically tweened."
     ],
     "Fixes": [
       "Fixes crashes related to direct selection on specific SVG assets.",

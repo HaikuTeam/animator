@@ -18,6 +18,7 @@ const DEFAULT_ROOT_NODE_NAME = 'div'
 const FALLBACK_TEMPLATE = '<' + DEFAULT_ROOT_NODE_NAME + '></' + DEFAULT_ROOT_NODE_NAME + '>'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 const DO_REIFY_FUNCTIONS = true
+const DEFAULT_CURVE = 'easeInOutQuad'
 
 function isEmpty (val) {
   return val === undefined
@@ -1210,6 +1211,40 @@ Bytecode.doesMatchOrHostBytecode = (ours, theirs, seen = {}) => {
   })
 
   return answer
+}
+
+Bytecode.addDefaultCurveIfNecessary = (
+  bytecode,
+  timelineName,
+  selector,
+  newKeyframeTime,
+  propertyName,
+  componentId,
+  elementName
+) => {
+  const property = bytecode.timelines[timelineName][selector][propertyName]
+
+  if (property) {
+    const lastKeyframe = Object.keys(property)
+      .map(Number)
+      .filter((time) => time < newKeyframeTime)
+      .sort((a, b) => a - b)
+      .pop()
+    if (lastKeyframe !== undefined) {
+      if (property[lastKeyframe].curve === undefined) {
+        Bytecode.joinKeyframes(
+          bytecode,
+          componentId,
+          timelineName,
+          elementName,
+          propertyName,
+          lastKeyframe,
+          newKeyframeTime,
+          DEFAULT_CURVE
+        )
+      }
+    }
+  }
 }
 
 module.exports = Bytecode
