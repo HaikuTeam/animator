@@ -7,7 +7,8 @@
       "Fixes crashes related to direct selection on specific SVG assets.",
       "Fixes crashes in certain circumstances when creating states and undoing.",
       "Fixes crashes when selecting autocompletion items with the mouse.",
-      "Fixes crashes when switching to Preview Mode with the Actions Editor open."
+      "Fixes crashes when switching to Preview Mode with the Actions Editor open.",
+      "Fixes crashes when setting an invalid 'd' attribute to a path via the Timeline."
     ]
   }
 }
