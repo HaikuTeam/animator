@@ -243,11 +243,11 @@ tape('Keyframe.06', (t) => {
     t.notOk(Keyframe.groupIsSingleTween([kfs[0]]), 'returns false if only one keyframe is selected')
     t.notOk(Keyframe.groupIsSingleTween([kfs[0], kfs[1], kfs[2]]), 'returns false if more than two keyframes are selected')
     t.notOk(Keyframe.groupIsSingleTween([kfs[0], kfs[3]]), 'returns false if the keyframes are not next to each other')
-    t.notOk(Keyframe.groupIsSingleTween(selection), 'returns false if there is not a tween between the keyframes')
-
-    selection[0].curve = 'linear'
-
     t.ok(Keyframe.groupIsSingleTween(selection), 'returns true if there is a tween between the two provided keyframes')
+
+    selection[0].curve = null
+
+    t.notOk(Keyframe.groupIsSingleTween(selection), 'returns false if there is not a tween between the keyframes')
 
     process.env.HAIKU_SUBPROCESS = subproc
     done()

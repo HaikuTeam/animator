@@ -3560,6 +3560,21 @@ class ActiveComponent extends BaseModel {
               propertyName,
               true // fallbackToInitialKeyframeIfProvided
             )
+
+            if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
+              const ms = parseInt(Object.keys(keyframeMoves[timelineName][componentId][propertyName])[0], 10)
+              if (Number.isInteger(ms)) {
+                Bytecode.addDefaultCurveIfNecessary(
+                  bytecode,
+                  timelineName,
+                  Template.buildHaikuIdSelector(componentId),
+                  ms,
+                  propertyName,
+                  componentId,
+                  this.getElementNameOfComponentId(componentId)
+                )
+              }
+            }
           }
         }
       }
@@ -3685,6 +3700,18 @@ class ActiveComponent extends BaseModel {
                 propertyName,
                 false // fallbackToInitialKeyframeIfProvided
               )
+
+              if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
+                Bytecode.addDefaultCurveIfNecessary(
+                  bytecode,
+                  timelineName,
+                  selector,
+                  keyframeMs,
+                  propertyName,
+                  componentId,
+                  this.getElementNameOfComponentId(componentId)
+                )
+              }
             }
           }
         }
@@ -3909,6 +3936,18 @@ class ActiveComponent extends BaseModel {
         propertyName,
         false // fallbackToInitialKeyframeIfProvided
       )
+
+      if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
+        Bytecode.addDefaultCurveIfNecessary(
+          bytecode,
+          timelineName,
+          Template.buildHaikuIdSelector(componentId),
+          keyframeStartMs,
+          propertyName,
+          componentId,
+          elementName
+        )
+      }
 
       done()
     }, cb)
