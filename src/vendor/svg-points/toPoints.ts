@@ -52,7 +52,7 @@ const toPoints = (spec: ShapeSpec): CurveSpec[] => {
     case 'rect':
       return getPointsFromRect(spec);
     default:
-      throw new Error('Not a valid shape type');
+      return [];
   }
 };
 
