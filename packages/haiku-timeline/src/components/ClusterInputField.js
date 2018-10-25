@@ -52,8 +52,11 @@ class ClusterInputFieldValueDisplay extends React.Component {
     this.props.timeline.on('update', this.handleUpdate);
   }
 
-  areClusterValuesEqual (originalValues, newValues) {
-    return originalValues.every((value, index) => value.computedValue === newValues[index].computedValue);
+  areClusterValuesEqual (newValues, originalValues) {
+    return (
+      newValues.length !== originalValues.length ||
+      newValues.every((value, index) => value.computedValue === originalValues[index].computedValue)
+    );
   }
 
   handleUpdate (what) {
