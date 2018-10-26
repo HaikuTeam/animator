@@ -506,7 +506,10 @@ export default class Master extends EventEmitter {
 
   handleFileRemove (abspath) {
     const relpath = path.relative(this.folder, abspath);
-    delete this._knownLibraryAssets[relpath];
+    if (this._knownLibraryAssets[relpath]) {
+      delete this._knownLibraryAssets[relpath];
+      this.debouncedEmitAssetsChanged(this._knownLibraryAssets);
+    }
 
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Removed ${relpath}`), () => undefined);
