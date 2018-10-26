@@ -1009,10 +1009,12 @@ class ActiveComponent extends BaseModel {
         this.fetchActiveBytecodeFile().updateInMemoryHotModule(
           this.snapshots.pop(),
           () => {
-            release()
-            this.moduleSync(() => {
-              fire()
-              cb()
+            this.project.deleteSceneByName(name, () => {
+              release()
+              this.moduleSync(() => {
+                fire()
+                cb()
+              })
             })
           }
         )
@@ -2330,6 +2332,24 @@ class ActiveComponent extends BaseModel {
     ], finish)
   }
 
+  destroy (cleanup = false) {
+    // If an instance has been created, knock it out.
+    if (this.$instance) {
+      this.$instance.context.contextUnmount()
+      this.$instance.context.getClock().stop()
+      this.$instance.context.destroy()
+    }
+
+    this.file.destroy(cleanup)
+
+    // Clean out any remaining model instances.
+    for (const klass of [MountElement, Artboard, SelectionMarquee, Timeline, Keyframe, Row, Element, ElementSelectionProxy]) {
+      klass.where({component: this}).forEach((instance) => instance.destroy())
+    }
+
+    super.destroy()
+  }
+
   moduleReload (moduleReloadMethod = 'basicReload', cb) {
     return this.fetchActiveBytecodeFile().mod[moduleReloadMethod](cb)
   }
@@ -2556,6 +2576,7 @@ class ActiveComponent extends BaseModel {
           return this.emit('error', err)
         }
 
+        this.fetchActiveBytecodeFile().requestAsyncContentFlush()
         return cb()
       })
     })

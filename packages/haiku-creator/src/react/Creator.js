@@ -1311,6 +1311,10 @@ export default class Creator extends React.Component {
               // console.info(`[creator] local update ${what}, args:`,args)
 
               switch (what) {
+                case 'updateMenu':
+                  this.updateMenu();
+                  break;
+
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady();
                   break;
@@ -1358,12 +1362,14 @@ export default class Creator extends React.Component {
     this.getActiveComponent().removeAllListeners('sustained-check:start');
   }
 
-  handleActiveComponentReady () {
-    this.mountHaikuComponent();
-
+  updateMenu () {
     ipcRenderer.send('topmenu:update', {
       subComponents: this.state.projectModel.describeSubComponents(),
     });
+  }
+
+  handleActiveComponentReady () {
+    this.mountHaikuComponent();
 
     // Reset not found identifiers in case we are switching current active component
     this.identifiersNotFound = [];

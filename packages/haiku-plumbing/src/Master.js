@@ -506,25 +506,10 @@ export default class Master extends EventEmitter {
 
   handleFileRemove (abspath) {
     const relpath = path.relative(this.folder, abspath);
-    const extname = path.extname(relpath);
-
     delete this._knownLibraryAssets[relpath];
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Removed ${relpath}`), () => {
-        if (!isFileSignificant(relpath)) {
-          return;
-        }
-
-        if (extname === '.js') {
-          return File.expelOne(this.folder, relpath, (err) => {
-            if (err) {
-              return logger.info(err);
-            }
-            logger.info('[master] file expelled:', abspath);
-          });
-        }
-      });
+      return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Removed ${relpath}`), () => undefined);
     });
   }
 
