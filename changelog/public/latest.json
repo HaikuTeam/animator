@@ -9,7 +9,8 @@
       "Fixes crashes in certain circumstances when creating states and undoing.",
       "Fixes crashes when selecting autocompletion items with the mouse.",
       "Fixes crashes when switching to Preview Mode with the Actions Editor open.",
-      "Fixes crashes on certain cirscumstances when editing cluster properties from Code Mode."
+      "Fixes crashes on certain circumstances when editing cluster properties from Code Mode.",
+      "The Edit menu now only exposes options to undo/redo if there is actually something to undo or redo."
     ]
   }
 }
