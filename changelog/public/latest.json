@@ -1,7 +1,8 @@
 {
   "sections": {
     "What's new": [
-      "Newly created keyframes are now automatically tweened."
+      "Newly created keyframes are now automatically tweened.",
+      "You can now undo and redo component creation."
     ],
     "Fixes": [
       "Fixes crashes related to direct selection on specific SVG assets.",
