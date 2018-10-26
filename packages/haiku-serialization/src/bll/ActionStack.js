@@ -218,6 +218,8 @@ class ActionStack extends BaseModel {
     if (stack.length > MAX_UNDOABLES_LEN) {
       stack.shift()
     }
+
+    this.project.emit('update', 'updateMenu')
   }
 
   addUndoable (undoable, ac) {
@@ -373,9 +375,9 @@ class ActionStack extends BaseModel {
           !metadata.cursor
         ) {
           did = true
-          this.addUndoable(inverter, ac)
           // Reset the redo stack.
           this.redoables.length = 0
+          this.addUndoable(inverter, ac)
         } else if (metadata.cursor === ActionStack.CURSOR_MODES.undo) {
           did = true
           this.addUndoable(inverter, ac)

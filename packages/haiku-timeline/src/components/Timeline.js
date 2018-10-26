@@ -555,9 +555,7 @@ class Timeline extends React.Component {
   }
 
   updateMenu () {
-    ipcRenderer.send('topmenu:update', {
-      subComponents: this.project.describeSubComponents(),
-    });
+    ipcRenderer.send('topmenu:update', this.project.describeTopMenu());
   }
 
   handleActiveComponentReady () {

@@ -291,6 +291,22 @@ class Project extends BaseModel {
     })
   }
 
+  describeUndoState () {
+    const ac = this.getCurrentActiveComponent()
+    const filter = (doable) => !doable.ac || doable.ac === ac
+    return {
+      canUndo: this.actionStack.getUndoables().filter(filter).length > 0,
+      canRedo: this.actionStack.getRedoables().filter(filter).length > 0
+    }
+  }
+
+  describeTopMenu () {
+    return {
+      subComponents: this.describeSubComponents(),
+      undoState: this.describeUndoState()
+    }
+  }
+
   getExistingComponentNames () {
     const names = {
       'main': true // Never allow 'main'

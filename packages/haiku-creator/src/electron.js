@@ -137,6 +137,7 @@ function createWindow () {
     isSaving: false,
     isProjectOpen: false,
     subComponents: [],
+    undoState: {canUndo: false, canRedo: false},
   };
 
   topmenu.create(topmenuOptions);

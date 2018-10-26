@@ -52,6 +52,7 @@ function createWindow () {
     isSaving: false,
     isProjectOpen: true,
     subComponents: [],
+    undoState: {canUndo: false, canRedo: false},
   });
 
   ipcMain.on('topmenu:update', (ipcEvent, nextTopmenuOptions) => {

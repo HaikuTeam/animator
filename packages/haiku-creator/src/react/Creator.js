@@ -1363,9 +1363,7 @@ export default class Creator extends React.Component {
   }
 
   updateMenu () {
-    ipcRenderer.send('topmenu:update', {
-      subComponents: this.state.projectModel.describeSubComponents(),
-    });
+    ipcRenderer.send('topmenu:update', this.state.projectModel.describeTopMenu());
   }
 
   handleActiveComponentReady () {
@@ -1605,7 +1603,7 @@ export default class Creator extends React.Component {
         isUserAuthenticated: user && organization,
       });
       this.teardownMaster({shouldFinishTour: true});
-      ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false});
+      ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
     });
   }
 
