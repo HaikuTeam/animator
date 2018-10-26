@@ -979,6 +979,50 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
+   * @method unconglomerateComponent
+   */
+  unconglomerateComponent (
+    componentIds,
+    name,
+    size,
+    translation,
+    coords,
+    propertiesSerial,
+    options = {},
+    metadata,
+    cb
+  ) {
+    Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => this.project.updateHook(
+      'unconglomerateComponent',
+      this.getRelpath(),
+      // Note that we only actually need the name of the component we're unconglomerating to do the unconglomeration.
+      // The reason for all these params is so we can also REDO.
+      componentIds,
+      name,
+      size,
+      translation,
+      coords,
+      propertiesSerial,
+      options,
+      metadata,
+      (fire) => {
+        this.fetchActiveBytecodeFile().updateInMemoryHotModule(
+          this.snapshots.pop(),
+          () => {
+            this.project.deleteSceneByName(name, () => {
+              release()
+              this.moduleSync(() => {
+                fire()
+                cb()
+              })
+            })
+          }
+        )
+      })
+    )
+  }
+
+  /**
    * @method conglomerateComponent
    * @description Given a list of existing component ids on stage, create a component
    * from them and place the result on the stage
@@ -999,7 +1043,7 @@ class ActiveComponent extends BaseModel {
     })
 
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.project.updateHook(
+      return this.pushBytecodeSnapshot(() => this.project.updateHook(
         'conglomerateComponent',
         this.getRelpath(),
         componentIds,
@@ -1042,7 +1086,7 @@ class ActiveComponent extends BaseModel {
             finish
           )
         }
-      )
+      ))
     })
   }
 
@@ -2288,6 +2332,24 @@ class ActiveComponent extends BaseModel {
     ], finish)
   }
 
+  destroy (cleanup = false) {
+    // If an instance has been created, knock it out.
+    if (this.$instance) {
+      this.$instance.context.contextUnmount()
+      this.$instance.context.getClock().stop()
+      this.$instance.context.destroy()
+    }
+
+    this.file.destroy(cleanup)
+
+    // Clean out any remaining model instances.
+    for (const klass of [MountElement, Artboard, SelectionMarquee, Timeline, Keyframe, Row, Element, ElementSelectionProxy]) {
+      klass.where({component: this}).forEach((instance) => instance.destroy())
+    }
+
+    super.destroy()
+  }
+
   moduleReload (moduleReloadMethod = 'basicReload', cb) {
     return this.fetchActiveBytecodeFile().mod[moduleReloadMethod](cb)
   }
@@ -2514,6 +2576,7 @@ class ActiveComponent extends BaseModel {
           return this.emit('error', err)
         }
 
+        this.fetchActiveBytecodeFile().requestAsyncContentFlush()
         return cb()
       })
     })

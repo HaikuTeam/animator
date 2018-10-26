@@ -283,9 +283,10 @@ export class Glass extends React.Component {
         return;
       }
 
-      // logger.info(`[glass] local update ${what}`)
-
       switch (what) {
+        case 'updateMenu':
+          this.updateMenu();
+          break;
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady();
           break;
@@ -306,9 +307,10 @@ export class Glass extends React.Component {
     });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
-      // logger.info(`[glass] remote update ${what}`)
-
       switch (what) {
+        case 'updateMenu':
+          this.updateMenu();
+          break;
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady();
           break;
@@ -345,15 +347,18 @@ export class Glass extends React.Component {
     }
   }
 
+  updateMenu () {
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.project.describeSubComponents(),
+    });
+  }
+
   handleActiveComponentReady () {
     // Reset direct selection before mounting new component
     Element.directlySelected = null;
 
     this.mountHaikuComponent();
-
-    ipcRenderer.send('topmenu:update', {
-      subComponents: this.project.describeSubComponents(),
-    });
+    this.updateMenu();
   }
 
   mountHaikuComponent () {

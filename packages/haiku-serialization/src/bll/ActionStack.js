@@ -498,6 +498,20 @@ BaseModel.extend(ActionStack)
  * in the ActiveComponent object prior to the data mutation.
  */
 ActionStack.METHOD_INVERTERS = {
+  conglomerateComponent: {
+    before: (ac, [componentIds, name, size, translation, coords, propertiesSerial, options]) => ({
+      method: ac.unconglomerateComponent.name,
+      params: [componentIds, name, size, translation, coords, propertiesSerial, options]
+    })
+  },
+
+  unconglomerateComponent: {
+    before: (ac, [componentIds, name, size, translation, coords, propertiesSerial, options]) => ({
+      method: ac.conglomerateComponent.name,
+      params: [componentIds, name, size, translation, coords, propertiesSerial, options]
+    })
+  },
+
   updateKeyframes: {
     before: (ac, [keyframeUpdates]) => {
       const previousUpdates = ac.snapshotKeyframeUpdates(keyframeUpdates)

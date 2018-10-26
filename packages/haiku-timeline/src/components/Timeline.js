@@ -304,9 +304,10 @@ class Timeline extends React.Component {
     });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, arg) => {
-      // logger.info(`[timeline] local update ${what}`)
-
       switch (what) {
+        case 'updateMenu':
+          this.updateMenu();
+          break;
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady();
           break;
@@ -319,9 +320,10 @@ class Timeline extends React.Component {
     });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
-      // logger.info(`[timeline] remote update ${what}`)
-
       switch (what) {
+        case 'updateMenu':
+          this.updateMenu();
+          break;
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady();
           break;
@@ -552,13 +554,17 @@ class Timeline extends React.Component {
     }
   }
 
+  updateMenu () {
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.project.describeSubComponents(),
+    });
+  }
+
   handleActiveComponentReady () {
     const timeline = this.getActiveComponent().getCurrentTimeline();
     this.mountHaikuComponent();
 
-    ipcRenderer.send('topmenu:update', {
-      subComponents: this.project.describeSubComponents(),
-    });
+    this.updateMenu();
 
     this.loadUserSettings();
     this.trackExportProgress();
