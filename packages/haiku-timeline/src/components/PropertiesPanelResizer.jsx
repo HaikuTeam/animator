@@ -26,10 +26,10 @@ class PropertiesPanelResizer extends React.PureComponent {
         <span id="properties-panel-resizer" style={{
           display: 'inline-block',
           position: 'fixed',
-          height: 'calc(100% - 45px)',
+          height: 'calc(100% - 80px)',
           width: 11,
           zIndex: zIndex.scrollShadow.base,
-          top: 0,
+          top: 35,
           borderRight: invisibleBorder,
           borderLeft: invisibleBorder,
           cursor: 'col-resize',
