@@ -214,7 +214,6 @@ Bytecode.padIds = (bytecode, padderFunction) => {
     const domId = node.attributes.id
     if (domId) {
       const fixedDomId = padderFunction(domId)
-      fixedReferences[domId] = fixedDomId
       fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})` // filter="url(...)"
       fixedReferences[`#${domId}`] = `#${fixedDomId}` // xlink:href="#path-3-abc123"
       node.attributes.id = fixedReferences[domId]
@@ -1225,24 +1224,42 @@ Bytecode.addDefaultCurveIfNecessary = (
   const property = bytecode.timelines[timelineName][selector][propertyName]
 
   if (property) {
-    const lastKeyframe = Object.keys(property)
-      .map(Number)
+    const orderedKeyframes = Object.keys(property)
+    .map(Number)
+    .sort((a, b) => a - b)
+
+    const lastKeyframe = orderedKeyframes
       .filter((time) => time < newKeyframeTime)
-      .sort((a, b) => a - b)
       .pop()
-    if (lastKeyframe !== undefined) {
-      if (property[lastKeyframe].curve === undefined) {
-        Bytecode.joinKeyframes(
-          bytecode,
-          componentId,
-          timelineName,
-          elementName,
-          propertyName,
-          lastKeyframe,
-          newKeyframeTime,
-          DEFAULT_CURVE
-        )
-      }
+
+    const nextKeyframe = orderedKeyframes
+      .filter((time) => time > newKeyframeTime)
+      .shift()
+
+    if (lastKeyframe !== undefined && property[lastKeyframe].curve === undefined) {
+      Bytecode.joinKeyframes(
+        bytecode,
+        componentId,
+        timelineName,
+        elementName,
+        propertyName,
+        lastKeyframe,
+        newKeyframeTime,
+        DEFAULT_CURVE
+      )
+    }
+
+    if (nextKeyframe) {
+      Bytecode.joinKeyframes(
+        bytecode,
+        componentId,
+        timelineName,
+        elementName,
+        propertyName,
+        newKeyframeTime,
+        nextKeyframe,
+        DEFAULT_CURVE
+      )
     }
   }
 }

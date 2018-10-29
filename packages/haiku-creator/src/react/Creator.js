@@ -1311,6 +1311,10 @@ export default class Creator extends React.Component {
               // console.info(`[creator] local update ${what}, args:`,args)
 
               switch (what) {
+                case 'updateMenu':
+                  this.updateMenu();
+                  break;
+
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady();
                   break;
@@ -1358,12 +1362,12 @@ export default class Creator extends React.Component {
     this.getActiveComponent().removeAllListeners('sustained-check:start');
   }
 
+  updateMenu () {
+    ipcRenderer.send('topmenu:update', this.state.projectModel.describeTopMenu());
+  }
+
   handleActiveComponentReady () {
     this.mountHaikuComponent();
-
-    ipcRenderer.send('topmenu:update', {
-      subComponents: this.state.projectModel.describeSubComponents(),
-    });
 
     // Reset not found identifiers in case we are switching current active component
     this.identifiersNotFound = [];
@@ -1599,7 +1603,7 @@ export default class Creator extends React.Component {
         isUserAuthenticated: user && organization,
       });
       this.teardownMaster({shouldFinishTour: true});
-      ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false});
+      ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
     });
   }
 

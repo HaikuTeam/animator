@@ -525,8 +525,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         ...this.standardTransformsForTimeline(timeline),
         ...this.transformsForLayerTimeline(timeline),
       },
-      [LayerKey.Width]: initialValueOr(timeline, 'sizeAbsolute.x', 0),
-      [LayerKey.Height]: initialValueOr(timeline, 'sizeAbsolute.y', 0),
+      [LayerKey.Width]: Math.round(initialValueOr(timeline, 'sizeAbsolute.x', 0)),
+      [LayerKey.Height]: Math.round(initialValueOr(timeline, 'sizeAbsolute.y', 0)),
     });
 
     this.layerStack.set(node, layers);
@@ -927,7 +927,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       toJSON: lottieAndroidStreamSafeToJson,
     };
 
-    const matches = getValueReferenceMatchArray(initialValue(timeline, 'fill'));
+    const matches = getValueReferenceMatchArray(initialValue(timeline, 'fill') + '');
 
     if (matches !== null) {
       // We matched a value reference, e.g. something like `fill ='url(#foobar)'`. This means we are dealing with a

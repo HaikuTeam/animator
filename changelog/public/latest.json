@@ -1,14 +1,17 @@
 {
   "sections": {
     "What's new": [
-      "Newly created keyframes are now automatically tweened."
+      "Newly created keyframes are now automatically tweened.",
+      "You can now undo and redo component creation."
     ],
     "Fixes": [
-      "Fixes crashes related to direct selection on specific SVG assets.",
-      "Fixes crashes in certain circumstances when creating states and undoing.",
-      "Fixes crashes when selecting autocompletion items with the mouse.",
-      "Fixes crashes when switching to Preview Mode with the Actions Editor open.",
-      "Fixes crashes when setting an invalid 'd' attribute to a path via the Timeline."
+      "Fixed crashes related to direct selection on specific SVG assets.",
+      "Fixed crashes when undoing creation of new state variables.",
+      "Fixed crashes when selecting autocomplete items with the mouse.",
+      "Fixed crashes when switching to Preview Mode with the Actions Editor open.",
+      "Fixed crashes when editing cluster properties from Code Mode.",
+      "Fixed crashes when setting an invalid 'd' attribute via the Timeline.",
+      "The Edit menu now only exposes options to undo/redo if there is actually something to undo or redo."
     ]
   }
 }

@@ -218,6 +218,8 @@ class ActionStack extends BaseModel {
     if (stack.length > MAX_UNDOABLES_LEN) {
       stack.shift()
     }
+
+    this.project.emit('update', 'updateMenu')
   }
 
   addUndoable (undoable, ac) {
@@ -373,9 +375,9 @@ class ActionStack extends BaseModel {
           !metadata.cursor
         ) {
           did = true
-          this.addUndoable(inverter, ac)
           // Reset the redo stack.
           this.redoables.length = 0
+          this.addUndoable(inverter, ac)
         } else if (metadata.cursor === ActionStack.CURSOR_MODES.undo) {
           did = true
           this.addUndoable(inverter, ac)
@@ -498,6 +500,20 @@ BaseModel.extend(ActionStack)
  * in the ActiveComponent object prior to the data mutation.
  */
 ActionStack.METHOD_INVERTERS = {
+  conglomerateComponent: {
+    before: (ac, [componentIds, name, size, translation, coords, propertiesSerial, options]) => ({
+      method: ac.unconglomerateComponent.name,
+      params: [componentIds, name, size, translation, coords, propertiesSerial, options]
+    })
+  },
+
+  unconglomerateComponent: {
+    before: (ac, [componentIds, name, size, translation, coords, propertiesSerial, options]) => ({
+      method: ac.conglomerateComponent.name,
+      params: [componentIds, name, size, translation, coords, propertiesSerial, options]
+    })
+  },
+
   updateKeyframes: {
     before: (ac, [keyframeUpdates]) => {
       const previousUpdates = ac.snapshotKeyframeUpdates(keyframeUpdates)

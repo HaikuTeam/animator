@@ -7,11 +7,9 @@ import {TourUtils} from '../types/enums';
 
 app.setName('Haiku');
 
-export interface TopMenuOptions {
-  isProjectOpen: boolean;
-  isSaving: boolean;
-  projectsList: PlumbingProject[];
-  subComponents: SubComponent[];
+export interface UndoState {
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export interface SubComponent {
@@ -22,6 +20,14 @@ export interface SubComponent {
 
 export interface TopMenuEventSender {
   send: (eventName: string, ...args: any[]) => void;
+}
+
+export interface TopMenuOptions {
+  isProjectOpen: boolean;
+  isSaving: boolean;
+  projectsList: PlumbingProject[];
+  subComponents: SubComponent[];
+  undoState: UndoState;
 }
 
 export default class TopMenu {
@@ -288,6 +294,7 @@ export default class TopMenu {
     editSubmenu.push({
       label: 'Undo',
       accelerator: 'CmdOrCtrl+Z',
+      enabled: this.options.undoState.canUndo,
       click: () => {
         this.sendActionToFirstReponderAndEmit('undo');
       },
@@ -296,6 +303,7 @@ export default class TopMenu {
     editSubmenu.push({
       label: 'Redo',
       accelerator: 'CmdOrCtrl+Shift+Z',
+      enabled: this.options.undoState.canRedo,
       click: () => {
         this.sendActionToFirstReponderAndEmit('redo');
       },

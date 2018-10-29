@@ -74,6 +74,18 @@ class File extends BaseModel {
     // Important: Please see afterInitialize for assigned properties
   }
 
+  destroy (cleanup = false) {
+    this.mod.destroy()
+    this.ast.destroy()
+
+    if (cleanup && this.options.doWriteToDisk) {
+      // Dangerous! Actually removes contents from disk.
+      fse.removeSync(this.getFolder())
+    }
+
+    super.destroy()
+  }
+
   // Hook called automatically by BaseModel during construction or upsert
   afterInitialize () {
     // Track how many times we've updated our in-memory content.
@@ -322,15 +334,6 @@ File.read = (folder, relpath, cb) => {
 
 File.isPathCode = (relpath) => {
   return _isFileCode(relpath)
-}
-
-File.expelOne = (folder, relpath, cb) => {
-  // TODO
-  const file = File.findById(path.join(folder, relpath))
-  if (file) {
-    file.destroy()
-  }
-  cb()
 }
 
 File.buildManaCacheKey = (folder, relpath) => {

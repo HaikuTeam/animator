@@ -274,6 +274,13 @@ class Project extends BaseModel {
     this._multiComponentTabs.push({ scenename, active })
   }
 
+  removeActiveComponentFromMultiComponentTabs (scenename) {
+    const index = this._multiComponentTabs.findIndex((tab) => tab.scenename === scenename)
+    if (index !== -1) {
+      this._multiComponentTabs.splice(index, 1)
+    }
+  }
+
   describeSubComponents () {
     return this._multiComponentTabs.map(({scenename, active}) => {
       return {
@@ -282,6 +289,22 @@ class Project extends BaseModel {
         title: toTitleCase(scenename)
       }
     })
+  }
+
+  describeUndoState () {
+    const ac = this.getCurrentActiveComponent()
+    const filter = (doable) => !doable.ac || doable.ac === ac
+    return {
+      canUndo: this.actionStack.getUndoables().filter(filter).length > 0,
+      canRedo: this.actionStack.getRedoables().filter(filter).length > 0
+    }
+  }
+
+  describeTopMenu () {
+    return {
+      subComponents: this.describeSubComponents(),
+      undoState: this.describeUndoState()
+    }
   }
 
   getExistingComponentNames () {
@@ -637,6 +660,37 @@ class Project extends BaseModel {
     this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
     this.platform.haiku.registry[activeComponentKey] = activeComponent
     this.addActiveComponentToMultiComponentTabs(activeComponent.getSceneName(), false)
+  }
+
+  removeActiveComponentFromRegistry (activeComponent) {
+    const activeComponentKey = path.join(
+      this.getFolder(),
+      activeComponent.getRelpath()
+    )
+    this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
+    delete this.platform.haiku.registry[activeComponentKey]
+    this.removeActiveComponentFromMultiComponentTabs(activeComponent.getSceneName())
+  }
+
+  deleteSceneByName (scenename, cb) {
+    // Note: this is a VERY ROUGH implementation of subcomponent destruction that is only meant to be used to undo
+    // subcomponent creation in its current form. If planning to use this for proper subcomponent deletion in any context,
+    // we would also need to find/destroy any subcomponent instances that would have require(...) broken by these actions.
+    const ac = this.findActiveComponentBySceneName(scenename)
+
+    if (!ac) {
+      // Bail if no ActiveComponent.
+      return cb()
+    }
+
+    // First unregister it from the UI.
+    this.removeActiveComponentFromRegistry(ac)
+    this.emit('update', 'updateMenu')
+
+    // Next actually destroy the corresponding BLL entities.
+    ac.destroy(true)
+
+    return cb()
   }
 
   upsertSceneByName (scenename, cb) {
