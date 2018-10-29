@@ -1785,13 +1785,11 @@ class Element extends BaseModel {
         const styleNode = Template.cleanMana(lodash.cloneDeep(descendantHaikuElement.node), {resetIds: true})
         styleNode.children = [descendantHaikuElement.memory.children[0]]
         extraNodes.push(styleNode)
-        return false
       } else if (
         (descendantHaikuElement.parent && descendantHaikuElement.parent.tagName === 'defs') ||
         DEFABLE_TAG_NAMES[descendantHaikuElement.tagName]
       ) {
         defs.push(descendantHaikuElement.node)
-        return false
       }
     })
 
