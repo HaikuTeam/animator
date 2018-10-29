@@ -43,6 +43,11 @@ export const interpolate = (
   now: number, curve: CurveDefinition, started: number, ends: number, origin: BytecodeStateType,
   destination: BytecodeStateType,
 ): BytecodeStateType => {
+  // Return early if we aren't tweening anything.
+  if (origin === destination) {
+    return origin;
+  }
+
   // If curve is a string, transform into a function using justCurves
   const curveFunc = typeof curve === 'string' ? justCurves[curve] : curve;
 
