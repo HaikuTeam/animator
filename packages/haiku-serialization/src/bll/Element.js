@@ -883,7 +883,7 @@ class Element extends BaseModel {
 
   getTitle () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
-    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || `<${this.getNameString()}>`
+    return (this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] + '') || `<${this.getNameString()}>`
   }
 
   setTitle (newTitle, metadata, cb) {
