@@ -1234,7 +1234,7 @@ Bytecode.addDefaultCurveIfNecessary = (
 
     const nextKeyframe = orderedKeyframes
       .filter((time) => time > newKeyframeTime)
-      .pop()
+      .shift()
 
     if (lastKeyframe !== undefined && property[lastKeyframe].curve === undefined) {
       Bytecode.joinKeyframes(
