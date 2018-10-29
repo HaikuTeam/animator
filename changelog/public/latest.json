@@ -10,6 +10,7 @@
       "Fixed crashes when selecting autocomplete items with the mouse.",
       "Fixed crashes when switching to Preview Mode with the Actions Editor open.",
       "Fixed crashes when editing cluster properties from Code Mode.",
+      "Fixed crashes when setting an invalid 'd' attribute via the Timeline.",
       "The Edit menu now only exposes options to undo/redo if there is actually something to undo or redo."
     ]
   }
