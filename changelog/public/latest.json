@@ -2,7 +2,8 @@
   "sections": {
     "What's new": [
       "Newly created keyframes are now automatically tweened.",
-      "You can now undo and redo component creation."
+      "You can now undo and redo subcomponent creation.",
+      "Creating a subcomponent no longer automatically switches to the subcomponent tab."
     ],
     "Fixes": [
       "Fixed crashes related to direct selection on specific SVG assets.",

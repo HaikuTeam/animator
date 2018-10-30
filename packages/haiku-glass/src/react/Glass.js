@@ -1144,8 +1144,6 @@ export class Glass extends React.Component {
           logger.error(err);
           return;
         }
-
-        this.editComponent(`./${nc.getRelpath()}`);
       },
     );
   }
