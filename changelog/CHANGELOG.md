@@ -1,6 +1,37 @@
 # Changelog
 
 
+## 4.3.1
+
+### Bug Fixes
+
+ * ensure Element#getTitle() returns a string
+ * ensure sizing
+ * pop/shift ht/@stristr
+ * do not remap context-free IDs back to their padded value when copying/pasting bytecode.
+ * ensure fill is a string before trying to match it.
+ * force groups in Lottie to have integer dimensions.
+ * better and safer checks for caching cluster values
+ * do not crash on invalid 'd' attributes
+ * prevent work to be lost when switching to preview mode from actions editor
+ * do not assume races when handling client methods is unable to resolve to an ActiveComponent instance.
+ * force actions editor to close in preview mode
+ * clear notices when backing out from project to dashboard.
+ * do not show double notices in Creator
+ * prevent the user from selecting monaco entries with the mouse causing a crash
+ * do not always delete state values before modifying them
+ * remove Experiment.GlassControlPointShadows leaks
+ * prevent possible crashes by trying to read from undefined
+ * safely check if a path exists before trying to read its properties
+ * do not crash on SVGPoints-related races during direct selection
+
+### Features
+
+ * add default curves to new keyframes if they have keyframes next
+ * actually perform scene deletion when unconglomerating a component.
+ * add the ability to undo component creation (implement custom snapshot pop on original component)
+ * automatically tween newly created keyframes
+
 ## 4.3.0
 
 ### Bug Fixes

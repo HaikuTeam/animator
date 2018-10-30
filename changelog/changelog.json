@@ -8436,5 +8436,122 @@
       "label": "fix",
       "message": "hide overflow of heading row controls"
     }
+  },
+  "4.3.1": {
+    "44876a49b89f8f608cc6eb3fffa5b6ae489a430a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure Element#getTitle() returns a string"
+    },
+    "37ed4e43f10ca9ad39ac9f9c1d3a93dd0f3b998b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure sizing"
+    },
+    "2f27027354a70c3e5806657fc64a320d3649dd77": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "pop/shift ht/@stristr"
+    },
+    "4c4cfcc90788d3599b87a8cc16559ecf9a958492": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add default curves to new keyframes if they have keyframes next"
+    },
+    "497ec0fb00aa8248f25f9da397d8dd37f2415d65": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not remap context-free IDs back to their padded value when copying/pasting bytecode."
+    },
+    "857bf3daf079448a9b9b71c5e2dcfad19416a454": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure fill is a string before trying to match it."
+    },
+    "2bd30b966def5986e6af6aadafcf8fe09a0f3325": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "force groups in Lottie to have integer dimensions."
+    },
+    "0d429966926c217db79cc5841c09d6f3c64195ba": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "actually perform scene deletion when unconglomerating a component."
+    },
+    "db4f17833eadd9bdf761aa5bc8d4d58b3981087b": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add the ability to undo component creation (implement custom snapshot pop on original component)"
+    },
+    "4a5684aa8828a97421a37d162654a943700bf835": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "better and safer checks for caching cluster values"
+    },
+    "8425e489434f0e86cd28b91cc6ad951b85d46fcf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash on invalid 'd' attributes"
+    },
+    "426be4ef268e7c1b92da1276ffc9a66d42fa2399": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "automatically tween newly created keyframes"
+    },
+    "ff9227be69d5de3edfb8f28cea67025b910bfa1c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent work to be lost when switching to preview mode from actions editor"
+    },
+    "f41ec5c0b5cc619face084b954e5b778e50b7a16": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not assume races when handling client methods is unable to resolve to an ActiveComponent instance."
+    },
+    "da3b1e4b5088909758ab95d4cc6631c9b17ada59": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "force actions editor to close in preview mode"
+    },
+    "5b343596fb23ab47ab1e57a6435e80526489478a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "clear notices when backing out from project to dashboard."
+    },
+    "7f8d5466181ed56a14f5a57dd8c1d5d10a1766b5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not show double notices in Creator"
+    },
+    "a9e3a55475c168123357b51eab0336975dc7aa0d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent the user from selecting monaco entries with the mouse causing a crash"
+    },
+    "b420fc0fb4a40bb7c2c7c4486f9ca3bba5eede2c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not always delete state values before modifying them"
+    },
+    "2676d2f475650dbec2e32168b74c07ccb2532208": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove Experiment.GlassControlPointShadows leaks"
+    },
+    "b4bf889974e529b664340e353d5c2e5e45ffab6d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent possible crashes by trying to read from undefined"
+    },
+    "1b74dd9de358db385df3abfe876c90fd7f3924ec": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "safely check if a path exists before trying to read its properties"
+    },
+    "076508c565368383df720a967f9317a1ee672c61": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash on SVGPoints-related races during direct selection"
+    }
   }
 }
