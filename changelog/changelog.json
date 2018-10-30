@@ -8553,5 +8553,32 @@
       "label": "fix",
       "message": "do not crash on SVGPoints-related races during direct selection"
     }
+  },
+  "4.3.2": {
+    "7d3a19b437e3aee6b7d041744192d66ebae864dc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only call upsertStateValue when the state value has in fact changed."
+    },
+    "a3ac8e06df3fdd205e0c108d842a0332e3c24bff": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not try to handle 'direct-selection-anchor' if there is not an Element.directlySelected"
+    },
+    "b54419e5bbfc4b4a3bbea9cead390d0af62f4b87": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "actually fix crash on element.getTitle(...).match(...)"
+    },
+    "42bbf288383bd6a9da77cc89328b867b9e597078": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add more crash-guards around direct selection"
+    },
+    "4f96cd0f9fe42837756dfa706eb5a7844c20eab8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash on invalid 'd' attributes"
+    }
   }
 }

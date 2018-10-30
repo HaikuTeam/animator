@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 4.3.2
+
+### Bug Fixes
+
+ * only call upsertStateValue when the state value has in fact changed.
+ * do not try to handle 'direct-selection-anchor' if there is not an Element.directlySelected
+ * actually fix crash on element.getTitle(...).match(...)
+ * add more crash-guards around direct selection
+ * do not crash on invalid 'd' attributes
+
 ## 4.3.1
 
 ### Bug Fixes
