@@ -1361,6 +1361,10 @@ export class Glass extends React.Component {
         // NOTE: meta used to determine if anchor or handle for <path> (see directSelectionMana.js)
         const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null;
 
+        if (!Element.directlySelected) {
+          break;
+        }
+
         // NOTE: go select the previous vertex when a RHS handle is selected
 
         // Convert between corners and curves
