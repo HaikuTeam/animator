@@ -213,20 +213,20 @@ class StateRow extends React.Component {
     }
   }
 
+  /**
+   * FIXME: we should not be triggering this listener on every click for every state row the entire time a project is open.
+   */
   submitChanges () {
-    const didNameChange = this.state.name !== this.props.stateName;
-    const didValueChange = this.state.desc.value !== this.state.valuePreEdit;
-
     // If the name has changed and this is not a newly created state, instead of changing
     // the name of the current state, we delete the state and create a new state with the
     // new name and the old value.
-    if (didNameChange && !this.props.isNew) {
+    if (this.state.name !== this.props.stateName && !this.props.isNew) {
       return this.props.deleteStateValue(this.props.stateName, () => {
         return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
       });
     }
 
-    if (didValueChange) {
+    if (this.state.desc.value !== this.state.valuePreEdit) {
       return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
     }
   }
