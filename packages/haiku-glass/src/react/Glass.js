@@ -2330,7 +2330,12 @@ export class Glass extends React.Component {
           (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom,
         );
       } else if (!this.isPreviewMode()) {
-        if (experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) && Element.directlySelected) {
+        if (
+          experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) &&
+          Element.directlySelected &&
+          this.selectedOriginalClickState &&
+          this.selectedOriginalClickState.attributes
+        ) {
           const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse());
           const transformedLastDown = transform2DPoint(lastMouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse());
           const transformedTotalDelta = {
@@ -2583,11 +2588,16 @@ export class Glass extends React.Component {
                     points[indices[i]].y += transformedTotalDelta.y;
                     if (!Globals.isAltKeyDown) {
                       // Move the handles with it
-                      if (points[indices[i]].curve) {
+                      if (points[indices[i]].curve && points[indices[i]].curve.hasOwnProperty('x2')) {
                         points[indices[i]].curve.x2 += transformedTotalDelta.x;
                         points[indices[i]].curve.y2 += transformedTotalDelta.y;
                       }
-                      if (indices[i] < points.length - 1 && points[indices[i] + 1].curve) {
+                      if (
+                        indices[i] < points.length - 1 &&
+                        points[indices[i] + 1] &&
+                        points[indices[i] + 1].curve &&
+                        points[indices[i] + 1].curve.hasOwnProperty('x1')
+                      ) {
                         points[indices[i] + 1].curve.x1 += transformedTotalDelta.x;
                         points[indices[i] + 1].curve.y1 += transformedTotalDelta.y;
                       }
@@ -2616,7 +2626,6 @@ export class Glass extends React.Component {
             }
           } else {
             // Moving the whole shape
-
             switch (Element.directlySelected.type) {
               case 'ellipse':
               case 'circle': {
