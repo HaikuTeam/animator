@@ -650,8 +650,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       // We're going to make two assets: an "image" and a "precomp".
       this.assets.push({
         [AssetKey.Id]: imageId,
-        [AssetKey.Width]: width,
-        [AssetKey.Height]: height,
+        [AssetKey.Width]: Math.round(width),
+        [AssetKey.Height]: Math.round(height),
         [AssetKey.Directory]: '',
         [AssetKey.Filename]: rawData,
         [AssetKey.IsInline]: 1,
@@ -705,8 +705,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
               ...this.transformsForLayerTimeline(timeline),
             },
           // Required here instead of transforms….
-          [LayerKey.Width]: initialValueOr(timeline, 'sizeAbsolute.x', width),
-          [LayerKey.Height]: initialValueOr(timeline, 'sizeAbsolute.y', height),
+          [LayerKey.Width]: Math.round(initialValueOr(timeline, 'sizeAbsolute.x', width)),
+          [LayerKey.Height]: Math.round(initialValueOr(timeline, 'sizeAbsolute.y', height)),
         },
       );
     } catch (e) {
