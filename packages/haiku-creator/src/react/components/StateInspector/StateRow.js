@@ -215,6 +215,7 @@ class StateRow extends React.Component {
 
   submitChanges () {
     const didNameChange = this.state.name !== this.props.stateName;
+    const didValueChange = this.state.desc.value !== this.state.valuePreEdit;
 
     // If the name has changed and this is not a newly created state, instead of changing
     // the name of the current state, we delete the state and create a new state with the
@@ -225,7 +226,9 @@ class StateRow extends React.Component {
       });
     }
 
-    return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
+    if (didValueChange) {
+      return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
+    }
   }
 
   handleClickOutside () {
