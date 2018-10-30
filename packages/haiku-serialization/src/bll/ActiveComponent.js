@@ -4080,6 +4080,10 @@ class ActiveComponent extends BaseModel {
   get nextSuggestedGroupName () {
     const reservations = []
     this.getElements().forEach((element) => {
+      const title = element.getTitle()
+      if (!title || typeof title !== 'string') {
+        return
+      }
       const matches = element.getTitle().match(/^group (\d+)$/i)
       if (matches) {
         reservations.push(Number(matches[1]))
