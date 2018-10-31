@@ -1,10 +1,8 @@
 {
   "sections": {
-    "What's new": [
-      "FIRST!"
-    ],
     "Fixes": [
-      "Fixed a crash related to pasting stuff while having selected a nested timeline row."
+      "Fixed a crash related to pasting with a nested timeline row selected.",
+      "Fixed occasional empty thumbnails on the share page for projects with subcomponents."
     ]
   }
 }

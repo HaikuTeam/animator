@@ -898,14 +898,25 @@ Template.cleanMana = (mana, {resetIds = false, suppressSubcomponents = true} = {
   const out = {}
   if (!mana) return null
   if (typeof mana === 'string') return mana
-  out.elementName = mana.elementName
 
   // cleanMana is used when producing a decycled (wire-ready) bytecode object during editing.
   // If the bytecode has any subcomponents, which are designated using the .elementName
   // in the same way the React designates components by the .type, then treat the
-  // node as a simple <div>. TODO: We may actually want to decycle the subcomponent here.
-  if (suppressSubcomponents && out.elementName && typeof out.elementName === 'object') {
-    out.elementName = 'div'
+  // node as a simple <div>.
+  if (mana.elementName && typeof mana.elementName === 'object' && mana.elementName !== null) {
+    if (suppressSubcomponents) {
+      out.elementName = 'div'
+    } else {
+      out.elementName = Bytecode.decycle(
+        mana.elementName,
+        {
+          cleanManaOptions: {resetIds, suppressSubcomponents},
+          doCleanMana: true
+        }
+      )
+    }
+  } else {
+    out.elementName = mana.elementName
   }
 
   out.attributes = mana.attributes
@@ -996,3 +1007,4 @@ module.exports = Template
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Element = require('./Element')
+const Bytecode = require('./Bytecode')
