@@ -336,13 +336,15 @@ export const synchronizePathStructure = (...paths: CurveSpec[][]) => {
   }
 
   const maxVerts = Math.max(...paths.map((path) => path.length));
-  paths.forEach((path) => {
+  const validPaths = paths.filter((path) => path.length);
+
+  validPaths.forEach((path) => {
     ensurePathClockwise(path);
     distributeTotalVertices(path, maxVerts);
     normalizePointCurves(path);
   });
 
-  for (let i = 0; i < paths.length - 1; i++) {
-    rotatePathForSmallestDistance(paths[i], paths[i + 1]);
+  for (let i = 0; i < validPaths.length - 1; i++) {
+    rotatePathForSmallestDistance(validPaths[i], validPaths[i + 1]);
   }
 };
