@@ -661,7 +661,7 @@ export default class ExpressionInput extends React.Component {
     const selectedRow = this.props.component.getSelectedRow();
     const text = clipboard.readText();
 
-    if (!selectedRow || !text) {
+    if (!selectedRow || !selectedRow.isProperty() || !text) {
       return false;
     }
 
