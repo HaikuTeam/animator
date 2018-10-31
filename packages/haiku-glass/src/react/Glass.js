@@ -1375,7 +1375,7 @@ export class Glass extends React.Component {
           const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d);
          // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
           const convertToCorner = (
-            (dataIndex === 0 && points[dataIndex + 1].curve &&
+            (dataIndex === 0 && points[dataIndex + 1] && points[dataIndex + 1].curve &&
               (points[dataIndex + 1].curve.x1 !== points[dataIndex].x || points[dataIndex + 1].curve.y1 !== points[dataIndex].y)
             ) ||
             (points[dataIndex].curve &&
@@ -2554,8 +2554,10 @@ export class Glass extends React.Component {
 
                 if (this.state.directSelectionAnchorActivation.meta !== null) {
                   // Modify a handle
-                  points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.x;
-                  points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.y;
+                  if (points[lastIndex] && points[lastIndex].curve) {
+                    points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.x;
+                    points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.y;
+                  }
                   if (!Globals.isAltKeyDown) {
                     // Mirror the opposite handle if it exists
                     let oppositeIndex = null;
@@ -2580,7 +2582,7 @@ export class Glass extends React.Component {
                     if (oppositeIndex && !points[oppositeIndex].curve) {
                       oppositeIndex = null;
                     }
-                    if (oppositeIndex) {
+                    if (oppositeIndex && points[oppositeIndex] && points[oppositeIndex].curve) {
                       points[oppositeIndex].curve[`x${oppositeHandle}`] -= transformedTotalDelta.x;
                       points[oppositeIndex].curve[`y${oppositeHandle}`] -= transformedTotalDelta.y;
                     }
@@ -2592,7 +2594,11 @@ export class Glass extends React.Component {
                     points[indices[i]].y += transformedTotalDelta.y;
                     if (!Globals.isAltKeyDown) {
                       // Move the handles with it
-                      if (points[indices[i]].curve && points[indices[i]].curve.hasOwnProperty('x2')) {
+                      if (
+                        points[indices[i]] &&
+                        points[indices[i]].curve &&
+                        points[indices[i]].curve.hasOwnProperty('x2')
+                      ) {
                         points[indices[i]].curve.x2 += transformedTotalDelta.x;
                         points[indices[i]].curve.y2 += transformedTotalDelta.y;
                       }
