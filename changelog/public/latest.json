@@ -4,7 +4,7 @@
       "FIRST!"
     ],
     "Fixes": [
-      "FIRST!"
+      "Fixed a crash related to pasting stuff while having selected a nested timeline row."
     ]
   }
 }
