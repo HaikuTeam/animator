@@ -26,6 +26,7 @@ class TimelineDraggable extends React.PureComponent {
     return (
       <DraggableCore
         id={this.props.id}
+        disabled={this.props.disabled}
         axis={this.props.axis}
         onStart={(dragEvent, dragData) => {
           this.callIfFunction('onStart', dragEvent, dragData);
