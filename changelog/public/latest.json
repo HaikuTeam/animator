@@ -3,7 +3,8 @@
     "Fixes": [
       "Fixed a crash related to pasting with a nested timeline row selected.",
       "Fixed occasional empty thumbnails on the share page for projects with subcomponents.",
-      "Fixed a crash related to using invalid 'd' attributes for a path."
+      "Fixed a crash related to using invalid 'd' attributes for a path.",
+      "Fixed a bug causing the Timeline to display non-existent keyframes."
     ]
   }
 }
