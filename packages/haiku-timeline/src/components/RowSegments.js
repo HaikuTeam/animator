@@ -72,7 +72,7 @@ export default class RowSegments extends React.Component {
           // The use of this.props.scope as part of the id/key is necessary so that
           // model updates are routed properly; if you remove it, things will break.
 
-          if (keyframe.isTransitionSegment()) {
+          if (keyframe.isTransitionSegment() && keyframe.next()) {
             segmentPieces.push(
               <TransitionBody
                 id={`keyframe-${keyframe.getUniqueKey()}-${this.props.scope}-transition-body`}
