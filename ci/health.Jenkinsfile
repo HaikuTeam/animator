@@ -103,20 +103,6 @@ pipeline {
                 }
             }
         }
-        stage('Build-Advance') {
-            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
-            steps {
-                milestone 1
-                notifyAdvancementRequest()
-                timeout(time: 1, unit: 'HOURS') {
-                    script {
-                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: (env.ghprbSourceBranch =~ /^rc-\d+\.\d+\.\d+$/) ? env.ghprbSourceBranch.replace('rc-', '') : '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
-                    }
-                    setBuildStatus(CONTEXT_BUILD, 'builds started', STATUS_PENDING)
-                }
-                milestone 2
-            }
-        }
         stage('Build') {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             parallel {
@@ -153,7 +139,7 @@ pipeline {
         stage('Push') {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             steps {
-                milestone 3
+                milestone 1
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
                     input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
@@ -162,7 +148,7 @@ pipeline {
                     sh """echo "//registry.npmjs.org/:_authToken=${env.NPM_AUTH_TOKEN}" > ~/.npmrc"""
                     nodeRun('./scripts/distro-push.js')
                 }
-                milestone 4
+                milestone 2
             }
             post {
                 success {
@@ -186,7 +172,7 @@ pipeline {
         stage('Syndicate') {
             when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
             steps {
-                milestone 5
+                milestone 3
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
                     input message: 'Syndicate release?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
@@ -194,7 +180,7 @@ pipeline {
                     setupBuild()
                     nodeRun('./scripts/distro-syndicate.js --non-interactive')
                 }
-                milestone 6
+                milestone 4
             }
             post {
                 success {
