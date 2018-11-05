@@ -605,7 +605,7 @@ ActionStack.METHOD_INVERTERS = {
 
   deleteKeyframe: {
     before: (ac, [componentId, timelineName, propertyName, keyframeMs]) => {
-      const elementName = ac.getElementNameOfComponentId(componentId)
+      const elementName = ac.getSafeElementNameOfComponentId(componentId)
       const oldValue = ac.getKeyframeValue(componentId, timelineName, keyframeMs, propertyName)
       const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName)
       return {
