@@ -1060,10 +1060,7 @@ export default class Creator extends React.Component {
 
   setInteractionMode (interactionMode) {
     if (this.state.projectModel) {
-      logger.time('projectModel.setInteractionMode');
-      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator', integrity: false}, () => {
-        logger.timeEnd('projectModel.setInteractionMode');
-      });
+      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator', integrity: false}, () => {});
     }
   }
 
@@ -1324,9 +1321,7 @@ export default class Creator extends React.Component {
                   break;
 
                 case 'setInteractionMode':
-                  logger.time('update handleInteractionModeChange');
                   this.handleInteractionModeChange(...args);
-                  logger.timeEnd('update handleInteractionModeChange');
                   break;
               }
             });
@@ -1341,9 +1336,7 @@ export default class Creator extends React.Component {
                   break;
 
                 case 'setInteractionMode':
-                  logger.time('remote-update handleInteractionModeChange');
                   this.handleInteractionModeChange(...args);
-                  logger.timeEnd('remote-update handleInteractionModeChange');
                   break;
               }
             });
@@ -1417,7 +1410,6 @@ export default class Creator extends React.Component {
   }
 
   mountHaikuComponent () {
-    logger.time('mountHaikuComponent');
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
       freeze: true, // No display means no need for overflow settings, etc
@@ -1428,7 +1420,6 @@ export default class Creator extends React.Component {
         what: 'component:mounted',
       });
     });
-    logger.timeEnd('mountHaikuComponent');
   }
 
   launchFolder (projectOptions, cb) {
