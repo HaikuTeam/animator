@@ -3122,6 +3122,11 @@ class ActiveComponent extends BaseModel {
     return element && element.elementName
   }
 
+  getSafeElementNameOfComponentId (componentId) {
+    const element = this.findTemplateNodeByComponentId(this.getReifiedBytecode().template, componentId)
+    return element && Element.safeElementName(element)
+  }
+
   getTimelineDescriptor (timelineName) {
     const bytecode = this.getReifiedBytecode()
     return bytecode && bytecode.timelines && bytecode.timelines[timelineName]
