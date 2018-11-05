@@ -6,6 +6,7 @@ export const WHITESPACE_REGEX = /\s+/;
 export const UNDERSCORE = '_';
 export const FALLBACK_SEMVER_VERSION = '0.0.0';
 export const FALLBACK_ORG_NAME = 'Unknown';
+export const FALLBACK_PROJECT_NAME = 'Unknown';
 export const FALLBACK_AUTHOR_NAME = 'Haiku User';
 export const DEFAULT_BRANCH_NAME = 'master';
 
@@ -26,7 +27,8 @@ export const getHaikuComponentInitialVersion = () => {
   return FALLBACK_SEMVER_VERSION;
 };
 
-export const getSafeProjectName = (name: string) => name.replace(WHITESPACE_REGEX, UNDERSCORE);
+export const getSafeProjectName = (name: string) =>
+  (name && name.replace(WHITESPACE_REGEX, UNDERSCORE)) || FALLBACK_PROJECT_NAME;
 
 export const getProjectNameSafeShort = (name: string) => getSafeProjectName(name).slice(0, 20);
 
