@@ -164,7 +164,7 @@ class Timeline extends React.Component {
 
   getKeyframeCoordinates = (keyframe) => {
     const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`);
-    return keyframeViewEl.firstChild.getBoundingClientRect();
+    return keyframeViewEl ? keyframeViewEl.firstChild.getBoundingClientRect() : null;
   };
 
   instantiateMarquee () {
