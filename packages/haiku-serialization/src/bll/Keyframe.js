@@ -918,7 +918,7 @@ Keyframe.findIntersectingWithArea = ({
 
       const freshBounds = viewCoordinatesProvider(keyframe)
 
-      return !(
+      return freshBounds && !(
         freshBounds.top > area.bottom ||
         area.top > freshBounds.bottom
       )
