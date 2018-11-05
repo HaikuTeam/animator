@@ -3,7 +3,7 @@ import * as lodash from 'lodash';
 import TimelineDraggable from './TimelineDraggable';
 import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import * as Property from 'haiku-serialization/src/bll/Property';
 
 const THROTTLE_TIME = 17; // ms
 
@@ -11,6 +11,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
   constructor (props) {
     super(props);
     this.handleProps(props);
+    this.canBeDragged = Property.canHaveKeyframes(props.keyframe.row.property.name, props.keyframe.element);
   }
 
   componentWillReceiveProps (nextProps) {
@@ -65,6 +66,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
     return (
       <TimelineDraggable
         axis="x"
+        disabled={!this.canBeDragged}
         onMouseDown={(mouseEvent) => {
           if (this.props.preventDragging) {
             return;

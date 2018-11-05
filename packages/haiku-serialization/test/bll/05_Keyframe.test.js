@@ -12,7 +12,7 @@ tape('Keyframe.01', (t) => {
   return setupTest('keyframe-01', (err, ac, rows, done) => {
     if (err) throw err
     t.equal(Keyframe.where({ _selected: true, component: ac }).length, 0, 'no kfs selected')
-    const kfs = rows[0].getKeyframes()
+    const kfs = rows[2].getKeyframes()
 
     // I am able to select a single keyframe by clicking on it
     fireClick(kfs[0], false)
@@ -130,10 +130,10 @@ tape('Keyframe.02', (t) => {
   t.plan(6)
   return setupTest('keyframe-02', (err, ac, rows, done) => {
     if (err) throw err
-    const kfs = rows[0].getKeyframes()
+    const kfs = rows[2].getKeyframes()
     // When I drag the keyframe at frame 0 a newly keyframe is created at frame 0
     t.equal(kfs[0].getMs(), 0, 'ms ok to begin')
-    t.equal(rows[0].getKeyframes().length, 6, '6 kfs to start')
+    t.equal(rows[2].getKeyframes().length, 6, '6 kfs to start')
     kfs[0].moveTo(50, 16.666)
     ac.commitAccumulatedKeyframeMovesDebounced()
 
@@ -143,7 +143,7 @@ tape('Keyframe.02', (t) => {
       if (once) return
       once = true
 
-      const kfs2 = rows[0].getKeyframes()
+      const kfs2 = rows[2].getKeyframes()
       t.equal(kfs2.length, 7, 'more kfs')
       t.equal(kfs2[0].getMs(), 0, 'new kf at 0 ok')
       t.equal(kfs2[1].getMs(), 50, 'kf moved ok')
@@ -165,7 +165,7 @@ tape('Keyframe.03', (t) => {
   t.plan(2)
   return setupTest('keyframe-03', (err, ac, rows, done) => {
     if (err) throw err
-    const kfs = rows[0].getKeyframes()
+    const kfs = rows[2].getKeyframes()
     t.equal(kfs.length, 6, 'kfs len ok')
 
     // I am able to delete a keyframe
@@ -178,7 +178,7 @@ tape('Keyframe.03', (t) => {
         t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete')
       }
     })
-    rows[0].deleteKeyframe(kfs[2], { from: 'test' })
+    rows[2].deleteKeyframe(kfs[2], { from: 'test' })
 
     process.env.HAIKU_SUBPROCESS = subproc
     done()
@@ -191,7 +191,7 @@ tape('Keyframe.04', (t) => {
   t.plan(3)
   return setupTest('keyframe-04', (err, ac, rows, done) => {
     if (err) throw err
-    const kfs = rows[0].getKeyframes()
+    const kfs = rows[2].getKeyframes()
     fireClick(kfs[0], false, { shift: false })
     t.equal(ac.checkIfSelectedKeyframesAreMovableToZero(), false, 'the first keyframe cannot be moved to zero')
     fireClick(kfs[1], false, { shift: false })
@@ -210,7 +210,7 @@ tape('Keyframe.05', (t) => {
   t.plan(2)
   return setupTest('keyframe-05', (err, ac, rows, done) => {
     if (err) throw err
-    const kfs = rows[0].getKeyframes()
+    const kfs = rows[2].getKeyframes()
     const cachedValue = kfs[0].value
 
     kfs[0].moveTo(50, 16.666)
@@ -221,7 +221,7 @@ tape('Keyframe.05', (t) => {
       if (what !== 'reloaded') return
       if (once) return
       once = true
-      const kfs2 = rows[0].getKeyframes()
+      const kfs2 = rows[2].getKeyframes()
 
       t.equal(kfs2[0].value, cachedValue, 'newly created keyframe at zero has initial value by default')
       t.equal(kfs2[1].value, cachedValue, 'moved keyframe keeps its value')
@@ -237,7 +237,7 @@ tape('Keyframe.06', (t) => {
   process.env.HAIKU_SUBPROCESS = 'timeline'
   return setupTest('keyframe-06', (err, ac, rows, done) => {
     if (err) throw err
-    const kfs = rows[0].getKeyframes()
+    const kfs = rows[2].getKeyframes()
     const selection = [kfs[0], kfs[1]]
 
     t.notOk(Keyframe.groupIsSingleTween([kfs[0]]), 'returns false if only one keyframe is selected')

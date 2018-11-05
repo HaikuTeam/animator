@@ -8,6 +8,7 @@ import * as Asset from 'haiku-serialization/src/bll/Asset';
 import * as Row from 'haiku-serialization/src/bll/Row';
 import * as File from 'haiku-serialization/src/bll/File';
 import * as Keyframe from 'haiku-serialization/src/bll/Keyframe';
+import * as Property from 'haiku-serialization/src/bll/Property';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -617,12 +618,29 @@ class Timeline extends React.Component {
     }
   }, 200);
 
+  canHaveKeyframes (type, model) {
+    if (type === 'cluster-row' && model.children && model.children.length > 0) {
+      return Property.canHaveKeyframes(model.children[0].property.name, model.element);
+    }
+
+    if (type === 'property-row') {
+      return Property.canHaveKeyframes(model.property.name, model.element);
+    }
+
+    if (type === 'keyframe-segment' || type === 'keyframe-transition') {
+      return Property.canHaveKeyframes(model.row.property.name, model.element);
+    }
+
+    return true;
+  }
+
   getPopoverMenuItems ({event, type, model, offset, curve}) {
     const items = [];
 
     const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes();
     const numSelectedKeyframes = selectedKeyframes.length;
     const isTweenableTransitionSegment = type === 'keyframe-segment' && (model && model.isTweenable());
+    const canHaveKeyframes = this.canHaveKeyframes(type, model);
     const isSingular = numSelectedKeyframes < 3;
 
     items.push({
@@ -630,6 +648,7 @@ class Timeline extends React.Component {
       enabled: (
         // During multi-select it's weird to show "Create Keyframe" in the menu
         isSingular &&
+        canHaveKeyframes &&
         (
           type === 'keyframe-segment' ||
           type === 'keyframe-transition' ||
@@ -660,7 +679,7 @@ class Timeline extends React.Component {
 
     items.push({
       label: 'Move to Frame 0',
-      enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
+      enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero() && canHaveKeyframes,
       onClick: () => {
         selectedKeyframes.forEach((keyframe) => {
           keyframe.moveTo(0, 0);

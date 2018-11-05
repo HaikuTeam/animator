@@ -3901,6 +3901,9 @@ class ActiveComponent extends BaseModel {
     const keyframeEndValue = Bytecode.unserializeValue(keyframeEndValueSerial, (ref) => {
       return this.evaluateReference(ref)
     })
+    const element = this.findElementByComponentId(componentId)
+
+    const actualKeyframeStartMs = element && !Property.canHaveKeyframes(propertyName, element) ? 0 : keyframeStartMs
 
     return this.project.updateHook(
       'createKeyframe',
@@ -3909,7 +3912,7 @@ class ActiveComponent extends BaseModel {
       timelineName,
       elementName,
       propertyName,
-      keyframeStartMs,
+      actualKeyframeStartMs,
       Bytecode.serializeValue(keyframeValue),
       Bytecode.serializeValue(keyframeCurve),
       keyframeEndMs,
@@ -3934,7 +3937,7 @@ class ActiveComponent extends BaseModel {
           }
         }
 
-        return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
+        return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, actualKeyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
           if (err) {
             logger.error(`[active component (${this.project.getAlias()})]`, err)
             return cb(err)
@@ -3950,7 +3953,7 @@ class ActiveComponent extends BaseModel {
                 this.rehydrate()
                 return
               }
-              const element = this.findElementByComponentId(componentId)
+
               if (!element) { // Entity may not exist in all views
                 return
               }
@@ -4837,3 +4840,4 @@ const SelectionMarquee = require('./SelectionMarquee')
 const Template = require('./Template')
 const Timeline = require('./Timeline')
 const TimelineProperty = require('./TimelineProperty')
+const Property = require('./Property')
