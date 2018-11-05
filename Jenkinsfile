@@ -229,7 +229,7 @@ void setBuildStatus(String context, String message, String state) {
 
 void setupBuild() {
     yarnInstallUnixLike()
-    nodeRun("./scripts/semver.js ${(env.haikuExplicitSemver == '') ? '--non-interactive' : "--explicit=${env.haikuExplicitSemver}"}")
+    nodeRun("./scripts/semver.js --non-interactive")
     nodeRun('./scripts/distro-configure.js --non-interactive')
     nodeRun('./scripts/distro-download-secrets.js')
 }
