@@ -1811,6 +1811,9 @@ export default class Creator extends React.Component {
   }
 
   showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
+    if (!this.envoyProject) {
+      return;
+    }
     this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projectToDuplicate});
     mixpanel.haikuTrack('creator:new-project:shown');
   }
