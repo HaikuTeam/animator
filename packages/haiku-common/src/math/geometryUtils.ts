@@ -240,6 +240,9 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: Vec2): bool
   if (element.type === 'use') {
     // tslint:disable-next-line:no-parameter-reassignment
     element = element.getTranscludedElement();
+    if (!element) {
+      return false;
+    }
   }
 
   const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse());
