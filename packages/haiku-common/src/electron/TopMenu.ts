@@ -1,5 +1,6 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
+import {getAccountUrl} from '../environments';
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
@@ -144,23 +145,29 @@ export default class TopMenu {
 
     const mainMenuPieces = [];
 
-    mainMenuPieces.push({
-      label: 'About Haiku',
-      click: () => {
-        shell.openExternal('https://www.haiku.ai/');
+    mainMenuPieces.push(
+      {
+        label: 'My Account',
+        click: () => {
+          shell.openExternal(getAccountUrl(''));
+        },
       },
-    });
-
-    mainMenuPieces.push({
-      label: 'Check for Updates',
-      click: () => {
-        this.sender.send('global-menu:check-updates');
+      {
+        label: 'About Haiku',
+        click: () => {
+          shell.openExternal('https://www.haiku.ai/');
+        },
       },
-    });
-
-    mainMenuPieces.push({
-      type: 'separator',
-    });
+      {
+        label: 'Check for Updates',
+        click: () => {
+          this.sender.send('global-menu:check-updates');
+        },
+      },
+      {
+        type: 'separator',
+      },
+    );
 
     if (process.env.NODE_ENV !== 'production') {
       mainMenuPieces.push({
@@ -184,15 +191,16 @@ export default class TopMenu {
       });
     }
 
-    mainMenuPieces.push({
-      type: 'separator',
-    });
-
-    mainMenuPieces.push({
-      label: 'Quit Haiku',
-      accelerator: 'CmdOrCtrl+Q',
-      role: 'quit',
-    });
+    mainMenuPieces.push(
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Quit Haiku',
+        accelerator: 'CmdOrCtrl+Q',
+        role: 'quit',
+      },
+    );
 
     const componentsSubSubmenu: any[] = [];
 
