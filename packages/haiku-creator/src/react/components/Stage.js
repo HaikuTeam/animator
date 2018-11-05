@@ -77,10 +77,7 @@ class Stage extends React.Component {
         this.props.setGlassInteractionToEditMode();
       }
 
-      logger.time('[stage] projectModel.setCurrentActiveComponent');
-      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {
-        logger.timeEnd('[stage] projectModel.setCurrentActiveComponent');
-      });
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
     }
   }
 
@@ -124,10 +121,7 @@ class Stage extends React.Component {
         this.props.setGlassInteractionToEditMode();
       }
 
-      logger.time('[stage] projectModel.setCurrentActiveComponent');
-      this.props.projectModel.setCurrentActiveComponent(this.state.aboutToChangeToComponent, {from: 'creator'}, () => {
-        logger.timeEnd('[stage] projectModel.setCurrentActiveComponent');
-      });
+      this.props.projectModel.setCurrentActiveComponent(this.state.aboutToChangeToComponent, {from: 'creator'}, () => {});
     }
 
     this.closeCodeEditorSavePopup();

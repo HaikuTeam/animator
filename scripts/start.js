@@ -115,7 +115,6 @@ if (FOLDER_CHOICES.hasOwnProperty(argv.preset)) {
   inputs.folderChoice = argv.preset;
 } else if (availablePresets[argv.preset]) {
   inputs.devChoice = argv.preset;
-  inputs.skipInitialBuild = true;
   inputs.folderChoice = availablePresets[argv.preset] || global.process.env.HAIKU_PROJECT_FOLDER;
 } else if (argv.preset === 'fast') {
   inputs.skipInitialBuild = true;
