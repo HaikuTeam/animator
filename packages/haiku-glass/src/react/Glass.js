@@ -1384,7 +1384,7 @@ export class Glass extends React.Component {
           );
 
           if (convertToCorner) {
-            if (dataIndex > 0) {
+            if (dataIndex > 0 && points[dataIndex] && points[dataIndex - 1]) {
               if (!points[dataIndex].curve) {
                 points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y};
               }
@@ -1392,7 +1392,7 @@ export class Glass extends React.Component {
               points[dataIndex].curve.y2 = points[dataIndex].y;
             }
 
-            if (dataIndex < points.length - 1) {
+            if (dataIndex < points.length - 1 && points[dataIndex] && points[dataIndex + 1]) {
               if (!points[dataIndex + 1].curve) {
                 points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y};
               }
@@ -1400,7 +1400,7 @@ export class Glass extends React.Component {
               points[dataIndex + 1].curve.y1 = points[dataIndex].y;
             }
           } else {
-            if (dataIndex > 0) {
+            if (dataIndex > 0 && points[dataIndex] && points[dataIndex - 1]) {
               if (!points[dataIndex].curve) {
                 points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y};
               }
@@ -1408,7 +1408,7 @@ export class Glass extends React.Component {
               points[dataIndex].curve.y2 = points[dataIndex].y;
             }
 
-            if (dataIndex < points.length - 1) {
+            if (dataIndex < points.length - 1 && points[dataIndex] && points[dataIndex + 1]) {
               if (!points[dataIndex + 1].curve) {
                 points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y};
               }
@@ -2579,7 +2579,7 @@ export class Glass extends React.Component {
                         oppositeIndex = 1;
                       } // 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
                     }
-                    if (oppositeIndex && !points[oppositeIndex].curve) {
+                    if (oppositeIndex && points[oppositeIndex] && !points[oppositeIndex].curve) {
                       oppositeIndex = null;
                     }
                     if (oppositeIndex && points[oppositeIndex] && points[oppositeIndex].curve) {
@@ -2753,6 +2753,9 @@ export class Glass extends React.Component {
                 }
                 const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d);
                 for (let i = 0; i < points.length; i++) {
+                  if (!points[i]) {
+                    continue;
+                  }
                   points[i].x += transformedTotalDelta.x;
                   points[i].y += transformedTotalDelta.y;
                   if (points[i].curve) {
