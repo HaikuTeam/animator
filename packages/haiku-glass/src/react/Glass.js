@@ -2558,7 +2558,7 @@ export class Glass extends React.Component {
                     points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.x;
                     points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.y;
                   }
-                  if (!Globals.isAltKeyDown) {
+                  if (!Globals.isSpecialKeyDown()) {
                     // Mirror the opposite handle if it exists
                     let oppositeIndex = null;
                     let oppositeHandle = null;
