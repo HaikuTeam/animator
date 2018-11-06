@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 4.3.3
+
+### Bug Fixes
+
+ * address more possible crashies related to direct selection.
+ * do not crash if we get to getSafeProjectName() without a project name.
+ * avoid sending subcomponents via websockets to prevent circular structures
+ * prevent crashes on race conditions during marquee select on timeline
+ * return false from isPointInsidePrimitive if no transcluded element is found
+ * do not show new project modal if not ready
+ * check if there's a next kf before rendering a transition segment
+ * don't allow to create keyframes for size properties on root
+ * avoid crashes from empty paths
+ * fully decycle subcomponents when cleaning mana
+ * only allow pasting expressions on property rows
+ * add more checks for unchecked curve access
+
 ## 4.3.2
 
 ### Bug Fixes

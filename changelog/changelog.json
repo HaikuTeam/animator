@@ -8580,5 +8580,67 @@
       "label": "fix",
       "message": "do not crash on invalid 'd' attributes"
     }
+  },
+  "4.3.3": {
+    "ea385490784089527ffe94fcf72af2f91d3340f6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "address more possible crashies related to direct selection."
+    },
+    "e9f224199f5eb290e15eaf9720189995f8507943": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash if we get to getSafeProjectName() without a project name."
+    },
+    "235aa09c09b2c87d80c2c7730d2baf7349d768d6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid sending subcomponents via websockets to prevent circular structures"
+    },
+    "916e77dcebfbaa436727a4d0d8e05967bf8b8cea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent crashes on race conditions during marquee select on timeline"
+    },
+    "e4e41e1d902dc36654e2527f9c879bed1615e4c1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "return false from isPointInsidePrimitive if no transcluded element is found"
+    },
+    "0a44cc22202e2e069ed69a4b284a35a9cd659ae2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not show new project modal if not ready"
+    },
+    "43346ea7dd3024eea8b445df80a6ab275a6bbdfa": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if there's a next kf before rendering a transition segment"
+    },
+    "f518069f17440b1ac64ca1bc3746cff9a25787c7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't allow to create keyframes for size properties on root"
+    },
+    "da83a9c500d8b327409ffe2e9b56fc308413e276": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid crashes from empty paths"
+    },
+    "6b14172c3beb07b3778edb7ddd6a1b50a95380de": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "fully decycle subcomponents when cleaning mana"
+    },
+    "229353958dc99a137ebd84bac46782613d555419": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only allow pasting expressions on property rows"
+    },
+    "2d74baa6cd875f8d0be5706c20d3b80ae8db1d84": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add more checks for unchecked curve access"
+    }
   }
 }
