@@ -8642,5 +8642,17 @@
       "label": "fix",
       "message": "add more checks for unchecked curve access"
     }
+  },
+  "4.3.4": {
+    "98ab219d6a4cf15e986da64f90e217c59b991a5f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash if we get to getSafeProjectName() without a project name."
+    },
+    "a0aee4e7382eacb6d2d6bb30f3894cdf4acadc03": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid crashes from empty paths"
+    }
   }
 }

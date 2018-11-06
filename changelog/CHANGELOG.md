@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 4.3.4
+
+### Bug Fixes
+
+ * do not crash if we get to getSafeProjectName() without a project name.
+ * avoid crashes from empty paths
+
 ## 4.3.3
 
 ### Bug Fixes
