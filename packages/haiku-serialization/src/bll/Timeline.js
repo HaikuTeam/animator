@@ -171,6 +171,7 @@ class Timeline extends BaseModel {
 
   pause () {
     this._playing = false
+    this._lastSeek = null
     if (!this.component.project.getEnvoyClient().isInMockMode()) {
       const channel = this.component.project.getEnvoyChannel('timeline')
       // Don't know why, but this can be undefined in some edge case/race
