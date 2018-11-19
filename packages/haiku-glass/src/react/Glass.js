@@ -609,13 +609,15 @@ export class Glass extends React.Component {
           break;
 
         case 'global-menu:cut':
-          if (this.fetchProxyElementForSelection().hasAnythingInSelectionButNotArtboard()) {
+          const proxy = this.safelyFetchProxyElementForSelection()
+          if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCutDebounced();
           }
           break;
 
         case 'global-menu:copy':
-          if (this.fetchProxyElementForSelection().hasAnythingInSelectionButNotArtboard()) {
+          const proxy = this.safelyFetchProxyElementForSelection()
+          if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCopyDebounced();
           }
           break;
@@ -3009,6 +3011,13 @@ export class Glass extends React.Component {
   fetchProxyElementForSelection () {
     const component = this.getActiveComponent();
     return ElementSelectionProxy.fromSelection(Element.where({component, _isSelected: true}), component);
+  }
+
+  safelyFetchProxyElementForSelection () {
+    const component = this.getActiveComponent();
+    if (component) {
+      return ElementSelectionProxy.fromSelection(Element.where({component, _isSelected: true}), component);
+    }
   }
 
   renderDirectSelection (element, selectedAnchorIndices, overlays) {
