@@ -168,7 +168,7 @@ const isRelative = (command: string): boolean => relativeCommands.indexOf(comman
 
 const optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 
-const getCommands = (d: string): string[] => d.match(validCommands);
+const getCommands = (d: string): string[] => d && d.match(validCommands);
 
 interface Token {
   type: string;
