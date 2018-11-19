@@ -858,7 +858,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       const stateSpec = allStates[stateSpecName];
 
       // 'null' is the signal for an empty prop, not undefined.
-      if (stateSpec.value === undefined) {
+      if (!stateSpec || stateSpec.value === undefined) {
         console.error(
           'Property `' +
           stateSpecName +
