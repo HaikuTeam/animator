@@ -94,9 +94,7 @@ class Snippets extends React.PureComponent {
   componentWillReceiveProps (newProps) {
     if (newProps.editor && !this.props.editor) {
 
-      newProps.editor.domElement
-      .querySelector('.monaco-editor')
-      .appendChild(this._rightGradientDiv);
+      newProps.editor.getDomNode().appendChild(this._rightGradientDiv);
 
       // Start snippet button position at line 0
       const newEditorOffsetTop = newProps.editor.getDomNode().offsetTop;
@@ -143,7 +141,7 @@ class Snippets extends React.PureComponent {
     if (this.hasCursorPosition()) {
       range = new monaco.Range(lineNumber, column, lineNumber, column);
     } else {
-      const allLines = this.props.editor.viewModel.lines.lines.length + 1;
+      const allLines = this.props.editor._modelData.viewModel.lines.lines.length + 1;
       range = new monaco.Range(allLines, 100, allLines, 100);
       // tslint:disable-next-line:no-parameter-reassignment
       injectable = `${injectable}`;

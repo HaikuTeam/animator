@@ -630,13 +630,13 @@
     tslib "^1.8.1"
 
 "@haiku/core@^3.1.32":
-  version "4.3.0"
+  version "4.3.5"
 
 "@haiku/core@^3.2.16":
-  version "4.3.0"
+  version "4.3.5"
 
 "@haiku/core@^3.4.6":
-  version "4.3.0"
+  version "4.3.5"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
@@ -6299,9 +6299,9 @@ moment@2.18.1:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
-monaco-editor@^0.14.3:
-  version "0.14.3"
-  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.14.3.tgz#7cc4a4096a3821f52fea9b10489b527ef3034e22"
+monaco-editor@^0.15.5:
+  version "0.15.5"
+  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.15.5.tgz#78e8bc2c41c08e75a9ac58b075a87d4db00ee7e7"
 
 move-concurrently@^1.0.1:
   version "1.0.1"
