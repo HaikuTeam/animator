@@ -126,21 +126,6 @@ class EventHandlerEditor extends React.PureComponent {
 
   // Define our own autocompletion items
     this.completionDisposer = monaco.languages.registerCompletionItemProvider('javascript', {
-      // FIXME: ugly hack to prevent crashes in monaco, this is [officially fixed in vscode][1]
-      // but we have to wait until [monaco is released again][2].
-      //
-      // [1]: https://github.com/Microsoft/vscode/pull/57617
-      // [2]: https://github.com/Microsoft/monaco-editor/issues/1139
-      resolveCompletionItem (item, token) {
-        for (const element of document.querySelectorAll('.monaco-list-row .contents')) {
-          element.addEventListener('mousedown', (mouseDownEvent) => {
-            mouseDownEvent.preventDefault();
-            mouseDownEvent.stopImmediatePropagation();
-          });
-        }
-
-        return item;
-      },
       provideCompletionItems (model, position) {
 
         // Get text from whole line until autocomplete position
@@ -180,7 +165,7 @@ class EventHandlerEditor extends React.PureComponent {
           completionItems.push(completionEntryWithInsertText);
         }
 
-        return completionItems;
+        return {suggestions: completionItems};
       },
     });
   }
