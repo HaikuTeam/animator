@@ -583,17 +583,26 @@ export class Glass extends React.Component {
 
         case 'global-menu:zoom-in':
           mixpanel.haikuTrack('creator:glass:zoom-in');
-          this.getActiveComponent().getArtboard().zoomIn(1 + SHORTCUT_ZOOM_FACTOR);
+          const component = this.getActiveComponent()
+          if (component) {
+            component.getArtboard().zoomIn(1 + SHORTCUT_ZOOM_FACTOR);
+          }
           break;
 
         case 'global-menu:zoom-out':
           mixpanel.haikuTrack('creator:glass:zoom-out');
-          this.getActiveComponent().getArtboard().zoomOut(1 + SHORTCUT_ZOOM_FACTOR);
+          const component = this.getActiveComponent()
+          if (component) {
+            component.getArtboard().zoomOut(1 + SHORTCUT_ZOOM_FACTOR);
+          }
           break;
 
         case 'global-menu:reset-viewport':
           mixpanel.haikuTrack('creator:glass:reset-viewport');
-          this.getActiveComponent().getArtboard().resetZoomPan();
+          const component = this.getActiveComponent()
+          if (component) {
+            component.getArtboard().resetZoomPan();
+          }
           break;
 
         case 'global-menu:set-active-component':
@@ -967,12 +976,15 @@ export class Glass extends React.Component {
 
   handlePaste () {
     mixpanel.haikuTrack('creator:glass:paste');
-    const pasteables = ElementSelectionProxy.getPasteables();
-    return this.fetchProxyElementForSelection().pasteClipsAndSelect(
-      pasteables,
-      {from: 'glass'},
-      () => {},
-    );
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy) {
+      const pasteables = ElementSelectionProxy.getPasteables();
+      return proxy.pasteClipsAndSelect(
+        pasteables,
+        {from: 'glass'},
+        () => {},
+      );
+    }
   }
 
   handleDelete () {
@@ -1002,7 +1014,7 @@ export class Glass extends React.Component {
   executeGroup () {
     const proxy = this.fetchProxyElementForSelection();
     // Make sure we can group (i.e. between opening popup and executing, bytecode could be edit by an external tool)
-    if (proxy.canGroup()) {
+    if (proxy && proxy.canGroup()) {
       // We need to unselect the group members otherwise dragging the group
       // will also drag the inner elements, resulting in undesired offsets
       proxy.selection.forEach((element) => {
@@ -1016,7 +1028,7 @@ export class Glass extends React.Component {
 
   handleGroup () {
     const proxy = this.fetchProxyElementForSelection();
-    if (proxy.canGroup()) {
+    if (proxy && proxy.canGroup()) {
       mixpanel.haikuTrack('creator:glass:group');
 
       const ac = this.getActiveComponent();
@@ -1038,7 +1050,7 @@ export class Glass extends React.Component {
 
   executeUngroup () {
     const proxy = this.fetchProxyElementForSelection();
-    if (proxy.canUngroup()) {
+    if (proxy && proxy.canUngroup()) {
       proxy.ungroup({from: 'glass'});
       mixpanel.haikuTrack('creator:glass:ungrouped');
     }
@@ -1046,7 +1058,7 @@ export class Glass extends React.Component {
 
   handleUngroup () {
     const proxy = this.fetchProxyElementForSelection();
-    if (proxy.canUngroup()) {
+    if (proxy && proxy.canUngroup()) {
       mixpanel.haikuTrack('creator:glass:ungroup');
       if (this.getActiveComponent().elementHasTransitionOrExpression(proxy.selection[0].getComponentId())) {
         this.props.websocket.send({
