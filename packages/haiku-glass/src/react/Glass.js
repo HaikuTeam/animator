@@ -609,14 +609,14 @@ export class Glass extends React.Component {
           break;
 
         case 'global-menu:cut':
-          const proxy = this.safelyFetchProxyElementForSelection()
+          const proxy = this.fetchProxyElementForSelection()
           if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCutDebounced();
           }
           break;
 
         case 'global-menu:copy':
-          const proxy = this.safelyFetchProxyElementForSelection()
+          const proxy = this.fetchProxyElementForSelection()
           if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCopyDebounced();
           }
@@ -3009,11 +3009,6 @@ export class Glass extends React.Component {
   }
 
   fetchProxyElementForSelection () {
-    const component = this.getActiveComponent();
-    return ElementSelectionProxy.fromSelection(Element.where({component, _isSelected: true}), component);
-  }
-
-  safelyFetchProxyElementForSelection () {
     const component = this.getActiveComponent();
     if (component) {
       return ElementSelectionProxy.fromSelection(Element.where({component, _isSelected: true}), component);
