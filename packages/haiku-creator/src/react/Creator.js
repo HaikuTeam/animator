@@ -1293,6 +1293,8 @@ export default class Creator extends React.Component {
                   // And if we don't have anything assigned, assume we're editing the main component
                   this.state.projectModel.setCurrentActiveComponent('main', {from: 'creator'}, () => { });
                 }
+
+                ipcRenderer.send('topmenu:update', {isProjectOpen: true});
               });
             });
 

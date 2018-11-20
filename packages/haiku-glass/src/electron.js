@@ -50,7 +50,7 @@ function createWindow () {
   topmenu.create({
     projectsList: [],
     isSaving: false,
-    isProjectOpen: true,
+    isProjectOpen: false,
     subComponents: [],
     undoState: {canUndo: false, canRedo: false},
   });
