@@ -249,7 +249,6 @@ class StageTitleBar extends React.Component {
           }
 
           ipcRenderer.send('topmenu:update', {
-            isProjectOpen: !!masterState.folder,
             isSaving: !!masterState.isSaving,
             ...this.props.projectModel.describeTopMenu(),
           });
