@@ -133,7 +133,7 @@ export const DASH_STYLES: React.CSSProperties = {
   deleted: {
     transform: 'scale(.00001)',
     flex: '.00001',
-    minWidth: '0',
+    minWidth: 'auto',
     marginLeft: 0,
     marginRight: 0,
   },
