@@ -8654,5 +8654,67 @@
       "label": "fix",
       "message": "avoid crashes from empty paths"
     }
+  },
+  "4.3.5": {
+    "698752b6610ae11abb42d79098ec13d6643f4bee": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if moveTo is defined before trying to read from it"
+    },
+    "90f3ce9a684afae5d786ec4a4d57e69bb1376335": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable project interactions while a project is being deleted"
+    },
+    "256fdeca746ef926c7061da26af24eb6e6c80903": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if the descriptor exists before trying to acces values from it"
+    },
+    "164834695da14fbd21aec8241f785dba846a1a97": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set isProjectOpen to true in standalone mode"
+    },
+    "ee75a6483953216b91a5f17614c1f3e529d4e373": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent crashes when trying to invoke ElementSelectionProxy during init"
+    },
+    "64cac717be24edbe59a2c454e0d601bbe85237b8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only enable top menu project options when all webviews have a project model"
+    },
+    "a39880500403858154e4c4025733dced1cd1ac69": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "upgrade monaco to v0.15.5"
+    },
+    "1e3993d5723ee935c0a2948000cefbad4c130793": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "always check for component existence when fetchingElementForSelection"
+    },
+    "18bf7d3fb0e12ba3e408d6b16dd450daf355c65a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash if we cannot find the state spec"
+    },
+    "63de0ffb41880bfb3ba47858de6ffe26121beb4a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent crashes when trying to set up ElementSelectionProxy"
+    },
+    "f071620b0a1bb231cf28eadd10b0e736aeef869c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check for existence of element before trying to match"
+    },
+    "309d82bfd0a9bd3882f88c6ef61abf006bb9ebb5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "unset _lastSeek when pausing"
+    }
   }
 }

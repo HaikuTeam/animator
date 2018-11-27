@@ -1,5 +1,5 @@
 {
   "name": "haiku-vendor-legacy",
-  "version": "4.3.5",
+  "version": "4.3.6",
   "description": "Deprecated \"vendored in\" packages originally from @haiku/core. When time allows, replace these with their original deps."
 }

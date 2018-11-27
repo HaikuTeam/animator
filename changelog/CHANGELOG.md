@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 4.3.5
+
+### Bug Fixes
+
+ * check if moveTo is defined before trying to read from it
+ * disable project interactions while a project is being deleted
+ * check if the descriptor exists before trying to acces values from it
+ * set isProjectOpen to true in standalone mode
+ * prevent crashes when trying to invoke ElementSelectionProxy during init
+ * only enable top menu project options when all webviews have a project model
+ * upgrade monaco to v0.15.5
+ * always check for component existence when fetchingElementForSelection
+ * do not crash if we cannot find the state spec
+ * prevent crashes when trying to set up ElementSelectionProxy
+ * check for existence of element before trying to match
+ * unset _lastSeek when pausing
+
 ## 4.3.4
 
 ### Bug Fixes
