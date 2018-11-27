@@ -420,7 +420,7 @@ const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
       if (upperCaseCommand === 'Z') {
         prevPoint.closed = true;
       }
-      if (prevPoint.x !== moveTo.x || prevPoint.y !== moveTo.y) {
+      if (moveTo !== undefined && (prevPoint.x !== moveTo.x || prevPoint.y !== moveTo.y)) {
         points.push({
           x: moveTo.x,
           y: moveTo.y,
