@@ -125,10 +125,10 @@ class ProjectBrowser extends React.Component {
             });
             break;
         }
-        this.setState({error});
+        this.setState({error, areProjectsLoading: false});
         return;
       }
-      this.setState({projectsList}, this.updateDimensions);
+      this.setState({projectsList, areProjectsLoading: false}, this.updateDimensions);
       this.props.onProjectsList(projectsList);
     });
   }
@@ -171,7 +171,7 @@ class ProjectBrowser extends React.Component {
     const projectsList = this.state.projectsList;
     const projectToDelete = projectsList.find((project) => project.projectName === this.state.projToDelete);
     projectToDelete.isDeleted = true;
-    this.setState({projectsList}, () => {
+    this.setState({projectsList, areProjectsLoading: true}, () => {
       this.requestDeleteProject(projectToDelete, (deleteError) => {
         if (deleteError) {
           this.props.createNotice({
@@ -409,6 +409,7 @@ class ProjectBrowser extends React.Component {
           <ProjectThumbnail
             key={projectObject.projectName}
             allowDelete={this.props.isOnline || projectObject.local}
+            allowInteractions={!this.state.areProjectsLoading}
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectExistsLocally={projectObject.projectExistsLocally}

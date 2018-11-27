@@ -17,6 +17,12 @@ class ProjectThumbnail extends React.Component {
     };
   }
 
+  launchProjectIfAllowed = () => {
+    if (this.props.allowInteractions) {
+      this.props.launchProject()
+    }
+  }
+
   render () {
     return (
       <div
@@ -55,14 +61,18 @@ class ProjectThumbnail extends React.Component {
           ]}
           onClick={() => {
             if (!this.state.isMenuActive) {
-              this.props.launchProject();
+              this.launchProjectIfAllowed()
             }
           }}
           onMouseOver={() => {
-            this.setState({isHovered: true});
+            if (this.props.allowInteractions) {
+              this.setState({isHovered: true});
+            }
           }}
           onMouseLeave={() => {
-            this.setState({isHovered: false});
+            if (this.props.allowInteractions) {
+              this.setState({isHovered: false});
+            }
           }}
         >
           <span
@@ -111,21 +121,23 @@ class ProjectThumbnail extends React.Component {
           </span>}
         </div>
         <div
-            onClick={this.props.launchProject}
+            onClick={this.launchProjectIfAllowed}
             style={DASH_STYLES.titleStrip}
         >
           <span style={DASH_STYLES.title}>
             {this.props.projectName}
           </span>
-          {(this.props.allowDelete || this.props.projectExistsLocally) && <span
+          {(this.props.allowDelete || this.props.projectExistsLocally) && this.props.allowInteractions && <span
             title="Show project options"
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
             onClick={(e) => {
               // Prevend launching project, as parent div has onClick handler
               e.stopPropagation();
-              this.setState({
-                isMenuActive: !this.state.isMenuActive,
-              });
+              if (this.props.allowInteractions) {
+                this.setState({
+                  isMenuActive: !this.state.isMenuActive,
+                });
+              }
             }}
           >
             <StackMenuSVG color={Palette.SUNSTONE} width="5px" height="12px" />
