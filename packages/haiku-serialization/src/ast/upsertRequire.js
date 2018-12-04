@@ -1,5 +1,5 @@
-var _ = require('lodash')
-var matchesRequire = require('./matchesRequire')
+let _ = require('lodash');
+let matchesRequire = require('./matchesRequire');
 
 /**
  * @function upsertRequire
@@ -12,12 +12,10 @@ module.exports = function upsertRequire (ast, identifierName, modulePath) {
   // TODO: Mutate line numbers so we don't end up with a bunch of nodes on the same line
 
   // we don't need a full traversal, since we know our require stmts are at the root
-  var match = _.find(ast.program.body, function (stmt) {
-    return matchesRequire(stmt, identifierName, modulePath)
-  })
+  const match = _.find(ast.program.body, (stmt) => matchesRequire(stmt, identifierName, modulePath));
 
   if (match) {
-    return null
+    return null;
   }
 
   ast.program.body.unshift({
@@ -27,24 +25,24 @@ module.exports = function upsertRequire (ast, identifierName, modulePath) {
       type: 'VariableDeclarator',
       id: {
         type: 'Identifier',
-        name: identifierName
+        name: identifierName,
       },
       init: {
         type: 'CallExpression',
         callee: {
           type: 'Identifier',
-          name: 'require'
+          name: 'require',
         },
         arguments: [
           {
             type: 'StringLiteral',
             value: modulePath,
             extra: {
-              raw: JSON.stringify(modulePath)
-            }
-          }
-        ]
-      }
-    }]
-  })
-}
+              raw: JSON.stringify(modulePath),
+            },
+          },
+        ],
+      },
+    }],
+  });
+};

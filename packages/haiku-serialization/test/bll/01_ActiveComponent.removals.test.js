@@ -1,54 +1,64 @@
-const tape = require('tape')
-const path = require('path')
-const fse = require('haiku-fs-extra')
-const async = require('async')
+const tape = require('tape');
+const path = require('path');
+const fse = require('haiku-fs-extra');
+const async = require('async');
 
-const Project = require('./../../src/bll/Project')
+const Project = require('./../../src/bll/Project');
 
 tape('ActiveComponent.removals[1]', (t) => {
-  t.plan(4)
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'removals-1')
-  fse.removeSync(folder)
-  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
-  const platform = {}
-  const userconfig = {}
-  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
-  const envoyOptions = { mock: true }
+  t.plan(4);
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'removals-1');
+  fse.removeSync(folder);
+  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+  const platform = {};
+  const userconfig = {};
+  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+  const envoyOptions = {mock: true};
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) throw err
-      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1)
-      const ac0 = project.getCurrentActiveComponent()
+      if (err) {
+        throw err;
+      }
+      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1);
+      const ac0 = project.getCurrentActiveComponent();
       return async.series([
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
         (cb) => {
-          const root = ac0.fetchRootElement()
-          t.equal(root.children.length, 3)
-          const cid = ac0.getReifiedBytecode().template.children[1].attributes['haiku-id']
-          return ac0.deleteComponents([cid], {from: 'test'}, cb)
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
         },
         (cb) => {
-          const root = ac0.fetchRootElement()
-          t.equal(root.children.length, 2)
-          const remainingCids = ac0.getReifiedBytecode().template.children.map((node) => node.attributes['haiku-id'])
-          return ac0.deleteComponents(remainingCids, {from: 'test'}, cb)
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
         },
         (cb) => {
-          const root = ac0.fetchRootElement()
-          t.equal(root.children.length, 0)
-          return cb()
-        }
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
+        },
+        (cb) => {
+          const root = ac0.fetchRootElement();
+          t.equal(root.children.length, 3);
+          const cid = ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'];
+          return ac0.deleteComponents([cid], {from: 'test'}, cb);
+        },
+        (cb) => {
+          const root = ac0.fetchRootElement();
+          t.equal(root.children.length, 2);
+          const remainingCids = ac0.getReifiedBytecode().template.children.map((node) => node.attributes['haiku-id']);
+          return ac0.deleteComponents(remainingCids, {from: 'test'}, cb);
+        },
+        (cb) => {
+          const root = ac0.fetchRootElement();
+          t.equal(root.children.length, 0);
+          return cb();
+        },
       ], (err) => {
-        if (err) throw err
-        t.ok(true)
-        fse.removeSync(folder)
-        t.end()
-      })
-    })
-  })
-})
+        if (err) {
+          throw err;
+        }
+        t.ok(true);
+        fse.removeSync(folder);
+        t.end();
+      });
+    });
+  });
+});
 
 const CIRCLE_SVG_1 = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -87,4 +97,4 @@ const CIRCLE_SVG_1 = `
         </g>
     </g>
 </svg>
-`
+`;

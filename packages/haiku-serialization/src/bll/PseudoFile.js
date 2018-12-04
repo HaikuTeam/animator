@@ -1,4 +1,4 @@
-const BaseModel = require('./BaseModel')
+const BaseModel = require('./BaseModel');
 
 /**
  * @class PseudoFile
@@ -7,10 +7,10 @@ class PseudoFile extends BaseModel {}
 
 PseudoFile.DEFAULT_OPTIONS = {
   required: {
-    relpath: true
-  }
-}
+    relpath: true,
+  },
+};
 
-BaseModel.extend(PseudoFile)
+BaseModel.extend(PseudoFile);
 
-module.exports = PseudoFile
+module.exports = PseudoFile;

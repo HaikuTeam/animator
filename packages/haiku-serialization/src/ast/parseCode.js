@@ -1,14 +1,14 @@
-const {parse} = require('@babel/parser')
+const {parse} = require('@babel/parser');
 
 function parseCode (code, options) {
   try {
-    var parsed = parse(code, options || {
-      sourceType: 'module'
-    })
-    return parsed
+    const parsed = parse(code, options || {
+      sourceType: 'module',
+    });
+    return parsed;
   } catch (exception) {
-    return exception
+    return exception;
   }
 }
 
-module.exports = parseCode
+module.exports = parseCode;

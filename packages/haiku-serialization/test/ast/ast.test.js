@@ -46,7 +46,7 @@ tape.test('ast', (suite) => {
               leaveAlone3: {0: {value: {}}},
               leaveAlone4: {0: {value: 'blah', edited: true}},
               'sizeAbsolute.x': 5, // SHORTENED!
-              cheez: 'swiss' // SHORTENED!
+              cheez: 'swiss', // SHORTENED!
             },
           },
         },

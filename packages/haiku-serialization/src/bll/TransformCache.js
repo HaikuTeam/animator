@@ -1,7 +1,7 @@
 class TransformCache {
   constructor (host) {
-    this.host = host
-    this.cache = {}
+    this.host = host;
+    this.cache = {};
   }
 
   /**
@@ -18,16 +18,16 @@ class TransformCache {
    *      - alt-dragging to duplicate an element
    */
   set (key) {
-    const transform = this.host.getComputedLayout()
+    const transform = this.host.getComputedLayout();
     if (this.host.getOriginOffsetComposedMatrix) {
-      transform.originOffsetComposedMatrix = this.host.getOriginOffsetComposedMatrix()
+      transform.originOffsetComposedMatrix = this.host.getOriginOffsetComposedMatrix();
     }
-    this.cache[key] = transform
+    this.cache[key] = transform;
   }
 
   get (key) {
-    return this.cache[key]
+    return this.cache[key];
   }
 }
 
-module.exports = TransformCache
+module.exports = TransformCache;

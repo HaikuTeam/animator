@@ -1,37 +1,37 @@
-var isFunctionNode = require('./isFunctionNode')
-var getFunctionNodeName = require('./getFunctionNodeName')
-var getFunctionNodeParams = require('./getFunctionNodeParams')
-var getFunctionNodeBody = require('./getFunctionNodeBody')
-var computeUnaryExpression = require('./computeUnaryExpression')
+let isFunctionNode = require('./isFunctionNode');
+let getFunctionNodeName = require('./getFunctionNodeName');
+let getFunctionNodeParams = require('./getFunctionNodeParams');
+let getFunctionNodeBody = require('./getFunctionNodeBody');
+let computeUnaryExpression = require('./computeUnaryExpression');
 
 function OASTToRO (oast) {
   if (oast.type === 'ObjectExpression') {
-    var oout = {}
-    for (var i = 0; i < oast.properties.length; i++) {
-      var onode = oast.properties[i]
-      var key = onode.key.name || onode.key.value
-      oout[key] = OASTToRO(onode.value)
+    const oout = {};
+    for (let i = 0; i < oast.properties.length; i++) {
+      const onode = oast.properties[i];
+      const key = onode.key.name || onode.key.value;
+      oout[key] = OASTToRO(onode.value);
     }
     return {
-      __value: oout
-    }
+      __value: oout,
+    };
   }
 
   if (oast.type === 'ArrayExpression') {
-    var aout = []
-    for (var j = 0; j < oast.elements.length; j++) {
-      var anode = oast.elements[j]
-      aout[j] = OASTToRO(anode)
+    const aout = [];
+    for (let j = 0; j < oast.elements.length; j++) {
+      const anode = oast.elements[j];
+      aout[j] = OASTToRO(anode);
     }
     return {
-      __value: aout
-    }
+      __value: aout,
+    };
   }
 
   if (oast.type === 'Identifier') {
     return {
-      __reference: oast.name
-    }
+      __reference: oast.name,
+    };
   }
 
   if (isFunctionNode(oast)) {
@@ -41,19 +41,19 @@ function OASTToRO (oast) {
         kind: oast.kind,
         name: getFunctionNodeName(oast),
         params: getFunctionNodeParams(oast),
-        body: getFunctionNodeBody(oast)
-      }
-    }
+        body: getFunctionNodeBody(oast),
+      },
+    };
   }
 
   if (oast.type === 'NullLiteral') {
-    return null
+    return null;
   }
 
   if (oast.type === 'UnaryExpression') {
     return {
-      __value: computeUnaryExpression(oast)
-    }
+      __value: computeUnaryExpression(oast),
+    };
   }
 
   // Hacky special case where we handle Haiku.inject(function(){...}) and return the *inner function*
@@ -61,11 +61,13 @@ function OASTToRO (oast) {
     if (oast.callee && oast.callee.type === 'MemberExpression') {
       if (oast.callee.object.name === 'Haiku' && oast.callee.property.name === 'inject') {
         if (oast.arguments[0]) {
-          var rfo = OASTToRO(oast.arguments[0])
+          const rfo = OASTToRO(oast.arguments[0]);
           // Add this flag so the Haiku Core knows it needs to wrap the reified function
           // inside a Haiku.inject call so it is correctly bootstrapped during editing runtime
-          if (rfo && rfo.__function) rfo.__function.injectee = true
-          return rfo
+          if (rfo && rfo.__function) {
+            rfo.__function.injectee = true;
+          }
+          return rfo;
         }
       }
     }
@@ -73,8 +75,8 @@ function OASTToRO (oast) {
 
   // StringLiteral, etc
   return {
-    __value: oast.value
-  }
+    __value: oast.value,
+  };
 }
 
-module.exports = OASTToRO
+module.exports = OASTToRO;

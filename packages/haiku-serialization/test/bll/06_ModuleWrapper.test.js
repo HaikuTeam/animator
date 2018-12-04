@@ -1,49 +1,55 @@
-const async = require('async')
-const tape = require('tape')
-const path = require('path')
-const fse = require('haiku-fs-extra')
+const async = require('async');
+const tape = require('tape');
+const path = require('path');
+const fse = require('haiku-fs-extra');
 
-const Project = require('./../../src/bll/Project')
-const File = require('./../../src/bll/File')
-const Element = require('./../../src/bll/Element')
+const Project = require('./../../src/bll/Project');
+const File = require('./../../src/bll/File');
+const Element = require('./../../src/bll/Element');
 
 const waitUntilFileProbablyWroteToDisk = (fn) => {
-  return setTimeout(fn, 1000) // Disk writes happen on a 500ms interval
-}
+  return setTimeout(fn, 1000); // Disk writes happen on a 500ms interval
+};
 
 tape('ModuleWrapper', (t) => {
-  t.plan(1)
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01')
-  fse.removeSync(folder)
-  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
-  const platform = {}
-  const userconfig = {}
-  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
-  const envoyOptions = { mock: true }
+  t.plan(1);
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01');
+  fse.removeSync(folder);
+  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+  const platform = {};
+  const userconfig = {};
+  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+  const envoyOptions = {mock: true};
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
-      if (err) throw err
-      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1)
-      const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, mana) => {
-        if (err) throw err
+    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+      if (err) {
+ throw err;
+}
+      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1);
+      const ac0 = project.getCurrentActiveComponent();
+      return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, (err, mana) => {
+        if (err) {
+ throw err;
+}
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
-            if (err) throw err
+            if (err) {
+ throw err;
+}
 
             // Simulate what happens when @haiku/core is missing
-            const corePath = require.resolve('@haiku/core')
-            const coreCode = fse.readFileSync(corePath).toString()
-            fse.removeSync(corePath)
+            const corePath = require.resolve('@haiku/core');
+            const coreCode = fse.readFileSync(corePath).toString();
+            fse.removeSync(corePath);
 
             // Force a cache miss in ModuleWrapper so we do a full reload
-            delete require.cache[path.join(folder, 'code', 'main', 'code.js')]
+            delete require.cache[path.join(folder, 'code', 'main', 'code.js')];
 
-            const keyframeUpdates = {Default: {}}
-            const selector = `haiku:${mana.attributes['haiku-id']}`
-            keyframeUpdates.Default[selector] = {}
-            keyframeUpdates.Default[selector]['sizeAbsolute.x'] = {}
-            keyframeUpdates.Default[selector]['sizeAbsolute.x'][0] = {value: 100}
+            const keyframeUpdates = {Default: {}};
+            const selector = `haiku:${mana.attributes['haiku-id']}`;
+            keyframeUpdates.Default[selector] = {};
+            keyframeUpdates.Default[selector]['sizeAbsolute.x'] = {};
+            keyframeUpdates.Default[selector]['sizeAbsolute.x'][0] = {value: 100};
 
             try {
               ac0.updateKeyframes(
@@ -51,21 +57,21 @@ tape('ModuleWrapper', (t) => {
                 {},
                 {from: 'test'},
                 () => {
-                  fse.outputFileSync(corePath, coreCode)
-                  t.ok(true, 'recovered from missing @haiku/core')
-                }
-              )
+                  fse.outputFileSync(corePath, coreCode);
+                  t.ok(true, 'recovered from missing @haiku/core');
+                },
+              );
             } catch (exception) {
-              console.error(exception.message)
-              fse.outputFileSync(corePath, coreCode)
-              t.error('unable to recover from missing @haiku/core')
+              console.error(exception.message);
+              fse.outputFileSync(corePath, coreCode);
+              t.error('unable to recover from missing @haiku/core');
             }
-          })
-        })
-      })
-    })
-  })
-})
+          });
+        });
+      });
+    });
+  });
+});
 
 const CIRCLE_SVG_1 = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -104,4 +110,4 @@ const CIRCLE_SVG_1 = `
         </g>
     </g>
 </svg>
-`
+`;

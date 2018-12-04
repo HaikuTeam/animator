@@ -1,5 +1,5 @@
 function computeUnaryExpression (node) {
-  return Number(node.operator + node.argument.value)
+  return Number(node.operator + node.argument.value);
 }
 
-module.exports = computeUnaryExpression
+module.exports = computeUnaryExpression;

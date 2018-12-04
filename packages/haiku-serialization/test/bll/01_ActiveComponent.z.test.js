@@ -1,50 +1,74 @@
-const tape = require('tape')
-const path = require('path')
-const fse = require('haiku-fs-extra')
-const async = require('async')
+const tape = require('tape');
+const path = require('path');
+const fse = require('haiku-fs-extra');
+const async = require('async');
 
-const Project = require('./../../src/bll/Project')
-const File = require('./../../src/bll/File')
-const Element = require('./../../src/bll/Element')
+const Project = require('./../../src/bll/Project');
+const File = require('./../../src/bll/File');
+const Element = require('./../../src/bll/Element');
 
 const waitUntilFileProbablyWroteToDisk = (fn) => {
-  return setTimeout(fn, 2000) // Disk writes happen on a 500ms interval
-}
+  return setTimeout(fn, 2000); // Disk writes happen on a 500ms interval
+};
 
 tape('ActiveComponent.prototype.instantiateComponent-with-z', (t) => {
-  t.plan(6)
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-with-z-01')
-  fse.removeSync(folder)
-  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
-  const platform = {}
-  const userconfig = {}
-  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
-  const envoyOptions = { mock: true }
+  t.plan(6);
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-with-z-01');
+  fse.removeSync(folder);
+  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+  const platform = {};
+  const userconfig = {};
+  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+  const envoyOptions = {mock: true};
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
-      if (err) throw err
-      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1)
-      const ac0 = project.getCurrentActiveComponent()
+    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+      if (err) {
+        throw err;
+      }
+      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1);
+      const ac0 = project.getCurrentActiveComponent();
       return async.series([
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' } ]); return cb() },
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' } ]); return cb() },
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' }, { zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f' } ]); return cb() },
-        (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' }, { zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f' }, { zIndex: 4, haikuId: 'Circle-e176f05781147ca7' } ]); return cb() },
-        (cb) => { return ac0.zMoveBackward('a1ace0824b5d', 'Default', 0, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e' }, { zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255' }, { zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f' }, { zIndex: 4, haikuId: 'Circle-e176f05781147ca7' } ]); return cb() },
+        (cb) => {
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
+        },
+        (cb) => {
+          t.deepEqual(ac0.getRawStackingInfo('Default', 0), [{zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e'}]); return cb();
+        },
+        (cb) => {
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
+        },
+        (cb) => {
+          t.deepEqual(ac0.getRawStackingInfo('Default', 0), [{zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e'}, {zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255'}]); return cb();
+        },
+        (cb) => {
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
+        },
+        (cb) => {
+          t.deepEqual(ac0.getRawStackingInfo('Default', 0), [{zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e'}, {zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255'}, {zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f'}]); return cb();
+        },
+        (cb) => {
+          return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb);
+        },
+        (cb) => {
+          t.deepEqual(ac0.getRawStackingInfo('Default', 0), [{zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e'}, {zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255'}, {zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f'}, {zIndex: 4, haikuId: 'Circle-e176f05781147ca7'}]); return cb();
+        },
+        (cb) => {
+          return ac0.zMoveBackward('a1ace0824b5d', 'Default', 0, {from: 'test'}, cb);
+        },
+        (cb) => {
+          t.deepEqual(ac0.getRawStackingInfo('Default', 0), [{zIndex: 1, haikuId: 'Circle-c6c7407a1b09588e'}, {zIndex: 2, haikuId: 'Circle-21d1ab9f688d6255'}, {zIndex: 3, haikuId: 'Circle-d6c581ca76e44f6f'}, {zIndex: 4, haikuId: 'Circle-e176f05781147ca7'}]); return cb();
+        },
       ], (err) => {
-        if (err) throw err
-        fse.removeSync(folder)
-        t.ok(true)
-        t.end()
-      })
-    })
-  })
-})
+        if (err) {
+          throw err;
+        }
+        fse.removeSync(folder);
+        t.ok(true);
+        t.end();
+      });
+    });
+  });
+});
 
 const CIRCLE_SVG_1 = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -83,4 +107,4 @@ const CIRCLE_SVG_1 = `
         </g>
     </g>
 </svg>
-`
+`;

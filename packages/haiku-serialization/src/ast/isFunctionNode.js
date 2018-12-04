@@ -1,12 +1,12 @@
-var FUNCTION_NODE_TYPES = {
+let FUNCTION_NODE_TYPES = {
   FunctionExpression: true,
   ClassMethod: true,
   ArrowFunctionExpression: true,
-  ObjectMethod: true
-}
+  ObjectMethod: true,
+};
 
 function isFunctionNode (node) {
-  return (node.type in FUNCTION_NODE_TYPES)
+  return (node.type in FUNCTION_NODE_TYPES);
 }
 
-module.exports = isFunctionNode
+module.exports = isFunctionNode;

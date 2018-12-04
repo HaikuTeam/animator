@@ -8,7 +8,7 @@ module.exports = {
   fn: (item) => {
     // Clobber font-family on any/all nodes that try to declare it so users don't get their hopes up.
     if (item.hasAttr('font-family')) {
-      item.attr('font-family').value = 'Helvetica, Arial, sans-serif'
+      item.attr('font-family').value = 'Helvetica, Arial, sans-serif';
     }
-  }
-}
+  },
+};

@@ -1,64 +1,64 @@
 /* eslint-disable prefer-promise-reject-errors */
-const { URL, URLSearchParams } = require('url')
-const request = require('request')
-const fse = require('haiku-fs-extra')
-const path = require('path')
-const {inkstone} = require('@haiku/sdk-inkstone')
-const logger = require('../utils/LoggerInstance')
-const randomAlphabetical = require('../utils/randomAlphabetical')
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
-const {sanitize} = require('../utils/fileManipulation')
+const {URL, URLSearchParams} = require('url');
+const request = require('request');
+const fse = require('haiku-fs-extra');
+const path = require('path');
+const {inkstone} = require('@haiku/sdk-inkstone');
+const logger = require('../utils/LoggerInstance');
+const randomAlphabetical = require('../utils/randomAlphabetical');
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
+const {sanitize} = require('../utils/fileManipulation');
 
-const API_BASE = 'https://api.figma.com/v1/'
-const FIGMA_URL = 'https://www.figma.com/'
-const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh'
-const IS_FIGMA_FILE_RE = /\.figma$/
-const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
-const FIGMA_DEFAULT_FILENAME = 'Untitled'
+const API_BASE = 'https://api.figma.com/v1/';
+const FIGMA_URL = 'https://www.figma.com/';
+const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh';
+const IS_FIGMA_FILE_RE = /\.figma$/;
+const IS_FIGMA_FOLDER_RE = /\.figma\.contents/;
+const FIGMA_DEFAULT_FILENAME = 'Untitled';
 
 const VALID_TYPES = {
   SLICE: 'SLICE',
   GROUP: 'GROUP',
   FRAME: 'FRAME',
-  COMPONENT: 'COMPONENT'
-}
+  COMPONENT: 'COMPONENT',
+};
 const FOLDERS = {
   [VALID_TYPES.SLICE]: 'slices/',
   [VALID_TYPES.GROUP]: 'groups/',
   [VALID_TYPES.COMPONENT]: 'groups/',
-  [VALID_TYPES.FRAME]: 'frames/'
-}
+  [VALID_TYPES.FRAME]: 'frames/',
+};
 
-const MAX_ITEMS_TO_IMPORT = 100
+const MAX_ITEMS_TO_IMPORT = 100;
 
 const PRIORITY_TO_IMPORT = [
   VALID_TYPES.SLICE,
   VALID_TYPES.GROUP,
   VALID_TYPES.FRAME,
-  VALID_TYPES.COMPONENT
-]
+  VALID_TYPES.COMPONENT,
+];
 
-const uniqueNameResolver = {}
+const uniqueNameResolver = {};
 
-const PHONY_FIGMA_FILE = 'phony-haiku-helper-file.svg'
+const PHONY_FIGMA_FILE = 'phony-haiku-helper-file.svg';
 
 /**
  * @class Figma
  * @description
- *.  Collection of static class methods and constants related to Figma assets.
+ *  Collection of static class methods and constants related to Figma assets.
  */
 class Figma {
-  constructor ({ token, requestLib = request }) {
-    this._token = token
-    this._requestLib = requestLib
+  constructor ({token, requestLib = request}) {
+    this._token = token;
+    this._requestLib = requestLib;
   }
 
   set token (token) {
-    this._token = token
+    this._token = token;
   }
 
   get token () {
-    return this._token
+    return this._token;
   }
 
   /**
@@ -69,26 +69,28 @@ class Figma {
    * @returns {Promise}
    */
   importSVG ({url, projectFolder}) {
-    const {id} = Figma.parseProjectURL(url)
-    let assetBaseFolder
+    const {id} = Figma.parseProjectURL(url);
+    let assetBaseFolder;
 
-    logger.info('[figma] about to import document with id ' + id)
-    mixpanel.haikuTrack('creator:figma:fileImport:start')
+    logger.info('[figma] about to import document with id ' + id);
+    mixpanel.haikuTrack('creator:figma:fileImport:start');
 
     return this.fetchDocument(id)
       .then((rawDocument) => {
-        const document = JSON.parse(rawDocument)
-        const abspath = path.join(projectFolder, 'designs', `${id}-${document.name}.figma`)
-        assetBaseFolder = `${abspath}.contents`
-        this.createFolders(assetBaseFolder)
-        return document
+        const document = JSON.parse(rawDocument);
+        const abspath = path.join(projectFolder, 'designs', `${id}-${document.name}.figma`);
+        assetBaseFolder = `${abspath}.contents`;
+        this.createFolders(assetBaseFolder);
+        return document;
       })
       .then((document) => this.findInstantiableElements(document, id))
       .then((elements) => this.sortElementsByPriorityToImport(elements))
       .then((elements) => this.getSVGLinks(elements, id))
       .then((elements) => this.getSVGContents(elements))
       .then((elements) => this.writeSVGInDisk(elements, assetBaseFolder))
-      .then(() => { mixpanel.haikuTrack('creator:figma:fileImport:success') })
+      .then(() => {
+        mixpanel.haikuTrack('creator:figma:fileImport:success');
+      });
   }
 
   /**
@@ -97,8 +99,8 @@ class Figma {
    * @returns {Promise}
    */
   fetchDocument (id) {
-    const uri = API_BASE + 'files/' + id
-    return this.request({ uri })
+    const uri = API_BASE + 'files/' + id;
+    return this.request({uri});
   }
 
   /**
@@ -108,24 +110,24 @@ class Figma {
   createFolders (assetBaseFolder) {
     return new Promise((resolve, reject) => {
       try {
-        fse.emptyDirSync(assetBaseFolder)
+        fse.emptyDirSync(assetBaseFolder);
 
-        const sliceFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.SLICE])
-        fse.mkdirpSync(sliceFolder)
+        const sliceFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.SLICE]);
+        fse.mkdirpSync(sliceFolder);
 
-        const groupFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.GROUP])
-        fse.mkdirpSync(groupFolder)
+        const groupFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.GROUP]);
+        fse.mkdirpSync(groupFolder);
 
-        const frameFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.FRAME])
-        fse.mkdirpSync(frameFolder)
+        const frameFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.FRAME]);
+        fse.mkdirpSync(frameFolder);
 
-        fse.ensureFileSync(path.join(sliceFolder, PHONY_FIGMA_FILE))
+        fse.ensureFileSync(path.join(sliceFolder, PHONY_FIGMA_FILE));
 
-        resolve(true)
+        resolve(true);
       } catch (error) {
-        reject(error)
+        reject(error);
       }
-    })
+    });
   }
 
   /**
@@ -135,19 +137,19 @@ class Figma {
    * @returns {Promise}
    */
   writeSVGInDisk (elements, assetBaseFolder) {
-    logger.info('[figma] writing SVGs in disk')
+    logger.info('[figma] writing SVGs in disk');
 
     return Promise.all(
       elements.map((element) => {
         if (element) {
           // Mimic the behaior of our Sketch importer: move to the slices folder
           // everything that is marked for export
-          const folder = FOLDERS[element.type] || FOLDERS.SLICE
-          const svgPath = path.join(assetBaseFolder, folder, `${sanitize(element.name)}.svg`)
-          return fse.writeFile(svgPath, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
+          const folder = FOLDERS[element.type] || FOLDERS.SLICE;
+          const svgPath = path.join(assetBaseFolder, folder, `${sanitize(element.name)}.svg`);
+          return fse.writeFile(svgPath, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>');
         }
-      })
-    )
+      }),
+    );
   }
 
   /**
@@ -156,21 +158,21 @@ class Figma {
    * @param {Array} elements
    */
   getSVGContents (elements) {
-    logger.info('[figma] downloading SVGs from cloud')
+    logger.info('[figma] downloading SVGs from cloud');
 
     const requests = elements.map((element) => {
       return new Promise((resolve, reject) => {
-        this.request({ uri: element.svgURL, auth: false }).then((svg) => {
-          resolve(Object.assign(element, {svg}))
+        this.request({uri: element.svgURL, auth: false}).then((svg) => {
+          resolve(Object.assign(element, {svg}));
         })
         .catch((error) => {
-          logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`, error)
-          resolve()
-        })
-      })
-    })
+          logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`, error);
+          resolve();
+        });
+      });
+    });
 
-    return Promise.all(requests)
+    return Promise.all(requests);
   }
 
   /**
@@ -182,13 +184,13 @@ class Figma {
    */
   getSVGLinks (elements, id) {
     return new Promise((resolve, reject) => {
-      let ids = elements.map((element) => element.id)
+      let ids = elements.map((element) => element.id);
 
       if (ids.length === 0) {
         return reject({
           status: 424,
-          err: 'It looks like the Figma document you imported doesn\'t have any groups or slices. Try adding some and re-syncing.'
-        })
+          err: 'It looks like the Figma document you imported doesn\'t have any groups or slices. Try adding some and re-syncing.',
+        });
       }
 
       // TODO: instead of limiting the max number of items to import, import them in batches
@@ -196,71 +198,71 @@ class Figma {
       // reasons. [Look in Asana][1] for the related ticket
       // [1]: https://app.asana.com/0/506410768732347/781835844490777
       if (ids.length > MAX_ITEMS_TO_IMPORT) {
-        ids = ids.slice(0, MAX_ITEMS_TO_IMPORT)
+        ids = ids.slice(0, MAX_ITEMS_TO_IMPORT);
       }
 
-      const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]])
-      const uri = API_BASE + 'images/' + id + '?' + params.toString()
+      const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]]);
+      const uri = API_BASE + 'images/' + id + '?' + params.toString();
 
-      this.request({ uri })
+      this.request({uri})
         .then((SVGLinks) => {
           // TODO: links comes with an error param, we should check that
-          const {images} = JSON.parse(SVGLinks)
+          const {images} = JSON.parse(SVGLinks);
           const elementsWithLinks = elements.map((element) => {
-            return Object.assign(element, {svgURL: images[element.id]})
-          })
+            return Object.assign(element, {svgURL: images[element.id]});
+          });
 
-          resolve(elementsWithLinks)
+          resolve(elementsWithLinks);
         })
-        .catch(reject)
-    })
+        .catch(reject);
+    });
   }
 
   sortElementsByPriorityToImport (arr) {
-    return arr.sort((a, b) => PRIORITY_TO_IMPORT.indexOf(a.type) - PRIORITY_TO_IMPORT.indexOf(b.type))
+    return arr.sort((a, b) => PRIORITY_TO_IMPORT.indexOf(a.type) - PRIORITY_TO_IMPORT.indexOf(b.type));
   }
 
   findItems (arr, fileId) {
-    const result = []
+    const result = [];
 
-    for (let item of arr) {
+    for (const item of arr) {
       if (VALID_TYPES[item.type] || (item.exportSettings && item.exportSettings.length > 0)) {
         result.push({
           id: item.id,
           name: Figma.getUniqueName(fileId, item.name),
-          type: item.type
-        })
+          type: item.type,
+        });
       }
 
       if (item.children) {
-        result.push(...this.findItems(item.children, fileId))
+        result.push(...this.findItems(item.children, fileId));
       }
     }
 
-    return result
+    return result;
   }
 
   findInstantiableElements (file, fileId) {
-    uniqueNameResolver[fileId] = {}
-    return this.findItems(file.document.children, fileId)
+    uniqueNameResolver[fileId] = {};
+    return this.findItems(file.document.children, fileId);
   }
 
-  request ({ uri, auth = true }) {
-    const headers = auth ? { Authorization: 'Bearer ' + this.token } : {}
+  request ({uri, auth = true}) {
+    const headers = auth ? {Authorization: 'Bearer ' + this.token} : {};
 
     return new Promise((resolve, reject) => {
-      this._requestLib({ uri, headers }, (error, response, body) => {
+      this._requestLib({uri, headers}, (error, response, body) => {
         if (error || response.statusCode !== 200) {
           try {
-            reject(JSON.parse(body))
+            reject(JSON.parse(body));
           } catch (e) {
-            reject({status: 500, err: 'There was an error connecting with Figma.'})
+            reject({status: 500, err: 'There was an error connecting with Figma.'});
           }
         } else {
-          resolve(body)
+          resolve(body);
         }
-      })
-    })
+      });
+    });
   }
 
   /**
@@ -269,20 +271,20 @@ class Figma {
    * @returns {Object} an object containing the id and the name in the URL
    */
   static parseProjectURL (rawURL) {
-    logger.info('[figma] parsing project URL: ' + rawURL)
+    logger.info('[figma] parsing project URL: ' + rawURL);
 
     try {
-      const url = new URL(rawURL)
+      const url = new URL(rawURL);
       // eslint-disable-next-line
-      const [_, __, id, name] = url.pathname.split('/')
+      const [_, __, id, name] = url.pathname.split('/');
 
       if (!id) {
-        return null
+        return null;
       }
 
-      return { id, name: name || FIGMA_DEFAULT_FILENAME }
+      return {id, name: name || FIGMA_DEFAULT_FILENAME};
     } catch (e) {
-      return null
+      return null;
     }
   }
 
@@ -293,7 +295,7 @@ class Figma {
    * @returns {string}
    */
   static buildFigmaLink (fileID, fileName = '') {
-    return `${FIGMA_URL}file/${fileID}/${fileName}`
+    return `${FIGMA_URL}file/${fileID}/${fileName}`;
   }
 
   /**
@@ -301,10 +303,10 @@ class Figma {
    * @returns {string}
    */
   static buildAuthenticationLink () {
-    const state = randomAlphabetical(15)
-    const redirectURI = `haiku://oauth/figma&scope=file_read&state=${state}&response_type=code`
-    const url = `${FIGMA_URL}oauth?client_id=${FIGMA_CLIENT_ID}&redirect_uri=${redirectURI}`
-    return {url, state}
+    const state = randomAlphabetical(15);
+    const redirectURI = `haiku://oauth/figma&scope=file_read&state=${state}&response_type=code`;
+    const url = `${FIGMA_URL}oauth?client_id=${FIGMA_CLIENT_ID}&redirect_uri=${redirectURI}`;
+    return {url, state};
   }
 
   /**
@@ -317,13 +319,13 @@ class Figma {
   static getAccessToken ({code, state, stateCheck}) {
     return new Promise((resolve, reject) => {
       if (state !== stateCheck) {
-        reject({status: 403, err: 'Invalid state code'})
+        reject({status: 403, err: 'Invalid state code'});
       }
 
       inkstone.integrations.getFigmaAccessToken(code, (error, response) => {
-        error ? reject(error) : resolve(response)
-      })
-    })
+        error ? reject(error) : resolve(response);
+      });
+    });
   }
 
   /**
@@ -332,7 +334,7 @@ class Figma {
    * @returns {boolean}
    */
   static isFigmaFile (path) {
-    return !!path && path.match(IS_FIGMA_FILE_RE)
+    return !!path && path.match(IS_FIGMA_FILE_RE);
   }
 
   /**
@@ -341,7 +343,7 @@ class Figma {
    * @returns {boolean}
    */
   static isFigmaFolder (path) {
-    return !!path && path.match(IS_FIGMA_FOLDER_RE)
+    return !!path && path.match(IS_FIGMA_FOLDER_RE);
   }
 
   /**
@@ -350,9 +352,9 @@ class Figma {
    * @returns {string|boolean}
    */
   static findIDFromPath (relpath) {
-    const basename = path.basename(relpath)
-    const match = basename.match(/(\w+)-/)
-    return match && match[1]
+    const basename = path.basename(relpath);
+    const match = basename.match(/(\w+)-/);
+    return match && match[1];
   }
 
   /**
@@ -361,14 +363,14 @@ class Figma {
    * @returns {string}
    */
   static findDisplayNameFromPath (relpath) {
-    const basename = path.basename(relpath)
-    const match = basename.match(/(\w+)-([\w-]+)\./)
-    return match ? match[2] : FIGMA_DEFAULT_FILENAME
+    const basename = path.basename(relpath);
+    const match = basename.match(/(\w+)-([\w-]+)\./);
+    return match ? match[2] : FIGMA_DEFAULT_FILENAME;
   }
 
   static buildFigmaLinkFromPath (relpath) {
-    const id = Figma.findIDFromPath(relpath)
-    return Figma.buildFigmaLink(id)
+    const id = Figma.findIDFromPath(relpath);
+    return Figma.buildFigmaLink(id);
   }
 
   /**
@@ -381,16 +383,16 @@ class Figma {
   static getUniqueName (fileId, name) {
     if (!uniqueNameResolver[fileId]) {
       // This should never happen.
-      uniqueNameResolver[fileId] = {}
+      uniqueNameResolver[fileId] = {};
     }
 
     if (!uniqueNameResolver[fileId].hasOwnProperty(name)) {
-      uniqueNameResolver[fileId][name] = 0
-      return name
+      uniqueNameResolver[fileId][name] = 0;
+      return name;
     }
 
-    return `${name} Copy ${++uniqueNameResolver[fileId][name]}`
+    return `${name} Copy ${++uniqueNameResolver[fileId][name]}`;
   }
 }
 
-module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME}
+module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME};

@@ -1,7 +1,7 @@
-var upsertRequire = require('./upsertRequire')
-var removeRequire = require('./removeRequire')
-var traverseAST = require('./traverseAST')
-var wrapInHaikuInject = require('./wrapInHaikuInject')
+let upsertRequire = require('./upsertRequire');
+let removeRequire = require('./removeRequire');
+let traverseAST = require('./traverseAST');
+let wrapInHaikuInject = require('./wrapInHaikuInject');
 
 /**
  * @function normalizeBytecodeAST
@@ -10,68 +10,68 @@ var wrapInHaikuInject = require('./wrapInHaikuInject')
  */
 module.exports = function normalizeBytecodeAST (ast) {
   // Make sure we get rid of any legacy references to @haiku/player
-  removeRequire(ast, 'Haiku', '@haiku/player')
+  removeRequire(ast, 'Haiku', '@haiku/player');
 
   // Make sure that the bytecode file requires the Haiku Core as 'Haiku'
-  upsertRequire(ast, 'Haiku', '@haiku/core')
+  upsertRequire(ast, 'Haiku', '@haiku/core');
 
   // Remove all comments at the top level since they cause more problems than they solve
   ast.program.body.forEach((node) => {
     if (node.leadingComments) {
-      node.leadingComments.splice(0)
+      node.leadingComments.splice(0);
     }
     if (node.trailingComments) {
-      node.trailingComments.splice(0)
+      node.trailingComments.splice(0);
     }
-  })
+  });
 
   // Convert any object-destructuring functions to Haiku.inject expressions
-  traverseAST(ast, function _traverse (node) {
+  traverseAST(ast, (node) => {
     if (node.type === 'ObjectProperty') {
       if (node.value.type === 'ArrowFunctionExpression') {
         // There is no use for a this-binding in the bytecode, and we want widest possible
         // browser support, so convert any ArrowFunctionExpression to FunctionExpressions
-        node.value.type = 'FunctionExpression'
+        node.value.type = 'FunctionExpression';
       }
       if (node.value.type === 'FunctionExpression') {
         // Assume we only want to change 'expressions' that appear in timelines
         if (node.key && ((node.key.name === 'value') || (node.key.value === 'value'))) {
-          _convertFunctionToHaikuInjectFormat(node.value, node)
+          _convertFunctionToHaikuInjectFormat(node.value, node);
         }
       }
     }
-  })
-}
+  });
+};
 
 function _uniqParams (params) {
-  var ids = {}
+  const ids = {};
   params.forEach((param) => {
-    ids[param.name || param.value] = param
-  })
-  var out = []
-  for (var name in ids) {
-    out.push(ids[name])
+    ids[param.name || param.value] = param;
+  });
+  const out = [];
+  for (const name in ids) {
+    out.push(ids[name]);
   }
-  return out
+  return out;
 }
 
 function _convertFunctionToHaikuInjectFormat (node, parent) {
   // We're going to build a new full params object to replace the existing one
-  var params = []
+  const params = [];
   node.params.forEach((param) => {
     if (param.type === 'Identifier') {
-      params.push(param)
+      params.push(param);
     } else if (param.type === 'ObjectPattern') {
       // We only need to deal with the top-level of the object pattern
       param.properties.forEach((property) => {
         if (property.key.type === 'Identifier') {
-          params.push(property.key)
+          params.push(property.key);
         }
-      })
+      });
     }
-  })
+  });
   // We'll just go ahead and mutate the parame in place...why not?
-  node.params = _uniqParams(params)
+  node.params = _uniqParams(params);
   // Now we need to wrap the function in the 'Haiku.inject' expression
-  parent.value = wrapInHaikuInject(node)
+  parent.value = wrapInHaikuInject(node);
 }

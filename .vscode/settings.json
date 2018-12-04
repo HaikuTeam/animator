@@ -12,8 +12,5 @@
     "tslint.enable": true,
     "tslint.jsEnable": true,
     "tslint.autoFixOnSave": true,
-    "tslint.alwaysShowRuleFailuresAsWarnings": true,
-    "tslint.exclude": [
-        "**/packages/haiku-serialization/**"
-    ]
+    "tslint.alwaysShowRuleFailuresAsWarnings": true
 }
