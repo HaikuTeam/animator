@@ -233,9 +233,12 @@ export const DASH_STYLES: React.CSSProperties = {
     marginRight: 'auto',
   },
   titleOptions: {
-    paddingLeft: 5,
-    paddingRight: 5,
+    backgroundColor: Palette.COAL,
+    paddingLeft: 8,
+    paddingRight: 12,
     opacity: 0.84,
+    position: 'absolute',
+    right: 0,
     transition: 'opacity 120ms ease',
     ':hover': {
       opacity: 1,
