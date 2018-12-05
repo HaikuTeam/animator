@@ -236,6 +236,7 @@ export function createProjectFiles (
         *.svg
         .env
         .haiku
+        assets/
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, '.yarnignore'), dedent`
         .DS_Store
