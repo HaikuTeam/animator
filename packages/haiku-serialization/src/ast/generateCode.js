@@ -1,12 +1,12 @@
-var generate = require('@babel/generator').default
+let generate = require('@babel/generator').default;
 
 function generateCode (ast, options, code) {
-  var output = generate(ast, options || {
+  const output = generate(ast, options || {
     retainLines: true,
-    comments: true
-  }, code || '')
+    comments: true,
+  }, code || '');
 
-  return output.code
+  return output.code;
 }
 
-module.exports = generateCode
+module.exports = generateCode;

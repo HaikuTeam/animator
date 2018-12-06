@@ -1,170 +1,170 @@
-const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
-const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
-const BaseModel = require('./BaseModel')
+const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default;
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default;
+const BaseModel = require('./BaseModel');
 
 /**
  * @class Keyframe
  * @description
- *.  Abstraction over the raw representation of keyframes in bytecode.
- *.  Helps with the following:
- *.    - Managing state changes between keyframes: selected, dragging, etc.
- *.    - Makes complicated actions like dragging multiple keyframes easy
- *.    - Handling model updates like changing curves, changing the ms time, etc.
- *.    - Has some logic for color changes that probably should be moved #FIXME
+ *  Abstraction over the raw representation of keyframes in bytecode.
+ *  Helps with the following:
+ *    - Managing state changes between keyframes: selected, dragging, etc.
+ *    - Makes complicated actions like dragging multiple keyframes easy
+ *    - Handling model updates like changing curves, changing the ms time, etc.
+ *    - Has some logic for color changes that probably should be moved #FIXME
  */
 class Keyframe extends BaseModel {
   constructor (props, opts) {
-    super(props, opts)
+    super(props, opts);
 
-    this._selected = false
-    this._selectedBody = false
-    this._activated = false
-    this._dragStartPx = null
-    this._dragStartMs = null
-    this._needsMove = false
-    this._hasMouseDown = false
-    this._lastMouseDown = 0
-    this._didHandleDragStop = false
-    this._didHandleContextMenu = false
-    this._mouseDownState = {}
-    this._updateReceivers = {}
-    this._viewPosition = {}
+    this._selected = false;
+    this._selectedBody = false;
+    this._activated = false;
+    this._dragStartPx = null;
+    this._dragStartMs = null;
+    this._needsMove = false;
+    this._hasMouseDown = false;
+    this._lastMouseDown = 0;
+    this._didHandleDragStop = false;
+    this._didHandleContextMenu = false;
+    this._mouseDownState = {};
+    this._updateReceivers = {};
+    this._viewPosition = {};
   }
 
   activate () {
     if (!this._activated) {
-      this._activated = true
-      this.notifyUpdateReceivers('keyframe-activated')
+      this._activated = true;
+      this.notifyUpdateReceivers('keyframe-activated');
     }
   }
 
   deactivate () {
     if (this._activated) {
-      this._activated = false
-      this.notifyUpdateReceivers('keyframe-deactivated')
+      this._activated = false;
+      this.notifyUpdateReceivers('keyframe-deactivated');
     }
   }
 
   isActive () {
-    return this._activated
+    return this._activated;
   }
 
   select () {
     if (!this._selected) {
-      this._selected = true
-      this.notifyUpdateReceivers('keyframe-selected')
+      this._selected = true;
+      this.notifyUpdateReceivers('keyframe-selected');
     }
   }
 
   deselect () {
     if (this._selected) {
-      this._selected = false
-      this.notifyUpdateReceivers('keyframe-deselected')
+      this._selected = false;
+      this.notifyUpdateReceivers('keyframe-deselected');
     }
   }
 
   setBodySelected () {
     if (!this._selectedBody) {
-      this._selectedBody = true
-      this.notifyUpdateReceivers('keyframe-body-selected')
+      this._selectedBody = true;
+      this.notifyUpdateReceivers('keyframe-body-selected');
     }
   }
 
   unsetBodySelected () {
     if (this._selectedBody) {
-      this._selectedBody = false
-      this.notifyUpdateReceivers('keyframe-body-unselected')
+      this._selectedBody = false;
+      this.notifyUpdateReceivers('keyframe-body-unselected');
     }
   }
 
   deselectAndDeactivate () {
-    this.unsetBodySelected()
-    this.deselect()
-    this.deactivate()
+    this.unsetBodySelected();
+    this.deselect();
+    this.deactivate();
   }
 
   isSelected () {
-    return this._selected
+    return this._selected;
   }
 
   isSelectedBody () {
-    return this._selectedBody
+    return this._selectedBody;
   }
 
   delete (metadata) {
-    this.row.deleteKeyframe(this, metadata)
-    Timeline.clearCaches()
-    return this
+    this.row.deleteKeyframe(this, metadata);
+    Timeline.clearCaches();
+    return this;
   }
 
   dragStart (dragData) {
-    this._dragStartMs = this.getMs()
-    this._dragStartPx = dragData.x
-    return this
+    this._dragStartMs = this.getMs();
+    this._dragStartPx = dragData.x;
+    return this;
   }
 
   dragStop () {
-    this._dragStartMs = null
-    this._dragStartPx = null
-    return this
+    this._dragStartMs = null;
+    this._dragStartPx = null;
+    return this;
   }
 
   drag (pxpf, mspf, dragData, metadata) {
-    const pxChange = dragData.lastX - this._dragStartPx
-    const msChange = Math.round(pxChange / pxpf * mspf)
+    const pxChange = dragData.lastX - this._dragStartPx;
+    const msChange = Math.round(pxChange / pxpf * mspf);
 
-    this.move(msChange, this._dragStartMs, mspf)
+    this.move(msChange, this._dragStartMs, mspf);
 
-    return this
+    return this;
   }
 
   move (msChange, msOrig, mspf) {
-    const msFinal = msOrig + msChange
+    const msFinal = msOrig + msChange;
     if (msFinal >= 0) {
-      this.moveTo(msFinal, mspf)
+      this.moveTo(msFinal, mspf);
     }
-    return this
+    return this;
   }
 
   moveTo (ms, mspf) {
     // No-op the rest of this procedure if we're already at the same keyframe
     if (this.getMs() === ms) {
-      return this
+      return this;
     }
 
-    this.setMs(ms)
+    this.setMs(ms);
 
-    const msMargin = Math.round(mspf)
+    const msMargin = Math.round(mspf);
 
     if (this.next()) {
       if (this.getMs() >= (this.next().getMs() - 1)) {
-        const nextMs = this.getMs() + msMargin
+        const nextMs = this.getMs() + msMargin;
         if (nextMs >= 0) {
-          this.next().moveTo(nextMs, mspf)
+          this.next().moveTo(nextMs, mspf);
         }
       }
     }
 
     if (this.prev()) {
       if (this.getMs() <= (this.prev().getMs() + 1)) {
-        const prevMs = this.getMs() - msMargin
+        const prevMs = this.getMs() - msMargin;
         if (prevMs >= 0) {
-          this.prev().moveTo(prevMs, mspf)
+          this.prev().moveTo(prevMs, mspf);
         }
       }
     }
 
-    return this
+    return this;
   }
 
   createKeyframe (value, ms, metadata) {
-    this.row.createKeyframe(value, ms, metadata)
-    return this
+    this.row.createKeyframe(value, ms, metadata);
+    return this;
   }
 
   removeCurve (metadata) {
     if (this.next() && this.next().isActive()) {
-      this.setCurve(null)
+      this.setCurve(null);
       this.component.splitSegment(
         this.element.getComponentId(),
         this.timeline.getName(),
@@ -172,17 +172,17 @@ class Keyframe extends BaseModel {
         this.row.getPropertyNameString(),
         this.getMs(),
         metadata,
-        () => {}
-      )
+        () => {},
+      );
 
-      this.row.emit('update', 'keyframe-remove-curve')
+      this.row.emit('update', 'keyframe-remove-curve');
     }
 
-    return this
+    return this;
   }
 
   addCurve (curveName, metadata) {
-    this.setCurve(curveName)
+    this.setCurve(curveName);
 
     this.component.joinKeyframes(
       this.element.getComponentId(),
@@ -193,16 +193,16 @@ class Keyframe extends BaseModel {
       null,
       curveName,
       metadata,
-      () => {}
-    )
+      () => {},
+    );
 
-    this.row.emit('update', 'keyframe-add-curve')
+    this.row.emit('update', 'keyframe-add-curve');
 
-    return this
+    return this;
   }
 
   changeCurve (curveName, metadata) {
-    this.setCurve(curveName)
+    this.setCurve(curveName);
 
     this.component.changeSegmentCurve(
       this.element.getComponentId(),
@@ -211,213 +211,216 @@ class Keyframe extends BaseModel {
       this.getMs(),
       curveName,
       metadata,
-      () => {}
-    )
+      () => {},
+    );
 
-    this.row.emit('update', 'keyframe-change-curve')
+    this.row.emit('update', 'keyframe-change-curve');
 
-    return this
+    return this;
   }
 
   isTransitionSegment () {
-    return !!this.getCurve()
+    return !!this.getCurve();
   }
 
   isConstantSegment () {
-    return this.hasNextKeyframe()
+    return this.hasNextKeyframe();
   }
 
   hasConstantBody () {
     return (
       this.next() &&
       !this.getCurve()
-    )
+    );
   }
 
   hasCurveBody () {
     return (
       this.next() &&
       this.getCurve()
-    )
+    );
   }
 
   isSoloKeyframe () {
-    const prev = this.prev()
-    if (!prev) return true
-    return !prev.getCurve()
+    const prev = this.prev();
+    if (!prev) {
+      return true;
+    }
+    return !prev.getCurve();
   }
 
   hasPreviousKeyframe () {
-    return !!this.prev()
+    return !!this.prev();
   }
 
   hasNextKeyframe () {
-    return !!this.next()
+    return !!this.next();
   }
 
   setOrigMs (ms) {
-    this.origMs = ms
+    this.origMs = ms;
   }
 
   updateOwnMetadata () {
-    const ms = this.getMs()
-    const newUid = Keyframe.getInferredUid(this.row, ms)
-    this.setOrigMs(ms)
-    Keyframe.setInstancePrimaryKey(this, newUid)
+    const ms = this.getMs();
+    const newUid = Keyframe.getInferredUid(this.row, ms);
+    this.setOrigMs(ms);
+    Keyframe.setInstancePrimaryKey(this, newUid);
   }
 
   getUniqueKey () {
-    return this.getPrimaryKey()
+    return this.getPrimaryKey();
   }
 
   getViewPosition () {
-    return this._viewPosition
+    return this._viewPosition;
   }
 
   isWithinCollapsedRow () {
-    return this.row.isCollapsed() || this.row.isWithinCollapsedRow()
+    return this.row.isCollapsed() || this.row.isWithinCollapsedRow();
   }
 
   getFrame (mspf) {
-    return Timeline.millisecondToNearestFrame(this.getMs(), mspf)
+    return Timeline.millisecondToNearestFrame(this.getMs(), mspf);
   }
 
   getOrigMs () {
-    return this.origMs
+    return this.origMs;
   }
 
   getMs () {
-    return this.ms
+    return this.ms;
   }
 
   setMs (ms) {
     if (ms < 0) {
-      throw new Error('keyframes cannot be less than 0')
+      throw new Error('keyframes cannot be less than 0');
     }
 
     // Normalize to a millitime that lines up with a frametime
-    const normalized = this.timeline.normalizeMs(ms)
-    const previous = this.getMs()
-    this.ms = normalized
+    const normalized = this.timeline.normalizeMs(ms);
+    const previous = this.getMs();
+    this.ms = normalized;
 
     // Clear timeline caches; the max frame might have changed.
-    Timeline.clearCaches()
+    Timeline.clearCaches();
 
     if (normalized !== previous) {
       // Indicate that we need to be moved. Must set this before calling handleKeyframeMoves
       // otherwise the update might not make it correctly to the serialization layer
-      this._needsMove = true
+      this._needsMove = true;
 
-      this.notifyUpdateReceivers('keyframe-ms-set')
+      this.notifyUpdateReceivers('keyframe-ms-set');
 
       if (this.prev()) {
-        this.prev().notifyUpdateReceivers('keyframe-neighbor-move')
+        this.prev().notifyUpdateReceivers('keyframe-neighbor-move');
       }
 
       if (this.next()) {
-        this.next().notifyUpdateReceivers('keyframe-neighbor-move')
+        this.next().notifyUpdateReceivers('keyframe-neighbor-move');
       }
     }
 
-    return this
+    return this;
   }
 
   getIndex () {
-    return this.index
+    return this.index;
   }
 
   getValue (serialized) {
     if (serialized) {
-      return expressionToRO(this.value)
+      return expressionToRO(this.value);
     }
-    return this.value
+    return this.value;
   }
 
   getSpec (edited, serialized) {
     const spec = {
-      value: this.getValue(serialized)
-    }
+      value: this.getValue(serialized),
+    };
 
     if (edited) {
-      spec.edited = true
+      spec.edited = true;
     }
 
     if (this.getCurve()) {
-      spec.curve = this.getCurve()
+      spec.curve = this.getCurve();
     }
 
-    return spec
+    return spec;
   }
 
   setCurve (value) {
-    this.curve = value
-    return this
+    this.curve = value;
+    return this;
   }
 
   getCurve () {
-    return this.curve
+    return this.curve;
   }
 
   isVisible (a, b) {
     if (this.getMs() > b) {
-      return false
+      return false;
     }
 
-    const next = this.next()
-    return !next || this.getMs() >= a || next.getMs() >= a
+    const next = this.next();
+    return !next || this.getMs() >= a || next.getMs() >= a;
   }
 
   isTweenable () {
     if (typeof this.value === 'string' || this.value instanceof String) {
-      const ourPropertyName = this.row.getPropertyNameString()
+      const ourPropertyName = this.row.getPropertyNameString();
 
       // Some strings, such as color and path.d, are tweenable because core parses
       // them on the fly into numeric payloads that can be tweened.
-      return HaikuComponent.PARSERS[ourPropertyName] || this.value == parseFloat(this.value, 10) // eslint-disable-line eqeqeq
+      // tslint:disable-next-line:triple-equals
+      return HaikuComponent.PARSERS[ourPropertyName] || this.value == parseFloat(this.value, 10);
     }
 
-    return typeof (this.value) !== 'boolean'
+    return typeof (this.value) !== 'boolean';
   }
 
   next () {
-    return this._next
+    return this._next;
   }
 
   prev () {
-    return this._prev
+    return this._prev;
   }
 
   isNextKeyframeSelected () {
-    return this.next() && this.next().isSelected()
+    return this.next() && this.next().isSelected();
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {
     if (base === undefined || pxpf === undefined || mspf === undefined) {
-      throw new Error(`keyframe pixel offset right params missing`)
+      throw new Error(`keyframe pixel offset right params missing`);
     }
     if (this.next()) {
-      return (this.next().getFrame(mspf) - base) * pxpf
-    } else {
-      return 0
+      return (this.next().getFrame(mspf) - base) * pxpf;
     }
+
+    return 0;
   }
 
   getPixelOffsetLeft (base, pxpf, mspf) {
     if (base === undefined || pxpf === undefined || mspf === undefined) {
-      throw new Error(`keyframe pixel offset left params missing`)
+      throw new Error(`keyframe pixel offset left params missing`);
     }
-    return (this.getFrame(mspf) - base) * pxpf
+    return (this.getFrame(mspf) - base) * pxpf;
   }
 
   storeViewPosition ({rect, offset}) {
     this._viewPosition = {
       left: rect.left + offset,
-      right: rect.right + offset
-    }
+      right: rect.right + offset,
+    };
   }
 
   clearViewPosition () {
-    this._viewPosition = {}
+    this._viewPosition = {};
   }
 
   isWithinCollapsedClusterHeadingRow () {
@@ -426,7 +429,7 @@ class Keyframe extends BaseModel {
       this.row.parent &&
       this.row.parent.isClusterHeading() &&
       this.row.parent.isCollapsed()
-    )
+    );
   }
 
   isClusterMember () {
@@ -434,154 +437,154 @@ class Keyframe extends BaseModel {
       this.row &&
       this.row.parent &&
       this.row.parent.isClusterHeading()
-    )
+    );
   }
 
   getElementHeadingRow () {
     if (this.row && this.row.parent) {
       if (this.row.parent.isClusterHeading()) {
-        return this.row.parent.parent
+        return this.row.parent.parent;
       }
-      return this.row.parent
+      return this.row.parent;
     }
   }
 
   getClusterHeadingRow () {
     if (this.row && this.row.parent) {
       if (this.row.parent.isClusterHeading()) {
-        return this.row.parent
+        return this.row.parent;
       }
     }
   }
 
   getCurveCapitalized () {
-    const curve = this.getCurve()
-    return curve.charAt(0).toUpperCase() + curve.slice(1)
+    const curve = this.getCurve();
+    return curve.charAt(0).toUpperCase() + curve.slice(1);
   }
 
   isWithinCollapsedElementHeadingRow () {
-    const elementHeading = this.getElementHeadingRow()
-    return elementHeading.isCollapsed() || elementHeading.isWithinCollapsedRow()
+    const elementHeading = this.getElementHeadingRow();
+    return elementHeading.isCollapsed() || elementHeading.isWithinCollapsedRow();
   }
 
   getLeftKeyframeColorState () {
     if (this.isActive()) {
-      return 'LIGHTEST_PINK'
+      return 'LIGHTEST_PINK';
     }
 
     if (this.isWithinCollapsedElementHeadingRow()) {
-      return 'BLUE'
+      return 'BLUE';
     }
 
     if (this.isWithinCollapsedClusterHeadingRow()) {
-      return 'DARK_ROCK'
+      return 'DARK_ROCK';
     }
 
-    return 'ROCK'
+    return 'ROCK';
   }
 
   getRightKeyframeColorState () {
     if (this.next() && this.next().isActive()) {
-      return 'LIGHTEST_PINK'
+      return 'LIGHTEST_PINK';
     }
 
     if (this.isWithinCollapsedElementHeadingRow()) {
-      return 'BLUE'
+      return 'BLUE';
     }
 
     if (this.isWithinCollapsedClusterHeadingRow()) {
-      return 'DARK_ROCK'
+      return 'DARK_ROCK';
     }
 
-    return 'ROCK'
+    return 'ROCK';
   }
 
   getCurveColorState () {
     if (this.isSelected() && this.isActive() && this.isCurveSelected()) {
-      return 'LIGHTEST_PINK'
+      return 'LIGHTEST_PINK';
     }
 
     if (this.isWithinCollapsedElementHeadingRow()) {
-      return 'BLUE'
+      return 'BLUE';
     }
 
     if (this.isWithinCollapsedClusterHeadingRow()) {
-      return 'DARK_ROCK'
+      return 'DARK_ROCK';
     }
 
-    return 'ROCK'
+    return 'ROCK';
   }
 
   isCurveSelected () {
     return (
       this.hasCurveBody() &&
       this.isSelectedBody()
-    )
+    );
   }
 
   setMouseDown () {
-    this._hasMouseDown = true
-    this._lastMouseDown = Date.now()
+    this._hasMouseDown = true;
+    this._lastMouseDown = Date.now();
   }
 
   getLastMouseDown () {
-    return this._lastMouseDown
+    return this._lastMouseDown;
   }
 
   unsetMouseDown () {
-    this._hasMouseDown = false
+    this._hasMouseDown = false;
   }
 
   isMouseDown () {
-    return this._hasMouseDown
+    return this._hasMouseDown;
   }
 
   setMouseDownState ({
     wasSelected,
     wasSelectedBody,
-    wasCurveTargeted
+    wasCurveTargeted,
   }) {
     this._mouseDownState = {
       wasSelected,
       wasSelectedBody,
-      wasCurveTargeted
-    }
+      wasCurveTargeted,
+    };
   }
 
   unsetMouseDownState () {
-    this._mouseDownState = {}
+    this._mouseDownState = {};
   }
 
   getMouseDownState () {
-    return this._mouseDownState
+    return this._mouseDownState;
   }
 
   setDidHandleDragStop () {
-    this._didHandleDragStop = true
+    this._didHandleDragStop = true;
   }
 
   unsetDidHandleDragStop () {
-    this._didHandleDragStop = false
+    this._didHandleDragStop = false;
   }
 
   didHandleDragStop () {
-    return this._didHandleDragStop
+    return this._didHandleDragStop;
   }
 
   setDidHandleContextMenu () {
-    this._didHandleContextMenu = true
+    this._didHandleContextMenu = true;
   }
 
   unsetDidHandleContextMenu () {
-    this._didHandleContextMenu = false
+    this._didHandleContextMenu = false;
   }
 
   didHandleContextMenu () {
-    return this._didHandleContextMenu
+    return this._didHandleContextMenu;
   }
 
   updateActivationStatesAccordingToNeighborStates () {
-    const prevKeyframe = this.prev()
+    const prevKeyframe = this.prev();
 
     /**
      * o keyframe
@@ -604,203 +607,207 @@ class Keyframe extends BaseModel {
     if (prevKeyframe) {
       if (prevKeyframe.isSelected()) {
         if (prevKeyframe.isSelectedBody()) {
-          this.select()
+          this.select();
         }
       }
     }
 
     if (this.isSelected()) {
-      this.activate()
+      this.activate();
     } else {
-      this.deactivate()
+      this.deactivate();
     }
   }
 
   handleMouseDown (
     {nativeEvent: {which}},
     {isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
-    {isViaConstantBodyView, isViaTransitionBodyView}
+    {isViaConstantBodyView, isViaTransitionBodyView},
   ) {
     if (isControlKeyDown || which === 3) {
       return this.handleContextMenu(
         {isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
-        {isViaConstantBodyView, isViaTransitionBodyView}
-      )
+        {isViaConstantBodyView, isViaTransitionBodyView},
+      );
     }
 
-    this.setMouseDown()
-    this.unsetDidHandleDragStop()
+    this.setMouseDown();
+    this.unsetDidHandleDragStop();
 
-    const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView)
+    const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView);
 
     // Keeping track of this information so we can do the correct thing on mouse up
     this.setMouseDownState({
       wasSelected: this.isSelected(),
       wasSelectedBody: this.isSelectedBody(),
-      wasCurveTargeted: isCurveTargeted
-    })
+      wasCurveTargeted: isCurveTargeted,
+    });
 
     // Unless the shift key is down, a direct click normally clear others
     if (!isShiftKeyDown && !isCommandKeyDown) {
       // But only if we're touching an unrelated (unselected) set of keyframes
       if (!this.isSelected()) {
-        this.clearOtherKeyframes()
+        this.clearOtherKeyframes();
       }
     }
 
     // Ensure we and neighbors are selected and activated since this may begin a drag
-    this.select()
+    this.select();
 
-    if (isCurveTargeted) this.setBodySelected()
+    if (isCurveTargeted) {
+      this.setBodySelected();
+    }
 
     // Loop through keyframes in this row left-to-right and update activations
-    this.updateActivationStatesInRow()
+    this.updateActivationStatesInRow();
   }
 
   updateActivationStatesInRow () {
     this.row.getKeyframes().forEach((keyframe) => {
-      keyframe.updateActivationStatesAccordingToNeighborStates()
-    })
+      keyframe.updateActivationStatesAccordingToNeighborStates();
+    });
   }
 
   handleMouseUp (
     {nativeEvent: {which}},
     {lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
-    {isViaConstantBodyView, isViaTransitionBodyView}
+    {isViaConstantBodyView, isViaTransitionBodyView},
   ) {
     if (!this.isMouseDown()) {
       // We weren't the one who received the initial mouse down
-      const otherKeyframe = Keyframe.where({ _hasMouseDown: true, component: this.component })[0]
+      const otherKeyframe = Keyframe.where({_hasMouseDown: true, component: this.component})[0];
       if (otherKeyframe && otherKeyframe !== this) {
         otherKeyframe.handleMouseUp(
           {nativeEvent: {which}},
           {lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
-          {isViaConstantBodyView, isViaTransitionBodyView}
-        )
+          {isViaConstantBodyView, isViaTransitionBodyView},
+        );
       }
-      return
+      return;
     }
 
-    this.unsetMouseDown()
+    this.unsetMouseDown();
 
     if (this.didHandleDragStop()) {
-      this.unsetDidHandleDragStop()
-      return
+      this.unsetDidHandleDragStop();
+      return;
     }
 
     const {
       wasSelected,
       wasSelectedBody,
-      wasCurveTargeted
-    } = this.getMouseDownState()
+      wasCurveTargeted,
+    } = this.getMouseDownState();
 
-    this.unsetMouseDownState()
+    this.unsetMouseDownState();
 
     if (!isShiftKeyDown && !isCommandKeyDown) {
       // Since mouseup commits the action, we don't check for selection state here
-      this.clearOtherKeyframes()
+      this.clearOtherKeyframes();
     }
 
     // If shift is down on mouse up, we deselect current selections
     if (isShiftKeyDown || isCommandKeyDown) {
       if (wasCurveTargeted) {
         if (wasSelectedBody) {
-          this.unsetBodySelected()
+          this.unsetBodySelected();
         } else {
-          this.setBodySelected()
+          this.setBodySelected();
         }
       } else {
         if (wasSelected) {
-          this.unsetBodySelected()
-          this.deselect()
+          this.unsetBodySelected();
+          this.deselect();
         } else {
-          this.select()
+          this.select();
         }
       }
     } else {
       // We've explicitly activated the keyframe as opposed to the whole segment
       if (!wasCurveTargeted) {
-        this.unsetBodySelected()
+        this.unsetBodySelected();
       }
     }
 
     // Loop through keyframes in this row left-to-right and update activations
-    this.updateActivationStatesInRow()
+    this.updateActivationStatesInRow();
 
-    this.component.dragStopSelectedKeyframes()
+    this.component.dragStopSelectedKeyframes();
   }
 
   handleContextMenu (
     {isShiftKeyDown, isCommandKeyDown},
-    {isViaConstantBodyView, isViaTransitionBodyView}
+    {isViaConstantBodyView, isViaTransitionBodyView},
   ) {
-    this.unsetMouseDown()
-    this.unsetMouseDownState()
+    this.unsetMouseDown();
+    this.unsetMouseDownState();
 
     if (this.didHandleContextMenu()) {
-      this.unsetDidHandleContextMenu()
-      return
+      this.unsetDidHandleContextMenu();
+      return;
     }
 
-    this.setDidHandleContextMenu()
+    this.setDidHandleContextMenu();
 
     if (this.isWithinCollapsedRow()) {
-      return
+      return;
     }
 
-    const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView)
+    const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView);
 
     // Unless the shift key is down, a direct click normally clear others
     if (!isShiftKeyDown && !isCommandKeyDown) {
       // But only if we're touching an unrelated (unselected) set of keyframes
 
       if (isCurveTargeted && !this.isNextKeyframeSelected()) {
-        this.clearOtherKeyframes()
+        this.clearOtherKeyframes();
       }
 
       if (!this.isSelected()) {
-        this.clearOtherKeyframes()
+        this.clearOtherKeyframes();
       }
     }
 
     // Ensure we and neighbors are selected and activated since this may begin a drag
-    this.select()
-    if (isCurveTargeted) this.setBodySelected()
+    this.select();
+    if (isCurveTargeted) {
+      this.setBodySelected();
+    }
 
     // Loop through keyframes in this row left-to-right and update activations
-    this.updateActivationStatesInRow()
+    this.updateActivationStatesInRow();
 
-    this.component.dragStopSelectedKeyframes()
+    this.component.dragStopSelectedKeyframes();
   }
 
   handleDragStop (
     dragData,
     {wasDrag, lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
-    {isViaConstantBodyView, isViaTransitionBodyView}
+    {isViaConstantBodyView, isViaTransitionBodyView},
   ) {
     if (!wasDrag) {
       return this.handleMouseUp(
         {nativeEvent: {which: 1}}, // Mock
         {isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
-        {isViaConstantBodyView, isViaTransitionBodyView}
-      )
+        {isViaConstantBodyView, isViaTransitionBodyView},
+      );
     }
 
     if (this.didHandleDragStop()) {
-      this.unsetDidHandleDragStop()
-      return
+      this.unsetDidHandleDragStop();
+      return;
     }
 
-    this.setDidHandleDragStop()
-    this.component.dragStopSelectedKeyframes(dragData)
+    this.setDidHandleDragStop();
+    this.component.dragStopSelectedKeyframes(dragData);
   }
 
   clearOtherKeyframes () {
-    Keyframe.where({ component: this.component }).forEach((keyframe) => {
+    Keyframe.where({component: this.component}).forEach((keyframe) => {
       if (keyframe !== this) {
-        keyframe.deselectAndDeactivate()
+        keyframe.deselectAndDeactivate();
       }
-    })
+    });
   }
 
   /**
@@ -808,13 +815,23 @@ class Keyframe extends BaseModel {
    * @description When debugging, use this to log a concise shorthand of this entity.
    */
   dump () {
-    let str = `${this.row.getPropertyNameString()}[${this.getIndex()}]:${this.getMs()}/${this.getCurve() || '!'}`
-    if (this.isTransitionSegment()) str += ' {t}'
-    if (this.isConstantSegment()) str += ' {c}'
-    if (this.isSoloKeyframe()) str += ' {s}'
-    if (this.prev()) str += ' <'
-    if (this.next()) str += ' >'
-    return str
+    let str = `${this.row.getPropertyNameString()}[${this.getIndex()}]:${this.getMs()}/${this.getCurve() || '!'}`;
+    if (this.isTransitionSegment()) {
+      str += ' {t}';
+    }
+    if (this.isConstantSegment()) {
+      str += ' {c}';
+    }
+    if (this.isSoloKeyframe()) {
+      str += ' {s}';
+    }
+    if (this.prev()) {
+      str += ' <';
+    }
+    if (this.next()) {
+      str += ' >';
+    }
+    return str;
   }
 }
 
@@ -826,82 +843,96 @@ Keyframe.DEFAULT_OPTIONS = {
     row: true,
     ms: true,
     index: true,
-    value: true
-  }
-}
+    value: true,
+  },
+};
 
-BaseModel.extend(Keyframe)
+BaseModel.extend(Keyframe);
 
 Keyframe.deselectAndDeactivateAllKeyframes = (criteria) => {
   Keyframe.where(criteria).forEach((keyframe) => {
-    keyframe.unsetBodySelected()
-    keyframe.deselect()
-    keyframe.deactivate()
-  })
-}
+    keyframe.unsetBodySelected();
+    keyframe.deselect();
+    keyframe.deactivate();
+  });
+};
 
 Keyframe.getInferredUid = (row, ms) => {
-  return `${row.getPrimaryKey()}-keyframe-${ms}`
-}
+  return `${row.getPrimaryKey()}-keyframe-${ms}`;
+};
 
 Keyframe.clearAllViewPositions = (filter) => {
   Keyframe.where(filter).forEach((keyframe) => {
-    keyframe.clearViewPosition()
-  })
-}
+    keyframe.clearViewPosition();
+  });
+};
 
 Keyframe.buildKeyframeMoves = (criteria, serialized) => {
   // Keyframes not part of this object will be deleted from the bytecode
-  const moves = {}
+  const moves = {};
 
-  const movables = Keyframe.where(Object.assign({ _needsMove: true }, criteria))
+  const movables = Keyframe.where(Object.assign({_needsMove: true}, criteria));
 
   movables.forEach((movable) => {
     // As an optimization, skip any that we have already moved below in case of dupes
-    if (!movable._needsMove) return null
+    if (!movable._needsMove) {
+      return null;
+    }
 
-    const timelineName = movable.timeline.getName()
-    const componentId = movable.element.getComponentId()
-    const propertyName = movable.row.getPropertyNameString()
+    const timelineName = movable.timeline.getName();
+    const componentId = movable.element.getComponentId();
+    const propertyName = movable.row.getPropertyNameString();
 
-    if (!moves[timelineName]) moves[timelineName] = {}
-    if (!moves[timelineName][componentId]) moves[timelineName][componentId] = {}
-    if (!moves[timelineName][componentId][propertyName]) moves[timelineName][componentId][propertyName] = {}
+    if (!moves[timelineName]) {
+      moves[timelineName] = {};
+    }
+    if (!moves[timelineName][componentId]) {
+      moves[timelineName][componentId] = {};
+    }
+    if (!moves[timelineName][componentId][propertyName]) {
+      moves[timelineName][componentId][propertyName] = {};
+    }
 
     // Because the keyframe move action interprets excluded entries as *deletes*, we have to
     // also include all keyframes that are a part of the same timeline/component/property tuple
     Keyframe.where(criteria).forEach((partner) => {
-      if (partner.timeline.getName() !== timelineName) return null
-      if (partner.element.getComponentId() !== componentId) return null
-      if (partner.row.getPropertyNameString() !== propertyName) return null
+      if (partner.timeline.getName() !== timelineName) {
+        return null;
+      }
+      if (partner.element.getComponentId() !== componentId) {
+        return null;
+      }
+      if (partner.row.getPropertyNameString() !== propertyName) {
+        return null;
+      }
 
-      moves[timelineName][componentId][propertyName][partner.getMs()] = partner.getSpec(true, serialized)
+      moves[timelineName][componentId][propertyName][partner.getMs()] = partner.getSpec(true, serialized);
 
       // Since this action resolves the move, exclude it from future calls until set again
-      partner._needsMove = false
-    })
+      partner._needsMove = false;
+    });
 
-    moves[timelineName][componentId][propertyName][movable.getMs()] = movable.getSpec(true, serialized)
+    moves[timelineName][componentId][propertyName][movable.getMs()] = movable.getSpec(true, serialized);
 
     // Since this action resolves the move, exclude it from future calls until set again
-    movable._needsMove = false
-  })
+    movable._needsMove = false;
+  });
 
-  return moves
-}
+  return moves;
+};
 
 Keyframe.findIntersectingWithArea = ({
   component,
   area,
   offset,
-  viewCoordinatesProvider
+  viewCoordinatesProvider,
 }) => {
   return Keyframe.where({component})
     .filter((keyframe) => {
-      const keyframeView = keyframe.getViewPosition()
+      const keyframeView = keyframe.getViewPosition();
 
       if (!keyframeView.left || keyframe.element.isLocked()) {
-        return false
+        return false;
       }
 
       // First, check if the keyframe is contained in the marquee horizontally,
@@ -913,72 +944,72 @@ Keyframe.findIntersectingWithArea = ({
         keyframeView.left - offset.horizontal > area.right ||
         area.left > keyframeView.right - offset.horizontal
       ) {
-        return false
+        return false;
       }
 
-      const freshBounds = viewCoordinatesProvider(keyframe)
+      const freshBounds = viewCoordinatesProvider(keyframe);
 
       return freshBounds && !(
         freshBounds.top > area.bottom ||
         area.top > freshBounds.bottom
-      )
+      );
     })
     .reduce((acc, keyframe) => {
-      return acc.set(keyframe.getUniqueKey(), keyframe)
-    }, new Map())
-}
+      return acc.set(keyframe.getUniqueKey(), keyframe);
+    }, new Map());
+};
 
 Keyframe.marqueeSelect = ({
   component,
   area,
   offset,
-  viewCoordinatesProvider
+  viewCoordinatesProvider,
 }) => {
   const selected = Keyframe.findIntersectingWithArea({
     component,
     area,
     offset,
-    viewCoordinatesProvider
-  })
+    viewCoordinatesProvider,
+  });
 
   Keyframe.any({
     component,
-    _selected: true
+    _selected: true,
   }).forEach((keyframe) => {
     if (!selected.has(keyframe.getUniqueKey())) {
-      keyframe.deselect()
+      keyframe.deselect();
       if (keyframe.isConstantSegment() || keyframe.isTransitionSegment()) {
-        keyframe.unsetBodySelected()
+        keyframe.unsetBodySelected();
       }
-      keyframe.updateActivationStatesInRow()
+      keyframe.updateActivationStatesInRow();
     }
-  })
+  });
 
   selected.forEach((keyframe) => {
-    keyframe.select()
+    keyframe.select();
     if (keyframe.isConstantSegment() || keyframe.isTransitionSegment()) {
-      keyframe.setBodySelected()
+      keyframe.setBodySelected();
     }
-    keyframe.updateActivationStatesInRow()
-  })
-}
+    keyframe.updateActivationStatesInRow();
+  });
+};
 
 Keyframe.epandRowsOfSelectedKeyframes = ({component, from}) => {
   Keyframe.any({
     component,
-    _selected: true
+    _selected: true,
   }).forEach((keyframe) => {
     if (!keyframe.row._isExpanded) {
-      keyframe.row.expand({ from })
+      keyframe.row.expand({from});
     }
-  })
-}
+  });
+};
 
 Keyframe.groupIsSingleTween = (keyframes) => {
-  return keyframes.length === 2 && keyframes[0].next() === keyframes[1] && keyframes[0].hasCurveBody()
-}
+  return keyframes.length === 2 && keyframes[0].next() === keyframes[1] && keyframes[0].hasCurveBody();
+};
 
-module.exports = Keyframe
+module.exports = Keyframe;
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
-const Timeline = require('./Timeline')
+const Timeline = require('./Timeline');

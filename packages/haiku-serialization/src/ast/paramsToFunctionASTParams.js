@@ -1,7 +1,7 @@
 function propMap (obj) {
-  var properties = []
+  const properties = [];
 
-  for (var key in obj) {
+  for (const key in obj) {
     properties.push({
       type: 'ObjectProperty',
       key: {
@@ -9,44 +9,46 @@ function propMap (obj) {
         type: 'StringLiteral',
         value: key,
         extra: {
-          raw: `"${key}"`
-        }
+          raw: `"${key}"`,
+        },
       },
-      value: paramToFunctionASTParam(obj[key])
+      value: paramToFunctionASTParam(obj[key]),
       // TODO: Are these needed ever?
       // method: false, ?
       // shorthand: true, ?
       // computed: false, ?
       // extra: {} ?
-    })
+    });
   }
 
-  return properties
+  return properties;
 }
 
 function paramToFunctionASTParam (param) {
   if (typeof param === 'string') {
-    return { type: 'Identifier', name: param }
+    return {type: 'Identifier', name: param};
   }
 
   if (Array.isArray(param)) {
     return {
       type: 'ArrayPattern',
-      elements: param.map(paramToFunctionASTParam)
-    }
+      elements: param.map(paramToFunctionASTParam),
+    };
   }
 
   if (param && typeof param === 'object') {
     return {
       type: 'ObjectPattern',
-      properties: propMap(param)
-    }
+      properties: propMap(param),
+    };
   }
 }
 
 function paramsToFunctionASTParams (params) {
-  if (!params || params.length < 1) return []
-  return params.map(paramToFunctionASTParam)
+  if (!params || params.length < 1) {
+    return [];
+  }
+  return params.map(paramToFunctionASTParam);
 }
 
-module.exports = paramsToFunctionASTParams
+module.exports = paramsToFunctionASTParams;

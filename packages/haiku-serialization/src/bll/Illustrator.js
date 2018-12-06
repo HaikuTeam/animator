@@ -1,13 +1,13 @@
-const { execSync } = require('child_process')
-const fse = require('haiku-fs-extra')
-const {isMac, isWindows} = require('haiku-common/lib/environments/os')
-const logger = require('./../utils/LoggerInstance')
-const os = require('os')
-const uuid = require('uuid')
-const path = require('path')
+const {execSync} = require('child_process');
+const fse = require('haiku-fs-extra');
+const {isMac, isWindows} = require('haiku-common/lib/environments/os');
+const logger = require('./../utils/LoggerInstance');
+const os = require('os');
+const uuid = require('uuid');
+const path = require('path');
 
-const IS_ILLUSTRATOR_FILE_RE = /\.ai$/
-const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/
+const IS_ILLUSTRATOR_FILE_RE = /\.ai$/;
+const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/;
 
 /**
  * This template script runs inside Illustrator and perform the export of the
@@ -49,7 +49,7 @@ const EXPORTER_SCRIPT = `
     app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
     app.open(srcFile);
   }
-`
+`;
 
 class Illustrator {
   /**
@@ -58,7 +58,7 @@ class Illustrator {
    * @returns {Boolean}
    */
   static isIllustratorFile (abspath) {
-    return abspath.match(IS_ILLUSTRATOR_FILE_RE)
+    return abspath.match(IS_ILLUSTRATOR_FILE_RE);
   }
 
   /**
@@ -68,7 +68,7 @@ class Illustrator {
    * @returns {Boolean}
    */
   static isIllustratorFolder (abspath) {
-    return !!abspath && abspath.match(IS_ILLUSTRATOR_FOLDER_RE)
+    return !!abspath && abspath.match(IS_ILLUSTRATOR_FOLDER_RE);
   }
 
   /**
@@ -77,51 +77,55 @@ class Illustrator {
    * @returns {Boolean}
    */
   static importSVG ({abspath, tryToOpenFile}) {
-    if (!Illustrator.isIllustratorFile(abspath)) return false
+    if (!Illustrator.isIllustratorFile(abspath)) {
+      return false;
+    }
 
-    logger.info('[illustrator] got', abspath)
+    logger.info('[illustrator] got', abspath);
 
-    const assetBaseFolder = abspath + '.contents/'
-    const artboardFolder = assetBaseFolder + 'artboards/'
+    const assetBaseFolder = abspath + '.contents/';
+    const artboardFolder = assetBaseFolder + 'artboards/';
 
-    fse.emptyDirSync(assetBaseFolder)
-    fse.mkdirpSync(artboardFolder)
+    fse.emptyDirSync(assetBaseFolder);
+    fse.mkdirpSync(artboardFolder);
 
-    logger.info('[illustrator] running commands')
+    logger.info('[illustrator] running commands');
 
     // We need to create a temporary Illustrator script file with the contents of
     // EXPORTER_SCRIPT to perform the export, this is an attempt to obscure the
     // file name to reduce the chances of an attacker modifying the contents of this
     // file before being executed.
-    const tmpdir = os.tmpdir()
-    const fileName = uuid.v4() + '.jsx'
-    const exportScriptPath = path.join(tmpdir, fileName)
+    const tmpdir = os.tmpdir();
+    const fileName = uuid.v4() + '.jsx';
+    const exportScriptPath = path.join(tmpdir, fileName);
     const exportScript =
       EXPORTER_SCRIPT
         .replace('DESTINATION_PATH', artboardFolder)
-        .replace('SOURCE_PATH', abspath)
+        .replace('SOURCE_PATH', abspath);
 
-    fse.writeFileSync(exportScriptPath, exportScript)
+    fse.writeFileSync(exportScriptPath, exportScript);
 
     if (tryToOpenFile) {
-      execSync(Illustrator.openIllustratorFile(abspath))
+      execSync(Illustrator.openIllustratorFile(abspath));
       // Try to do our best to wait until the file is open before running the
       // script.
-      setTimeout(() => Illustrator.openIllustratorFile(exportScriptPath), 5000)
+      setTimeout(() => Illustrator.openIllustratorFile(exportScriptPath), 5000);
     } else {
-      execSync(Illustrator.openIllustratorFile(exportScriptPath))
+      execSync(Illustrator.openIllustratorFile(exportScriptPath));
     }
 
-    return true
+    return true;
   }
 
   static openIllustratorFile (file) {
     if (isMac()) {
-      return `open -g -b com.adobe.Illustrator ${file}`
-    } else if (isWindows()) {
+      return `open -g -b com.adobe.Illustrator ${file}`;
+    }
+
+    if (isWindows()) {
       // TODO: figure out the correct command in Windows
     }
   }
 }
 
-module.exports = Illustrator
+module.exports = Illustrator;

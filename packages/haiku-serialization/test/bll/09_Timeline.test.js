@@ -1,22 +1,22 @@
-const tape = require('tape')
-const path = require('path')
-const fse = require('haiku-fs-extra')
-const async = require('async')
-const Project = require('./../../src/bll/Project')
-const Timeline = require('./../../src/bll/Timeline')
+const tape = require('tape');
+const path = require('path');
+const fse = require('haiku-fs-extra');
+const async = require('async');
+const Project = require('./../../src/bll/Project');
+const Timeline = require('./../../src/bll/Timeline');
 
 tape('Timeline#frameInfo', (t) => {
-  const subproc = process.env.HAIKU_SUBPROCESS
-  process.env.HAIKU_SUBPROCESS = 'timeline'
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = 'timeline';
   // Start fresh.
   while (Timeline.count() > 0) {
-    const timeline = Timeline.find()
-    Timeline.remove(timeline, t)
+    const timeline = Timeline.find();
+    Timeline.remove(timeline, t);
   }
   return setupTest('timeline-01', (ac, rows, done) => {
-    t.deepEqual(Timeline.count(), 1)
-    const timeline = ac.getCurrentTimeline()
-    timeline.setTimelinePixelWidth(1000)
+    t.deepEqual(Timeline.count(), 1);
+    const timeline = ac.getCurrentTimeline();
+    timeline.setTimelinePixelWidth(1000);
     const expectedFrameInfo = {
       fps: 60,
       mspf: 1000 / 60, // 60fps
@@ -36,11 +36,11 @@ tape('Timeline#frameInfo', (t) => {
       scL: 1000 + 300,
       scRatio: 5000 / (1000 + 300),
       scA: 0,
-      scB: 1000 / (5000 / (1000 + 300))
-    }
-    t.deepEqual(timeline.getFrameInfo(), expectedFrameInfo)
+      scB: 1000 / (5000 / (1000 + 300)),
+    };
+    t.deepEqual(timeline.getFrameInfo(), expectedFrameInfo);
 
-    timeline.setTimelinePixelWidth(1500)
+    timeline.setTimelinePixelWidth(1500);
     t.deepEqual(
       timeline.getFrameInfo(),
       {
@@ -50,14 +50,14 @@ tape('Timeline#frameInfo', (t) => {
         pxMax: 5000 * 1500 / 1000,
         scL: 1500 + 300,
         scRatio: 5000 * (1500 / 1000) / (1500 + 300),
-        scB: 1000 / (5000 / (1500 + 300))
-      }
-    )
+        scB: 1000 / (5000 / (1500 + 300)),
+      },
+    );
 
-    timeline.setTimelinePixelWidth(1000)
-    t.deepEqual(timeline.getFrameInfo(), expectedFrameInfo)
+    timeline.setTimelinePixelWidth(1000);
+    t.deepEqual(timeline.getFrameInfo(), expectedFrameInfo);
 
-    timeline.updateVisibleFrameRangeByDelta(500)
+    timeline.updateVisibleFrameRangeByDelta(500);
     t.deepEqual(
       timeline.getFrameInfo(),
       // TODO: Show how these values are derived.
@@ -74,14 +74,14 @@ tape('Timeline#frameInfo', (t) => {
         msB: 9333,
         scRatio: 7.17948717948718,
         scA: 1160.7142857142858,
-        scB: 1300
-      }
-    )
+        scB: 1300,
+      },
+    );
 
-    process.env.HAIKU_SUBPROCESS = subproc
-    done(t.end)
-  })
-})
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done(t.end);
+  });
+});
 
 const PATH_SVG_1 = `
   <?xml version="1.0" encoding="UTF-8"?>
@@ -98,42 +98,50 @@ const PATH_SVG_1 = `
           </g>
       </g>
   </svg>
-`
+`;
 
 const setupTest = (name, cb) => {
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', name)
-  fse.removeSync(folder)
-  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
-  const platform = {}
-  const userconfig = {}
-  const fileOptions = { doWriteToDisk: false, skipDiffLogging: true }
-  const envoyOptions = { mock: true }
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', name);
+  fse.removeSync(folder);
+  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+  const platform = {};
+  const userconfig = {};
+  const fileOptions = {doWriteToDisk: false, skipDiffLogging: true};
+  const envoyOptions = {mock: true};
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    if (err) throw err
-    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
-      if (err) throw err
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
-      const ac = project.getCurrentActiveComponent()
-      return ac.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err) => {
-        if (err) throw err
-        const rows = ac.getRows().filter((row) => row.isProperty()).slice(0, 3)
+    if (err) {
+ throw err;
+}
+    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+      if (err) {
+ throw err;
+}
+      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
+      const ac = project.getCurrentActiveComponent();
+      return ac.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err) => {
+        if (err) {
+ throw err;
+}
+        const rows = ac.getRows().filter((row) => row.isProperty()).slice(0, 3);
         return async.eachSeries(rows, (row, next) => {
-          const mss = [0, 1000, 2000, 3000, 4000, 5000]
+          const mss = [0, 1000, 2000, 3000, 4000, 5000];
           return async.eachSeries(mss, (ms, next) => {
-            row.createKeyframe(undefined, ms, { from: 'test' })
-            return setTimeout(() => next(), 100)
-          }, next)
+            row.createKeyframe(undefined, ms, {from: 'test'});
+            return setTimeout(() => next(), 100);
+          }, next);
         }, (err) => {
-          if (err) throw err
+          if (err) {
+ throw err;
+}
           cb(ac, rows, (finish) => {
             if (global.haiku && global.haiku.HaikuGlobalAnimationHarness) {
-              global.haiku.HaikuGlobalAnimationHarness.cancel()
+              global.haiku.HaikuGlobalAnimationHarness.cancel();
             }
-            fse.removeSync(folder)
-            finish()
-          })
-        })
-      })
-    })
-  })
-}
+            fse.removeSync(folder);
+            finish();
+          });
+        });
+      });
+    });
+  });
+};

@@ -1,24 +1,24 @@
-var objectPatternNodeToObject = require('./objectPatternNodeToObject')
+let objectPatternNodeToObject = require('./objectPatternNodeToObject');
 
-var unknowns = 0
+let unknowns = 0;
 
 function getFunctionNodeParams (node) {
-  var params = []
+  const params = [];
 
-  for (var i = 0; i < node.params.length; i++) {
-    let pnode = node.params[i]
+  for (let i = 0; i < node.params.length; i++) {
+    const pnode = node.params[i];
 
     if (pnode.type === 'Identifier') {
-      params[i] = pnode.name
+      params[i] = pnode.name;
     } else if (pnode.type === 'ObjectPattern') {
-      params[i] = objectPatternNodeToObject({}, pnode)
+      params[i] = objectPatternNodeToObject({}, pnode);
     } else {
       // Not sure what else to do if we get here
-      params[i] = '__unknown_' + unknowns + '__'
+      params[i] = '__unknown_' + unknowns + '__';
     }
   }
 
-  return params
+  return params;
 }
 
-module.exports = getFunctionNodeParams
+module.exports = getFunctionNodeParams;

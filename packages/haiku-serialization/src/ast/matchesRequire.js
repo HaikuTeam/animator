@@ -13,5 +13,5 @@ module.exports = function matchesRequire (stmt, identifierName, modulePath) {
          (stmt.declarations[0].init.callee.name === 'require') &&
          (stmt.declarations[0].init.arguments.length === 1) &&
          (stmt.declarations[0].init.arguments[0].type === 'StringLiteral') &&
-         (stmt.declarations[0].init.arguments[0].value === modulePath)
-}
+         (stmt.declarations[0].init.arguments[0].value === modulePath);
+};

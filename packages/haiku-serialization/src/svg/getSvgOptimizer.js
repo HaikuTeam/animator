@@ -1,7 +1,7 @@
-const Svgo = require('svgo')
-const customPlugins = require('./plugins')
+const Svgo = require('svgo');
+const customPlugins = require('./plugins');
 
-let singleton
+let singleton;
 
 const plugins = [
   'removeMetadata',
@@ -16,17 +16,17 @@ const plugins = [
   'removeEmptyText',
   'removeViewBox',
   'convertStyleToAttrs',
-  customPlugins
-]
+  customPlugins,
+];
 
 module.exports = () => {
   if (!singleton) {
     singleton = new Svgo({
       full: true,
       floatPrecision: 3,
-      plugins
-    })
+      plugins,
+    });
   }
 
-  return singleton
-}
+  return singleton;
+};

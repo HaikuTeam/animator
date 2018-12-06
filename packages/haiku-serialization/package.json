@@ -9,9 +9,9 @@
     "test:utils": "cross-env NODE_ENV=test tape \"test/utils/**/*.test.js\" | tap-spec || true",
     "test:bll": "cross-env NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
     "test-report": "cross-env NODE_ENV=test tape \"test/**/**/*.test.js\" > test-result.tap",
-    "lint": "eslint \"src/**/*.js\"",
-    "fix": "yarn lint --fix",
-    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml"
+    "lint": "tslint 'src/**/*.js' -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
+    "fix": "yarn lint --fix"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
@@ -71,8 +71,6 @@
   "devDependencies": {
     "@types/gl-matrix": "^2.4.0",
     "cross-env": "^5.1.6",
-    "eslint": "^3.19.0",
-    "eslint-config-standard": "^10.2.1",
     "haiku-testing": "4.3.6",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "leaked-handles": "^5.2.0",

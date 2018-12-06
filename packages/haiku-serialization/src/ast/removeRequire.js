@@ -1,6 +1,6 @@
-var _ = require('lodash')
-var traverseAST = require('./traverseAST')
-var matchesRequire = require('./matchesRequire')
+let _ = require('lodash');
+let traverseAST = require('./traverseAST');
+let matchesRequire = require('./matchesRequire');
 
 /**
  * @function removeRequire
@@ -11,19 +11,19 @@ var matchesRequire = require('./matchesRequire')
 module.exports = function removeRequire (ast, identifierName, modulePath) {
   // first traverse the AST to count the number of times the identifier is being used.
   // we assume there should be at least 1 usage (in the require stmt itself)
-  var identCount = 0
-  traverseAST(ast, function (node) {
+  let identCount = 0;
+  traverseAST(ast, (node) => {
     if (node.type === 'Identifier' && node.name === identifierName) {
-      identCount += 1
+      identCount += 1;
     }
-  })
+  });
 
   if (identCount > 1) {
     // we're being asked to remove an in-use require, should we do something?
-    return
+    return;
   }
 
   // otherwise we just filter it out
   ast.program.body = _.filter(ast.program.body, (stmt) =>
-      !matchesRequire(stmt, identifierName, modulePath))
-}
+      !matchesRequire(stmt, identifierName, modulePath));
+};

@@ -1,4 +1,4 @@
-const objectToOAST = require('./objectToOAST')
+const objectToOAST = require('./objectToOAST');
 
 function buildRequireStatement (identifier, modpath) {
   return {
@@ -8,42 +8,42 @@ function buildRequireStatement (identifier, modpath) {
       type: 'VariableDeclarator',
       id: {
         type: 'Identifier',
-        name: identifier
+        name: identifier,
       },
       init: {
         type: 'CallExpression',
         callee: {
           type: 'Identifier',
-          name: 'require'
+          name: 'require',
         },
         arguments: [{
           type: 'StringLiteral',
           value: modpath,
           extra: {
-            raw: JSON.stringify(modpath)
-          }
-        }]
-      }
-    }]
-  }
+            raw: JSON.stringify(modpath),
+          },
+        }],
+      },
+    }],
+  };
 }
 
 function buildRequireStatementsFromImports (imports) {
-  const statements = [buildRequireStatement('Haiku', '@haiku/core')]
+  const statements = [buildRequireStatement('Haiku', '@haiku/core')];
   for (const modpath in imports) {
-    const identifier = imports[modpath]
-    statements.push(buildRequireStatement(identifier, modpath))
+    const identifier = imports[modpath];
+    statements.push(buildRequireStatement(identifier, modpath));
   }
-  return statements
+  return statements;
 }
 
 module.exports = function bytecodeObjectToAST (
   bytecode,
   imports = {},
   frontMatterNodes = [],
-  backMatterNodes = []
+  backMatterNodes = [],
 ) {
-  const oast = objectToOAST(bytecode)
+  const oast = objectToOAST(bytecode);
 
   const ast = {
     type: 'File',
@@ -65,20 +65,20 @@ module.exports = function bytecodeObjectToAST (
                 type: 'MemberExpression',
                 object: {
                   type: 'Identifier',
-                  name: 'module'
+                  name: 'module',
                 },
                 property: {
                   type: 'Identifier',
-                  name: 'exports'
-                }
+                  name: 'exports',
+                },
               },
-              right: oast
-            }
-          }
+              right: oast,
+            },
+          },
         ])
-        .concat(backMatterNodes)
-    }
-  }
+        .concat(backMatterNodes),
+    },
+  };
 
-  return ast
-}
+  return ast;
+};
