@@ -663,7 +663,7 @@ class ActiveComponent extends BaseModel {
 
     const index = (mana && mana.children && mana.children.length) || 0;
 
-    const template = mana && Template.manaWithOnlyMinimalProps(mana, () => ({}));
+    const template = mana && Template.manaWithOnlyStandardProps(mana, () => ({}));
 
     const source = jss(template) + '-' + index + '-' + nonce;
 
