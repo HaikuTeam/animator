@@ -3,13 +3,10 @@ const fs = require('fs');
 const {exec} = require('child_process');
 
 const RESERVED_CHAR_REPLACEMENT = '-';
+const FILENAME_RESERVED_REGEX = /[<>:"\/\\|?*\x00-\x1F]/g;
+const WINDOWS_NAMES_RESERVED_REGEX = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i;
 
 module.exports = {
-  // eslint-disable-next-line
-  filenameReservedRegex: /[<>:"\/\\|?*\x00-\x1F]/g,
-
-  windowsNamesReservedRegex: /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i,
-
   download (url, downloadPath, onProgress, shouldCancel) {
     const file = fs.createWriteStream(downloadPath);
 
@@ -61,7 +58,7 @@ module.exports = {
     }
 
     return name
-      .replace(this.filenameReservedRegex, RESERVED_CHAR_REPLACEMENT)
-      .replace(this.windowsNamesReservedRegex, RESERVED_CHAR_REPLACEMENT);
+      .replace(FILENAME_RESERVED_REGEX, RESERVED_CHAR_REPLACEMENT)
+      .replace(WINDOWS_NAMES_RESERVED_REGEX, RESERVED_CHAR_REPLACEMENT);
   },
 };
