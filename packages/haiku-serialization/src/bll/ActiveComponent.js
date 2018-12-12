@@ -1734,7 +1734,7 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  mergeMana (existingBytecode, manaIncoming, {mergeRemovedOutputs = true}) {
+  mergeMana (existingBytecode, manaIncoming, index, {mergeRemovedOutputs = true}) {
     let numMatchingNodes = 0;
 
     const timelineName = this.getMergeDesignTimelineName();
@@ -1759,7 +1759,7 @@ class ActiveComponent extends BaseModel {
 
       const {
         hash,
-      } = this.getInsertionPointInfo(numMatchingNodes++);
+      } = this.getInsertionPointInfo(`${index}-${numMatchingNodes++}`);
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         safeIncoming,
@@ -1823,7 +1823,7 @@ class ActiveComponent extends BaseModel {
     });
 
     // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
-    return async.eachSeries(designsAsArray, (relpath, next) => {
+    return async.eachOfSeries(designsAsArray, (relpath, index, next) => {
       if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath) && usedSources.has(path.posix.normalize(relpath))) {
         return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
           // There may be a race where a file is removed before this gets called;
@@ -1835,7 +1835,7 @@ class ActiveComponent extends BaseModel {
 
           Template.fixManaSourceAttribute(mana, relpath); // Adds haiku-source="relpath_to_file_from_project_root"
 
-          this.mergeMana(bytecode, mana, {mergeRemovedOutputs});
+          this.mergeMana(bytecode, mana, index, {mergeRemovedOutputs});
           return next();
         });
       }
