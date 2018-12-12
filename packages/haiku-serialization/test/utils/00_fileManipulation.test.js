@@ -22,6 +22,8 @@ test('fileManipulation#unzip succesfully unzips a file', async (t) => {
   t.end();
 });
 
-function _cleanup () {
-  fs.rmdirSync(FIXTURES_TMP);
-}
+test('fileManipulation#sanitize replaces invalid linux characters with a dash', (t) => {
+  const sanitized = fileManipulation.sanitize('my / file / name')
+  t.equal(sanitized, 'my - file - name', 'dashes should be removed');
+  t.end();
+})
