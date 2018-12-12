@@ -184,7 +184,7 @@ export const isPointAlongStroke = (element: HaikuElement, point: Vec2,
 
   const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse());
 
-  switch (element.type) {
+  switch (element && element.type) {
     case 'rect': {
       const p1 = {x: Number(element.attributes.x), y: Number(element.attributes.y)};
       const p2 = {x: Number(element.attributes.x) + element.sizeX, y: Number(element.attributes.y)};
