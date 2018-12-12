@@ -23,9 +23,30 @@ export default class VueHaiku extends React.PureComponent<VueHaikuProps> {
             components: {
               ${projectName}
             }
-          })
+          });
           `}
         </CodeBox>
+
+        <br />
+        <i>Or using single file components:</i>
+        <CodeBox>
+          {dedent`
+          <template>
+            <${projectName} :loop="true"></${projectName}>
+          </template>
+
+          <script>
+          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/vue';
+
+          export default {
+            components: {
+              ${projectName}
+            }
+          }
+          </script>
+          `}
+        </CodeBox>
+
       </NpmInstallable>
     );
   }
