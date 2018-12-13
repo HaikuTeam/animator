@@ -374,7 +374,7 @@ class Element extends BaseModel {
         // If not, show it only if there is a handler explicitly defined for it.
         if (candidate.menuable || handlers[name]) {
           suboptions.push({
-            label: candidate.human,
+            label: candidate.human || name,
             value: name,
           });
         }
