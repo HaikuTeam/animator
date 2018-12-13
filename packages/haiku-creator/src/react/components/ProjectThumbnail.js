@@ -19,9 +19,9 @@ class ProjectThumbnail extends React.Component {
 
   launchProjectIfAllowed = () => {
     if (this.props.allowInteractions) {
-      this.props.launchProject()
+      this.props.launchProject();
     }
-  }
+  };
 
   render () {
     return (
@@ -61,7 +61,7 @@ class ProjectThumbnail extends React.Component {
           ]}
           onClick={() => {
             if (!this.state.isMenuActive) {
-              this.launchProjectIfAllowed()
+              this.launchProjectIfAllowed();
             }
           }}
           onMouseOver={() => {
