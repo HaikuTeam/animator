@@ -46,7 +46,7 @@ class ElementTitle extends React.PureComponent {
     return (
       <div style={STYLES.wrapper}>
         <h3 style={STYLES.title}>{`${this.title} Actions ${this.breadcrumb}`}</h3>
-        {!this.props.currentEvent &&
+        {(isNumeric(this.props.currentFrame) || this.props.currentEvent) &&
           <button onClick={this.props.onEditorRemoved} style={STYLES.trashIcon}>
             <TrashIconSVG color={STYLES.trashIconColor} />
           </button>
