@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {get} from 'lodash';
+import isNumeric from 'haiku-ui-common/lib/helpers/isNumeric';
 import {TrashIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import Palette from 'haiku-ui-common/lib/Palette';
 import truncate from 'haiku-ui-common/lib/helpers/truncate';
@@ -26,22 +26,27 @@ const STYLES = {
 };
 
 class ElementTitle extends React.PureComponent {
-  getElementTitle () {
-    if (this.props.title) {
-      return this.props.title;
+  get elementTitle () {
+    return this.props.element ? truncate(this.props.element.getTitle(), 16) : '(unknown)';
+  }
+
+  get title () {
+    return isNumeric(this.props.currentFrame) ? `Frame ${this.props.currentFrame}` : this.elementTitle;
+  }
+
+  get breadcrumb () {
+    if (!isNumeric(this.props.currentFrame) && this.props.currentEvent) {
+      return '> ' + this.props.currentEvent;
     }
 
-    const element = this.props.element;
-    const node = element && element.getStaticTemplateNode();
-    const title = get(node, 'attributes.haiku-title');
-    return title ? truncate(title, 16) : '(unknown)';
+    return '';
   }
 
   render () {
     return (
       <div style={STYLES.wrapper}>
-        <h3 style={STYLES.title}>{`${this.getElementTitle()} Actions ${this.props.breadcrumb}`}</h3>
-        {this.props.isDeleteable &&
+        <h3 style={STYLES.title}>{`${this.title} Actions ${this.breadcrumb}`}</h3>
+        {!this.props.currentEvent &&
           <button onClick={this.props.onEditorRemoved} style={STYLES.trashIcon}>
             <TrashIconSVG color={STYLES.trashIconColor} />
           </button>
@@ -54,8 +59,8 @@ class ElementTitle extends React.PureComponent {
 ElementTitle.propTypes = {
   element: React.PropTypes.object,
   onEditorRemoved: React.PropTypes.func.isRequired,
-  breadcrumb: React.PropTypes.string,
-  isDeleteable: React.PropTypes.bool,
+  currentFrame: React.PropTypes.number,
+  currentEvent: React.PropTypes.string,
 };
 
 export default ElementTitle;

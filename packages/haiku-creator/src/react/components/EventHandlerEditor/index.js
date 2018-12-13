@@ -6,6 +6,7 @@ import Editor from './Editor';
 import EditorActions from './EditorActions';
 import EventSelector from './EventSelector';
 import HandlerManager from './HandlerManager';
+import isNumeric from 'haiku-ui-common/lib/helpers/isNumeric';
 import {
   ModalWrapper,
   ModalHeader,
@@ -65,10 +66,6 @@ const STYLES = {
     marginBottom: '15px',
   },
 };
-
-function isNumeric (n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
-}
 
 class EventHandlerEditor extends React.PureComponent {
   constructor (props) {
@@ -326,11 +323,7 @@ class EventHandlerEditor extends React.PureComponent {
             <ElementTitle
               element={this.props.element}
               data-tooltip={true}
-              title={
-                isNumeric(this.props.options.frame)
-                  ? `Frame ${this.props.options.frame}`
-                  : null
-              }
+              currentFrame={this.props.options.frame}
               onEditorRemoved={() => {
                 this.doRemove();
                 if (isNumeric(this.props.options.frame)) {
@@ -339,12 +332,7 @@ class EventHandlerEditor extends React.PureComponent {
                   this.hideEditor();
                 }
               }}
-              breadcrumb={
-                isNumeric(this.props.options.frame) || !this.state.currentEvent
-                  ? ''
-                  : '> ' + this.state.currentEvent
-              }
-              isDeleteable={!!this.state.currentEvent}
+              currentEvent={this.state.currentEvent}
             />
           </ModalHeader>
 
