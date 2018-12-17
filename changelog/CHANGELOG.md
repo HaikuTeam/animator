@@ -1,6 +1,27 @@
 # Changelog
 
 
+## 4.3.6
+
+### Bug Fixes
+
+ * only display the trash icon if an event is selected
+ * use the event name as a fallback for non-menuable events
+ * set correct element titles for nested elements
+ * ensure unique hash fuzzers during mergeDesigns
+ * do not try to access 'this' when we shouldn't
+ * avoid weirdness with the z-index of tooltips and the dashboard overlay
+ * do not try to access object properties without the object in #isPointAlongStroke
+ * edge case of long, allcaps proj names covering menu btn
+ * check if moveTo is defined before trying to read from it
+ * check if the descriptor exists before trying to acces values from it
+ * do not crash if we cannot find the state spec
+ * check for existence of element before trying to match
+
+### Documentation
+
+ * add an example for vue single file components in publish ui
+
 ## 4.3.5
 
 ### Bug Fixes

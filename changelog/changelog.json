@@ -8716,5 +8716,72 @@
       "label": "fix",
       "message": "unset _lastSeek when pausing"
     }
+  },
+  "4.3.6": {
+    "00538b02c0cf8812a93e43838c0d7cac928569e7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only display the trash icon if an event is selected"
+    },
+    "1c9177ecf69c6d44b832b3a76da95806a462d675": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use the event name as a fallback for non-menuable events"
+    },
+    "48225b5cc217f169037d5dd8c1837ec994a3a98f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set correct element titles for nested elements"
+    },
+    "a973a89f1390144c16a66ad66da313d25ead4af3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure unique hash fuzzers during mergeDesigns"
+    },
+    "4a1d49e5c5df3d512ab43120402d18135ae2f67d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not try to access 'this' when we shouldn't"
+    },
+    "63e10784b55860855fa68b43fe8d555a2e28dd89": {
+      "project": "haiku-testing",
+      "label": "docs",
+      "message": "add an example for vue single file components in publish ui"
+    },
+    "dfb8ea2eab30f73325e618f8a7fc3ae598108ea7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid weirdness with the z-index of tooltips and the dashboard overlay"
+    },
+    "68238f854eeedd2fc3bd20eeefa46866d99d5a43": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not try to access object properties without the object in #isPointAlongStroke"
+    },
+    "4ce19223f78a4663048cba767c4ed9d23918e685": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "edge case of long, allcaps proj names covering menu btn"
+    },
+    "5fb510204c20a29b264eed7a633077687a14b99f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if moveTo is defined before trying to read from it"
+    },
+    "e975248b9d89a65b4a1ca2fbf35c4802730558de": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if the descriptor exists before trying to acces values from it"
+    },
+    "a39784a8d8dbceae3ce156422588b10956befd69": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not crash if we cannot find the state spec"
+    },
+    "d4f5cb39d8597e46424f28893d69cedab89251e8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check for existence of element before trying to match"
+    }
   }
 }
