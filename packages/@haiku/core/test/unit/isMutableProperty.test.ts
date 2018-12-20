@@ -45,6 +45,18 @@ tape(
       isMutableProperty({0: {value: 'foo'}}, 'blah'),
       'scalar-valued single keyframe => immutable',
     );
+    t.false(
+      isMutableProperty(undefined, 'bad-property'),
+      'undefined passed as property should return false'
+    );
+    t.false(
+      isMutableProperty(null, 'bad-property'),
+      'null passed as property should return false'
+    );
+    t.false(
+      isMutableProperty('bad-property', 'bad-property'),
+      'string passed as property should return false'
+    );
     t.end();
   },
 );
