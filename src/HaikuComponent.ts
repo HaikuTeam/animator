@@ -1835,12 +1835,12 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       const ms = parseeWithKeys.keys[i];
       const descriptor = cluster[ms];
 
-    if (
-      (skipStableParsees && parseeWithKeys.parsee[ms] && !parseeWithKeys.parsee[ms].expression) ||
-      descriptor === undefined
-    ) {
-      continue;
-    }
+      if (
+        (skipStableParsees && parseeWithKeys.parsee[ms] && !parseeWithKeys.parsee[ms].expression) ||
+        descriptor === undefined
+      ) {
+        continue;
+      }
 
       if (isFunction(descriptor.value)) {
         parseeWithKeys.parsee[ms] = {
