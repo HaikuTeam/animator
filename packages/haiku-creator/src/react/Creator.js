@@ -35,7 +35,7 @@ import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // es
 import {PROJECT_CHANNEL} from 'haiku-sdk-creator/lib/bll/Project';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
-import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
+import {ERROR_CHANNEL, isUserlandCulprit} from 'haiku-sdk-creator/lib/bll/Error';
 import {
   InteractionMode,
   isPreviewMode,
@@ -43,7 +43,6 @@ import {
 import Palette from 'haiku-ui-common/lib/Palette';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
 import * as Hai from '@haiku/taylor-hai/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
@@ -846,8 +845,8 @@ export default class Creator extends React.Component {
           global.sentryReporter.envoy = error;
         }
         this.error = error;
-        this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId, message}) => {
-          if (shouldEmitErrors()) {
+        this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId, message, culprit}) => {
+          if (shouldEmitErrors() && !isUserlandCulprit(culprit)) {
             this.setState({
               showFailWhale: true,
               failWhaleUniqueId: uniqueId || this.state.failWhaleUniqueId,

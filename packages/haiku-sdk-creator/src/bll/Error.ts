@@ -1,7 +1,7 @@
 import {shouldEmitErrors} from 'haiku-common/lib/environments';
 // @ts-ignore
 import {HOMEDIR_CRASH_REPORTS_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
-import {join} from 'path';
+import {basename, join} from 'path';
 import {crashReportFork} from '../dal/Carbonite';
 import {MaybeAsync} from '../envoy';
 import EnvoyHandler from '../envoy/EnvoyHandler';
@@ -32,10 +32,16 @@ export interface SentryCallbackData {
       value?: string;
     }[];
   };
+  culprit?: string;
 }
 
-const getErrorMessage = (data: SentryCallbackData) => (
-  data.exception && data.exception[0] && data.exception[0].value) || 'Unknown';
+const getErrorMetadata = (data: SentryCallbackData) => ({
+  message: (data.exception && data.exception[0] && data.exception[0].value) || 'Unknown',
+  culprit: data.culprit,
+});
+
+// Returns true iff a culprit is from a local component file.
+export const isUserlandCulprit = (culprit: string) => culprit && basename(culprit) === 'code.js';
 
 export class SentryReporter {
   /**
@@ -60,7 +66,7 @@ export class SentryReporter {
       Promise.resolve(
         this.envoy.crashReport(
           emit,
-          getErrorMessage(data),
+          data,
           projectPath,
           zipName,
           zipPath,
@@ -89,7 +95,7 @@ export class SentryReporter {
     if (data.extra.projectPath && shouldEmitErrors()) {
       this.freezeInCarbonite(data, emit);
     } else {
-      Promise.resolve(this.envoy.crashReport(emit, getErrorMessage(data)));
+      Promise.resolve(this.envoy.crashReport(emit, data));
     }
 
     return data;
@@ -109,7 +115,7 @@ export class ErrorHandler extends EnvoyHandler {
 
   crashReport (
     emit: boolean,
-    message: string,
+    data: SentryCallbackData,
     projectPath?: string,
     zipName?: string,
     zipPath?: string,
@@ -122,7 +128,7 @@ export class ErrorHandler extends EnvoyHandler {
       crashReportFork(projectPath, zipName, zipPath, finalUrl);
       if (emit) {
         this.server.emit(ERROR_CHANNEL, {
-          payload: {uniqueId, message},
+          payload: {uniqueId, ...getErrorMetadata(data)},
           name: `${ERROR_CHANNEL}:error`,
         });
       }
@@ -132,7 +138,7 @@ export class ErrorHandler extends EnvoyHandler {
 
     if (emit) {
       this.server.emit(ERROR_CHANNEL, {
-        payload: {message},
+        payload: getErrorMetadata(data),
         name: `${ERROR_CHANNEL}:error`,
       });
     }
