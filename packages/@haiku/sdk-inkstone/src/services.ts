@@ -35,6 +35,7 @@ export const enum Endpoints {
   BillingSetCardAsDefaultById = '/billing/card/:card_id/is_default',
   BillingDeleteCardById = '/billing/card/:card_id',
   BillingPlanResource = '/billing/plan',
+  BillingDescribeCoupon = '/billing/coupon/:coupon_id',
 }
 
 export interface UriParams {
