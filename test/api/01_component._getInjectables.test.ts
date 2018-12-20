@@ -14,6 +14,9 @@ tape(
         baz: {
           value: 'abc',
         },
+        bull: {
+          value: null,
+        },
       },
       timelines: {
         Default: {
@@ -66,6 +69,9 @@ tape(
         injectables.bux,
         'number',
       );
+
+      t.ok(injectables.bull);
+      t.equal(injectables.bull, 'object')
 
       component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
 
