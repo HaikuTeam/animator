@@ -893,6 +893,12 @@ export namespace inkstone {
       Plans: Plan[];
     }
 
+    export interface Coupon {
+      AmountOff: number|null;
+      PercentOff: number|null;
+      Valid: boolean;
+    }
+
     /**
      * @authentication-optional
      * Describes the available products. This endpoint is the source of valid values of PlanID which can be used to
@@ -1033,5 +1039,22 @@ export namespace inkstone {
         .withEndpoint(Endpoints.BillingPlanResource)
         .callWithCallback(cb);
     };
+
+    /**
+     * @authentication-required
+     * Gives information about a coupon via a provided ID
+     *
+     * Error codes:
+     *   E_BILLING_COUPON_NOT_FOUND when an unknown coupon ID is provided to the endpoint.
+     */
+    export const getCoupon = (
+      couponID: string,
+      cb: inkstone.Callback<Coupon>
+    ) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.BillingDescribeCoupon)
+        .withUrlParameters({':coupon_id': couponID})
+        .callWithCallback(cb);
+    }
   }
 }
