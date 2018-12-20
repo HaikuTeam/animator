@@ -766,7 +766,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
-      let type = this._states[key].type;
+      let type = this._states[key] && this._states[key].type;
       if (!type) {
         type = typeof this._states[key];
       }
