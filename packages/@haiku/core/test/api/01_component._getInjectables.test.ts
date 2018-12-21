@@ -71,7 +71,7 @@ tape(
       );
 
       t.ok(injectables.bull);
-      t.equal(injectables.bull, 'object')
+      t.equal(injectables.bull, 'object');
 
       component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
 

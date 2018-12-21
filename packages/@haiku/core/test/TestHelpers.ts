@@ -4,12 +4,6 @@ import * as ts from 'typescript';
 
 Error.stackTraceLimit = Infinity;
 
-import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
-import Config from '@core/Config';
-import HaikuContext from '@core/HaikuContext';
-import HaikuGlobal from '@core/HaikuGlobal';
-import HaikuDOMRenderer from '@core/renderers/dom/HaikuDOMRenderer';
-
 // Tell typescript we have these types on Global
 interface Global {
   window: any;
@@ -17,7 +11,15 @@ interface Global {
   haiku: any;
 }
 
+// Set up global rAF early (prior to imports) to ensure correct behavior in tests.
 declare var global: Global;
+global.window = global;
+
+import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
+import Config from '@core/Config';
+import HaikuContext from '@core/HaikuContext';
+import HaikuGlobal from '@core/HaikuGlobal';
+import HaikuDOMRenderer from '@core/renderers/dom/HaikuDOMRenderer';
 
 const createDOM = (cb) => {
   const html = '<!doctype html><html><body><div id="mount"></div></body></html>';
