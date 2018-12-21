@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 4.3.8
+
+### Bug Fixes
+
+ * do not tween quite so hard on the next keyframe
+ * disable rAF on the server to prevent side effects during isomorphic rendering
+ * don't crash on null states
+
 ## 4.3.7
 
 ### Bug Fixes

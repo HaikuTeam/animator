@@ -8805,5 +8805,22 @@
       "label": "fix",
       "message": "don't crash on null states"
     }
+  },
+  "4.3.8": {
+    "af886ea5113920a1fc1a4c5674f8a23a919a03e7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not tween quite so hard on the next keyframe"
+    },
+    "5a6b0d6d35d32520838616cd0b68e1dbb8478897": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable rAF on the server to prevent side effects during isomorphic rendering"
+    },
+    "c972708f7d4d7cb49fb7780eb030fdb87b85c14f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't crash on null states"
+    }
   }
 }
