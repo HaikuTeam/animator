@@ -1358,7 +1358,7 @@ Bytecode.addDefaultCurveIfNecessary = (
       );
     }
 
-    if (nextKeyframe && property[nextKeyframe].value !== property[newKeyframeTime].value) {
+    if (nextKeyframe && property[newKeyframeTime].curve === undefined && property[nextKeyframe].value !== property[newKeyframeTime].value) {
       Bytecode.joinKeyframes(
         bytecode,
         componentId,
