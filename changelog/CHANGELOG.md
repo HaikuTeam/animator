@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 4.3.7
+
+### Bug Fixes
+
+ * do not numeralize IDs during manification.
+ * disable rAF on the server to prevent side effects during isomorphic rendering
+ * do not allow userland errors to crash the app
+ * don't crash on null states
+
 ## 4.3.6
 
 ### Bug Fixes

@@ -8783,5 +8783,27 @@
       "label": "fix",
       "message": "check for existence of element before trying to match"
     }
+  },
+  "4.3.7": {
+    "4b58fa98ac594b83479eeaaa98ee3fe290132706": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not numeralize IDs during manification."
+    },
+    "1d7982ac67bedec57b36b468f2431a3a868e1f88": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable rAF on the server to prevent side effects during isomorphic rendering"
+    },
+    "57715b832f7b7fcbfa1ec5c9180d8f00bd8cf650": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not allow userland errors to crash the app"
+    },
+    "b130f2f73f09069b98e6b20d0579ade32464d173": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't crash on null states"
+    }
   }
 }

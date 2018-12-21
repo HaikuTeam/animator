@@ -1,6 +1,6 @@
 {
   "name": "haiku-glass",
-  "version": "4.3.7",
+  "version": "4.3.8",
   "private": true,
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -8,13 +8,13 @@
     "Taylor Poe <taylor@haiku.ai>"
   ],
   "dependencies": {
-    "@haiku/core": "4.3.7",
+    "@haiku/core": "4.3.8",
     "color": "^2.0.1",
-    "haiku-common": "4.3.7",
-    "haiku-fs-extra": "4.3.7",
-    "haiku-serialization": "4.3.7",
-    "haiku-ui-common": "4.3.7",
-    "haiku-vendor-legacy": "4.3.7",
+    "haiku-common": "4.3.8",
+    "haiku-fs-extra": "4.3.8",
+    "haiku-serialization": "4.3.8",
+    "haiku-ui-common": "4.3.8",
+    "haiku-vendor-legacy": "4.3.8",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
     "qs": "6.4.0",
@@ -28,7 +28,7 @@
     "async": "^2.5.0",
     "cross-env": "^5.1.6",
     "electron": "2.0.8",
-    "haiku-testing": "4.3.7",
+    "haiku-testing": "4.3.8",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "jsdom": "^11.1.0",
     "leaked-handles": "^5.2.0",
