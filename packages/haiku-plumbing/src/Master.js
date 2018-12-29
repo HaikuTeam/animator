@@ -927,7 +927,6 @@ export default class Master extends EventEmitter {
         return async.eachSeries(acs, (ac, nextComponent) => {
           logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
           return async.series([ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic].map((format) => (nextFormat) => {
-                    // For now, we only support one exported format: lottie.json
             let filename;
             switch (format) {
               case ExporterFormat.Bodymovin:
