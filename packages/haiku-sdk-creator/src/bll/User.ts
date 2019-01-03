@@ -80,7 +80,7 @@ export class UserHandler extends EnvoyHandler {
       if (
         this.checkOfflinePrivileges() &&
         this.identity.organization.PlanExpirationDate &&
-        this.identity.organization.PlanExpirationDate > nowDate() / 1e3
+        this.identity.organization.PlanExpirationDate < nowDate() / 1e3
       ) {
         this.identity.organization[OrganizationPrivilege.EnableOfflineFeatures] = false;
         this.setConfigObfuscated<HaikuIdentity>(
