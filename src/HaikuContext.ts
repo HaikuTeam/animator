@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {BytecodeOptions, HaikuBytecode, IHaikuContext, IRenderer} from './api';
+import {BytecodeOptions, HaikuBytecode, IHaikuClock, IHaikuContext, IRenderer} from './api';
 import Config from './Config';
 import HaikuBase from './HaikuBase';
 import HaikuClock from './HaikuClock';
@@ -30,7 +30,7 @@ export interface ComponentFactory {
  */
 // tslint:disable:variable-name
 export default class HaikuContext extends HaikuBase implements IHaikuContext {
-  clock: HaikuClock;
+  clock: IHaikuClock;
   component: HaikuComponent;
   config;
   container;
@@ -152,7 +152,7 @@ export default class HaikuContext extends HaikuBase implements IHaikuContext {
    * @method getClock
    * @description Returns the HaikuClock instance associated with this context.
    */
-  getClock (): HaikuClock {
+  getClock (): IHaikuClock {
     return this.clock;
   }
 

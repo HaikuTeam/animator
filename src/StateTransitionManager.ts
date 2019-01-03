@@ -1,5 +1,4 @@
-import {BytecodeStateType, Curve, CurveDefinition, IHaikuComponent} from './api';
-import HaikuClock from './HaikuClock';
+import {BytecodeStateType, Curve, CurveDefinition, IHaikuClock, IHaikuComponent} from './api';
 import {interpolate} from './Interpolate';
 
 export interface StateTransitionParameters {
@@ -25,7 +24,7 @@ export default class StateTransitionManager {
 
   // Store running state transitions
   private transitions: {[key in string]: RunningStateTransition[]} = {};
-  private clock: HaikuClock;
+  private clock: IHaikuClock;
   private states: StateValues;
 
   constructor (private readonly component: IHaikuComponent) {
