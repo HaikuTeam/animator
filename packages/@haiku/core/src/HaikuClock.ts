@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {ClockConfig, IHaikuClock} from './api';
 import HaikuBase from './HaikuBase';
 import HaikuGlobal from './HaikuGlobal';
 import assign from './vendor/assign';
@@ -9,7 +10,7 @@ import raf from './vendor/raf';
 
 const NUMBER = 'number';
 
-const DEFAULT_OPTIONS = {
+const DEFAULT_OPTIONS: ClockConfig = {
   // frameDuration: Number
   // Time to elapse per frame (ms)
   frameDuration: 16.666,
@@ -21,6 +22,10 @@ const DEFAULT_OPTIONS = {
   // marginOfErrorForDelta: Number
   // A bit of grace when calculating whether a new frame should be run
   marginOfErrorForDelta: 1.0,
+
+  // run: Boolean
+  // Whether or not the clock should run by default
+  run: true,
 };
 
 // The global animation harness is a singleton
@@ -58,7 +63,7 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
 }
 
 // tslint:disable:variable-name
-export default class HaikuClock extends HaikuBase {
+export default class HaikuClock extends HaikuBase implements IHaikuClock {
   private boundRunner: () => void = () => {
     this.run();
   };
@@ -69,11 +74,11 @@ export default class HaikuClock extends HaikuBase {
   _localFramesElapsed;
   _localTimeElapsed;
   _numLoopsRun;
-  options;
+  options: ClockConfig;
   _tickables;
   GLOBAL_ANIMATION_HARNESS;
 
-  constructor (tickables, options) {
+  constructor (tickables, options: ClockConfig) {
     super();
 
     this._tickables = tickables;
@@ -83,8 +88,10 @@ export default class HaikuClock extends HaikuBase {
     this._isRunning = false;
     this.reinitialize();
 
-    // Bind to avoid `this`-detachment when called by raf
-    HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.boundRunner);
+    if (this.options.run) {
+      // Bind to avoid `this`-detachment when called by raf
+      HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.boundRunner);
+    }
 
     // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
     this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
@@ -104,7 +111,7 @@ export default class HaikuClock extends HaikuBase {
     return this;
   }
 
-  assignOptions (options) {
+  assignOptions (options: ClockConfig) {
     this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
     return this;
   }
