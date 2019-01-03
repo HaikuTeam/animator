@@ -220,10 +220,9 @@ Bytecode.padIds = (bytecode, padderFunction) => {
     const domId = node.attributes.id;
     if (domId) {
       const fixedDomId = padderFunction(domId);
-      fixedReferences[domId] = fixedDomId;
       fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})`; // filter="url(...)"
       fixedReferences[`#${domId}`] = `#${fixedDomId}`; // xlink:href="#path-3-abc123"
-      node.attributes.id = fixedReferences[domId];
+      node.attributes.id = fixedDomId;
 
       // Sketch outputs layer names as element ids, which are usually human friendly.
       // That human friendly element id is used downstream as a label for display, so
