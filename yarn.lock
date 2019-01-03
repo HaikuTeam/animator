@@ -630,13 +630,13 @@
     tslib "^1.8.1"
 
 "@haiku/core@^3.1.32":
-  version "4.3.6"
+  version "4.3.9"
 
 "@haiku/core@^3.2.16":
-  version "4.3.6"
+  version "4.3.9"
 
 "@haiku/core@^3.4.6":
-  version "4.3.6"
+  version "4.3.9"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
@@ -682,6 +682,17 @@
 "@nodelib/fs.stat@^1.0.1":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.0.tgz#50c1e2260ac0ed9439a181de3725a0168d59c48a"
+
+"@ronomon/base64@^2.4.1":
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/@ronomon/base64/-/base64-2.4.1.tgz#e854d81996fb6b45d80be77abe5e10602d038654"
+  dependencies:
+    "@ronomon/queue" "^3.0.0"
+    nan "^2.11.0"
+
+"@ronomon/queue@^3.0.0":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@ronomon/queue/-/queue-3.0.1.tgz#42613e8488289ad452f4cf2244064958fc08d370"
 
 "@sinonjs/formatio@^2.0.0":
   version "2.0.0"
@@ -6302,7 +6313,6 @@ moment@2.18.1:
 monaco-editor@^0.15.6:
   version "0.15.6"
   resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.15.6.tgz#d63b3b06f86f803464f003b252627c3eb4a09483"
-  integrity sha512-JoU9V9k6KqT9R9Tiw1RTU8ohZ+Xnf9DMg6Ktqqw5hILumwmq7xqa/KLXw513uTUsWbhtnHoSJYYR++u3pkyxJg==
 
 move-concurrently@^1.0.1:
   version "1.0.1"
@@ -6338,6 +6348,10 @@ mute-stream@0.0.5:
 mute-stream@0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.7.tgz#3075ce93bc21b8fab43e1bc4da7e8115ed1e7bab"
+
+nan@^2.11.0:
+  version "2.12.1"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.12.1.tgz#7b1aa193e9aa86057e3c7bbd0ac448e770925552"
 
 nan@^2.2.0:
   version "2.8.0"

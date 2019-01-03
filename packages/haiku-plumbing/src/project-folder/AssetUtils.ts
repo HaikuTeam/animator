@@ -1,3 +1,5 @@
+// @ts-ignore
+import * as Base64 from '@ronomon/base64';
 import {ensureFileSync, existsSync, mkdirpSync, readFileSync, writeFileSync} from 'fs-extra';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 // @ts-ignore
@@ -78,12 +80,7 @@ export const dumpBase64Images = (
     cursor = buffer.indexOf(quotation, imageStart + 1) + 1;
     writeFileSync(
       path.join(folder, outputFilename),
-      Buffer.from(
-        // Sadly, we need to stringify the buffer in memory to convert from unicode to base64
-        // (buffer.transcode does not support base64). The performance penalty of this seems minimal.
-        buffer.toString(UNICODE_ENCODING, encodingMarkStart + BASE64_DELIMITER.length, cursor - 1),
-        BASE64_ENCODING,
-      ),
+      Base64.decode(buffer.slice(encodingMarkStart + BASE64_DELIMITER.length, cursor - 1)),
     );
     xml += 'web+haikuroot://' + path.posix.normalize(outputFilename);
     xml += quotation;
