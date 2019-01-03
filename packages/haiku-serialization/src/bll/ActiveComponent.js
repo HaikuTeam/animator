@@ -3834,6 +3834,9 @@ class ActiveComponent extends BaseModel {
           },
         }, null, () => {
           fire();
+          // Because the serialization layer runs in non-rAF mode, we need to manually tick
+          // after updating keyframes.
+          this.tick();
           return cb();
         });
       });
