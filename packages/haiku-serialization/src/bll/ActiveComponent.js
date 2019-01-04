@@ -2532,6 +2532,9 @@ class ActiveComponent extends BaseModel {
       mixpanel: false, // Don't track events in mixpanel while the component is being built
       interactionMode: this.interactionMode,
       hotEditingMode: true, // Don't clone the bytecode/template so we can mutate it in-place
+      clock: {
+        run: false,
+      },
     }, config));
 
     createdHaikuCoreComponent.context.getContainer(true); // Force recalc of container for correct sizing
@@ -3831,6 +3834,9 @@ class ActiveComponent extends BaseModel {
           },
         }, null, () => {
           fire();
+          // Because the serialization layer runs in non-rAF mode, we need to manually tick
+          // after updating keyframes.
+          this.tick();
           return cb();
         });
       });

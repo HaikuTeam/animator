@@ -10,6 +10,7 @@ import {
   BytecodeTimelines,
   Curve,
   HaikuBytecode,
+  IHaikuClock,
   IHaikuComponent,
   IHaikuContext,
   ParsedValueCluster,
@@ -18,7 +19,6 @@ import {
 } from './api';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
-import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
 import {ascend, cssMatchOne, cssQueryList, manaFlattenTree, visit} from './HaikuNode';
@@ -603,7 +603,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.bindStates();
   }
 
-  getClock (): HaikuClock {
+  getClock (): IHaikuClock {
     return this.context.clock;
   }
 

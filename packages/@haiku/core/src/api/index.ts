@@ -1,5 +1,4 @@
 import HaikuBase from '../HaikuBase';
-import HaikuClock from '../HaikuClock';
 import {RFO} from '../reflection/functionToRFO';
 
 export interface IHaikuElement extends HaikuBase {
@@ -20,6 +19,17 @@ export interface IHaikuElement extends HaikuBase {
   isHovered: boolean;
 }
 
+export interface IHaikuClock {
+  destroy (): void;
+  getExplicitTime (): number;
+  getFrameDuration (): number;
+  getTime (): number;
+  isRunning (): boolean;
+  run (): void;
+  start (): void;
+  assignOptions (options: ClockConfig): void;
+}
+
 export interface IHaikuComponent extends IHaikuElement {
   bytecode: HaikuBytecode;
   config: BytecodeOptions;
@@ -34,7 +44,7 @@ export interface IHaikuComponent extends IHaikuElement {
   callHook: (hookName: string, ...args: any[]) => void;
   clearCaches: () => void;
   markForFullFlush: () => void;
-  getClock: () => HaikuClock;
+  getClock: () => IHaikuClock;
   emitFromRootComponent: (eventName: string, attachedObject: any) => void;
   routeEventToHandlerAndEmit: (eventSelectorGiven: string, eventNameGiven: string, eventArgs: any) => void;
   routeEventToHandlerAndEmitWithoutBubbling: (
@@ -68,8 +78,8 @@ export interface IHaikuContext {
   // #FIXME: This is not necessarily going to be the renderer.
   renderer: IRenderer;
   config: BytecodeOptions;
-  clock: HaikuClock;
-  getClock: () => HaikuClock;
+  clock: IHaikuClock;
+  getClock: () => IHaikuClock;
   getContainer: (doForceRecalc: boolean) => MountLayout;
   getGlobalUserState: () => any;
   contextMount: () => void;
@@ -288,6 +298,13 @@ export interface BytecodeMetadata {
 
 export type ComponentEventHandler = (component: IHaikuComponent) => void;
 
+export interface ClockConfig {
+  frameDuration?: number;
+  frameDelay?: number;
+  marginOfErrorForDelta?: number;
+  run?: boolean;
+}
+
 /**
  * Bytecode options.
  */
@@ -339,7 +356,7 @@ export interface BytecodeOptions {
 
   // Configuration options that will be passed to the HaikuClock instance.
   // See HaikuClock.js for info.
-  clock?: object;
+  clock?: ClockConfig;
 
   // Configures the sizing mode of the component; may be 'normal',
   // 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
