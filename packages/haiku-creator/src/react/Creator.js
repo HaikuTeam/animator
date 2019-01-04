@@ -895,18 +895,7 @@ export default class Creator extends React.Component {
 
       tourChannel.on('tour:requestShowStep', this.setGlassInteractionToEditMode);
 
-      ipcRenderer.on('global-menu:start-tour', () => {
-        if (this.state.projectModel) {
-          this.teardownMaster({shouldFinishTour: false});
-        } else {
-          this.setState({dashboardVisible: true, doShowProjectLoader: false});
-        }
-
-        // Put it at the bottom of the event loop
-        setTimeout(() => {
-          tourChannel.start(true);
-        });
-      });
+      ipcRenderer.on('global-menu:start-tour', this.startTourFromGlobalMenu);
 
       window.addEventListener('resize', lodash.throttle(() => {
         tourChannel.updateLayout();
@@ -1111,6 +1100,29 @@ export default class Creator extends React.Component {
   showProxySettings () {
     this.setState({
       showProxySettings: true,
+    });
+  }
+
+  startTourFromGlobalMenu = () => {
+    // Don't start the tour if is called via the main menu
+    // while a project is loading.
+    //
+    // TODO: disable the TopMenu option. Setting a timeout here
+    // to start the tour once the project is loaded leads to weird
+    // flashes (loading screen => project => loading screen)
+    if (this.shouldShowProjectLoader()) {
+      return;
+    }
+
+    if (this.state.projectModel) {
+      this.teardownMaster({shouldFinishTour: false});
+    } else {
+      this.setState({dashboardVisible: true, doShowProjectLoader: false});
+    }
+
+    // Put it at the bottom of the event loop
+    setTimeout(() => {
+      this.tourChannel.start(true);
     });
   }
 
@@ -2014,6 +2026,10 @@ export default class Creator extends React.Component {
     return this.state.areProjectsLoading && this.state.hasLoadedOnce;
   }
 
+  shouldShowProjectLoader () {
+    return this.state.doShowProjectLoader || this.state.projectLaunching || this.showGenericLoader;
+  }
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -2061,6 +2077,7 @@ export default class Creator extends React.Component {
         {this.renderNewProjectModal()}
         {!this.state.tearingDown && this.envoyClient &&
           <Tour
+            show={!this.shouldShowProjectLoader()}
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
             startTourOnMount={true}
@@ -2099,7 +2116,7 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        <ProjectLoader show={this.state.doShowProjectLoader || this.state.projectLaunching || this.showGenericLoader}>
+        <ProjectLoader show={this.shouldShowProjectLoader()}>
           {this.showGenericLoader
             ? <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
             : <span style={{marginTop: 450, zIndex: 1}}>Initializing project…</span>

@@ -129,7 +129,7 @@ class Tour extends React.Component {
   }
 
   render () {
-    if (!this.state.component) {
+    if (!this.state.component || !this.props.show) {
       return null;
     }
 
@@ -177,6 +177,7 @@ class Tour extends React.Component {
 
 Tour.propTypes = {
   envoyClient: React.PropTypes.object.isRequired,
+  show: React.PropTypes.bool,
 };
 
 export default Tour;
