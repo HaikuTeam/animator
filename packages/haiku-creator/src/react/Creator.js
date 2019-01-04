@@ -1102,6 +1102,7 @@ export default class Creator extends React.Component {
 
     this.user.authenticate(username, password).then(({user, organization}) => {
       mixpanel.haikuTrack('creator:user-authenticated', {username: user.Username});
+      ipcRenderer.send('topmenu:update', {isUserAuthenticated: true});
     }).catch((error) => {
       cb(error);
     });
@@ -1137,7 +1138,7 @@ export default class Creator extends React.Component {
     this.setState(silent ? {} : {areProjectsLoading: true}, () => {
       this.envoyProject.getProjectsList().then((projectsList) => {
         this.setState({areProjectsLoading: false, hasLoadedOnce: true, projectsList});
-        ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
+        ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false, isUserAuthenticated: this.state.isUserAuthenticated});
         return cb(null, projectsList);
       }).catch((error) => {
         mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
@@ -1755,6 +1756,15 @@ export default class Creator extends React.Component {
         this.clearAuth();
         mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
           option: 'logout',
+        });
+
+        ipcRenderer.send('topmenu:update', {
+          projectsList: [],
+          isSaving: false,
+          isProjectOpen: false,
+          isUserAuthenticated: false,
+          subComponents: [],
+          undoState: {canUndo: true, canRedo: true}, // allow undo/redo on login form.
         });
       });
     }

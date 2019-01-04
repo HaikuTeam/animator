@@ -26,6 +26,7 @@ export interface TopMenuEventSender {
 export interface TopMenuOptions {
   isProjectOpen: boolean;
   isSaving: boolean;
+  isUserAuthenticated: boolean;
   projectsList: PlumbingProject[];
   subComponents: SubComponent[];
   undoState: UndoState;
@@ -226,7 +227,7 @@ export default class TopMenu {
       {
         label: 'New',
         accelerator: 'CmdOrCtrl+N',
-        enabled: !options.isSaving,
+        enabled: !options.isSaving && !!options.isUserAuthenticated,
         click: () => {
           this.sender.send('global-menu:show-new-project-modal');
         },
@@ -478,12 +479,13 @@ export default class TopMenu {
             },
           }, {
             label: 'Take Tour',
-            enabled: !!this.options.projectsList.find((project) => project.projectName === TourUtils.ProjectName),
+            enabled: !!this.options.isUserAuthenticated && !!this.options.projectsList.find((project) => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.sender.send('global-menu:start-tour');
             },
           }, {
             label: 'What\'s New',
+            enabled: !!this.options.isUserAuthenticated,
             click: () => {
               this.sender.send('global-menu:show-changelog');
             },
