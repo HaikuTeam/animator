@@ -1,6 +1,7 @@
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default;
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default;
 const BaseModel = require('./BaseModel');
+const SupportedCurves = require('@haiku/core/lib/api/index').Curve;
 
 /**
  * @class Keyframe
@@ -220,7 +221,9 @@ class Keyframe extends BaseModel {
   }
 
   isTransitionSegment () {
-    return !!this.getCurve();
+    // TODO: update this check if/when we support custom curves
+    const curve = this.getCurveCapitalized()
+    return !!(curve && SupportedCurves[curve]);
   }
 
   isConstantSegment () {
@@ -459,7 +462,7 @@ class Keyframe extends BaseModel {
 
   getCurveCapitalized () {
     const curve = this.getCurve();
-    return curve.charAt(0).toUpperCase() + curve.slice(1);
+    return curve && curve.charAt(0).toUpperCase() + curve.slice(1);
   }
 
   isWithinCollapsedElementHeadingRow () {
