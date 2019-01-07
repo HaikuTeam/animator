@@ -23,10 +23,10 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
   private parseBytecode () {
     delete this.bytecode.eventHandlers;
     this.visitAllTimelineProperties((timeline, property) => {
-      const timelineProperty = timeline[property];
       if (typeof timeline[property] !== 'object') {
         timeline[property] = {0: {value: timeline[property]}};
       }
+      const timelineProperty = timeline[property];
       for (const keyframe in timelineProperty) {
         const {value} = timelineProperty[keyframe];
         if (typeof value !== 'function') {
