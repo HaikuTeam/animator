@@ -302,10 +302,7 @@ class Element extends BaseModel {
     if (!bytecode.eventHandlers) {
       bytecode.eventHandlers = {};
     }
-    if (!bytecode.eventHandlers[selector]) {
-      bytecode.eventHandlers[selector] = {};
-    }
-    return bytecode.eventHandlers[selector];
+    return bytecode.eventHandlers[selector] || {};
   }
 
   getReifiedEventHandler (eventName) {

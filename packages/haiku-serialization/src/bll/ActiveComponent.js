@@ -3387,38 +3387,6 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method deleteEventHandler
-   */
-  deleteEventHandler (selectorName, eventName, metadata, cb) {
-    return this.project.updateHook('deleteEventHandler', this.getRelpath(), selectorName, eventName, metadata, (fire) => {
-      return this.deleteEventHandlerActual(selectorName, eventName, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
-
-        return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
-          forceFlush: true,
-          clearCacheOptions: {
-            doClearEntityCaches: true,
-          },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
-    });
-  }
-
-  deleteEventHandlerActual (selectorName, eventName, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.deleteEventHandler(bytecode, selectorName, eventName);
-      done();
-    }, cb);
-  }
-
-  /**
    * @method changeKeyframeValue
    */
   changeKeyframeValue (componentId, timelineName, propertyName, keyframeMs, newValueSerial, metadata, cb) {
