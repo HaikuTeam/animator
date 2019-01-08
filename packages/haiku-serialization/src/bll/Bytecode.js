@@ -1344,7 +1344,11 @@ Bytecode.addDefaultCurveIfNecessary = (
       .filter((time) => time > newKeyframeTime)
       .shift();
 
-    if (lastKeyframe !== undefined && property[lastKeyframe].curve === undefined && property[lastKeyframe].value !== property[newKeyframeTime].value) {
+    if (
+      lastKeyframe !== undefined &&
+      property[lastKeyframe].curve === undefined &&
+      property[lastKeyframe].value !== property[newKeyframeTime].value
+    ) {
       Bytecode.joinKeyframes(
         bytecode,
         componentId,
@@ -1357,7 +1361,12 @@ Bytecode.addDefaultCurveIfNecessary = (
       );
     }
 
-    if (nextKeyframe && property[newKeyframeTime].curve === undefined && property[nextKeyframe].value !== property[newKeyframeTime].value) {
+    // Also create a default curve on the keyframe we're creating, if there is a keyframe in front of it
+    if (
+      nextKeyframe &&
+      property[newKeyframeTime].curve === undefined &&
+      property[nextKeyframe].value !== property[newKeyframeTime].value
+    ) {
       Bytecode.joinKeyframes(
         bytecode,
         componentId,
