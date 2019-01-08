@@ -8822,5 +8822,72 @@
       "label": "fix",
       "message": "don't crash on null states"
     }
+  },
+  "4.3.9": {
+    "cdc7e906165298e438e5321cd6bd5b84a2b99c7d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not clobber expressions when copying/pasting"
+    },
+    "830ed8de8ffb5645bd3b8dc095243445a3e268ed": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid stubby event handlers in bytecode"
+    },
+    "78ed24d457e31d38bf46a06ea775e1e9f2b3df26": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not auto-tween on keyframe moves"
+    },
+    "4d8f784e427689bba8d2e602917b463e735139f6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "cmd + shift + left now also changes time internally"
+    },
+    "895a6cf383b399ec11f2e37d4b9bf84cff2ab44f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure we are actually iterating through keyframes when we flatten functions for static export"
+    },
+    "13169874b38f70494fa071702a585c3f1ef72a74": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't allow the tour and the loading screen at the same time"
+    },
+    "e95251b9211513293d26be97c7f6a851e0650763": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable TopMenu items that require auth on login screen"
+    },
+    "34d11824a6d9169e0bb981d7c6a7ea2745ebeb9f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "tick after updateKeyframes so on-stage transforms work"
+    },
+    "8ae3a9fb5ea2b7728e4dbe762aa3a067ae769869": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "backward-incompatible yarn"
+    },
+    "d36fdeb16a1ae7cee2f18e7fe24df1313544634d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "when syphoning images out of SVG, use native base64 buffers instead of storing a big string in memory"
+    },
+    "25f758b3d21a5c4f35f6eab3e54f5c45108676b0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable offline access when expiration is before, not after, current date"
+    },
+    "f3ed7314a6743cceb0464dd3f74ccda22de0ec36": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "actually solve the issue with ID re-refs during padding"
+    },
+    "481ad6c173ca3a0429f45222acc9322aef85cf26": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add endpoints for coupon validation"
+    }
   }
 }

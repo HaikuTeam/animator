@@ -1,6 +1,27 @@
 # Changelog
 
 
+## 4.3.9
+
+### Bug Fixes
+
+ * do not clobber expressions when copying/pasting
+ * avoid stubby event handlers in bytecode
+ * do not auto-tween on keyframe moves
+ * cmd + shift + left now also changes time internally
+ * ensure we are actually iterating through keyframes when we flatten functions for static export
+ * don't allow the tour and the loading screen at the same time
+ * disable TopMenu items that require auth on login screen
+ * tick after updateKeyframes so on-stage transforms work
+ * backward-incompatible yarn
+ * when syphoning images out of SVG, use native base64 buffers instead of storing a big string in memory
+ * disable offline access when expiration is before, not after, current date
+ * actually solve the issue with ID re-refs during padding
+
+### Features
+
+ * add endpoints for coupon validation
+
 ## 4.3.8
 
 ### Bug Fixes
