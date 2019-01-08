@@ -407,8 +407,13 @@ class Element extends BaseModel {
       Template.manaWithOnlyStandardProps(originalNode, true),
     );
 
-    const clonedBytecode = lodash.cloneDeep(
+    const clonedBytecode = lodash.cloneDeepWith(
       this.component.fetchActiveBytecodeFile().getReifiedDecycledBytecode(),
+      (value) => {
+        if (value instanceof Function && value.injectee) {
+          return functionToRFO(value);
+        }
+      },
     );
 
     const eventHandlers = Bytecode.getAppliedEventHandlersForNode({}, clonedBytecode, clonedNode);
