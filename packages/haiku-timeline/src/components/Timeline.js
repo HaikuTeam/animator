@@ -958,7 +958,7 @@ class Timeline extends React.Component {
         if (this.isCommandKeyDown) {
           if (this.isShiftKeyDown) {
             this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(0, this.getActiveComponent().getCurrentTimeline().getRightFrameEndpoint());
-            this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(0);
+            this.getActiveComponent().getCurrentTimeline().seek(0);
           } else {
             this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(-1);
           }
