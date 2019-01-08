@@ -3731,21 +3731,6 @@ class ActiveComponent extends BaseModel {
               propertyName,
               true, // fallbackToInitialKeyframeIfProvided
             );
-
-            if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
-              const ms = parseInt(Object.keys(keyframeMoves[timelineName][componentId][propertyName])[0], 10);
-              if (Number.isInteger(ms)) {
-                Bytecode.addDefaultCurveIfNecessary(
-                  bytecode,
-                  timelineName,
-                  Template.buildHaikuIdSelector(componentId),
-                  ms,
-                  propertyName,
-                  componentId,
-                  this.getElementNameOfComponentId(componentId),
-                );
-              }
-            }
           }
         }
       }
