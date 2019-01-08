@@ -921,6 +921,10 @@ Bytecode.deleteEventHandler = (bytecode, selectorName, eventName) => {
   if (bytecode.eventHandlers) {
     if (bytecode.eventHandlers[selectorName]) {
       delete bytecode.eventHandlers[selectorName][eventName];
+
+      if (!Object.keys(bytecode.eventHandlers[selectorName]).length) {
+        delete bytecode.eventHandlers[selectorName];
+      }
     }
   }
 

@@ -299,13 +299,12 @@ class Element extends BaseModel {
   getReifiedEventHandlers () {
     const bytecode = this.component.getReifiedBytecode();
     const selector = 'haiku:' + this.getComponentId();
+
     if (!bytecode.eventHandlers) {
       bytecode.eventHandlers = {};
     }
-    if (!bytecode.eventHandlers[selector]) {
-      bytecode.eventHandlers[selector] = {};
-    }
-    return bytecode.eventHandlers[selector];
+
+    return bytecode.eventHandlers[selector] || {};
   }
 
   getReifiedEventHandler (eventName) {

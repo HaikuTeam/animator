@@ -261,8 +261,6 @@ class File extends BaseModel {
    * and instances present as they would be if it were being executed in memory.
    */
   getReifiedBytecode () {
-    // NOTE: Due to a legacy issue there used to be the assumption that the bytecode file could contain
-    // multiple bytecodes, hence the [0]; that is no longer the case and this should be refactored! #FIXME
     return this.mod.fetchInMemoryExport();
   }
 

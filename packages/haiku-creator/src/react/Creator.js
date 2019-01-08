@@ -1918,7 +1918,7 @@ export default class Creator extends React.Component {
     );
   }
 
-  saveEventHandlers (targetElement, serializedEvents) {
+  saveEventHandlers = (targetElement, serializedEvents) => {
     const selectorName = 'haiku:' + targetElement.getComponentId();
     this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'creator'}, () => {});
   }
@@ -2176,9 +2176,7 @@ export default class Creator extends React.Component {
                       !isPreviewMode(this.state.interactionMode) && (
                         <EventHandlerEditor
                           element={this.state.targetElement}
-                          save={(targetElement, serializedEvent) => {
-                            this.saveEventHandlers(targetElement, serializedEvent);
-                          }}
+                          save={this.saveEventHandlers}
                           close={this.safelyHideEventHandlersEditor}
                           visible={this.state.showEventHandlerEditor}
                           options={this.state.eventHandlerEditorOptions}
