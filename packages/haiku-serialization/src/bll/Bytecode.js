@@ -802,6 +802,11 @@ Bytecode.batchUpsertEventHandlers = (
     bytecode.eventHandlers = {};
   }
 
+  if (!Object.keys(serializedEvents).length) {
+    delete bytecode.eventHandlers[selectorName];
+    return;
+  }
+
   bytecode.eventHandlers[selectorName] = {};
 
   Object.entries(serializedEvents).forEach(([event, handlerDescriptor]) => {
@@ -915,16 +920,6 @@ Bytecode.createTimeline = (bytecode, timelineName, timelineDescriptor) => {
     merge(timeline, Bytecode.unserializeValue(timelineDescriptor));
   }
   return timeline;
-};
-
-Bytecode.deleteEventHandler = (bytecode, selectorName, eventName) => {
-  if (bytecode.eventHandlers) {
-    if (bytecode.eventHandlers[selectorName]) {
-      delete bytecode.eventHandlers[selectorName][eventName];
-    }
-  }
-
-  return bytecode;
 };
 
 Bytecode.deleteKeyframe = (bytecode, componentId, timelineName, propertyName, keyframeMs) => {

@@ -302,26 +302,11 @@ class Element extends BaseModel {
     if (!bytecode.eventHandlers) {
       bytecode.eventHandlers = {};
     }
-    if (!bytecode.eventHandlers[selector]) {
-      bytecode.eventHandlers[selector] = {};
-    }
-    return bytecode.eventHandlers[selector];
+    return bytecode.eventHandlers[selector] || {};
   }
 
   getReifiedEventHandler (eventName) {
     return this.getReifiedEventHandlers()[eventName];
-  }
-
-  upsertEventHandler (eventName, handlerDescriptor) {
-    const eventHandlers = this.getReifiedEventHandlers();
-    eventHandlers[eventName] = handlerDescriptor;
-    this.emit('update', 'element-event-handler-update');
-    return this;
-  }
-
-  batchUpsertEventHandlers (serializedEvents) {
-    this.emit('update', 'element-event-handler-update');
-    return this;
   }
 
   getEventHandlerSaveStatus (eventName) {
