@@ -747,12 +747,6 @@ ActionStack.METHOD_INVERTERS = {
   //     // Not yet implemented
   //   }
   // },
-
-  // deleteEventHandler: {
-  //   before: (ac, [selectorName, eventName]) => {
-  //     // Not yet implemented
-  //   }
-  // },
 };
 
 ActionStack.CURSOR_MODES = {

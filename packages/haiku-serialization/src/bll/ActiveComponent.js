@@ -3314,43 +3314,6 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method upsertEventHandler
-   */
-  upsertEventHandler (selectorName, eventName, handlerDescriptorMaybeSerial, metadata, cb) {
-    const handlerDescriptor = Bytecode.unserializeValue(handlerDescriptorMaybeSerial, (ref) => {
-      return this.evaluateReference(ref);
-    });
-
-    return this.project.updateHook('upsertEventHandler', this.getRelpath(), selectorName, eventName, Bytecode.serializeValue(handlerDescriptor), metadata, (fire) => {
-      handlerDescriptor.edited = true;
-
-      return this.upsertEventHandlerActual(selectorName, eventName, handlerDescriptor, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
-
-        return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
-          clearCacheOptions: {
-            doClearEntityCaches: true,
-          },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
-    });
-  }
-
-  upsertEventHandlerActual (selectorName, eventName, handlerDescriptor, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.upsertEventHandler(bytecode, selectorName, eventName, handlerDescriptor);
-      done();
-    }, cb);
-  }
-
-  /**
    * @method batchUpsertEventHandlers
    */
   batchUpsertEventHandlers (selectorName, eventsSerial, metadata, cb) {

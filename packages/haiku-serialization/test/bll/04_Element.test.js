@@ -3,7 +3,6 @@ const path = require('path');
 const async = require('async');
 const fse = require('haiku-fs-extra');
 const Project = require('./../../src/bll/Project');
-const Row = require('./../../src/bll/Row');
 
 tape('Element', (t) => {
   setupTest((ac, bytecode, done) => {
@@ -29,17 +28,18 @@ tape('Element.buildClipboardPayload', (t) => {
   setupTest((ac, bytecode, done) => {
     const id = bytecode.template.attributes['haiku-id'];
     const element = ac.findElementByComponentId(id);
-    element.upsertEventHandler('click', SERIALIZED_EVENT.click);
-    const payload = element.buildClipboardPayload();
+    ac.batchUpsertEventHandlers(`haiku:${id}`, SERIALIZED_EVENTS, {from: 'test'}, () => {
+      const payload = element.buildClipboardPayload();
 
-    t.equal(payload.kind, 'bytecode', 'the payload returned must have a kind property with the correct value');
-    t.ok(payload.data.eventHandlers, 'they payload must contain the event handlers of the element');
-    t.ok(payload.data.eventHandlers[`haiku:${id}`].click);
-    t.ok(payload.data.eventHandlers[`haiku:${id}`].click.handler.__function, 'the payload contains the event handlers of the element serialized');
-    t.ok(payload.data.timelines, 'the payload must contain the timelines of the element');
-    t.ok(payload.data.template, 'the payload must contain the template of the element');
-    t.end();
-    done();
+      t.equal(payload.kind, 'bytecode', 'the payload returned must have a kind property with the correct value');
+      t.ok(payload.data.eventHandlers, 'they payload must contain the event handlers of the element');
+      t.ok(payload.data.eventHandlers[`haiku:${id}`].click);
+      t.ok(payload.data.eventHandlers[`haiku:${id}`].click.handler.__function, 'the payload contains the event handlers of the element serialized');
+      t.ok(payload.data.timelines, 'the payload must contain the timelines of the element');
+      t.ok(payload.data.template, 'the payload must contain the template of the element');
+      t.end();
+      done();
+    });
   });
 });
 
@@ -55,15 +55,15 @@ const setupTest = (doTest) => {
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
       if (err) {
- throw err;
-}
+        throw err;
+      }
       const ac0 = project.getCurrentActiveComponent();
       return ac0.fetchActiveBytecodeFile().mod.update(bytecode, () => {
         return ac0.hardReload({}, {}, () => {
           return async.series([], (err) => {
             if (err) {
- throw err;
-}
+              throw err;
+            }
             doTest(ac0, bytecode, () => {
               fse.removeSync(folder);
             });
@@ -74,11 +74,11 @@ const setupTest = (doTest) => {
   });
 };
 
-const SERIALIZED_EVENT = {
+const SERIALIZED_EVENTS = {
   click: {
     handler: {
       __function: {
-        params: ['event'],
+        params: ['component', 'element', 'target', 'event'],
         body: '/** action logic goes here */\nconsole.log(12);',
         type:'FunctionExpression',
         name:null,

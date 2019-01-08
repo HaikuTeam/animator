@@ -309,18 +309,6 @@ class Element extends BaseModel {
     return this.getReifiedEventHandlers()[eventName];
   }
 
-  upsertEventHandler (eventName, handlerDescriptor) {
-    const eventHandlers = this.getReifiedEventHandlers();
-    eventHandlers[eventName] = handlerDescriptor;
-    this.emit('update', 'element-event-handler-update');
-    return this;
-  }
-
-  batchUpsertEventHandlers (serializedEvents) {
-    this.emit('update', 'element-event-handler-update');
-    return this;
-  }
-
   getEventHandlerSaveStatus (eventName) {
     if (!this._eventHandlerSaves) {
       this._eventHandlerSaves = {};
