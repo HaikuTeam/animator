@@ -888,9 +888,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         fill[ShapeKey.Type] = ShapeType.GradientFill;
         this.decorateGradientStops(fill, node.children);
         fill[TransformKey.GradientType] = GradientType.Radial;
-        const cx = alwaysAbsolute((initialValueOrNull(timeline, 'cx') || '50%'), width);
-        const cy = alwaysAbsolute((initialValueOrNull(timeline, 'cy') || '50%'), height);
-        const r = alwaysAbsolute((initialValueOrNull(timeline, 'r') || '50%'), Math.max(width, height));
+        const cx = alwaysAbsolute(initialValueOr(timeline, 'cx', '50%'), width);
+        const cy = alwaysAbsolute(initialValueOr(timeline, 'cy', '50%'), height);
+        const r = alwaysAbsolute(initialValueOr(timeline, 'r', '50%'), Math.max(width, height));
         fill[TransformKey.GradientStart] = getFixedPropertyValue([cx, cy]);
         // Note: right now, we are implicitly assuming the origin of the radial gradient is the same as its
         // transformation basis. Fixing this is quite difficult, and can be summarized as follows.
