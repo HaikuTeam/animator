@@ -195,7 +195,7 @@ export default (mana: BytecodeNode) => {
 
     // If we have a transform attribute, we're in for a fun ride; we have to conver this to our layout system
     if (attributes.transform !== undefined && attributes.transform !== null) {
-      const transformAttributes = parseCssTransformString(attributes.transform);
+      const transformAttributes = parseCssTransformString(attributes.transform, 1e6);
 
       for (const transformAttributeName in transformAttributes) {
         const transformValue = transformAttributes[transformAttributeName];

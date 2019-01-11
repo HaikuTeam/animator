@@ -27,7 +27,7 @@ function separate (str: string) {
   };
 }
 
-export default function parseCssTransformString (inStr: string) {
+export default function parseCssTransformString (inStr: string, epsilon: number = 1e3) {
   const out = {};
 
   if (!inStr) {
@@ -175,5 +175,5 @@ export default function parseCssTransformString (inStr: string) {
     return cssMat4([], layout);
   });
 
-  return composedTransformsToTimelineProperties(out, matrices);
+  return composedTransformsToTimelineProperties(out, matrices, false, null, epsilon);
 }

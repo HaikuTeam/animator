@@ -58,7 +58,7 @@ const cleanInvalidOrOverexplicitProps = (out: ComposedTransformSpec, explicit = 
 /**
  * Normalize rotations as close as possible to the quadrant of origin. Carefully.
  */
-const normalizeRotationsInQuadrants = (out: ComposedTransformSpec, normalizer: LayoutSpec) => {
+const normalizeRotationsInQuadrants = (out: ComposedTransformSpec, normalizer: LayoutSpec, epsilon: number = 1e3) => {
   if (normalizer === null) {
     return;
   }
@@ -83,7 +83,7 @@ const normalizeRotationsInQuadrants = (out: ComposedTransformSpec, normalizer: L
     // Offset by the necessary rotations to land in a "less unexpected" quadrant…
     out[rotationProperty] += Math.PI * 2 * Math.round((originalQuadrant - quadrantOut) / 4);
     // …and round to avoid additional weirdness.
-    out[rotationProperty] = Math.round(out[rotationProperty] * 1e3) / 1e3;
+    out[rotationProperty] = Math.round(out[rotationProperty] * epsilon) / epsilon;
   });
 };
 
@@ -92,10 +92,11 @@ export default (
   matrices: number[][],
   explicit = false,
   normalizer: LayoutSpec = null,
+  epsilon: number = 1e3,
 ) => {
   // Note the array reversal - to combine matrices we go in the opposite of the transform sequence
   // I.e. if we transform A->B->C, the multiplication order should be CxBxA
-  const decomposed = mat4Decompose(Layout3D.multiplyArrayOfMatrices(matrices.reverse()));
+  const decomposed = mat4Decompose(Layout3D.multiplyArrayOfMatrices(matrices.reverse()), epsilon);
 
   const {translation, scale, shear, rotation} = decomposed as DecomposedMat4;
   if (scale.indexOf(0) !== -1) {
@@ -120,7 +121,7 @@ export default (
   out['shear.yz'] = shear[2];
 
   cleanInvalidOrOverexplicitProps(out, explicit);
-  normalizeRotationsInQuadrants(out, normalizer);
+  normalizeRotationsInQuadrants(out, normalizer, epsilon);
 
   return out;
 };
