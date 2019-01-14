@@ -183,8 +183,7 @@ module.exports = {
 
         "rotation.z": {
           "0": { value: 0.5324304373222316, edited: true },
-          "50": { value: 1.2, curve: "linear" },
-          "266": { value: 2.1222, curve: "linear" },
+          "266": { value: 2.1222, curve: [0.005, 1.025, 0.045, 0.96] },
           "450": { value: 2.99 }
         }
       },

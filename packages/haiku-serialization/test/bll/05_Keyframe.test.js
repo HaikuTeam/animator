@@ -280,6 +280,78 @@ tape('Keyframe.06', (t) => {
   });
 });
 
+tape("Keyframe.07", t => {
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = "timeline";
+  return setupTest("keyframe-07", (err, ac, rows, done) => {
+    if (err) {
+      throw err;
+    }
+    const kfs = rows[2].getKeyframes();
+    const selection = [kfs[0], kfs[1]];
+
+    kfs[0].curve = "linear";
+    kfs[1].curve = "linear";
+    t.true(
+      Keyframe.groupHasBezierEditableCurves(selection),
+      "Returns true if a group of keyframes have editable curves and are all the same"
+    );
+
+    t.true(
+      Keyframe.groupHasBezierEditableCurves([kfs[0]]),
+      "Returns true if a single keyframe with a descomposable curve is provided"
+    );
+
+    t.false(
+      Keyframe.groupHasBezierEditableCurves([]),
+      "Returns false if no keyframes are provided"
+    );
+
+    kfs[1].curve = "easeIn";
+    t.false(
+      Keyframe.groupHasBezierEditableCurves(selection),
+      "Returns false if a group of curves contain different curves, even if all are non descomposable"
+    );
+
+    kfs[1].curve = "easeOutBounce";
+    t.false(
+      Keyframe.groupHasBezierEditableCurves([kfs[1]]),
+      "Returns false if the group contains a descomposable curve"
+    );
+
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done();
+    t.end();
+  });
+});
+
+tape("Keyframe.08", t => {
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = "timeline";
+  return setupTest("keyframe-07", (err, ac, rows, done) => {
+    if (err) {
+      throw err;
+    }
+    const kf = rows[2].getKeyframes()[0];
+
+    kf.curve = 'linear'
+    t.equal(kf.getCurveCapitalized(), 'Linear', 'capitalizes defined curves')
+
+    kf.curve = 'easeInOut'
+    t.equal(kf.getCurveCapitalized(), 'EaseInOut', 'capitalizes defined curves')
+
+    kf.curve = [0, 0.3, 0.2, 1];
+    t.equal(kf.getCurveCapitalized(), 'Custom', 'returns "Custom" when a curve is defined by an array')
+
+    kf.curve = null
+    t.equal(kf.getCurveCapitalized(), '', 'returns an empty string when a curve is not defined')
+
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done();
+    t.end();
+  });
+});
+
 // Please implement the rest of these as unit tests:
 // I am able to create a tween between two keyframes
 // I am able to select a single tween by clicking on it

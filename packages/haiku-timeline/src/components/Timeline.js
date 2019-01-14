@@ -13,6 +13,7 @@ import * as requestElementCoordinates from 'haiku-serialization/src/utils/reques
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import BezierPopup from './BezierPopup';
 import ControlsArea from './ControlsArea';
 import ExpressionInput from './ExpressionInput';
 import ScrubberInterior from './ScrubberInterior';
@@ -36,6 +37,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
 import Globals from 'haiku-ui-common/lib/Globals';
+import {getCurveInterpolationPoints} from 'haiku-formats/lib/exporters/curves';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'timeline';
@@ -66,6 +68,7 @@ const DEFAULTS = {
   userDetails: null,
   trackedExporterRequests: [],
   canOfflineExport: false,
+  showBezierEditor: false,
 };
 
 const THROTTLE_TIME = 32; // ms
@@ -707,6 +710,20 @@ class Timeline extends React.Component {
     });
 
     items.push({
+      label: 'Edit Bezier Curve',
+      enabled:
+        type === 'keyframe-transition' &&
+        Keyframe.groupHasBezierEditableCurves(selectedKeyframes),
+      onClick: () => {
+        this.setState({
+          showBezierEditor: true,
+          bezierEditorCoords: {x: event.clientX, y: event.clientY},
+          currentEditingCurve: getCurveInterpolationPoints(selectedKeyframes[0].getCurve()),
+        });
+      },
+    });
+
+    items.push({
       label: isSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (_) => {
@@ -1229,6 +1246,20 @@ class Timeline extends React.Component {
             onMouseDown={this.onGaugeMouseDown}
             timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
+        ),
+      (
+          this.state.showBezierEditor ? (
+            <BezierPopup
+              key="bezier-poopup"
+              value={this.state.currentEditingCurve}
+              onHide={() => {
+                this.setState({showBezierEditor: false});
+              }}
+              activeComponent={this.getActiveComponent()}
+              x={this.state.bezierEditorCoords.x}
+              y={this.state.bezierEditorCoords.y}
+            />
+          ) : null
         ),
     ];
   }

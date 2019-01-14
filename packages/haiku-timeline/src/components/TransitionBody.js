@@ -8,6 +8,7 @@ import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG';
 import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import BezierDerivativeGraph from 'haiku-ui-common/lib/react/Bezier/BezierDerivativeGraph';
 
 import {
   EaseInBackSVG,
@@ -190,6 +191,20 @@ export default class TransitionBody extends React.Component {
     const breakingBounds = curve.includes('Back') || curve.includes('Bounce') || curve.includes('Elastic');
     // tslint:disable-next-line:variable-name
     const CurveSVG = CURVESVGS[curve + 'SVG'];
+    const curverepr = CurveSVG ? (
+      <CurveSVG
+        id={uniqueKey}
+        leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+        rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+      />
+    ) : (
+      <BezierDerivativeGraph
+        value={this.props.keyframe.getCurve()}
+        id={uniqueKey}
+        leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+        rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+      />
+    );
 
     return (
       <TimelineDraggable
@@ -304,11 +319,7 @@ export default class TransitionBody extends React.Component {
             overflow: breakingBounds ? 'visible' : 'hidden',
             pointerEvents: 'none',
           }}>
-            <CurveSVG
-              id={uniqueKey}
-              leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
-              rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
-            />
+            {curverepr}
           </span>
           <span
             className="js-avoid-marquee-init"

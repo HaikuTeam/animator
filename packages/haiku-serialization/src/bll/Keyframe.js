@@ -1,5 +1,6 @@
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default;
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default;
+const isDecomposableCurve = require('haiku-formats/lib/exporters/curves').isDecomposableCurve;
 const BaseModel = require('./BaseModel');
 
 /**
@@ -241,6 +242,14 @@ class Keyframe extends BaseModel {
     );
   }
 
+  /**
+   * @method hasDescomposableCurve
+   * @description Return if the current curve body is composed of multiple Bezier Curves.
+   */
+  hasDescomposableCurve () {
+    return this.hasCurveBody() && isDecomposableCurve(this.getCurve());
+  }
+
   isSoloKeyframe () {
     const prev = this.prev();
     if (!prev) {
@@ -459,6 +468,15 @@ class Keyframe extends BaseModel {
 
   getCurveCapitalized () {
     const curve = this.getCurve();
+
+    if (Array.isArray(curve)) {
+      return 'Custom';
+    }
+
+    if (typeof curve !== 'string' && !(curve instanceof String)) {
+      return '';
+    }
+
     return curve.charAt(0).toUpperCase() + curve.slice(1);
   }
 
@@ -1007,6 +1025,28 @@ Keyframe.epandRowsOfSelectedKeyframes = ({component, from}) => {
 
 Keyframe.groupIsSingleTween = (keyframes) => {
   return keyframes.length === 2 && keyframes[0].next() === keyframes[1] && keyframes[0].hasCurveBody();
+};
+
+/**
+ * @method groupHasBezierEditableCurves
+ * @description Determines if every keyframe in a group can be edited via the
+ * Bezier Curve editor by the following criteria:
+ * @returns boolean
+ *
+ * - Every keyframe has a curve body
+ * - Every curve is the same curve (so they can all be edited with a single editor)
+ * - Every curve can be represented via a single Bezier Curve (FIXME: allow chains of curves)
+ */
+Keyframe.groupHasBezierEditableCurves = (keyframes) => {
+  if (!keyframes || keyframes.length === 0) {
+    return false;
+  }
+
+  const referenceCurve = keyframes[0].getCurve();
+
+  return keyframes
+    .filter((kf) => kf.hasCurveBody())
+    .every((kf) => kf.getCurve() === referenceCurve && !kf.hasDescomposableCurve());
 };
 
 module.exports = Keyframe;

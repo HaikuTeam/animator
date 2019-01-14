@@ -583,7 +583,7 @@ export class Glass extends React.Component {
 
         case 'global-menu:zoom-in':
           mixpanel.haikuTrack('creator:glass:zoom-in');
-          const component = this.getActiveComponent()
+          const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().zoomIn(1 + SHORTCUT_ZOOM_FACTOR);
           }
@@ -591,7 +591,7 @@ export class Glass extends React.Component {
 
         case 'global-menu:zoom-out':
           mixpanel.haikuTrack('creator:glass:zoom-out');
-          const component = this.getActiveComponent()
+          const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().zoomOut(1 + SHORTCUT_ZOOM_FACTOR);
           }
@@ -599,7 +599,7 @@ export class Glass extends React.Component {
 
         case 'global-menu:reset-viewport':
           mixpanel.haikuTrack('creator:glass:reset-viewport');
-          const component = this.getActiveComponent()
+          const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().resetZoomPan();
           }
@@ -618,14 +618,14 @@ export class Glass extends React.Component {
           break;
 
         case 'global-menu:cut':
-          const proxy = this.fetchProxyElementForSelection()
+          const proxy = this.fetchProxyElementForSelection();
           if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCutDebounced();
           }
           break;
 
         case 'global-menu:copy':
-          const proxy = this.fetchProxyElementForSelection()
+          const proxy = this.fetchProxyElementForSelection();
           if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCopyDebounced();
           }
@@ -976,7 +976,7 @@ export class Glass extends React.Component {
 
   handlePaste () {
     mixpanel.haikuTrack('creator:glass:paste');
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy) {
       const pasteables = ElementSelectionProxy.getPasteables();
       return proxy.pasteClipsAndSelect(
