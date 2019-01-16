@@ -16,10 +16,6 @@ export interface DOMAdapter {
 
 export declare interface AdaptedScreen extends Screen {
   availLeft: number;
-  orientation: {
-    angle: number;
-    type: string;
-  };
 }
 
 export declare interface AdaptedDocument extends Document {
