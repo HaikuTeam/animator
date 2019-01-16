@@ -24,10 +24,14 @@ export interface IHaikuClock {
   getExplicitTime (): number;
   getFrameDuration (): number;
   getTime (): number;
+  setTime (time: number): void;
   isRunning (): boolean;
   run (): void;
   start (): void;
   assignOptions (options: ClockConfig): void;
+  GLOBAL_ANIMATION_HARNESS?: {
+    cancel (): void;
+  };
 }
 
 export interface IHaikuComponent extends IHaikuElement {
