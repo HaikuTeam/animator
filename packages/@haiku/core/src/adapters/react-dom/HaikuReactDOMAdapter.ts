@@ -28,6 +28,8 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
     static isHaikuAdapter = true;
     haiku;
     mount;
+    state;
+    props;
 
     constructor (props) {
       super(props);

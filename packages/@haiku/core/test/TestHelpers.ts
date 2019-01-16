@@ -23,7 +23,7 @@ import HaikuDOMRenderer from '@core/renderers/dom/HaikuDOMRenderer';
 
 const createDOM = (cb) => {
   const html = '<!doctype html><html><body><div id="mount"></div></body></html>';
-  const doc = new jsdom.JSDOM(html);
+  const doc = new jsdom.JSDOM(html, {url: 'http://localhost'});
   const win = doc.window;
 
   global.window = win;
