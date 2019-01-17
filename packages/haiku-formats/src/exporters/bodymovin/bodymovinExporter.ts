@@ -786,6 +786,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
         [TransformKey.StrokeLinecap]: StrokeLinecap.Square,
         [TransformKey.StrokeLinejoin]: StrokeLinejoin.Miter,
+        [TransformKey.StrokeMiterlimit]: 1,
       };
     }
 
@@ -793,10 +794,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const stroke = {
       [ShapeKey.Type]: ShapeType.Stroke,
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'strokeOpacity', 100, opacityTransformer),
-      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseInt),
+      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseFloat),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
       [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'strokeLinecap')),
       [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'strokeLinejoin')),
+      [TransformKey.StrokeMiterlimit]: Number(initialValueOr(timeline, 'strokeMiterlimit', 1)),
     };
 
     const dasharray = initialValueOrNull(timeline, 'strokeDasharray');
