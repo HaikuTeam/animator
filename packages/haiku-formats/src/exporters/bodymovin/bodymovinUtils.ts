@@ -302,6 +302,7 @@ export const pointsToInterpolationTrace = (svgPoints: string|[number, number][])
   const dummyCurve = new Array(chunkedPoints.length);
   dummyCurve.fill([0, 0]);
   return {
+    [PathKey.Closed]: true,
     [PathKey.Points]: chunkedPoints,
     [PathKey.InterpolationIn]: dummyCurve,
     [PathKey.InterpolationOut]: dummyCurve,

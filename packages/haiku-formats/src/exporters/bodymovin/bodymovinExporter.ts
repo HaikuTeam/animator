@@ -1010,13 +1010,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   private decoratePolygon (timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
     shape[ShapeKey.Type] = ShapeType.Shape;
     if (timelineHasProperties(timeline, 'points')) {
-      shape[ShapeKey.Vertices] = {
-        [PropertyKey.Animated]: 0,
-        [PropertyKey.Value]: {
-          [PathKey.Closed]: true,
-          ...pointsToInterpolationTrace(initialValue(timeline, 'points')),
-        },
-      };
+      shape[ShapeKey.Vertices] = this.getValue(timeline.points, pointsToInterpolationTrace, true);
     }
   }
 
