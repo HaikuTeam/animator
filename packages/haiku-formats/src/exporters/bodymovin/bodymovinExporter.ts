@@ -1148,6 +1148,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     if (node.attributes['haiku-source'] === '<group>') {
       // Handled below.
+      this.structuralNode = parentNode;
       return;
     }
 
@@ -1447,7 +1448,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Parses class-local bytecode using internal methods.
    */
   private parseBytecode () {
-    if (this.bytecode.template.elementName !== 'div') {
+    if (this.bytecode.template.elementName !== SvgTag.Div) {
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
