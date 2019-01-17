@@ -786,6 +786,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
         [TransformKey.StrokeLinecap]: StrokeLinecap.Square,
         [TransformKey.StrokeLinejoin]: StrokeLinejoin.Miter,
+        [TransformKey.StrokeMiterlimit]: 1,
       };
     }
 
@@ -793,10 +794,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const stroke = {
       [ShapeKey.Type]: ShapeType.Stroke,
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'strokeOpacity', 100, opacityTransformer),
-      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseInt),
+      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseFloat),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
       [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'strokeLinecap')),
       [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'strokeLinejoin')),
+      [TransformKey.StrokeMiterlimit]: Number(initialValueOr(timeline, 'strokeMiterlimit', 1)),
     };
 
     const dasharray = initialValueOrNull(timeline, 'strokeDasharray');
@@ -1010,13 +1012,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   private decoratePolygon (timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
     shape[ShapeKey.Type] = ShapeType.Shape;
     if (timelineHasProperties(timeline, 'points')) {
-      shape[ShapeKey.Vertices] = {
-        [PropertyKey.Animated]: 0,
-        [PropertyKey.Value]: {
-          [PathKey.Closed]: true,
-          ...pointsToInterpolationTrace(initialValue(timeline, 'points')),
-        },
-      };
+      shape[ShapeKey.Vertices] = this.getValue(timeline.points, pointsToInterpolationTrace, true);
     }
   }
 
@@ -1154,6 +1150,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     if (node.attributes['haiku-source'] === '<group>') {
       // Handled below.
+      this.structuralNode = parentNode;
       return;
     }
 
@@ -1453,7 +1450,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Parses class-local bytecode using internal methods.
    */
   private parseBytecode () {
-    if (this.bytecode.template.elementName !== 'div') {
+    if (this.bytecode.template.elementName !== SvgTag.Div) {
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 

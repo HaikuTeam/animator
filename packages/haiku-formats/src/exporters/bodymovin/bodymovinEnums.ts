@@ -97,6 +97,7 @@ export const enum TransformKey {
   StrokeDasharray = 'd',
   StrokeLinecap = 'lc',
   StrokeLinejoin = 'lj',
+  StrokeMiterlimit = 'ml',
 }
 
 export const enum StrokeLinecap {
