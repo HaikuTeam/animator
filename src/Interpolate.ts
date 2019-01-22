@@ -64,8 +64,7 @@ export const interpolate = (
     // (copy/paste, subcomponent, undo/redo, flush to disk)
     // - need to make sure not to crash if the function doesn’t return a number
     // (without a `typeof` check on every tick)
-    //
-    // curveFunc = curve;
+    curveFunc = curve;
   }
 
   if (typeof curveFunc !== 'function') {
