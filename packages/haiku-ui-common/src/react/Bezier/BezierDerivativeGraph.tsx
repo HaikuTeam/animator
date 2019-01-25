@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 export interface BezierDerivativeGraphProps {
   rightGradFill: string;
@@ -15,14 +15,14 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
     graphWidth: 100,
   };
 
-  map(x: number, y: number, x1: number, y1: number, nx: number, ny: number, n: number): number[] {
+  map (x: number, y: number, x1: number, y1: number, nx: number, ny: number, n: number): number[] {
     return [
       (x - 3 * x1) * nx,
       ((y - 3 * y1) * ny) + (n * (y1 / x1)),
     ];
   }
 
-  get d() {
+  get d () {
     const [x1, y1, x2, y2] = this.props.value;
     const dx = [3 * x1, 3 * (x2 - x1), 3 * (1 - x2)];
     const dy = [3 * y1, 3 * (y2 - y1), 3 * (1 - y2)];
@@ -36,7 +36,7 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
     return `M${p0[0]} ${p0[1]} Q ${p1[0]} ${p1[1]}, ${p2[0]} ${p2[1]} L 100 0 L 0 0 Z`;
   }
 
-  render() {
+  render () {
     const gradientId = `BezierDerivativeGradient${this.props.id}`;
 
     return (
@@ -45,7 +45,7 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
         height="20px"
         viewBox={`0 0 ${this.props.graphWidth} ${this.props.graphHeight}`}
         preserveAspectRatio="none"
-        style={{ marginTop: -2, transform: "scale(1, -1)" }}
+        style={{marginTop: -2, transform: 'scale(1, -1)'}}
       >
         <defs>
           <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={gradientId}>
