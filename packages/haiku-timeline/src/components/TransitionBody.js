@@ -79,6 +79,12 @@ const CURVESVGS = {
 
 const THROTTLE_TIME = 17; // ms
 
+const STYLE = {
+  keyframePole: {
+    transform: 'scale(1.7) translateY(-1.5px)',
+  },
+};
+
 export default class TransitionBody extends React.Component {
   constructor (props) {
     super(props);
@@ -272,8 +278,6 @@ export default class TransitionBody extends React.Component {
               left: -5,
               width: 9,
               height: 24,
-              top: -4,
-              transform: 'scale(1.7)',
               zIndex: 1002,
             }}>
             <span
@@ -284,7 +288,7 @@ export default class TransitionBody extends React.Component {
                 left: 1,
                 cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move',
               }}>
-              <KeyframeSVG color={Palette[this.props.keyframe.getLeftKeyframeColorState()]} />
+              <KeyframeSVG style={STYLE.keyframePole} color={Palette[this.props.keyframe.getLeftKeyframeColorState()]} />
             </span>
           </span>
           <span style={{
@@ -309,8 +313,6 @@ export default class TransitionBody extends React.Component {
               right: -5,
               width: 9,
               height: 24,
-              top: -4,
-              transform: 'scale(1.7)',
               transition: 'opacity 130ms linear',
               zIndex: 1002,
             }}>
@@ -324,7 +326,7 @@ export default class TransitionBody extends React.Component {
                   ? 'pointer'
                   : 'move',
               }}>
-              <KeyframeSVG color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
+              <KeyframeSVG style={STYLE.keyframePole} color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
             </span>
           </span>
         </span>
