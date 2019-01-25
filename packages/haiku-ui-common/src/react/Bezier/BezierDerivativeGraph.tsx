@@ -1,50 +1,51 @@
-import {bezierInflections, linearMap} from 'haiku-common/lib/math/geometryUtils';
-import * as React from 'react';
+import * as React from "react";
 
 export interface BezierDerivativeGraphProps {
   rightGradFill: string;
   leftGradFill: string;
   id: string;
   value: number[];
-  graphHeight: number;
+  graphHeight?: number;
+  graphWidth?: number;
 }
 
 export default class BezierDerivativeGraph extends React.PureComponent<BezierDerivativeGraphProps> {
   static defaultProps = {
     graphHeight: 25,
+    graphWidth: 100,
+  };
+
+  map(x: number, y: number, x1: number, y1: number, nx: number, ny: number, n: number): number[] {
+    return [
+      (x - 3 * x1) * nx,
+      ((y - 3 * y1) * ny) + (n * (y1 / x1)),
+    ];
   }
 
-  derivateX (value: number[]): number[] {
-    const p = [0, value[0], value[2], 1];
-    const d = [3 * (p[1] - p[0]), 3 * (p[2] - p[1]), 3 * (p[3] - p[2])].map(Math.abs);
-    const maxValue = Math.max(...d);
+  get d() {
+    const [x1, y1, x2, y2] = this.props.value;
+    const dx = [3 * x1, 3 * (x2 - x1), 3 * (1 - x2)];
+    const dy = [3 * y1, 3 * (y2 - y1), 3 * (1 - y2)];
+    const n = this.props.graphHeight / Math.max(Math.abs(y1 / x1), Math.abs((1 - y2) / (1 - x2)));
+    const nx = this.props.graphWidth / (3 * (1 - x2) - 3 * x1);
+    const ny = (n * (((1 - y2) / (1 - x2)) - (y1 / x1))) / (3 * (1 - y2) - (3 * y1));
+    const p0 = this.map(dx[0], dy[0], x1, y1, nx, ny, n);
+    const p1 = this.map(dx[1], dy[1], x1, y1, nx, ny, n);
+    const p2 = this.map(dx[2], dy[2], x1, y1, nx, ny, n);
 
-    return d.map((v) => linearMap(0, maxValue, 0, this.props.graphHeight, v));
+    return `M${p0[0]} ${p0[1]} Q ${p1[0]} ${p1[1]}, ${p2[0]} ${p2[1]} L 100 0 L 0 0 Z`;
   }
 
-  get d () {
-    const {value} = this.props;
-    const infl = bezierInflections([
-      {x: 0, y: 0},
-      {x: value[0], y: value[1]},
-      {x: value[2], y: value[3]},
-      {x: 1, y: 1},
-    ]);
-    const steps = [0, linearMap(0, 1, 0, 100, infl[0]), 100];
-    const dx = this.derivateX(value);
-    return `M${steps[0]} ${dx[0]} Q ${steps[1]} ${dx[1]}, ${steps[2]} ${dx[2]} L 100 0 L 0 0 Z`;
-  }
-
-  render () {
+  render() {
     const gradientId = `BezierDerivativeGradient${this.props.id}`;
 
     return (
       <svg
         width="100%"
         height="20px"
-        viewBox={`0 0 100 ${this.props.graphHeight}`}
+        viewBox={`0 0 ${this.props.graphWidth} ${this.props.graphHeight}`}
         preserveAspectRatio="none"
-        style={{marginTop: -2, transform: 'scale(-1, -1)'}}
+        style={{ marginTop: -2, transform: "scale(1, -1)" }}
       >
         <defs>
           <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={gradientId}>
