@@ -2077,9 +2077,9 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  dragStopSelectedKeyframes (dragData) {
+  dragStopSelectedKeyframes () {
     const keyframes = this.getSelectedKeyframes();
-    keyframes.forEach((keyframe) => keyframe.dragStop(dragData));
+    keyframes.forEach((keyframe) => keyframe.dragStop());
 
     // We only update once we're finished dragging because moving keyframes may end up
     // destroying/creating keyframes in the bytecode, and when rehydrate() is called, the

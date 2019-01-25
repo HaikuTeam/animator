@@ -83,6 +83,7 @@ export default class TransitionBody extends React.Component {
   constructor (props) {
     super(props);
     this.handleUpdate = this.handleUpdate.bind(this);
+    this.isDragging = false;
     this.handleProps(props);
   }
 
@@ -198,17 +199,18 @@ export default class TransitionBody extends React.Component {
         }}
         onStart={(dragEvent, dragData) => {
           if (!this.props.preventDragging) {
+            this.isDragging = true;
             this.props.component.dragStartSelectedKeyframes(dragData);
           }
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (!this.props.preventDragging) {
+            this.isDragging = false;
             this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true});
           }
-          this.props.component.dragStopSelectedKeyframes(dragData);
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          if (!this.props.preventDragging) {
+          if (!this.props.preventDragging && this.isDragging) {
             this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, {alias: 'timeline'});
           }
         }, THROTTLE_TIME)}>
