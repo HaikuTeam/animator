@@ -799,7 +799,7 @@ class Keyframe extends BaseModel {
     }
 
     this.setDidHandleDragStop();
-    this.component.dragStopSelectedKeyframes(dragData);
+    this.component.dragStopSelectedKeyframes();
   }
 
   clearOtherKeyframes () {
