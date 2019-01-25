@@ -1,3 +1,4 @@
+import {getCurveInterpolationPoints} from 'haiku-formats/lib/exporters/curves';
 import BezierEditor from 'haiku-ui-common/lib/react/Bezier/BezierEditor';
 import * as React from 'react';
 
@@ -5,22 +6,51 @@ const HEIGHT = 280;
 const WIDTH = 250;
 
 export interface BezierPopupProps {
-  value?: number[];
+  keyframes?: any[];
   x?: number;
   y?: number;
   onHide: () => void;
   activeComponent: {
     changeCurveOnSelectedKeyframes: (bezier: number[], metadata: object) => void,
   };
+  timeline: any;
 }
 
 export default class BezierPopup extends React.Component<BezierPopupProps> {
-  static defaultProps = {
-    value: [0.2, 0.2, 0.8, 0.8],
-  };
+  private mounted = false;
 
   state = {
-    currentBezier: this.props.value,
+    currentBezier: this.bezierPointsFromEditingCurve,
+  };
+
+  componentWillUnmount () {
+    this.mounted = false;
+    if (this.referenceKeyframe) {
+      this.referenceKeyframe.row.removeListener('update', this.handleUpdate);
+    }
+  }
+
+  componentDidMount () {
+    this.mounted = true;
+
+    if (this.referenceKeyframe) {
+      this.referenceKeyframe.row.on('update', this.handleUpdate);
+    }
+  }
+
+  handleUpdate = (what: string): void => {
+    if (!this.mounted) {
+      return;
+    }
+
+    if (
+      what === 'keyframe-remove-curve' ||
+      what === 'keyframe-add-curve' ||
+      what === 'keyframe-change-curve' ||
+      what === 'row-rehydrated'
+    ) {
+      this.displayChanges(this.bezierPointsFromEditingCurve);
+    }
   };
 
   displayChanges = (currentBezier: number[]) => {
@@ -30,6 +60,18 @@ export default class BezierPopup extends React.Component<BezierPopupProps> {
   save = () => {
     this.props.activeComponent.changeCurveOnSelectedKeyframes(this.state.currentBezier, {from: 'timeline'});
   };
+
+  get referenceKeyframe () {
+    return this.props.keyframes && this.props.keyframes[0];
+  }
+
+  get bezierPointsFromEditingCurve (): number[] {
+    if (this.referenceKeyframe) {
+      return getCurveInterpolationPoints(this.referenceKeyframe.getCurve());
+    }
+
+    return  [];
+  }
 
   get boundXPosition (): number {
     let x = this.props.x;

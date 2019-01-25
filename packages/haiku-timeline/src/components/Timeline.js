@@ -37,7 +37,6 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
 import Globals from 'haiku-ui-common/lib/Globals';
-import {getCurveInterpolationPoints} from 'haiku-formats/lib/exporters/curves';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'timeline';
@@ -718,7 +717,7 @@ class Timeline extends React.Component {
         this.setState({
           showBezierEditor: true,
           bezierEditorCoords: {x: event.clientX, y: event.clientY},
-          currentEditingCurve: getCurveInterpolationPoints(selectedKeyframes[0].getCurve()),
+          currentEditingBezier: selectedKeyframes,
         });
       },
     });
@@ -1251,10 +1250,9 @@ class Timeline extends React.Component {
           this.state.showBezierEditor ? (
             <BezierPopup
               key="bezier-poopup"
-              value={this.state.currentEditingCurve}
-              onHide={() => {
-                this.setState({showBezierEditor: false});
-              }}
+              keyframes={this.state.currentEditingBezier}
+              onHide={this.hideBezierEditor}
+              timeline={timeline}
               activeComponent={this.getActiveComponent()}
               x={this.state.bezierEditorCoords.x}
               y={this.state.bezierEditorCoords.y}
@@ -1263,6 +1261,10 @@ class Timeline extends React.Component {
         ),
     ];
   }
+
+  hideBezierEditor = () => {
+    this.setState({showBezierEditor: false});
+  };
 
   onGaugeMouseDown (event) {
     event.persist();
