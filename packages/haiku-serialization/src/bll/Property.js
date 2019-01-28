@@ -698,6 +698,44 @@ Property.includeInDisplay = (type, name, element, property, keyframes) => {
   return rule && rule[type] && rule[type].every((test) => test(name, element, property, keyframes));
 };
 
+Property.WITH_COLOR_POPUP = [
+  'style.stroke',
+  'style.fill',
+  'style.background',
+  'style.backgroundColor',
+  'style.borderBottomColor',
+  'style.borderColor',
+  'style.borderLeftColor',
+  'style.borderRightColor',
+  'style.borderTopColor',
+  'style.floodColor',
+  'style.lightingColor',
+  'style.stopColor',
+  'stroke',
+  'fill',
+  'floodColor',
+  'lightingColor',
+  'stopColor',
+  'backgroundColor',
+  'animateColor',
+  'feColor',
+];
+
+Property.hasColorPopup = (propertyName) => {
+  return Property.WITH_COLOR_POPUP.includes(propertyName);
+};
+
+Property.WITH_RANGE_POPUP = {
+  opacity: {max: 1, min: 0, step: 0.1},
+  'rotation.x': {max: Math.PI, min: -Math.PI, step: 0.01},
+  'rotation.y': {max: Math.PI, min: -Math.PI, step: 0.01},
+  'rotation.z': {max: Math.PI, min: -Math.PI, step: 0.01},
+};
+
+Property.hasRangePopup = (propertyName) => {
+  return Property.WITH_RANGE_POPUP[propertyName];
+};
+
 Property.buildFilterObject = (
   filtered,
   hostElement,

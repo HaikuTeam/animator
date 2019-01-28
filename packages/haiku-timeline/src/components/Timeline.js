@@ -53,7 +53,6 @@ if (webFrame) {
 
 const DEFAULTS = {
   rowHeight: 25,
-  inputCellWidth: 75,
   meterHeight: 25,
   controlsHeight: 42,
   playerPlaybackSpeed: 1.0,

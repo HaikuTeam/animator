@@ -31,7 +31,8 @@
     "test-report": "node ./scripts/test-report.js"
   },
   "resolutions": {
-    "@haiku/core": "^4.0.0"
+    "@haiku/core": "^4.0.0",
+    "**/@types/react": "15.6.11"
   },
   "dependencies": {
     "@haiku/cli": "4.3.11",

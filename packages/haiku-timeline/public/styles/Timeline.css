@@ -199,52 +199,6 @@ input:focus, button:focus {
   cursor: default;
 }
 
-#timeline input[type=range] {
-  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
-  background: transparent;
-}
-
-#timeline input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-}
-
-#timeline input[type=range]:focus {
-  outline: none;
-}
-
-#timeline input[type=range]::-ms-track {
-  width: 100%;
-  cursor: pointer;
-  /* Hides the slider so custom styles can be added */
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
-}
-
-#timeline input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  border: 1px solid #000000;
-  height: 13px;
-  width: 13px;
-  border-radius: 50%;
-  background: rgb(254,254,254);
-  cursor: pointer;
-  margin-top: -4px;
-  box-shadow: -1px 0 2px #000000;
-}
-
-#timeline input[type=range]::-webkit-slider-runnable-track {
-  width: 77%;
-  height: 5px;
-  cursor: pointer;
-  background: rgb(47, 57, 60);
-  border-radius: 10px;
-}
-
-#timeline input[type=range]:hover::-webkit-slider-runnable-track {
-  background: rgb(205,49,114);
-}
-
 #timeline .no-incrementor input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
