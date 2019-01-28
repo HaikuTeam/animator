@@ -275,6 +275,7 @@ export default class TransitionBody extends React.Component {
               backgroundColor: Color(Palette.SUNSTONE).fade(0.98),
             }} />
           <span
+            className="js-avoid-marquee-init"
             style={{
               position: 'absolute',
               left: -5,
@@ -283,7 +284,7 @@ export default class TransitionBody extends React.Component {
               zIndex: 1002,
             }}>
             <span
-              className="keyframe-diamond"
+              className="keyframe-diamond js-avoid-marquee-init"
               style={{
                 position: 'absolute',
                 top: 5,
@@ -310,6 +311,7 @@ export default class TransitionBody extends React.Component {
             />
           </span>
           <span
+            className="js-avoid-marquee-init"
             style={{
               position: 'absolute',
               right: -5,
@@ -319,7 +321,7 @@ export default class TransitionBody extends React.Component {
               zIndex: 1002,
             }}>
             <span
-              className="keyframe-diamond"
+              className="keyframe-diamond js-avoid-marquee-init"
               style={{
                 position: 'absolute',
                 top: 5,
