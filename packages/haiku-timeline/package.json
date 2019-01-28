@@ -26,6 +26,7 @@
     "codemirror": "^5.28.0",
     "color": "^2.0.1",
     "haiku-common": "4.3.10",
+    "haiku-formats": "4.3.10",
     "haiku-fs-extra": "4.3.10",
     "haiku-serialization": "4.3.10",
     "haiku-ui-common": "4.3.10",
