@@ -106,7 +106,7 @@ class Snippets extends React.PureComponent {
         const visibleRanges = this.props.editor.getVisibleRanges();
         const cursorIsVisible = visibleRanges.some((range) => range.containsPosition(editorPosition));
 
-        if (cursorIsVisible) {
+        if (cursorIsVisible && Boolean(this._plus)) {
           this._plus.style.visibility = 'visible';
 
           // Snippet button position is monaco editor position + relative cursor scroll position
