@@ -151,6 +151,7 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
+      expiredTrialNonPro: true,
       showOfflineExportUpgradeModal: false,
       // This is a sensible default to avoid flashes of offline warnings.
       // (The Envoy server will protect us from any potential abuse.)
@@ -2105,6 +2106,7 @@ export default class Creator extends React.Component {
           onShowChangelogModal={this.showChangelogModal}
           privateProjectLimit={this.state.privateProjectLimit}
           showChangelogModal={this.state.showChangelogModal}
+          expiredTrialNonPro={this.state.expiredTrialNonPro}
           username={this.state.username}
           softwareVersion={this.state.softwareVersion}
           organizationName={this.state.organizationName}

@@ -67,6 +67,13 @@ export const BTN_STYLES = {
   btnPrimaryAlt: {
     backgroundColor: Color(Palette.FATHER_COAL).darken(0.2),
   },
+  btnSecondary: {
+    textTransform: 'uppercase',
+    display: 'inline-block',
+    marginTop: 10,
+    backgroundColor: 'transparent',
+    border: '1px solid ' + Palette.LIGHT_BLUE,
+  },
   btnCancel: {
     letterSpacing: '1.3px',
     marginTop: 4,
