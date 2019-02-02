@@ -60,6 +60,10 @@ class ProjectThumbnail extends React.Component {
             (this.state.isMenuActive || this.state.isHovered) && {opacity: 1},
           ]}
           onClick={() => {
+            if (this.props.expiredTrialNonPro) {
+              // TODO: Open the sharelink
+              return false;
+            }
             if (!this.state.isMenuActive) {
               this.launchProjectIfAllowed();
             }
@@ -84,9 +88,10 @@ class ProjectThumbnail extends React.Component {
               !this.state.isHovered && DASH_STYLES.gone2,
             ]}
           >
-            OPEN
+          {this.props.expiredTrialNonPro ? 'View Online' : 'Open'}
           </span>
-          {this.props.projectExistsLocally && <span
+
+          {(this.props.projectExistsLocally && !this.props.expiredTrialNonPro) && <span
             key="duplicate"
             onClick={this.props.showDuplicateProjectModal}
             style={[

@@ -1,6 +1,7 @@
 import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as React from 'react';
+import {BTN_STYLES} from '../styles/btnShared';
 
 export const DASH_STYLES: React.CSSProperties = {
   upcase: {
@@ -36,7 +37,7 @@ export const DASH_STYLES: React.CSSProperties = {
     color: Palette.ROCK,
   },
   bannerNotice: {
-    margin: '0 -7px 0 7px',
+    margin: '0 7px 0 0px',
     border: '1px solid' + Palette.BLUE,
     borderRadius: 3,
     padding: '0 8px',

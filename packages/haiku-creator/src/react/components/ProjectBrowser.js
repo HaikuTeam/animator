@@ -13,6 +13,7 @@ import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-com
 import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
+import LockoutModal from './LockoutModal';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 import {Paginator} from 'haiku-ui-common/lib/react/Paginator';
 import * as  NoCon from '@haiku/tina-nocon/react';
@@ -38,6 +39,7 @@ class ProjectBrowser extends React.Component {
       isPopoverOpen: false,
       showNewProjectModal: false,
       showDeleteModal: false,
+      showLockoutModal: false,
       recordedDelete: '',
       recordedNewProjectName: '',
       projToDelete: '',
@@ -68,6 +70,10 @@ class ProjectBrowser extends React.Component {
 
   componentDidMount () {
     this.loadProjects();
+
+    if (this.props.expiredTrialNonPro) {
+      this.setState({showLockoutModal: true});
+    }
 
     this.props.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel;
@@ -294,6 +300,10 @@ class ProjectBrowser extends React.Component {
   }
 
   renderNewProjectBoxorama () {
+    if (this.props.expiredTrialNonPro) {
+      return false;
+    }
+
     return (
       <div
         style={[
@@ -345,9 +355,8 @@ class ProjectBrowser extends React.Component {
 
       const perCardHeight = cardHeight + DASH_STYLES.card.marginTop;
       const rows = Math.floor(availableHeight / (perCardHeight));
-
-      // New project box is counted as a new project
-      const numProjectsPerPage = Math.max(columns * rows, 1);
+      const accountForNewProjBtn = this.props.expiredTrialNonPro ? 1 : 0;
+      const numProjectsPerPage = Math.max(columns * rows + accountForNewProjBtn, 1);
 
       if (this.state.numProjectsPerPage === numProjectsPerPage) {
         return;
@@ -382,14 +391,14 @@ class ProjectBrowser extends React.Component {
     if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
     }
-    const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
+    const {showDeleteModal, showNewProjectModal, showChangelogModal, showLockoutModal} = this.state;
 
     return (
       <div
         style={[
           DASH_STYLES.projectsWrapper,
           {opacity: this.state.fadeOutProjects ? 0 : 1},
-          (showDeleteModal || showNewProjectModal || showChangelogModal) && {filter: 'blur(2px)'},
+          (showDeleteModal || showNewProjectModal || showChangelogModal || showLockoutModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout();
@@ -418,6 +427,7 @@ class ProjectBrowser extends React.Component {
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
+            expiredTrialNonPro={this.props.expiredTrialNonPro}
             cardHeight={this.state.cardHeight}
           />
         ))}
@@ -522,6 +532,16 @@ class ProjectBrowser extends React.Component {
     );
   }
 
+  renderLockoutModal () {
+    return (
+      <LockoutModal
+        onClose={() => {
+          this.setState({showLockoutModal: false});
+        }}
+      />
+    );
+  }
+
   renderDeleteModal () {
     return (
       <div style={DASH_STYLES.overlay}
@@ -588,41 +608,38 @@ class ProjectBrowser extends React.Component {
 
         {this.state.showDeleteModal && this.renderDeleteModal()}
 
-        <div style={DASH_STYLES.frame} className="frame">
-          {
-            this.props.privateProjectLimit !== null && this.state.projectsList.length > 0 && (
-              <div style={{marginRight: 15}}>
-                <strong>{this.state.projectsList.filter((projectObject) => !projectObject.isPublic).length}</strong>
-                <span>/</span>
-                <strong>{this.props.privateProjectLimit}</strong>
-                <span>&nbsp; private projects in use</span>
-                <span
-                  title="Upgrade to Haiku Pro"
-                  style={DASH_STYLES.bannerNotice}
-                  onClick={this.exploreProTitlebar}>
-                  Go Pro
-                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
-                    <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>
-                  </span>
-                </span>
-              </div>
-            )
-          }
+        {(this.props.expiredTrialNonPro && this.state.showLockoutModal) &&
+          this.renderLockoutModal()
+        }
 
+        <div style={DASH_STYLES.frame} className="frame">
           <NotificationExplorer
             lastViewedChangelog={this.props.lastViewedChangelog}
             onShowChangelogModal={this.props.onShowChangelogModal} />
 
-          <button
-            id="haiku-button-show-new-project-modal"
-            key="new_proj"
-            title="Create new Haiku project"
-            onClick={() => this.showNewProjectModal()}
-            style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
-          >
-            <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
-            <span>New Project</span>
-          </button>
+          { !this.props.expiredTrialNonPro
+            ? (<button
+              id="haiku-button-show-new-project-modal"
+              key="new_proj"
+              title="Create new Haiku project"
+              onClick={() => this.showNewProjectModal()}
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
+            >
+              <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
+              <span>New Project</span>
+            </button>)
+            : (
+              <span
+                title="Upgrade to Haiku Pro"
+                style={DASH_STYLES.bannerNotice}
+                onClick={this.exploreProTitlebar}>
+                Go Pro
+                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                  <ExternalLinkSVG color={Palette.LIGHT_BLUE} />
+                </span>
+              </span>
+            )
+          }
 
           <Popover
             onOuterAction={this.closePopover}
@@ -652,7 +669,7 @@ class ProjectBrowser extends React.Component {
           firstItemToDisplay={this.state.firstDisplayedProject}
           numItemsPerPage={this.state.numProjectsPerPage}
           numTotalItems={this.state.projectsList.length}
-          blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal}
+          blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal || this.state.showLockoutModal}
           fadeOut={this.state.fadeOutProjects}
           onChangeFirstItemToDisplay={this.changeFirstItemToDisplay}
         />
@@ -668,6 +685,7 @@ ProjectBrowser.propTypes = {
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
   showChangelogModal: React.PropTypes.bool.isRequired,
+  expiredTrialNonPro: React.PropTypes.bool.isRequired,
   onShowProxySettings: React.PropTypes.func.isRequired,
   privateProjectLimit: React.PropTypes.number,
 };
