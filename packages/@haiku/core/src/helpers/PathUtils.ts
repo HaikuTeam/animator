@@ -206,7 +206,7 @@ export const distributeTotalVertices = (path: CurveSpec[], totalVertices: number
 
 export const rotatePathForSmallestDistance = (source: CurveSpec[], dest: CurveSpec[]): void => {
   if (source.length !== dest.length) {
-    throw new Error('Mismatched source and destination length.');
+    return;
   }
 
   let moveToPopped = false;
