@@ -110,7 +110,7 @@ pipeline {
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'HOURS') {
                     script {
-                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: (env.ghprbSourceBranch =~ /^rc-\d+\.\d+\.\d+$/) ? env.ghprbSourceBranch.replace('rc-', '') : '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
+                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,roberto@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: (env.ghprbSourceBranch =~ /^rc-\d+\.\d+\.\d+$/) ? env.ghprbSourceBranch.replace('rc-', '') : '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
                     }
                     setBuildStatus(CONTEXT_BUILD, 'builds started', STATUS_PENDING)
                 }
@@ -156,7 +156,7 @@ pipeline {
                 milestone 3
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
+                    input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,roberto@haiku.ai,zack@haiku.ai'
                     setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
                     setupBuild()
                     sh """echo "//registry.npmjs.org/:_authToken=${env.NPM_AUTH_TOKEN}" > ~/.npmrc"""
@@ -189,7 +189,7 @@ pipeline {
                 milestone 5
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Syndicate release?', submitter: 'sasha@haiku.ai,matthew@haiku.ai,zack@haiku.ai'
+                    input message: 'Syndicate release?', submitter: 'sasha@haiku.ai,roberto@haiku.ai,zack@haiku.ai'
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicating...', STATUS_PENDING)
                     setupBuild()
                     nodeRun('./scripts/distro-syndicate.js --non-interactive')
