@@ -1,6 +1,7 @@
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default;
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default;
 const isDecomposableCurve = require('haiku-formats/lib/exporters/curves').isDecomposableCurve;
+const getCurveInterpolationPoints = require('haiku-formats/lib/exporters/curves').getCurveInterpolationPoints;
 const BaseModel = require('./BaseModel');
 
 /**
@@ -248,6 +249,14 @@ class Keyframe extends BaseModel {
    */
   hasDescomposableCurve () {
     return this.hasCurveBody() && isDecomposableCurve(this.getCurve());
+  }
+
+  /**
+   * @method getCurveInterpolationPoints
+   * @description Returns the curve descomposed
+   */
+  getCurveInterpolationPoints () {
+    return getCurveInterpolationPoints(this.getCurve());
   }
 
   isSoloKeyframe () {

@@ -11,71 +11,21 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import BezierDerivativeGraph from 'haiku-ui-common/lib/react/Bezier/BezierDerivativeGraph';
 
 import {
-  EaseInBackSVG,
-  EaseInOutBackSVG,
-  EaseOutBackSVG,
-  EaseInBounceSVG,
-  EaseInOutBounceSVG,
-  EaseOutBounceSVG,
   EaseInElasticSVG,
   EaseInOutElasticSVG,
   EaseOutElasticSVG,
-  EaseInExpoSVG,
-  EaseInOutExpoSVG,
-  EaseOutExpoSVG,
-  EaseInCircSVG,
-  EaseInOutCircSVG,
-  EaseOutCircSVG,
-  EaseInCubicSVG,
-  EaseInOutCubicSVG,
-  EaseOutCubicSVG,
-  EaseInQuadSVG,
-  EaseInOutQuadSVG,
-  EaseOutQuadSVG,
-  EaseInQuartSVG,
-  EaseInOutQuartSVG,
-  EaseOutQuartSVG,
-  EaseInQuintSVG,
-  EaseInOutQuintSVG,
-  EaseOutQuintSVG,
-  EaseInSineSVG,
-  EaseInOutSineSVG,
-  EaseOutSineSVG,
-  LinearSVG,
+  EaseInBounceSVG,
+  EaseInOutBounceSVG,
+  EaseOutBounceSVG,
 } from 'haiku-ui-common/lib/react/icons/CurveSVGS';
 
 const CURVESVGS = {
-  EaseInBackSVG,
-  EaseInBounceSVG,
-  EaseInCircSVG,
-  EaseInCubicSVG,
   EaseInElasticSVG,
-  EaseInExpoSVG,
-  EaseInQuadSVG,
-  EaseInQuartSVG,
-  EaseInQuintSVG,
-  EaseInSineSVG,
-  EaseInOutBackSVG,
-  EaseInOutBounceSVG,
-  EaseInOutCircSVG,
-  EaseInOutCubicSVG,
   EaseInOutElasticSVG,
-  EaseInOutExpoSVG,
-  EaseInOutQuadSVG,
-  EaseInOutQuartSVG,
-  EaseInOutQuintSVG,
-  EaseInOutSineSVG,
-  EaseOutBackSVG,
-  EaseOutBounceSVG,
-  EaseOutCircSVG,
-  EaseOutCubicSVG,
   EaseOutElasticSVG,
-  EaseOutExpoSVG,
-  EaseOutQuadSVG,
-  EaseOutQuartSVG,
-  EaseOutQuintSVG,
-  EaseOutSineSVG,
-  LinearSVG,
+  EaseInBounceSVG,
+  EaseInOutBounceSVG,
+  EaseOutBounceSVG,
 };
 
 const THROTTLE_TIME = 17; // ms
@@ -199,7 +149,7 @@ export default class TransitionBody extends React.Component {
       />
     ) : (
       <BezierDerivativeGraph
-        value={this.props.keyframe.getCurve()}
+        value={this.props.keyframe.getCurveInterpolationPoints()}
         id={uniqueKey}
         leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
         rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}

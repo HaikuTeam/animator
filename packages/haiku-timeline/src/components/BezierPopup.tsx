@@ -1,4 +1,3 @@
-import {getCurveInterpolationPoints} from 'haiku-formats/lib/exporters/curves';
 import BezierEditor from 'haiku-ui-common/lib/react/Bezier/BezierEditor';
 import * as React from 'react';
 
@@ -67,7 +66,7 @@ export default class BezierPopup extends React.Component<BezierPopupProps> {
 
   get bezierPointsFromEditingCurve (): number[] {
     if (this.referenceKeyframe) {
-      return getCurveInterpolationPoints(this.referenceKeyframe.getCurve());
+      return this.referenceKeyframe.getCurveInterpolationPoints();
     }
 
     return  [];
