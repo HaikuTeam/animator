@@ -1,4 +1,4 @@
-import * as memoizeOne from 'memoize-one';
+import memoizeOne from 'memoize-one';
 import * as React from 'react';
 
 export interface BezierDerivativeGraphProps {
@@ -18,7 +18,7 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
     sampleSize: 50,
   };
 
-  private epsilon = 0.000001
+  private epsilon = 0.000001;
 
   private fx (t: number) {
     const fx = (
@@ -57,7 +57,6 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
     return [points, max];
   };
 
-  // @ts-ignore
   calculateD = memoizeOne((x1: number, y1: number, x2: number, y2: number) => {
     const [points, max] = this.calculateSample();
     const d = points.reduce((a, [x, y]) => {
