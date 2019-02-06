@@ -1124,7 +1124,7 @@ export default class Creator extends React.Component {
     setTimeout(() => {
       this.tourChannel.start(true);
     });
-  }
+  };
 
   resendEmailConfirmation (username) {
     return this.props.websocket.request({method: 'resendEmailConfirmation', params: [username]}, () => {});

@@ -8,73 +8,24 @@ import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG';
 import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import BezierDerivativeGraph from 'haiku-ui-common/lib/react/Bezier/BezierDerivativeGraph';
 
 import {
-  EaseInBackSVG,
-  EaseInOutBackSVG,
-  EaseOutBackSVG,
-  EaseInBounceSVG,
-  EaseInOutBounceSVG,
-  EaseOutBounceSVG,
   EaseInElasticSVG,
   EaseInOutElasticSVG,
   EaseOutElasticSVG,
-  EaseInExpoSVG,
-  EaseInOutExpoSVG,
-  EaseOutExpoSVG,
-  EaseInCircSVG,
-  EaseInOutCircSVG,
-  EaseOutCircSVG,
-  EaseInCubicSVG,
-  EaseInOutCubicSVG,
-  EaseOutCubicSVG,
-  EaseInQuadSVG,
-  EaseInOutQuadSVG,
-  EaseOutQuadSVG,
-  EaseInQuartSVG,
-  EaseInOutQuartSVG,
-  EaseOutQuartSVG,
-  EaseInQuintSVG,
-  EaseInOutQuintSVG,
-  EaseOutQuintSVG,
-  EaseInSineSVG,
-  EaseInOutSineSVG,
-  EaseOutSineSVG,
-  LinearSVG,
+  EaseInBounceSVG,
+  EaseInOutBounceSVG,
+  EaseOutBounceSVG,
 } from 'haiku-ui-common/lib/react/icons/CurveSVGS';
 
 const CURVESVGS = {
-  EaseInBackSVG,
-  EaseInBounceSVG,
-  EaseInCircSVG,
-  EaseInCubicSVG,
   EaseInElasticSVG,
-  EaseInExpoSVG,
-  EaseInQuadSVG,
-  EaseInQuartSVG,
-  EaseInQuintSVG,
-  EaseInSineSVG,
-  EaseInOutBackSVG,
-  EaseInOutBounceSVG,
-  EaseInOutCircSVG,
-  EaseInOutCubicSVG,
   EaseInOutElasticSVG,
-  EaseInOutExpoSVG,
-  EaseInOutQuadSVG,
-  EaseInOutQuartSVG,
-  EaseInOutQuintSVG,
-  EaseInOutSineSVG,
-  EaseOutBackSVG,
-  EaseOutBounceSVG,
-  EaseOutCircSVG,
-  EaseOutCubicSVG,
   EaseOutElasticSVG,
-  EaseOutExpoSVG,
-  EaseOutQuadSVG,
-  EaseOutQuartSVG,
-  EaseOutQuintSVG,
-  EaseOutSineSVG,
-  LinearSVG,
+  EaseInBounceSVG,
+  EaseInOutBounceSVG,
+  EaseOutBounceSVG,
 };
 
 const THROTTLE_TIME = 17; // ms
@@ -187,9 +138,22 @@ export default class TransitionBody extends React.Component {
     const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
     const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf);
     const curve = this.props.keyframe.getCurveCapitalized();
-    const breakingBounds = curve.includes('Back') || curve.includes('Bounce') || curve.includes('Elastic');
     // tslint:disable-next-line:variable-name
     const CurveSVG = CURVESVGS[curve + 'SVG'];
+    const curverepr = CurveSVG ? (
+      <CurveSVG
+        id={uniqueKey}
+        leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+        rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+      />
+    ) : (
+      <BezierDerivativeGraph
+        value={this.props.keyframe.getCurveInterpolationPoints()}
+        id={uniqueKey}
+        leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+        rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+      />
+    );
 
     return (
       <TimelineDraggable
@@ -301,14 +265,10 @@ export default class TransitionBody extends React.Component {
             height: '100%',
             borderRadius: 5,
             paddingTop: 6,
-            overflow: breakingBounds ? 'visible' : 'hidden',
+            overflow: 'visible',
             pointerEvents: 'none',
           }}>
-            <CurveSVG
-              id={uniqueKey}
-              leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
-              rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
-            />
+            {curverepr}
           </span>
           <span
             className="js-avoid-marquee-init"

@@ -1,7 +1,13 @@
 {
   "sections": {
+    "What's new": [
+      "Cubic Bezier Curve editor in the Timeline.",
+      "`stroke-dasharray` and `stroke-dashoffset` properties are now accessible from the Timeline '+ Add' menu."
+    ],
     "Fixes": [
-      "Various bugfixes and stability improvements."
+      "Fixed Lottie layout issues for animations containing multiple groups.",
+      "Fixed selection issues in the Timeline.",
+      "Fixed a crash when interacting with Actions Editor on large projects."
     ]
   }
 }

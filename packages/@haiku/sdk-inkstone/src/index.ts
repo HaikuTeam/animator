@@ -1049,12 +1049,12 @@ export namespace inkstone {
      */
     export const getCoupon = (
       couponID: string,
-      cb: inkstone.Callback<Coupon>
+      cb: inkstone.Callback<Coupon>,
     ) => {
       newGetRequest()
         .withEndpoint(Endpoints.BillingDescribeCoupon)
         .withUrlParameters({':coupon_id': couponID})
         .callWithCallback(cb);
-    }
+    };
   }
 }

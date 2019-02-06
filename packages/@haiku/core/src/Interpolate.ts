@@ -3,6 +3,7 @@
  */
 import {BytecodeStateType, CurveDefinition, CurveFunction} from './api';
 import justCurves from './vendor/just-curves';
+import {cubicBezier} from './vendor/just-curves/internal/cubicBezier';
 
 const CENT = 1.0;
 const OBJECT = 'object';
@@ -48,8 +49,23 @@ export const interpolate = (
     return origin;
   }
 
-  // If curve is a string, transform into a function using justCurves
-  const curveFunc = typeof curve === 'string' ? justCurves[curve] : curve;
+  let curveFunc: CurveFunction;
+
+  if (typeof curve === 'string') {
+    // If curve is a string, transform into a function using justCurves
+    curveFunc = justCurves[curve];
+  } else if (Array.isArray(curve)) {
+    // If curve is an array defining a Bezier curve, create a proper function
+    curveFunc = cubicBezier(curve[0], curve[1], curve[2], curve[3]);
+  } else {
+    // TODO: handle the case of custom functions, concerns for not enabling this
+    // as of right now:
+    // - serialization issues in all their various forms
+    // (copy/paste, subcomponent, undo/redo, flush to disk)
+    // - need to make sure not to crash if the function doesn’t return a number
+    // (without a `typeof` check on every tick)
+    curveFunc = curve;
+  }
 
   if (typeof curveFunc !== 'function') {
     return origin;

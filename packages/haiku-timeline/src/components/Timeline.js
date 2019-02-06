@@ -13,6 +13,7 @@ import * as requestElementCoordinates from 'haiku-serialization/src/utils/reques
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import BezierPopup from './BezierPopup';
 import ControlsArea from './ControlsArea';
 import ExpressionInput from './ExpressionInput';
 import ScrubberInterior from './ScrubberInterior';
@@ -66,6 +67,7 @@ const DEFAULTS = {
   userDetails: null,
   trackedExporterRequests: [],
   canOfflineExport: false,
+  showBezierEditor: false,
 };
 
 const THROTTLE_TIME = 32; // ms
@@ -707,6 +709,20 @@ class Timeline extends React.Component {
     });
 
     items.push({
+      label: 'Edit Bezier Curve',
+      enabled:
+        type === 'keyframe-transition' &&
+        Keyframe.groupHasBezierEditableCurves(selectedKeyframes),
+      onClick: () => {
+        this.setState({
+          showBezierEditor: true,
+          bezierEditorCoords: {x: event.clientX, y: event.clientY},
+          currentEditingBezier: selectedKeyframes,
+        });
+      },
+    });
+
+    items.push({
       label: isSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (_) => {
@@ -1230,8 +1246,25 @@ class Timeline extends React.Component {
             timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
         ),
+      (
+          this.state.showBezierEditor ? (
+            <BezierPopup
+              key="bezier-poopup"
+              keyframes={this.state.currentEditingBezier}
+              onHide={this.hideBezierEditor}
+              timeline={timeline}
+              activeComponent={this.getActiveComponent()}
+              x={this.state.bezierEditorCoords.x}
+              y={this.state.bezierEditorCoords.y}
+            />
+          ) : null
+        ),
     ];
   }
+
+  hideBezierEditor = () => {
+    this.setState({showBezierEditor: false});
+  };
 
   onGaugeMouseDown (event) {
     event.persist();
