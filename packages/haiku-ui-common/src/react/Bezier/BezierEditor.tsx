@@ -130,7 +130,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
 
   positionForEvent = (e: React.MouseEvent<any>) => {
     const rect = this.root.getBoundingClientRect();
-    return [e.clientX - rect.left, e.clientY - rect.top];
+    return [e.clientX - rect.left, Math.max(e.clientY, 10) - rect.top];
   };
 
   x = (value: number) => {
