@@ -138,7 +138,6 @@ export default class TransitionBody extends React.Component {
     const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
     const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf);
     const curve = this.props.keyframe.getCurveCapitalized();
-    const breakingBounds = curve.includes('Back') || curve.includes('Bounce') || curve.includes('Elastic');
     // tslint:disable-next-line:variable-name
     const CurveSVG = CURVESVGS[curve + 'SVG'];
     const curverepr = CurveSVG ? (
@@ -266,7 +265,7 @@ export default class TransitionBody extends React.Component {
             height: '100%',
             borderRadius: 5,
             paddingTop: 6,
-            overflow: breakingBounds ? 'visible' : 'hidden',
+            overflow: 'visible',
             pointerEvents: 'none',
           }}>
             {curverepr}
