@@ -8889,5 +8889,102 @@
       "label": "feat",
       "message": "add endpoints for coupon validation"
     }
+  },
+  "4.3.10": {
+    "fc1a5a7c2b3ce3f6c4c06253fb4022dad4092b42": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "adjust the derivative graph for edge cases"
+    },
+    "e8eb9cd0d1db69e1f4066cce868f7e4ad6bcf60d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "bound bezier handles in the bottom"
+    },
+    "43e7e16ec53b3d5d125730fb5c0d682a53b27da0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not allow the handles to get outside of the timeline bounds"
+    },
+    "9be6cc4634af30cbc0726b932f84e1e2259cdd01": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "round values up to 2 decimal numbers before saving"
+    },
+    "93e1761d8fcf7b85c3cee560692693b9d6354767": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the derivative graph logic"
+    },
+    "6446688c36fbcad19d90c3a85bacfa6a539eb811": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add a missing dependency to `haiku-formats` in `haiku-timeline`"
+    },
+    "4918d567d0b5cb8a3ecf72ea6c05fc548ed7d6db": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "make the bezier editor update with undo/redo"
+    },
+    "3343091c7d9d28e34de3744496a678e4be25dd39": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the logic to graph bezier derivatives"
+    },
+    "ca98fdf10262019f8c85cfe4923aa4292c8bfad3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "respect the original behavior of curve assignment"
+    },
+    "70411cf32525ed6a602fb9a004460914679a4ac7": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "curve editor & custom Bezier Curves"
+    },
+    "b3a7c52ec4a2cf25ed8f55804a25dc892b8ab7ba": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent crashes when the plus button ref is missing"
+    },
+    "b7c9eb2bf264a13e2c8cbc40cf34dc5a1298b318": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid marquee init from starting on TransitionBody keyframe poles"
+    },
+    "6e2607625fbc1c0d63e9e136de5059359a066dd1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid tweens from shrinking on certain drag motions"
+    },
+    "75ff3e725cec0a9eceb1d28b7d69a062b5ec65a9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent tween poles from overflowing of their row"
+    },
+    "e9b8fd758cc027ba0d29cd6e395ee7dfa66b06ea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add missing stroke-miterlimit property everywhere it may be needed"
+    },
+    "1151f12694cf061b2c63862b17a16ab726f9af73": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "nest groups using proper parent/child relationships"
+    },
+    "6451ea87859644c957e5a1449cb3ea8d783c71ee": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support animated polygon points"
+    },
+    "8017e5d29964e860fc3924cc78c2e8d482eba06d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "get build working"
+    },
+    "c8052565b5f5669f221c24d5f0354416d203ff9f": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add endpoints for coupon validation"
+    }
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-client",
-  "version": "4.3.10",
+  "version": "4.3.11",
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "license": "UNLICENSED",
   "types": "./lib/index.d.ts",
   "dependencies": {
-    "@haiku/sdk-inkstone": "4.3.10",
+    "@haiku/sdk-inkstone": "4.3.11",
     "dedent": "^0.7.0",
     "dotenv": "^5.0.1",
     "fs-extra": "^4.0.2",
@@ -37,7 +37,7 @@
     "@types/node": "^8.9.4",
     "@types/request": "^2.0.0",
     "cross-env": "^5.1.6",
-    "haiku-testing": "4.3.10",
+    "haiku-testing": "4.3.11",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "leaked-handles": "^5.2.0",
     "nyc": "^13.0.1",

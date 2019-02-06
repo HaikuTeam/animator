@@ -1,6 +1,33 @@
 # Changelog
 
 
+## 4.3.10
+
+### Bug Fixes
+
+ * adjust the derivative graph for edge cases
+ * bound bezier handles in the bottom
+ * do not allow the handles to get outside of the timeline bounds
+ * round values up to 2 decimal numbers before saving
+ * improve the derivative graph logic
+ * add a missing dependency to `haiku-formats` in `haiku-timeline`
+ * make the bezier editor update with undo/redo
+ * improve the logic to graph bezier derivatives
+ * respect the original behavior of curve assignment
+ * prevent crashes when the plus button ref is missing
+ * avoid marquee init from starting on TransitionBody keyframe poles
+ * avoid tweens from shrinking on certain drag motions
+ * prevent tween poles from overflowing of their row
+ * add missing stroke-miterlimit property everywhere it may be needed
+ * nest groups using proper parent/child relationships
+ * support animated polygon points
+ * get build working
+
+### Features
+
+ * curve editor & custom Bezier Curves
+ * add endpoints for coupon validation
+
 ## 4.3.9
 
 ### Bug Fixes
