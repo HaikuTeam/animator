@@ -57,6 +57,7 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
     return [points, max];
   };
 
+  // @ts-ignore
   calculateD = memoizeOne((x1: number, y1: number, x2: number, y2: number) => {
     const [points, max] = this.calculateSample();
     const d = points.reduce((a, [x, y]) => {
