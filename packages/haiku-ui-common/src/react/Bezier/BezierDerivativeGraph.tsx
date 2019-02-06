@@ -21,25 +21,32 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
   private epsilon = 0.000001;
 
   private fx (t: number) {
-    const fx = (
-      3 * this.props.value[0] * (1 - t) ** 2 +
-      6 * (this.props.value[2] - this.props.value[0]) * (1 - t) * t +
-      3 * t ** 2 * (1 - this.props.value[2])
+    return (
+      this.props.value[0] * (1 - t) ** 2 +
+      2 * (this.props.value[2] - this.props.value[0]) * (1 - t) * t +
+      t ** 2 * (1 - this.props.value[2])
     );
-
-    return Math.abs(fx) > this.epsilon ? fx : this.epsilon;
   }
 
   private fy (t: number) {
     return (
-      3 * this.props.value[1] * (1 - t) ** 2 +
-      6 * (this.props.value[3] - this.props.value[1]) * (1 - t) * t +
-      3 * t ** 2 * (1 - this.props.value[3])
+      this.props.value[1] * (1 - t) ** 2 +
+      2 * (this.props.value[3] - this.props.value[1]) * (1 - t) * t +
+      t ** 2 * (1 - this.props.value[3])
     );
   }
 
   private calculateDerivativeAt (t: number) {
-    return this.fy(t) / this.fx(t);
+    const derivateValue = this.fy(t) / this.fx(t)
+    if (isNaN(derivateValue)) {
+      return 1;
+    }
+
+    if (!isFinite(derivateValue)) {
+      return this.fy(t) / this.epsilon;
+    }
+
+    return derivateValue;
   }
 
   private calculateSample = (): [number[][], number] => {
