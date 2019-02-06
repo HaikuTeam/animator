@@ -1,4 +1,4 @@
-import memoizeOne from 'memoize-one';
+import * as memoizeOne from 'memoize-one';
 import * as React from 'react';
 
 export interface BezierDerivativeGraphProps {

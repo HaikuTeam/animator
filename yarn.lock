@@ -800,10 +800,6 @@
   version "4.14.108"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.108.tgz#02656af3add2e5b3174f830862c47421c00ef817"
 
-"@types/memoize-one@^4.1.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@types/memoize-one/-/memoize-one-4.1.0.tgz#62119f26055b3193ae43ca1882c5b29b88b71ece"
-
 "@types/mkdirp@^0.3.29":
   version "0.3.29"
   resolved "https://registry.yarnpkg.com/@types/mkdirp/-/mkdirp-0.3.29.tgz#7f2ad7ec55f914482fc9b1ec4bb1ae6028d46066"
