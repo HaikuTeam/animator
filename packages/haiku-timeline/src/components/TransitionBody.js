@@ -132,8 +132,8 @@ export default class TransitionBody extends React.Component {
   };
 
   showBezierEditor = (dblClickEvent) => {
-    this.props.showBezierEditor({x: dblClickEvent.clientX, y: dblClickEvent.clientY}, [this.props.keyframe])
-  }
+    this.props.showBezierEditor({x: dblClickEvent.clientX, y: dblClickEvent.clientY}, [this.props.keyframe]);
+  };
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
