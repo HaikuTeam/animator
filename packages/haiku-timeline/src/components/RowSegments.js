@@ -78,6 +78,7 @@ export default class RowSegments extends React.Component {
                 id={`keyframe-${keyframe.getUniqueKey()}-${this.props.scope}-transition-body`}
                 key={`keyframe-${keyframe.getUniqueKey()}-${this.props.scope}-transition-body`}
                 preventDragging={this.props.preventDragging}
+                showBezierEditor={this.props.showBezierEditor}
                 component={this.props.component}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
@@ -183,4 +184,5 @@ RowSegments.propTypes = {
   rowHeight: React.PropTypes.number.isRequired,
   includeDraggables: React.PropTypes.bool.isRequired,
   preventDragging: React.PropTypes.bool.isRequired,
+  showBezierEditor: React.PropTypes.func,
 };

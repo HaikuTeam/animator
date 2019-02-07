@@ -52,6 +52,7 @@ class RowManager extends React.PureComponent {
           rowHeight={this.props.rowHeight}
           timeline={activeComponent.getCurrentTimeline()}
           component={activeComponent}
+          showBezierEditor={this.props.showBezierEditor}
           row={row}
         />
       );
@@ -68,6 +69,7 @@ class RowManager extends React.PureComponent {
           prev={group[index - 1]}
           next={group[index + 1]}
           row={row}
+          showBezierEditor={this.props.showBezierEditor}
         />
       );
     }

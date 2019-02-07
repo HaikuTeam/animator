@@ -108,6 +108,7 @@ export default class ClusterRow extends React.Component {
             scope="ClusterRow"
             includeDraggables={false}
             preventDragging={true}
+            showBezierEditor={this.props.showBezierEditor}
             row={this.props.row}
             component={this.props.component}
             timeline={this.props.timeline}
@@ -123,4 +124,5 @@ ClusterRow.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
+  showBezierEditor: React.PropTypes.func,
 };

@@ -198,6 +198,7 @@ export default class PropertyRow extends React.Component {
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight}
             row={this.props.row}
+            showBezierEditor={this.props.showBezierEditor}
             preventDragging={this.props.row.element.isLocked()} />
         </div>
       </div>
@@ -214,4 +215,5 @@ PropertyRow.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
+  showBezierEditor: React.PropTypes.func,
 };

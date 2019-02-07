@@ -131,6 +131,10 @@ export default class TransitionBody extends React.Component {
     }
   };
 
+  showBezierEditor = (dblClickEvent) => {
+    this.props.showBezierEditor({x: dblClickEvent.clientX, y: dblClickEvent.clientY}, [this.props.keyframe])
+  }
+
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
 
@@ -213,6 +217,7 @@ export default class TransitionBody extends React.Component {
               this[uniqueKey].style.color = 'transparent';
             }
           }}
+          onDoubleClick={this.showBezierEditor}
           style={{
             position: 'absolute',
             left: pxOffsetLeft + 4,
@@ -305,4 +310,5 @@ TransitionBody.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   preventDragging: React.PropTypes.bool.isRequired,
+  showBezierEditor: React.PropTypes.func,
 };
