@@ -57,7 +57,7 @@ export default class BezierPopup extends React.Component<BezierPopupProps> {
   };
 
   save = () => {
-    const sanitizedValues = this.state.currentBezier.map((value) => Number(value.toFixed(3)))
+    const sanitizedValues = this.state.currentBezier.map((value) => Number(value.toFixed(3)));
     this.props.activeComponent.changeCurveOnSelectedKeyframes(sanitizedValues, {from: 'timeline'});
   };
 

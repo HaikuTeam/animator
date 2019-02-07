@@ -37,7 +37,7 @@ export default class BezierDerivativeGraph extends React.PureComponent<BezierDer
   }
 
   private calculateDerivativeAt (t: number) {
-    const derivateValue = this.fy(t) / this.fx(t)
+    const derivateValue = this.fy(t) / this.fx(t);
     if (isNaN(derivateValue)) {
       return 1;
     }

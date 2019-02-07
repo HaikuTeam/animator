@@ -714,7 +714,7 @@ class Timeline extends React.Component {
         type === 'keyframe-transition' &&
         Keyframe.groupHasBezierEditableCurves(selectedKeyframes),
       onClick: () => {
-        this.showBezierEditor({x: event.clientX, y: event.clientY}, selectedKeyframes)
+        this.showBezierEditor({x: event.clientX, y: event.clientY}, selectedKeyframes);
       },
     });
 
@@ -1268,7 +1268,7 @@ class Timeline extends React.Component {
       bezierEditorCoords,
       currentEditingBezier,
     });
-  }
+  };
 
   onGaugeMouseDown (event) {
     event.persist();
