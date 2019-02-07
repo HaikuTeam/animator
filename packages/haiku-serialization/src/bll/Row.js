@@ -682,15 +682,17 @@ class Row extends BaseModel {
     return false;
   }
 
-  silentlyExpandSelfAndParents () {
+  silentlyExpandAllGParents () {
     if (this.isRootRow()) {
       return;
     }
 
-    this._isExpanded = true;
+    if (this.element.getNameString() === 'g') {
+      this._isExpanded = true;
+    }
 
     if (this.parent) {
-      this.parent.silentlyExpandSelfAndParents();
+      this.parent.silentlyExpandAllGParents();
     }
   }
 
