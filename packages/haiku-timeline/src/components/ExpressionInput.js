@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as Color from 'color';
 import * as lodash from 'lodash';
 import * as CodeMirror from 'codemirror';
 import {clipboard} from 'electron';
@@ -16,9 +15,12 @@ import eqToRet from 'haiku-ui-common/lib/helpers/eqToRet';
 import ensureRet from 'haiku-ui-common/lib/helpers/ensureRet';
 import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq';
 import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression';
-import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName';
 import AutoCompleter from './AutoCompleter';
 import zIndex from './styles/zIndex';
+import RangePicker from 'haiku-ui-common/lib/react/InspectorPanels/RangePicker';
+import ColorPicker from 'haiku-ui-common/lib/react/InspectorPanels/ColorPicker';
+import {derivateDisplayValueFromColorString, derivateStringFromColorResult} from 'haiku-ui-common/lib/helpers/uiColorHelpers';
+import * as Property from 'haiku-serialization/src/bll/Property';
 
 const haikuMode = require('./modes/haiku');
 
@@ -58,6 +60,8 @@ const MIN_EDITOR_WIDTH_SINGLE_LINE = 140;
 const MAX_EDITOR_WIDTH_SINGLE_LINE = 400;
 const NUMERIC_CHANGE_BATCH = 10;
 const NUMERIC_CHANGE_SINGLE = 1;
+const PADDING = 10;
+const FIXED_WIDTH = 210;
 
 function setOptions (opts) {
   for (const key in opts) {
@@ -175,7 +179,14 @@ export default class ExpressionInput extends React.Component {
   componentDidMount () {
     this.mounted = true;
     this.listenToComponent(this.props.component);
+    this.mountCodeMirror();
+  }
 
+  componentWillUpdate () {
+    this.mountCodeMirror();
+  }
+
+  mountCodeMirror () {
     if (this._context) {
       while (this._context.firstChild) {
         this._context.removeChild(this._context.firstChild);
@@ -250,7 +261,7 @@ export default class ExpressionInput extends React.Component {
     return Expression.parseValue(valueDescriptor.body, this.getPropertyName());
   }
 
-  performCommit (maybeNavigationDirection, doFocusSubsequentCell) {
+  performCommit (maybeNavigationDirection, doFocusSubsequentCell, avoidNavigation = false) {
     const focusedRow = this.props.component.getFocusedRow();
 
     // There is some race condition where this isn't present;
@@ -275,7 +286,9 @@ export default class ExpressionInput extends React.Component {
       const row = this.props.component.getFocusedRow();
       const ms = this.props.component.getCurrentTimeline().getCurrentMs();
 
-      this.requestNavigate(maybeNavigationDirection, doFocusSubsequentCell);
+      if (!avoidNavigation) {
+        this.requestNavigate(maybeNavigationDirection, doFocusSubsequentCell);
+      }
       this.props.onCommitValue(committable, row, ms);
     }
   }
@@ -976,11 +989,6 @@ export default class ExpressionInput extends React.Component {
     return this.state.evaluatorText || '•••';
   }
 
-  getLabelString () {
-    const name = this.getPropertyName();
-    return humanizePropertyName(name);
-  }
-
   getPropertyName () {
     const row = this.props.component.getFocusedRow();
     const name = (row && row.getPropertyName()) || '';
@@ -1021,7 +1029,7 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
-  getRootStyle () {
+  getRootStyle (hasFixedWidth) {
     const style = lodash.assign({
       height: this.getEditorHeight() + 1,
       left: 0,
@@ -1029,116 +1037,51 @@ export default class ExpressionInput extends React.Component {
       position: 'sticky',
       top: 0,
       visibility: 'hidden',
-      width: this.props.reactParent.state.inputCellWidth,
       zIndex: zIndex.expressionInput.base,
       marginRight: 0,
+      width: (hasFixedWidth ? FIXED_WIDTH : this.getEditorWidth()) + 2 * PADDING,
     });
 
     if (this.props.component.getFocusedRow()) {
       style.visibility = 'visible';
       const rect = this.getRootRect();
       style.left = rect.left;
-      style.marginTop = rect.top + this.props.reactParent.container.scrollTop + 10;
+      style.marginTop = rect.top + this.props.reactParent.container.scrollTop;
     }
 
     return style;
   }
 
-  getColsWrapperStyle () {
-    const style = lodash.assign({
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      display: 'inline-flex',
-      height: '100%',
-    }, this.props.component.getFocusedRow() && {
-      boxShadow: '0 2px 4px 0 rgba(15,1,6,0.06), 0 6px 53px 3px rgba(7,0,3,0.37), inset 0 0 7px 0 rgba(16,0,6,0.30)',
-    });
-    return style;
-  }
-
-  getInputLabelStyle () {
-    const label = this.getLabelString();
-    const width = 82;
-    let fontSize = 10;
-    if (label.length > 12) {
-      fontSize = 8;
-    }
-    const style = {
-      backgroundColor: Palette.LIGHTEST_PINK,
-      borderBottomLeftRadius: 4,
-      borderTopLeftRadius: 4,
-      color: Palette.SUNSTONE,
-      display: 'none',
-      fontWeight: 400,
-      left: -width,
-      lineHeight: 1,
-      position: 'absolute',
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      width,
-    };
-    lodash.assign(style, this.props.component.getFocusedRow() && {
-      fontSize,
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    });
-    style.height = this.getEditorHeight() + 1;
-    return style;
-  }
-
-  getSaveButtonStyle () {
+  getSubWrapperStyle (hasPopover) {
     return {
-      fontSize: '10px',
-      backgroundColor: Palette.PINK,
-      padding: '2px 8px',
-      borderRadius: '4px',
-      color: Palette.SUNSTONE,
-      position: 'absolute',
-      bottom: '5px',
-      left: '50%',
-      transform: 'translateX(-50%)',
+      padding: PADDING,
+      background: Palette.FATHER_COAL,
+      borderTopRightRadius: hasPopover ? 0 : 4,
+      borderTopLeftRadius: hasPopover ? 0 : 4,
+      borderBottomLeftRadius: 4,
+      borderBottomRightRadius: 4,
     };
   }
 
-  getEditorContextStyle () {
-    const style = lodash.assign({
-      backgroundColor: Palette.LIGHT_GRAY,
-      border: '1px solid ' + Palette.DARKER_GRAY,
-      borderBottomLeftRadius: 4,
-      borderTopLeftRadius: 4,
-      color: 'transparent',
+  getEditorContextStyle (hasFixedWidth) {
+    return {
+      border: `1px solid ${Palette.MEDIUM_COAL}`,
+      color: Palette.PALE_GRAY,
+      caretColor: Palette.LIGHTEST_PINK,
+      borderRadius: 4,
+      background: Palette.COAL,
       cursor: 'default',
-      fontFamily: (this.state.editingMode === EDITOR_MODES.SINGLE_LINE)
-        ? 'inherit'
-        : 'Consolas, monospace',
+      fontFamily: this.state.editingMode === EDITOR_MODES.SINGLE_LINE ? 'inherit' : 'Consolas, monospace',
       fontSize: 12,
       lineHeight: EDITOR_LINE_HEIGHT + 'px',
       height: this.getEditorHeight() + 1,
-      width: this.getEditorWidth(),
+      width: hasFixedWidth ? FIXED_WIDTH : this.getEditorWidth(),
       outline: 'none',
       overflow: 'hidden',
       paddingLeft: 7,
       paddingTop: 1,
-      position: 'absolute',
-      textShadow: '0 0 0 ' + Color(Palette.ROCK).fade(0.3), // darkmagic
-      zIndex: 1004,
-    });
-    lodash.assign(style, {
-      border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
       zIndex: 2005,
-    });
-    lodash.assign(style, this.props.component.getFocusedRow() && {
-      backgroundColor: Color('#4C434B').fade(0.1),
-      border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 4,
-      borderTopLeftRadius: 0,
-      borderTopRightRadius: 4,
-      color: Palette.ROCK,
-    });
-    return style;
+    };
   }
 
   getEditorContextClassName () {
@@ -1204,56 +1147,194 @@ export default class ExpressionInput extends React.Component {
     return style;
   }
 
+  getValueDescriptorForPopover () {
+    const focusedRow = this.props.component && this.props.component.getFocusedRow();
+
+    if (
+      !Boolean(focusedRow) ||
+      this.state.editingMode === EDITOR_MODES.MULTI_LINE ||
+      this.state.editedValue.kind === EXPR_KINDS.MACHINE
+    ) {
+      return false;
+    }
+
+    return focusedRow.getPropertyValueDescriptor();
+  }
+
+  getDisplayColor (rawValueDescriptor) {
+    if (rawValueDescriptor && Property.hasColorPopup(rawValueDescriptor.propertyName)) {
+      return rawValueDescriptor.computedValue;
+    }
+
+    return false;
+  }
+
+  getDisplayRange (rawValueDescriptor) {
+    if (rawValueDescriptor) {
+      const rangeAttributes = Property.hasRangePopup(rawValueDescriptor.propertyName);
+
+      if (rangeAttributes) {
+        return {
+          ...rangeAttributes,
+          value: Number(this.state.editedValue.body),
+        };
+      }
+    }
+
+    return false;
+  }
+
+  stopPropagation = (clickEvent) => {
+    clickEvent.stopPropagation();
+  };
+
+  assignContextRef = (element) => {
+    this._context = element;
+  };
+
+  performCommitWithoutNavigating = () => {
+    this.performCommit(null, null, true);
+  };
+
+  onColorChangeComplete = (result) => {
+    this.setState({
+      editedValue: {
+        ...this.state.editedValue,
+        body: derivateStringFromColorResult(result),
+      },
+    }, this.performCommitWithoutNavigating);
+  };
+
+  onColorChange = (result) => {
+    this.setEditorValue(derivateStringFromColorResult(result));
+    this.codemirror.setSize(this.getEditorWidth(), this.getEditorHeight() - 2);
+  };
+
+  onRangeChange = (result) => {
+    this.setEditorValue(result.toString());
+    this.codemirror.setSize(this.getEditorWidth(), this.getEditorHeight() - 2);
+    this.setState({
+      editedValue: {
+        ...this.state.editedValue,
+        body: result.toString(),
+      },
+    }, this.performCommitWithoutNavigating);
+  };
+
+  renderRangePopover (rawValueDescriptor) {
+    const range = this.getDisplayRange(rawValueDescriptor);
+
+    if (range) {
+      return (
+        <div
+          key="range-picker"
+          style={{
+            position: 'absolute',
+            top: '-22px',
+            left: 0,
+            width: '100%',
+            height: '24px',
+            background: Palette.FATHER_COAL,
+            borderRadius: '4px 4px 0 0',
+            padding: '4px 15px',
+          }}
+        >
+          <RangePicker
+            max={range.max}
+            min={range.min}
+            value={this.state.editedValue.body || range.value}
+            step={range.step}
+            onValueChange={this.onRangeChange}
+          />
+        </div>
+      );
+    }
+  }
+
+  renderColorPopover (rawValueDescriptor) {
+    const displayColor = this.getDisplayColor(rawValueDescriptor);
+
+    if (displayColor) {
+      return (
+        <div
+          onClick={this.stopPropagation}
+          style={{position: 'absolute', width: 'auto', height: 'auto', top: '-115px', left: 0}}
+        >
+          <ColorPicker
+            displayValue={derivateDisplayValueFromColorString(displayColor)}
+            color={this.state.editedValue.body || displayColor}
+            onChangeComplete={this.onColorChangeComplete}
+            onChange={this.onColorChange}
+          />
+        </div>
+      );
+    }
+  }
+
+  commitFromSaveButton = () => {
+    this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
+  };
+
+  renderSaveButton () {
+    if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
+      return (
+        <div style={{textAlign: 'right', marginTop: 5, marginBottom: -5}}>
+          <button
+            style={{
+              fontSize: '10px',
+              backgroundColor: Palette.LIGHTEST_PINK,
+              padding: '4px 12px',
+              borderRadius: '2px',
+              color: Palette.SUNSTONE,
+              fontFamily: 'Fira Sans',
+            }}
+            onClick={this.commitFromSaveButton}
+          >
+            SAVE
+          </button>
+        </div>
+      );
+    }
+  }
+
   render () {
+    const rawValueDescriptor = this.getValueDescriptorForPopover();
+    const rangePopover = this.renderRangePopover(rawValueDescriptor);
+    const colorPopover = this.renderColorPopover(rawValueDescriptor);
+    const hasColorPopover = Boolean(colorPopover);
+    const hasRangePopover = Boolean(rangePopover);
+    const hasPopover = hasColorPopover || hasRangePopover;
+
     return (
-      <div
-        id="expression-input-holster"
-        style={this.getRootStyle()}
-        onClick={(clickEvent) => {
-          clickEvent.stopPropagation();
-        }}>
-        <span
-          id="expression-input-cols-wrapper"
-          style={this.getColsWrapperStyle()}>
-          <div
-            id="expression-input-label"
-            style={this.getInputLabelStyle()}>
-            {this.getLabelString()}
-            {
-              this.state.editingMode === EDITOR_MODES.MULTI_LINE &&
-              <button
-                style={this.getSaveButtonStyle()}
-                onClick={() => {
-                  this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
-                }}
-              >
-                SAVE
-              </button>
-            }
-          </div>
-          <span
-            id="expression-input-tooltip"
-            style={this.getTooltipStyle()}>
-            <span
-              id="expression-input-tooltip-tri"
-              style={this.getTooltipTriStyle()} />
+      <div id="expression-input-holster" style={this.getRootStyle(hasColorPopover)} onClick={this.stopPropagation}>
+        <div style={this.getSubWrapperStyle(hasPopover)}>
+          <span id="expression-input-tooltip" style={this.getTooltipStyle()}>
+            <span id="expression-input-tooltip-tri" style={this.getTooltipTriStyle()} />
             {this.getEvaluatorText()}
           </span>
           <div
             id="expression-input-editor-context"
             className={this.getEditorContextClassName()}
-            ref={(element) => {
-              this._context = element;
-            }}
-            style={this.getEditorContextStyle()} />
+            ref={this.assignContextRef}
+            style={this.getEditorContextStyle(hasColorPopover)}
+          />
+
+          {rangePopover}
+
+          {colorPopover}
+
+          {this.renderSaveButton()}
+
           <AutoCompleter
             onClick={this.handleAutoCompleterClick.bind(this)}
             line={this.getCursorOffsetLine(this.codemirror.getCursor()) - 2}
-            height={this.getEditorHeight()}
+            height={this.getEditorHeight() + PADDING}
             width={this.getEditorWidth()}
             lineHeight={EDITOR_LINE_HEIGHT}
-            autoCompletions={this.state.autoCompletions} />
-        </span>
+            padding={PADDING}
+            autoCompletions={this.state.autoCompletions}
+          />
+        </div>
       </div>
     );
   }

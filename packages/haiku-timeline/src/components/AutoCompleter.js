@@ -15,7 +15,7 @@ export default class AutoCompleter extends React.Component {
     }
     const style = {
       position: 'absolute',
-      left: 0,
+      left: this.props.padding,
       top: this.props.height,
       width: this.props.width,
       height,

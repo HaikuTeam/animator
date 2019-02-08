@@ -1,6 +1,7 @@
 {
   "sections": {
     "What's new": [
+      "Color and Range helpers for Timeline inputs",
       "Double click on curves to open the Bezier Editor."
     ],
     "Fixes": [
