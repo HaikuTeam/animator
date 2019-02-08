@@ -57,6 +57,10 @@ class ProjectBrowser extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
+    if (nextProps.expiredTrialNonPro) {
+      this.setState({showLockoutModal: true});
+    }
+
     if (this.props.isOnline ^ nextProps.isOnline) {
       // Value has changed.
       // This reload should be silent iff offline is allowed.
@@ -271,15 +275,16 @@ class ProjectBrowser extends React.Component {
         <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
           <div style={{height: 160}}><NoCon loop={true} sizing="cover" /></div>
           <div style={DASH_STYLES.notice}>
-            <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haiku hosting services.<br/>Are you connected to the Internet?</div>
-            <div>Upgrade to Haiku Pro for offline capabilities.</div>
+            <div style={DASH_STYLES.noticeTitle}>Are you connected to the Internet?</div>
+            <div>The Animator free trial requires an active intenet connection.</div>
+            <div>Upgrade to Animator Pro for offline capabilities.</div>
             <div
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.btnPrimary,
                 DASH_STYLES.btn,
               ]}
-              title="Upgrade to Haiku Pro"
+              title="Upgrade to Animator Pro"
               onClick={this.exploreProOffline}>Go Pro
               <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
                 <ExternalLinkSVG color={Palette.SUNSTONE}/>
@@ -423,6 +428,7 @@ class ProjectBrowser extends React.Component {
             projectName={projectObject.projectName}
             projectExistsLocally={projectObject.projectExistsLocally}
             projectPath={projectObject.projectPath}
+            projectShareUrl={projectObject.projectShareUrl}
             isDeleted={projectObject.isDeleted}
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}

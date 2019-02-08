@@ -61,6 +61,37 @@ export class UserHandler extends EnvoyHandler {
     return this.identity.organization;
   }
 
+  getTrialDaysRemaining (): MaybeAsync<number> {
+    const org = this.identity.organization;
+    if (!org) { // not authenticated
+      return 0;
+    }
+
+    const epoch = org.TrialStartDate;
+    const startDate = new Date(0);
+    startDate.setUTCSeconds(epoch);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + org.TrialDurationDays);
+
+    const currentTime = new Date();
+
+    const remainingMilliseconds = endDate.getTime() - currentTime.getTime();
+    const remainingDays = remainingMilliseconds / 86400000;
+
+    return Math.ceil(remainingDays);
+  }
+
+  isTrialExpired (): MaybeAsync<boolean> {
+    // if the user is pro or not authenticated, the answer is false
+    const org = this.identity.organization;
+    if (!org || org.Role === inkstone.organization.Role.PRO) {
+      return false;
+    }
+
+    return this.getTrialDaysRemaining() <= 0;
+  }
+
   private storeOnlineUser () {
     this.identity.lastOnline = nowDate();
     this.setConfigObfuscated<HaikuIdentity>(

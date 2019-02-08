@@ -23,6 +23,10 @@ class ProjectThumbnail extends React.Component {
     }
   };
 
+  openBrowserToProjectSharePage () {
+    shell.openExternal(this.props.projectShareUrl);
+  }
+
   render () {
     return (
       <div
@@ -62,9 +66,8 @@ class ProjectThumbnail extends React.Component {
           onClick={() => {
             if (this.props.expiredTrialNonPro) {
               // TODO: Open the sharelink
-              return false;
-            }
-            if (!this.state.isMenuActive) {
+              this.openBrowserToProjectSharePage();
+            } else if (!this.state.isMenuActive) {
               this.launchProjectIfAllowed();
             }
           }}

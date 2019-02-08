@@ -1,7 +1,6 @@
 import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as React from 'react';
-import {BTN_STYLES} from '../styles/btnShared';
 
 export const DASH_STYLES: React.CSSProperties = {
   upcase: {

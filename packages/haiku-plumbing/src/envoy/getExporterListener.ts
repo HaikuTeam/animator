@@ -43,7 +43,7 @@ export default (
                   abspath: activeComponent.fetchActiveBytecodeFile().getAbspath(),
                   framerate: request.framerate,
                   still: (request.format === ExporterFormat.Still),
-                  sha1: masterGitProject.folderState.headCommitId.toString(),
+                  sha1: (masterGitProject.folderState as any).headCommitId.toString(),
                   ...activeComponent.getContextSize(),
                 });
 
@@ -76,11 +76,6 @@ export default (
   );
 
   return (request: ExporterRequest) => {
-    // Only allow save requests to proceed through here if the outlet is the CDN or offline is permitted.
-    if (request.outlet === 'cdn' || exporterChannel.checkOfflinePrivileges()) {
-      saveQueue.push(request);
-    } else {
-      // TODO: report penetration attempt to intercom.
-    }
+    saveQueue.push(request);
   };
 };

@@ -65,7 +65,6 @@ const DEFAULTS = {
   flush: false,
   userDetails: null,
   trackedExporterRequests: [],
-  canOfflineExport: false,
   showBezierEditor: false,
 };
 
@@ -778,9 +777,6 @@ class Timeline extends React.Component {
               }
             },
           );
-          user.checkOfflinePrivileges().then((canOfflineExport) => {
-            this.setState({canOfflineExport});
-          });
           user.getUser().then(
             (userDetails) => {
               this.setState({userDetails});
@@ -1147,7 +1143,7 @@ class Timeline extends React.Component {
           }}
         >
           {
-            this.state.canOfflineExport && experimentIsEnabled(Experiment.LocalAssetExport) &&
+            experimentIsEnabled(Experiment.LocalAssetExport) &&
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
           <IntercomWidget user={this.state.userDetails} onShow={this.setIntercomOpen} onHide={this.setIntercomClosed} />

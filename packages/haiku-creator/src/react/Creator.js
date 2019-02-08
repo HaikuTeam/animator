@@ -28,7 +28,6 @@ import ProxyHelpScreen from './components/ProxyHelpScreen';
 import ProxySettingsScreen from './components/ProxySettingsScreen';
 import ChangelogModal from './components/ChangelogModal';
 import NewProjectModal from './components/NewProjectModal';
-import {OfflineExportUpgradeModal} from './components/OfflineExportUpgradeModal';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {EXPORTER_CHANNEL, ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
@@ -51,6 +50,7 @@ import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
 import {FailWhale} from './components/Popups/FailWhale';
 import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
+import {inkstone} from '@haiku/sdk-inkstone';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -151,8 +151,7 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
-      expiredTrialNonPro: true,
-      showOfflineExportUpgradeModal: false,
+      expiredTrialNonPro: false,
       // This is a sensible default to avoid flashes of offline warnings.
       // (The Envoy server will protect us from any potential abuse.)
       allowOffline: true,
@@ -695,9 +694,28 @@ export default class Creator extends React.Component {
       });
 
       this.checkOnlineStatus();
+
+      this.user.isTrialExpired().then((isTrialExpired) => {
+        this.setState({
+          expiredTrialNonPro: isTrialExpired,
+        });
+      });
+
+      this.user.getOrganization().then((org) => {
+        const pro = org.Role === inkstone.organization.Role.PRO;
+        if (!pro) {
+          this.user.getTrialDaysRemaining().then((trialDaysRemaining) => {
+            alert(trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''} in your free trial.`);
+            this.setState({
+              trialDaysRemaining,
+            });
+          });
+        }
+      });
     });
 
     this.user.load().then(({user, organization}) => {
+
       this.setState({
         readyForAuth: true,
         isUserAuthenticated: user && organization,
@@ -798,45 +816,33 @@ export default class Creator extends React.Component {
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
       this.envoyExporter = exporterChannel;
       ipcRenderer.on('global-menu:save-as', (_, extension, request) => {
-        exporterChannel.checkOfflinePrivileges().then((allowOffline) => {
-          if (!allowOffline) {
-            this.setState({
-              showOfflineExportUpgradeModal: true,
-              offlineExportUpgradeModalMetadata: {
-                extension,
-                framerate: request.framerate,
-              },
-            });
-            return;
-          }
+        switch (extension) {
+          case 'gif':
+            request.format = ExporterFormat.AnimatedGif;
+            break;
+          case 'mp4':
+            request.format = ExporterFormat.Video;
+            break;
+          case 'json':
+            request.format = ExporterFormat.Bodymovin;
+            break;
+        }
 
-          switch (extension) {
-            case 'gif':
-              request.format = ExporterFormat.AnimatedGif;
-              break;
-            case 'mp4':
-              request.format = ExporterFormat.Video;
-              break;
-            case 'json':
-              request.format = ExporterFormat.Bodymovin;
-              break;
-          }
+        dialog.showSaveDialog(undefined, {
+          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
+          filters: [{
+            name: request.format, extensions: [extension],
+          }],
+        },
+          (filename) => {
+            if (!filename) {
+              return;
+            }
 
-          dialog.showSaveDialog(undefined, {
-            defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
-            filters: [{
-              name: request.format, extensions: [extension],
-            }],
+            request.filename = filename;
+            exporterChannel.save(request);
           },
-            (filename) => {
-              if (!filename) {
-                return;
-              }
-
-              request.filename = filename;
-              exporterChannel.save(request);
-            });
-        });
+        );
       });
     });
 
@@ -1813,18 +1819,6 @@ export default class Creator extends React.Component {
     ) : null;
   }
 
-  renderOfflineExportUpgradeModal () {
-    return this.state.showOfflineExportUpgradeModal ? (
-      <OfflineExportUpgradeModal
-        onClose={() => {
-          this.setState({showOfflineExportUpgradeModal: false});
-        }}
-        explorePro={this.explorePro}
-        metadata={this.state.offlineExportUpgradeModalMetadata}
-      />
-    ) : null;
-  }
-
   showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
     if (!this.envoyProject) {
       return;
@@ -2074,7 +2068,6 @@ export default class Creator extends React.Component {
           </div>
         </CSSTransition>
         {this.renderChangelogModal()}
-        {this.renderOfflineExportUpgradeModal()}
         {this.renderNewProjectModal()}
         {!this.state.tearingDown && this.envoyClient &&
           <Tour
@@ -2107,6 +2100,7 @@ export default class Creator extends React.Component {
           privateProjectLimit={this.state.privateProjectLimit}
           showChangelogModal={this.state.showChangelogModal}
           expiredTrialNonPro={this.state.expiredTrialNonPro}
+          trialDaysRemaining={this.state.trialDaysRemaining}
           username={this.state.username}
           softwareVersion={this.state.softwareVersion}
           organizationName={this.state.organizationName}
@@ -2200,7 +2194,7 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
-                    supportOfflineExport={this.state.allowOffline}
+                    supportOfflineExport={true} // supportOfflineExport is now stub/legacy logic after switching from Free Tier to Free Trial
                     explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}

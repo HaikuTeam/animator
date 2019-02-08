@@ -16,6 +16,7 @@ const STYLES = {
     position: 'absolute',
     top: '50%',
     transform: 'translateY(-50%)',
+    fontSize: '14px',
   },
   modalContent: {
     padding: '20px 40px 60px',
@@ -24,7 +25,6 @@ const STYLES = {
     marginRight: '8px',
   },
   button: {
-    ...BTN_STYLES.btnText,
     ...BTN_STYLES.btnBlack,
   },
   version: {
@@ -54,14 +54,27 @@ const STYLES = {
     color: Palette.LIGHT_BLUE,
     cursor: 'pointer',
   },
+  btnGoToProjects: {
+    textTransform: 'uppercase',
+    display: 'inline-block',
+    marginTop: 10,
+    backgroundColor: Palette.DARKEST_COAL,
+    color: Palette.SUNSTONE,
+    padding: '2px 10px',
+    borderRadius: '2px',
+    cursor: 'pointer',
+  },
   btnSecondary: {
-    ...BTN_STYLES.btnText,
-    ...BTN_STYLES.centerBtns,
     textTransform: 'uppercase',
     display: 'inline-block',
     marginTop: 10,
     backgroundColor: 'transparent',
+    padding: '2px 10px',
     border: '1px solid ' + Palette.LIGHT_BLUE,
+    borderRadius: '2px',
+  },
+  strong : {
+    fontWeight: 'bold',
   },
 };
 
@@ -75,42 +88,49 @@ class LockoutModal extends React.PureComponent {
       <div style={DASH_STYLES.overlay} onClick={this.props.onClose}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
-            <h2>Your Trial Has Expired</h2>
+            <h2>Time to go Pro!</h2>
           </ModalHeader>
 
           <div style={STYLES.inner}>
             <div>
-              <p>Your 14 day trial has expired. Go Pro to continue working on your projects!</p>
-              <p>Until upgrading, your existing projects will no longer be editable, but you retain full access to the source files and animation files.</p>
-              <p>Choose 'Reveal in Finder' to access the source files, and use the project share-link for online viewing and instructions on how to embed your work.</p>
+              <p><span style={STYLES.strong}>Your 14 day trial has expired.</span> Go Pro to continue working on your projects!</p>
+              <p><span style={STYLES.strong}>Your projects are still accessible</span> but you must upgrade to continue editing.</p>
+              <p>You can access your source files and share links from the dashboard.</p>
             </div>
-            <div style={STYLES.upgradeWrap}>
-              <span onClick={this.explorePro} style={STYLES.btnSecondary}>Go Pro
-              <span
-                  style={{
-                    width: 11,
-                    height: 11,
-                    display: 'inline-block',
-                    marginLeft: 4,
-                    transform: 'translateY(1px)',
-                  }}
-                >
+            <div>
+
+            <div style={[{
+              display: 'inline-block',
+            }]}>
+              <span onClick={this.props.onClose} style={STYLES.btnGoToProjects}>
+                Go to my projects
+              </span>
+            </div>
+
+            <div style={[{
+              display: 'inline-block',
+            }]}>
+              <span onClick={this.explorePro} style={STYLES.btnSecondary}>
+                Go Pro
+                <span
+                    style={{
+                      width: 11,
+                      height: 11,
+                      display: 'inline-block',
+                      marginLeft: 4,
+                      transform: 'translateY(1px)',
+                    }}>
                   <ExternalLinkIconSVG color={Palette.LIGHT_BLUE} />
                 </span>
               </span>
+              <span>
+                Starting at $15/month
+              </span>
+            </div>
             </div>
           </div>
           <ModalFooter>
-            <div style={{display: 'inline-block'}}>
-              <button
-                key="discard-code"
-                id="discard-code"
-                onClick={this.props.onClose}
-                style={STYLES.button}
-              >
-                <span>Okay</span>
-              </button>
-            </div>
+
           </ModalFooter>
         </ModalWrapper>
       </div>

@@ -36,6 +36,7 @@ export interface HaikuProject {
   projectPath: string;
   projectName: string;
   projectExistsLocally: boolean;
+  projectShareUrl: string;
   isPublic: boolean;
   branchName: string;
   local: boolean;
@@ -100,6 +101,7 @@ export class ProjectHandler extends EnvoyHandler {
     return {
       projectPath,
       authorName,
+      projectShareUrl: 'https://share.haiku.ai/' + project.UniqueId,
       local: false,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(project.Name),
@@ -312,6 +314,7 @@ export class ProjectHandler extends EnvoyHandler {
       local: true,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(name),
+      projectShareUrl: 'https://share.haiku.ai/',
       projectExistsLocally: existsSync(projectPath),
       repositoryUrl: '',
       forkComplete: false,
@@ -463,18 +466,13 @@ export class ProjectHandler extends EnvoyHandler {
         framerate: 15,
         outlet: 'cdn',
       },
+      {
+        format: ExporterFormat.Video,
+        filename: path.join(project.projectPath, 'animation.mp4'),
+        framerate: 30,
+        outlet: 'cdn',
+      },
     ];
-
-    if (this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
-      requests.push(
-        {
-          format: ExporterFormat.Video,
-          filename: path.join(project.projectPath, 'animation.mp4'),
-          framerate: 30,
-          outlet: 'cdn',
-        },
-      );
-    }
 
     return requests;
   }

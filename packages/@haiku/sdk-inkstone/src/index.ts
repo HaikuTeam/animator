@@ -325,6 +325,14 @@ export namespace inkstone {
     export interface Organization {
       Name: string;
       PlanExpirationDate?: number;
+      Role: Role;
+      TrialStartDate?: number;
+      TrialDurationDays?: number;
+    }
+
+    export enum Role {
+      FREE = 0,
+      PRO = 1,
     }
 
     export const list = (cb: inkstone.Callback<Organization[]>) => {
@@ -694,6 +702,7 @@ export namespace inkstone {
       IsFork: boolean;
       ForkComplete: boolean;
       RepositoryUrl: string;
+      UniqueId: string;
     }
 
     export interface ProjectAndCredentials {
