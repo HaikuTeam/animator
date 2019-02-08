@@ -42,7 +42,7 @@ const INPUT_STYLES: EditableInputStyles = {
     caretColor: Palette.LIGHTEST_PINK,
     padding: '3px 6px',
     borderRadius: 4,
-    background: '#172428',
+    background: Palette.COAL,
   },
   label: {},
   wrap: {

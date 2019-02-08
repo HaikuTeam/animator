@@ -1069,7 +1069,7 @@ export default class ExpressionInput extends React.Component {
       color: Palette.PALE_GRAY,
       caretColor: Palette.LIGHTEST_PINK,
       borderRadius: 4,
-      background: '#172428',
+      background: Palette.COAL,
       cursor: 'default',
       fontFamily: this.state.editingMode === EDITOR_MODES.SINGLE_LINE ? 'inherit' : 'Consolas, monospace',
       fontSize: 12,
