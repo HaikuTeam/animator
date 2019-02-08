@@ -698,7 +698,7 @@ Property.includeInDisplay = (type, name, element, property, keyframes) => {
   return rule && rule[type] && rule[type].every((test) => test(name, element, property, keyframes));
 };
 
-Property.WITH_COLOR_POPUP = [
+Property.WITH_COLOR_POPUP = new Set([
   'style.stroke',
   'style.fill',
   'style.background',
@@ -719,10 +719,10 @@ Property.WITH_COLOR_POPUP = [
   'backgroundColor',
   'animateColor',
   'feColor',
-];
+]);
 
 Property.hasColorPopup = (propertyName) => {
-  return Property.WITH_COLOR_POPUP.includes(propertyName);
+  return Property.WITH_COLOR_POPUP.has(propertyName);
 };
 
 Property.WITH_RANGE_POPUP = {
