@@ -630,13 +630,13 @@
     tslib "^1.8.1"
 
 "@haiku/core@^3.1.32":
-  version "4.3.10"
+  version "4.3.11"
 
 "@haiku/core@^3.2.16":
-  version "4.3.10"
+  version "4.3.11"
 
 "@haiku/core@^3.4.6":
-  version "4.3.10"
+  version "4.3.11"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
@@ -671,6 +671,10 @@
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftina-nocon/-/tina-nocon-0.0.3.tgz#8dbaa0c108b2f6dfb9c741e80c633037abffe2a3"
   dependencies:
     "@haiku/core" "^4.0.0"
+
+"@icons/material@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@icons/material/-/material-0.2.4.tgz#e90c9f71768b3736e76d7dd6783fc6c2afa88bc8"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -800,6 +804,10 @@
   version "4.14.108"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.108.tgz#02656af3add2e5b3174f830862c47421c00ef817"
 
+"@types/memoize-one@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@types/memoize-one/-/memoize-one-4.1.0.tgz#62119f26055b3193ae43ca1882c5b29b88b71ece"
+
 "@types/mkdirp@^0.3.29":
   version "0.3.29"
   resolved "https://registry.yarnpkg.com/@types/mkdirp/-/mkdirp-0.3.29.tgz#7f2ad7ec55f914482fc9b1ec4bb1ae6028d46066"
@@ -822,7 +830,13 @@
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.5.1.tgz#a38f69c62528d56ba7bd1f91335a8004988d72f7"
 
-"@types/react@^15.4.2":
+"@types/react-color@^2.14.0":
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/@types/react-color/-/react-color-2.14.0.tgz#e01f6069902819fe9f6544375829a485f894206f"
+  dependencies:
+    "@types/react" "*"
+
+"@types/react@*", "@types/react@15.6.11":
   version "15.6.11"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-15.6.11.tgz#c61440937ccf970446cb3ef77007b450ab1e2f91"
 
@@ -2243,6 +2257,13 @@ color@0.8.x:
 color@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/color/-/color-2.0.1.tgz#e4ed78a3c4603d0891eba5430b04b86314f4c839"
+  dependencies:
+    color-convert "^1.9.1"
+    color-string "^1.5.2"
+
+color@^3.0.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/color/-/color-3.1.0.tgz#d8e9fb096732875774c84bf922815df0308d0ffc"
   dependencies:
     color-convert "^1.9.1"
     color-string "^1.5.2"
@@ -5879,6 +5900,10 @@ lodash.throttle@^3.0.3:
   dependencies:
     lodash.debounce "^3.0.0"
 
+lodash@>4.17.4, lodash@^4.0.1:
+  version "4.17.11"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
+
 lodash@^3.6.0:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
@@ -6042,6 +6067,10 @@ matcher-collection@^1.0.0:
   resolved "https://registry.yarnpkg.com/matcher-collection/-/matcher-collection-1.0.5.tgz#2ee095438372cb8884f058234138c05c644ec339"
   dependencies:
     minimatch "^3.0.2"
+
+material-colors@^1.2.1:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/material-colors/-/material-colors-1.2.6.tgz#6d1958871126992ceecc72f4bcc4d8f010865f46"
 
 md5-hex@^2.0.0:
   version "2.0.0"
@@ -7569,6 +7598,17 @@ react-beautiful-dnd@^6.0.1:
     redux-thunk "^2.2.0"
     reselect "^3.0.1"
 
+react-color@^2.14.1:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/react-color/-/react-color-2.17.0.tgz#e14b8a11f4e89163f65a34c8b43faf93f7f02aaa"
+  dependencies:
+    "@icons/material" "^0.2.4"
+    lodash ">4.17.4"
+    material-colors "^1.2.1"
+    prop-types "^15.5.10"
+    reactcss "^1.2.0"
+    tinycolor2 "^1.4.1"
+
 react-copy-to-clipboard@^5.0.0:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-5.0.1.tgz#8eae107bb400be73132ed3b6a7b4fb156090208e"
@@ -7734,6 +7774,12 @@ react@^16.0.0:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     prop-types "^15.6.0"
+
+reactcss@^1.2.0:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/reactcss/-/reactcss-1.2.3.tgz#c00013875e557b1cf0dfd9a368a1c3dab3b548dd"
+  dependencies:
+    lodash "^4.0.1"
 
 read-all-stream@^3.0.0:
   version "3.1.0"
@@ -9304,6 +9350,10 @@ tiny-emitter@^2.0.0:
 tiny-json-http@^5.1.0:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/tiny-json-http/-/tiny-json-http-5.1.2.tgz#86c5c088108a945307f4525ee49adcb414300599"
+
+tinycolor2@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/tinycolor2/-/tinycolor2-1.4.1.tgz#f4fad333447bc0b07d4dc8e9209d8f39a8ac77e8"
 
 titlecase@^1.1.2:
   version "1.1.2"
