@@ -72,7 +72,7 @@
     "lodash": "^4.17.4",
     "mime-types": "^2.1.17",
     "moment": "2.18.1",
-    "node-gyp": "^3.6.2",
+    "node-gyp": "^3.6.3",
     "semver": "^5.4.1",
     "semver-sort": "^0.0.4",
     "slack": "^8.3.1",
