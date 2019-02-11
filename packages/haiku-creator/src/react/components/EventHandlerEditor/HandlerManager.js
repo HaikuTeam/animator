@@ -112,13 +112,7 @@ class HandlerManager {
 
   isNewCustomEvent (eventName) {
     return !this.applicableEventHandlers
-    .reduce((acc, element) => {
-      if (element.label !== "Favorites" && element.label !== "Custom Events") {
-        return acc.concat(element.options.map(o => o.label));
-      } else {
-        return acc;
-      }
-    }, [])
+    .reduce((acc, element) => acc.concat(element.options.map(o => o.label)), [])
     .includes(eventName);
   }
 
