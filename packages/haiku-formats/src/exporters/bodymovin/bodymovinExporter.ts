@@ -1387,7 +1387,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   private alignCurveKeyframes () {
     // Store the set of coupled properties that might have to be animated together with presently disjointed keyframes.
     // This is currently limited to scale.x and scale.y, but we may need to add more later.
-    const coupledPropertyLists = [['scale.x', 'scale.y']];
+    const coupledPropertyLists = [['scale.x', 'scale.y'], ['cx', 'cy'], ['rx', 'ry']];
     this.visitAllTimelines((timeline) => {
       coupledPropertyLists.forEach((coupledPropertyList) => {
         if (coupledPropertyList.find((property) => timelineHasProperties(timeline, property)) === undefined) {
