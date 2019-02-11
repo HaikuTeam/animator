@@ -1,7 +1,5 @@
 OK to merge.
 
-Short review.
-
 Summary of changes:
 
 - …
@@ -9,3 +7,6 @@ Summary of changes:
 Regressions to look for:
 
 - …
+
+Completed checkin tasks:
+- [ ] Updated `changelog/public/latest.json`.
