@@ -112,7 +112,7 @@ class HandlerManager {
 
   isNewCustomEvent (eventName) {
     return !this.applicableEventHandlers
-    .reduce((acc, element) => acc.concat(element.options.map(o => o.label)), [])
+    .reduce((acc, element) => acc.concat(element.options.map(o => o.value)), [])
     .includes(eventName);
   }
 
@@ -242,7 +242,7 @@ class HandlerManager {
    * @returns {Object}
    */
   _buildEventHandler (event) {
-    const params = this.isNewCustomEvent(event) ? ['component', 'data'] : ['component', 'element', 'target', 'event'];
+    const params = this._isNewCustomEvent(event) ? ['component', 'data'] : ['component', 'element', 'target', 'event'];
 
     return {
       event,
