@@ -725,11 +725,13 @@ Property.hasColorPopup = (propertyName) => {
   return Property.WITH_COLOR_POPUP.has(propertyName);
 };
 
+const ROTATION_PI = Number(Math.PI.toFixed(2));
+
 Property.WITH_RANGE_POPUP = {
   opacity: {max: 1, min: 0, step: 0.1},
-  'rotation.x': {max: Math.PI, min: -Math.PI, step: 0.01},
-  'rotation.y': {max: Math.PI, min: -Math.PI, step: 0.01},
-  'rotation.z': {max: Math.PI, min: -Math.PI, step: 0.01},
+  'rotation.x': {max: ROTATION_PI, min: -ROTATION_PI, step: 0.1},
+  'rotation.y': {max: ROTATION_PI, min: -ROTATION_PI, step: 0.1},
+  'rotation.z': {max: ROTATION_PI, min: -ROTATION_PI, step: 0.1},
 };
 
 Property.hasRangePopup = (propertyName) => {

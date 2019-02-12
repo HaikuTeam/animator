@@ -140,9 +140,18 @@ class HaikuColorPicker extends React.PureComponent<HaikuColorPickerProps> {
   };
 
   onChange = (data: any) => {
+    let source: DISPLAY_VALUES;
+
+    if (data.a !== 1 && this.state.valueDisplay === DISPLAY_VALUES.HEX) {
+      source = DISPLAY_VALUES.RGB;
+      this.setState({valueDisplay: source});
+    } else {
+      source = this.state.valueDisplay;
+    }
+
     this.props.onChange({
       ...data,
-      source: this.state.valueDisplay,
+      source,
     });
   };
 
@@ -180,7 +189,7 @@ class HaikuColorPicker extends React.PureComponent<HaikuColorPickerProps> {
             </div>
             <div>
               <select
-                defaultValue={this.state.valueDisplay.toString()}
+                value={this.state.valueDisplay.toString()}
                 style={STYLES.select}
                 onChange={this.onValueDisplayChange}
               >
