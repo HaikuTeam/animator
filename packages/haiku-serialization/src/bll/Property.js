@@ -725,7 +725,7 @@ Property.hasColorPopup = (propertyName) => {
   return Property.WITH_COLOR_POPUP.has(propertyName);
 };
 
-const ROTATION_PI = Number(Math.PI.toFixed(2))
+const ROTATION_PI = Number(Math.PI.toFixed(2));
 
 Property.WITH_RANGE_POPUP = {
   opacity: {max: 1, min: 0, step: 0.1},
