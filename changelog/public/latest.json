@@ -6,7 +6,8 @@
     ],
     "Fixes": [
       "Prevent Timeline rows from expanding unexpectedly.",
-      "Fix empty `lottie.json` files for certain animations made with path morphing."
+      "Fix empty `lottie.json` files for certain animations made with path morphing.",
+      "Set the correct parameters for custom events in the Actions Editor."
     ]
   }
 }

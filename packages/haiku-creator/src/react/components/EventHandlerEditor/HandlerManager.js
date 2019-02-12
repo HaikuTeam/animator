@@ -93,7 +93,8 @@ class HandlerManager {
   }
 
   /**
-   * Maps all the DOM events in memory (ie. not custom) into an array
+   * Returns an Array of all the events that should be displayed for an element, this means
+   * all events that are not frame listeners.
    *
    * @returns {String[]}
    */
@@ -107,6 +108,12 @@ class HandlerManager {
     });
 
     return result;
+  }
+
+  _isNewCustomEvent (eventName) {
+    return !this.applicableEventHandlers
+    .reduce((acc, element) => acc.concat(element.options.map(o => o.value)), [])
+    .includes(eventName);
   }
 
   /**
@@ -235,11 +242,13 @@ class HandlerManager {
    * @returns {Object}
    */
   _buildEventHandler (event) {
+    const params = this._isNewCustomEvent(event) ? ['component', 'data'] : ['component', 'element', 'target', 'event'];
+
     return {
       event,
       handler: {
         body: ``,
-        params: ['component', 'element', 'target', 'event'],
+        params,
       },
     };
   }
