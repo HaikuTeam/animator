@@ -568,6 +568,7 @@ class Timeline extends React.Component {
 
     this.loadUserSettings();
     this.trackExportProgress();
+    this.hideBezierEditor();
     timeline.setTimelinePixelWidth(document.body.clientWidth - timeline.getPropertiesPixelWidth() + 20);
 
     if (this.mounted) {
