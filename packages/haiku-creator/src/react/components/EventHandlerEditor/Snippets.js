@@ -49,7 +49,7 @@ class Snippets extends React.PureComponent {
       {
         label: 'Change State (Transition)',
         onClick: () => {
-          this.insertSnippet('this.setState({stateName: value}, {duration: 1000, curve: "linear"})');
+          this.insertSnippet('this.setState({stateName: value}, {duration: 1000, curve: "linear", queued: false, onComplete: () => {}})');
         },
       },
       {
