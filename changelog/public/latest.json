@@ -1,7 +1,7 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "State transitions now accept a callback to be called when the transition is complete."
     ],
     "Fixes": [
       "Fix a crash when entering invalid color values."

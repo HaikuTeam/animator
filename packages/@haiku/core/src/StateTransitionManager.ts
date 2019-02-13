@@ -5,6 +5,7 @@ export interface StateTransitionParameters {
   curve: CurveDefinition;
   duration: number;
   queue?: boolean;
+  onComplete?: () => void;
 }
 
 export interface StateValues {
@@ -167,6 +168,10 @@ export default class StateTransitionManager {
 
           // Remove expired transition.
           this.transitions[stateName].splice(0, 1);
+
+          if (transition.transitionParameter.onComplete instanceof Function) {
+            transition.transitionParameter.onComplete();
+          }
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
