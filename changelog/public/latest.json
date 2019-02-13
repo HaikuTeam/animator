@@ -1,13 +1,10 @@
 {
   "sections": {
     "What's new": [
-      "Color and Range helpers for Timeline inputs.",
-      "Double click on curves to open the Bezier Editor."
+      "FIRST!"
     ],
     "Fixes": [
-      "Prevent Timeline rows from expanding unexpectedly.",
-      "Fix empty `lottie.json` files for certain animations made with path morphing.",
-      "Set the correct parameters for custom events in the Actions Editor."
+      "FIRST!"
     ]
   }
 }
