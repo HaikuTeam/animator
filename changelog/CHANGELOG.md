@@ -1,6 +1,32 @@
 # Changelog
 
 
+## 4.3.11
+
+### Bug Fixes
+
+ * also automagically set the value display
+ * hide bezier editor when switching components
+ * automagically change to RGBA if alpha is changed
+ * set a fallback value for color properties
+ * use a value of PI fixed to two digits for ranges
+ * typo in function name
+ * use `label` instead of `value` to find custom events
+ * there is no need to exclude any event group from custom event filtering
+ * register missing coupled properties to prevent Lottie failure on some path-morphed animations
+ * upgrade node-gyp version to prevent install errors on macOS Mojave
+ * do not hardcode colors, use our Palette instead
+ * prevent rows from unexpectedly expanding on certain situations
+ * respect the original behavior of curve assignment
+ * get build working
+
+### Features
+
+ * typed popovers for timeline rows
+ * double click tweens to edit bezier curves
+ * curve editor & custom Bezier Curves
+ * curve editor & custom Bezier Curves
+
 ## 4.3.10
 
 ### Bug Fixes

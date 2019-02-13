@@ -8986,5 +8986,97 @@
       "label": "feat",
       "message": "add endpoints for coupon validation"
     }
+  },
+  "4.3.11": {
+    "59d45793d0106fd6f2cd4eb46a05870f7c2bfc69": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "also automagically set the value display"
+    },
+    "45358f1de90d1a975dba478599604c4ed63ec6d0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hide bezier editor when switching components"
+    },
+    "c16ab13ce99f3f90f02cdd544fa226f948b46fb0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "automagically change to RGBA if alpha is changed"
+    },
+    "c1cbe37086445a8663c9af3f499965477ac75bb2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set a fallback value for color properties"
+    },
+    "fad882d43de314a693f25b673cd5d31b31910724": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use a value of PI fixed to two digits for ranges"
+    },
+    "cad622c4171d77514f3c6df28a19ec58b32be977": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "typo in function name"
+    },
+    "8a4cce1201b4ccde721582a05e99c9d907e428fd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use `label` instead of `value` to find custom events"
+    },
+    "0826ca5ce5aa16e31d37c92cf3fa2fd3c3b53493": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "there is no need to exclude any event group from custom event filtering"
+    },
+    "ef08d6bd35d81feec7a810b2965406d6ecdeca05": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "register missing coupled properties to prevent Lottie failure on some path-morphed animations"
+    },
+    "e2c0923cb576bc1e1a5daef0cbacc2c5c1ee694e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "upgrade node-gyp version to prevent install errors on macOS Mojave"
+    },
+    "7a572b2cf9ce4d8e83253dfebd334f8f67e06702": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not hardcode colors, use our Palette instead"
+    },
+    "7da5bbe780a4c53c9a75ee3e4e4f5e37e89c90f1": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "typed popovers for timeline rows"
+    },
+    "8ddb1d74aa19204ac234299b0a47e3233932c8e7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent rows from unexpectedly expanding on certain situations"
+    },
+    "5efc7df1404279595f7ac3515c53359ebe535015": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "double click tweens to edit bezier curves"
+    },
+    "5b3955f0bfd17e7b80e84b6525b01dfb0c691c78": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "curve editor & custom Bezier Curves"
+    },
+    "264065afc9b078997517d8bb49e09dbad769bcb6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "respect the original behavior of curve assignment"
+    },
+    "9a758918b68a4820d76791a0f3a6b40ee281e72b": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "curve editor & custom Bezier Curves"
+    },
+    "bae618840459893b34730cdabb282cbf9c876cea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "get build working"
+    }
   }
 }
