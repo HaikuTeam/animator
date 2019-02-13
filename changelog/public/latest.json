@@ -4,7 +4,7 @@
       "FIRST!"
     ],
     "Fixes": [
-      "FIRST!"
+      "Fix a crash when entering invalid color values."
     ]
   }
 }
