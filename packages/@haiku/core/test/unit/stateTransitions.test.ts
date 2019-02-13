@@ -372,6 +372,27 @@ tape('Test state transitions', (t) => {
     t.is(component.state.var1, 50, 'Second queued state transition should be executed');
     t.is(stateTransitionManager.numQueuedTransitions, 0, 'All transitions should be finished');
 
+    let flag = false;
+    stateTransitionManager.setState(
+      {var1: 100},
+      {
+        duration: 2000,
+        curve: Curve.Linear,
+        onComplete: () => {
+          flag = true;
+        },
+      },
+    );
+
+    haikuClock.setTime(21000);
+    stateTransitionManager.tickStateTransitions();
+    t.is(flag, false, 'onComplete callback is not called before the state transition ends');
+
+    haikuClock.setTime(23000);
+    stateTransitionManager.tickStateTransitions();
+    t.is(flag, true, 'onComplete callback is called when the state transition ends');
+    t.is(stateTransitionManager.numQueuedTransitions, 0, 'All transitions should be finished');
+
     t.end();
 
     teardown();
