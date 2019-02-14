@@ -5,7 +5,7 @@
     ],
     "Fixes": [
       "Fix a crash when entering invalid color values.",
-      "Fix a crash when trying to edit descomposable curves by double clicking on them."
+      "Fix a crash when trying to edit bounce and elastic curves by double clicking on them."
     ]
   }
 }
