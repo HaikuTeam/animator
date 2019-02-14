@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "What's new": [
+      "State transitions now accept a callback to be called when the transition is complete."
+    ],
+    "Fixes": [
+      "Fix a crash when entering invalid color values.",
+      "Fix a crash when trying to edit bounce and elastic curves by double clicking on them."
+    ]
+  }
+}
