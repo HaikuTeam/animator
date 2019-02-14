@@ -1,6 +1,6 @@
 {
   "name": "haiku-admin-cli",
-  "version": "4.3.12",
+  "version": "4.4.0",
   "description": "Haiku Admin CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -26,9 +26,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@haiku/cli": "4.3.12",
-    "@haiku/sdk-client": "4.3.12",
-    "@haiku/sdk-inkstone": "4.3.12",
+    "@haiku/cli": "4.4.0",
+    "@haiku/sdk-client": "4.4.0",
+    "@haiku/sdk-inkstone": "4.4.0",
     "async": "^2.5.0",
     "chalk": "^1.1.3",
     "cli-color": "^1.2.0",
@@ -62,6 +62,6 @@
     "tslint-config-haiku": "^1.0.16",
     "typescript": "^3.0.3",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "4.3.12"
+    "haiku-testing": "4.4.0"
   }
 }

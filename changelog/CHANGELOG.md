@@ -1,6 +1,20 @@
 # Changelog
 
 
+## 4.3.12
+
+### Bug Fixes
+
+ * typo
+ * do not try to open the bezier editor for descomposable curves on double click
+ * better function detection
+ * check if we get a valid color string before trying to infer its model
+
+### Features
+
+ * update code snippets to include new onComplete callback
+ * add an optional callback for state transitions
+
 ## 4.3.11
 
 ### Bug Fixes

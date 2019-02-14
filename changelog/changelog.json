@@ -9078,5 +9078,37 @@
       "label": "fix",
       "message": "get build working"
     }
+  },
+  "4.3.12": {
+    "68820535f0b9a2a72f8fd01437a5a7ac521d26b6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "typo"
+    },
+    "66616ad969869c42b545d0d3e082f7d075a7ae40": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not try to open the bezier editor for descomposable curves on double click"
+    },
+    "c8e32fbb460c318432b72121cfd50a7578d9dab9": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "update code snippets to include new onComplete callback"
+    },
+    "bf688fbba731fee39f2cb1666757049db911fa52": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "better function detection"
+    },
+    "0049e209f85acdfaee56698bff1c76be61d13348": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add an optional callback for state transitions"
+    },
+    "d5dbfd9cb12b6e482030b3e6dbf9221ac31f8206": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "check if we get a valid color string before trying to infer its model"
+    }
   }
 }
