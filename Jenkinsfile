@@ -222,7 +222,7 @@ void notifyAdvancementRequest() {
     slackSend([
         channel: 'engineering-feed',
         color: 'good',
-        message: ":powerup: A build would like to advance\n\n" +
+        message: ":powerup: A build would like to advance | countdown: ${env.HAIKU_RELEASE_COUNTDOWN}\n\n" +
                   "https://ci.haiku.ai/blue/organizations/jenkins/Haiku/detail/Haiku/${env.BUILD_NUMBER}/pipeline"
     ])
 }
