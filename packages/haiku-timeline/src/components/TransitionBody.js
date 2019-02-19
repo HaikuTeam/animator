@@ -132,7 +132,7 @@ export default class TransitionBody extends React.Component {
   };
 
   showBezierEditor = (dblClickEvent) => {
-    if (!this.props.keyframe.hasDescomposableCurve()) {
+    if (!this.props.keyframe.hasDecomposableCurve()) {
       this.props.showBezierEditor({x: dblClickEvent.clientX, y: dblClickEvent.clientY}, [this.props.keyframe]);
     }
   };
