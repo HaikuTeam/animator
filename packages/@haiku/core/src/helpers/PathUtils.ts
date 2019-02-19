@@ -336,7 +336,7 @@ export const synchronizePathStructure = (...paths: CurveSpec[][]) => {
   }
 
   const maxVerts = Math.max(...paths.map((path) => path.length));
-  const validPaths = paths.filter((path) => path.length);
+  const validPaths = paths.filter((path) => path.length && !path.some(({x, y}) => isNaN(x) || isNaN(y)));
 
   validPaths.forEach((path) => {
     ensurePathClockwise(path);
