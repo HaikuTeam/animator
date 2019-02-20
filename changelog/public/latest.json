@@ -1,7 +1,7 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Better auto-complete items in Expressions."
     ],
     "Fixes": [
       "Added a notice when trying to edit Bounce/Elastic curves via double-click.",
