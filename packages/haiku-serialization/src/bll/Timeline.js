@@ -169,10 +169,10 @@ class Timeline extends BaseModel {
     }
   }
 
-  pause () {
+  pause (skipTransmit) {
     this._playing = false;
     this._lastSeek = null;
-    if (!this.component.project.getEnvoyClient().isInMockMode()) {
+    if (!skipTransmit && !this.component.project.getEnvoyClient().isInMockMode()) {
       const channel = this.component.project.getEnvoyChannel('timeline');
       // Don't know why, but this can be undefined in some edge case/race
       if (channel) {
@@ -221,8 +221,8 @@ class Timeline extends BaseModel {
   }
 
   seekAndPause (newFrame) {
-    this.setCurrentFrame(newFrame);
-    this._playing = false;
+    this.seek(newFrame, true);
+    this.pause(true)
     if (!this.component.project.getEnvoyClient().isInMockMode()) {
       const timelineChannel = this.component.project.getEnvoyChannel('timeline');
       // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
