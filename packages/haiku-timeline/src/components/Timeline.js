@@ -1516,6 +1516,16 @@ class Timeline extends React.Component {
     );
   }
 
+  onTimelineClick = () => {
+    if (this.refs.expressionInput.doesClickOriginatedFromMouseDown()) {
+      this.refs.expressionInput.cleanMouseDownTracker();
+      activeComponent.getRows().forEach((row) => {
+        row.blur({from: 'timeline'});
+        row.deselect({from: 'timeline'}, true);
+      });
+    }
+  };
+
   render () {
     if (!this.getActiveComponent() || !this.getActiveComponent().getCurrentTimeline()) {
       return (
@@ -1543,12 +1553,7 @@ class Timeline extends React.Component {
         ref={this.attachContainerElement}
         id="timeline"
         className="no-select"
-        onClick={(clickEvent) => {
-          activeComponent.getRows().forEach((row) => {
-            row.blur({from: 'timeline'});
-            row.deselect({from: 'timeline'}, true);
-          });
-        }}
+        onClick={this.onTimelineClick}
         style={{
           position: 'absolute',
           backgroundColor: Palette.GRAY,
