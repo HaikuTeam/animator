@@ -119,7 +119,6 @@ export default class Timeline extends React.Component {
           display: 'flex',
           alignItems: 'center',
         }}>
-          {/* <TimelineSkeletonState haikuOptions={{loop: true}} /> */}
         </div>
           }
       </div>
