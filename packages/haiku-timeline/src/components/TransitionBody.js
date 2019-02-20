@@ -134,6 +134,8 @@ export default class TransitionBody extends React.Component {
   showBezierEditor = (dblClickEvent) => {
     if (!this.props.keyframe.hasDecomposableCurve()) {
       this.props.showBezierEditor({x: dblClickEvent.clientX, y: dblClickEvent.clientY}, [this.props.keyframe]);
+    } else {
+      console.log('[notice] Bounce/Elastic curves cannot be edited with the curve editor');
     }
   };
 
