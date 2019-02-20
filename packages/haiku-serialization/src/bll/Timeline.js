@@ -169,7 +169,7 @@ class Timeline extends BaseModel {
     }
   }
 
-  pause (skipTransmit) {
+  pause (skipTransmit = false) {
     this._playing = false;
     this._lastSeek = null;
     if (!skipTransmit && !this.component.project.getEnvoyClient().isInMockMode()) {
@@ -222,7 +222,7 @@ class Timeline extends BaseModel {
 
   seekAndPause (newFrame) {
     this.seek(newFrame, true);
-    this.pause(true)
+    this.pause(true);
     if (!this.component.project.getEnvoyClient().isInMockMode()) {
       const timelineChannel = this.component.project.getEnvoyChannel('timeline');
       // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
