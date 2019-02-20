@@ -1517,13 +1517,14 @@ class Timeline extends React.Component {
   }
 
   onTimelineClick = () => {
-    if (this.refs.expressionInput.doesClickOriginatedFromMouseDown()) {
-      this.refs.expressionInput.cleanMouseDownTracker();
-      activeComponent.getRows().forEach((row) => {
+    if (!this.refs.expressionInput.doesClickOriginatedFromMouseDown()) {
+      this.getActiveComponent().getRows().forEach((row) => {
         row.blur({from: 'timeline'});
         row.deselect({from: 'timeline'}, true);
       });
     }
+
+    this.refs.expressionInput.cleanMouseDownTracker();
   };
 
   render () {
