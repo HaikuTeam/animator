@@ -4,7 +4,8 @@
       "FIRST!"
     ],
     "Fixes": [
-      "Add a notice when trying to edit Bounce/Elastic curves via double-click."
+      "Added a notice when trying to edit Bounce/Elastic curves via double-click.",
+      "Prevented property inputs on the Timeline from closing unexpectedly."
     ]
   }
 }

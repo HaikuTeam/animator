@@ -143,6 +143,7 @@ export default class ExpressionInput extends React.Component {
     this._injectables = {}; // List of current custom keywords (to be erased/reset)
     this._paramcache = null;
     this._parse = null; // Cache of last parse of the input field
+    this._mouseDownStarted = false;
 
     this.codemirror = CodeMirror(document.createElement('div'), {
       theme: 'haiku',
@@ -1307,6 +1308,22 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
+  doesClickOriginatedFromMouseDown () {
+    return this._mouseDownStarted;
+  }
+
+  cleanMouseDownTracker () {
+    this._mouseDownStarted = false;
+  }
+
+  onMouseUp = () => {
+    this._mouseDownStarted = false;
+  };
+
+  onMouseDown = () => {
+    this._mouseDownStarted = true;
+  };
+
   render () {
     const rawValueDescriptor = this.getValueDescriptorForPopover();
     const rangePopover = this.renderRangePopover(rawValueDescriptor);
@@ -1316,7 +1333,13 @@ export default class ExpressionInput extends React.Component {
     const hasPopover = hasColorPopover || hasRangePopover;
 
     return (
-      <div id="expression-input-holster" style={this.getRootStyle(hasColorPopover)} onClick={this.stopPropagation}>
+      <div
+        id="expression-input-holster"
+        style={this.getRootStyle(hasColorPopover)}
+        onClick={this.stopPropagation}
+        onMouseUp={this.onMouseUp}
+        onMouseDown={this.onMouseDown}
+      >
         <div style={this.getSubWrapperStyle(hasPopover)}>
           <span id="expression-input-tooltip" style={this.getTooltipStyle()}>
             <span id="expression-input-tooltip-tri" style={this.getTooltipTriStyle()} />
