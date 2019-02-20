@@ -71,6 +71,8 @@ const getSafeOrganizationName = (maybeOrgName: string) => {
   return orgName.replace(WHITESPACE_REGEX, UNDERSCORE);
 };
 
+const shareUrl = process.env.HAIKU_SHARE || 'https://share.haiku.ai/';
+
 export class ProjectHandler extends EnvoyHandler {
   private currentProject: HaikuProject;
   private currentSha: string;
@@ -101,7 +103,7 @@ export class ProjectHandler extends EnvoyHandler {
     return {
       projectPath,
       authorName,
-      projectShareUrl: 'https://share.haiku.ai/' + project.UniqueId,
+      projectShareUrl: shareUrl + project.UniqueId,
       local: false,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(project.Name),
@@ -314,7 +316,7 @@ export class ProjectHandler extends EnvoyHandler {
       local: true,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(name),
-      projectShareUrl: 'https://share.haiku.ai/',
+      projectShareUrl: process.env.HAIKU_SHARE  || 'https://share.haiku.ai/',
       projectExistsLocally: existsSync(projectPath),
       repositoryUrl: '',
       forkComplete: false,
