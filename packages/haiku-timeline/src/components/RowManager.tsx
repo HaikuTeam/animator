@@ -1,12 +1,12 @@
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import Palette from 'haiku-ui-common/lib/Palette';
+import lodash = require('lodash');
 import * as React from 'react';
 import ClusterRow from './ClusterRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
 import PropertyManager from './PropertyManager';
 import PropertyRow from './PropertyRow';
-import lodash = require('lodash');
 
 export interface RowManagerProps {
   group: {rows: any[]};
@@ -151,7 +151,7 @@ class RowManager extends React.PureComponent<RowManagerProps> {
   };
 
   onDrop = (event: React.DragEvent<any>) => {
-    const componentId = event.dataTransfer.getData('componentId')
+    const componentId = event.dataTransfer.getData('componentId');
     const activeComponent = this.props.getActiveComponent();
 
     logger.info(`z-drop ${componentId} at`, this.props.reflection);

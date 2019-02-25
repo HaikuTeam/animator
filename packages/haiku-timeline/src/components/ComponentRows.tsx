@@ -2,13 +2,13 @@ import * as React from 'react';
 import RowManager from './RowManager';
 
 export interface ComponentRowsProps {
-  getActiveComponent(): any;
+  getActiveComponent (): any;
   rowHeight: number;
   mixpanel: any;
-  showEventHandlersEditor(): void;
-  onDoubleClickToMoveGauge(): void;
-  setEditingRowTitleStatus(): void;
-  showBezierEditor(): void;
+  showEventHandlersEditor (): void;
+  onDoubleClickToMoveGauge (): void;
+  setEditingRowTitleStatus (): void;
+  showBezierEditor (): void;
 }
 
 export default class ComponentRows extends React.PureComponent<ComponentRowsProps> {
