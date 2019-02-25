@@ -1,16 +1,17 @@
-import * as React from 'react';
-import * as lodash from 'lodash';
-import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
-import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG';
-import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip';
-import {LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
-import Palette from 'haiku-ui-common/lib/Palette';
+// @ts-ignore
 import * as Element from 'haiku-serialization/src/bll/Element';
-import ComponentHeadingRowHeading from './ComponentHeadingRowHeading';
+// @ts-ignore
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import Palette from 'haiku-ui-common/lib/Palette';
+import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
+import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip';
+import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG';
+import {LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import * as React from 'react';
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments';
+import ComponentHeadingRowHeading from './ComponentHeadingRowHeading';
 import EventHandlerTriggerer from './EventHandlerTriggerer';
 import zIndex from './styles/zIndex';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 
 const STYLES = {
   actionButton: {
@@ -21,12 +22,22 @@ const STYLES = {
   },
 };
 
-export default class ComponentHeadingRow extends React.Component {
-  constructor (props) {
-    super(props);
-    this.handleUpdate = this.handleUpdate.bind(this);
-    this.throttledHandleRowHoverUnhover = lodash.debounce(this.handleRowHoverUnhover, 100);
-  }
+export interface ComponentHeadingRowProps {
+  row: any;
+  component: any;
+  timeline: any;
+  rowHeight: number;
+  onEventHandlerTriggered (): void;
+  isExpanded: boolean;
+  isHidden: boolean;
+  isSelected: boolean;
+  hasAttachedActions: boolean;
+  timelinePropertiesWidth: number;
+  setEditingRowTitleStatus (): void;
+}
+
+export default class ComponentHeadingRow extends React.Component<ComponentHeadingRowProps> {
+  mounted = false;
 
   componentWillUnmount () {
     this.mounted = false;
@@ -40,7 +51,7 @@ export default class ComponentHeadingRow extends React.Component {
     this.props.row.on('update', this.handleUpdate);
   }
 
-  handleUpdate (what) {
+  handleUpdate = (what: string): void => {
     if (!this.mounted) {
       return null;
     }
@@ -54,15 +65,15 @@ export default class ComponentHeadingRow extends React.Component {
     ) {
       this.forceUpdate();
     }
-  }
+  };
 
-  shouldComponentUpdate (nextProps) {
-    return (
-      (this.props.isExpanded ^ nextProps.isExpanded) ||
-      (this.props.isHidden ^ nextProps.isHidden) ||
-      (this.props.isSelected ^ nextProps.isSelected) ||
-      (this.props.hasAttachedActions ^ nextProps.hasAttachedActions) ||
-      (this.props.timelinePropertiesWidth ^ nextProps.timelinePropertiesWidth)
+  shouldComponentUpdate (nextProps: ComponentHeadingRowProps) {
+    return Boolean(
+      (this.props.isExpanded !== nextProps.isExpanded) ||
+      (this.props.isHidden !== nextProps.isHidden) ||
+      (this.props.isSelected !== nextProps.isSelected) ||
+      (this.props.hasAttachedActions !== nextProps.hasAttachedActions) ||
+      (this.props.timelinePropertiesWidth !== nextProps.timelinePropertiesWidth),
     );
   }
 
@@ -74,7 +85,7 @@ export default class ComponentHeadingRow extends React.Component {
     this.handleRowHoverUnhover(false);
   };
 
-  toggleExpandAndSelect = (clickEvent) => {
+  toggleExpandAndSelect = (clickEvent: React.MouseEvent<any>) => {
     if (clickEvent) {
       clickEvent.stopPropagation();
     }
@@ -82,11 +93,11 @@ export default class ComponentHeadingRow extends React.Component {
     if (this.props.isExpanded) {
       this.collapseAndDeselect();
     } else {
-      this.expandAndSelect();
+      this.expandAndSelect(clickEvent);
     }
   };
 
-  expandAndSelect = (clickEvent) => {
+  expandAndSelect = (clickEvent: React.MouseEvent<any>) => {
     if (clickEvent) {
       clickEvent.stopPropagation();
     }
@@ -102,7 +113,7 @@ export default class ComponentHeadingRow extends React.Component {
 
   collapseAndDeselect () {
     if (this.props.row.isRootRow()) {
-      this.props.row.visit((row) => {
+      this.props.row.visit((row: any) => {
         row.collapse({from: 'timeline'});
       });
     } else {
@@ -110,7 +121,7 @@ export default class ComponentHeadingRow extends React.Component {
     }
   }
 
-  handleRowHoverUnhover (shouldHover) {
+  handleRowHoverUnhover (shouldHover: boolean) {
     if (shouldHover) {
       this.props.row.hoverAndUnhoverOthers({from: 'timeline'});
     } else {
@@ -120,9 +131,14 @@ export default class ComponentHeadingRow extends React.Component {
 
   toggleSync = () => {
     const locked = !this.props.row.element.isSyncLocked();
-    this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
-      this.forceUpdate();
-    });
+    this.props.component.updateKeyframes(
+      {},
+      {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}},
+      {from: 'timeline'},
+      () => {
+        this.forceUpdate();
+      },
+    );
   };
 
   toggleLock = () => {
@@ -143,30 +159,34 @@ export default class ComponentHeadingRow extends React.Component {
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className="component-heading-row no-select js-avoid-marquee-init"
+        draggable={true}
         onMouseOver={this.hoverRow}
         onMouseOut={this.unhoverRow}
         style={{
+          backgroundColor,
           display: 'flex',
-          alignItems: 'top',
           height: this.props.isExpanded ? 'auto' : this.props.rowHeight,
           position: this.props.isExpanded ? 'sticky' : 'relative',
           float: this.props.isExpanded ? 'left' : undefined,
           width: this.props.isExpanded ? 100 : undefined,
           left: 0,
-          backgroundColor,
           opacity: this.props.isHidden ? 0.75 : 1.0,
           zIndex: this.props.isExpanded ? zIndex.headingRowExpanded.base : undefined,
-        }}>
-        <div className="js-avoid-marquee-init" style={{
-          display: 'flex',
-          position: 'sticky',
-          top: 0,
-          left: 0,
-          paddingLeft: this.props.row.isRootRow() ? 5 : 0,
-          width: propertiesPixelWidth,
-          backgroundColor,
-          zIndex: zIndex.headingRow.base,
-        }}>
+        }}
+      >
+        <div
+          className="js-avoid-marquee-init"
+          style={{
+            backgroundColor,
+            display: 'flex',
+            position: 'sticky',
+            top: 0,
+            left: 0,
+            paddingLeft: this.props.row.isRootRow() ? 5 : 0,
+            width: propertiesPixelWidth,
+            zIndex: zIndex.headingRow.base,
+          }}
+        >
           <div
             style={{
               marginTop: 3,
@@ -175,24 +195,31 @@ export default class ComponentHeadingRow extends React.Component {
               visibility: this.props.isExpanded || depth >= 2 ? 'hidden' : 'visible',
             }}
             className="component-heading-row-drag-handle js-avoid-marquee-init"
-            tabIndex={null}>
+            tabIndex={null}
+          >
             <span
               className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
-              style={{display: 'block'}}>
+              style={{display: 'block'}}
+            >
               <DragGrip />
             </span>
           </div>
           <div
             className="component-heading-row-inner no-select"
             style={{
-              width: this.props.row.isExpanded() ? (this.props.row.isRootRow() ? propertiesPixelWidth - 160 : propertiesPixelWidth - 200) : propertiesPixelWidth,
+              width: this.props.row.isExpanded()
+                ? this.props.row.isRootRow()
+                  ? propertiesPixelWidth - 160
+                  : propertiesPixelWidth - 200
+                : propertiesPixelWidth,
               height: 'inherit',
               cursor: 'pointer',
               backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column',
               paddingLeft: 27 * (depth - 1),
-            }}>
+            }}
+          >
             <div
               className="component-heading-row-inner-r1"
               style={{
@@ -226,10 +253,9 @@ export default class ComponentHeadingRow extends React.Component {
                 row={this.props.row}
                 isExpanded={this.props.isExpanded}
                 isSelected={this.props.isSelected}
-                isHovered={this.props.isHovered}
                 onEventHandlerTriggered={this.props.onEventHandlerTriggered}
                 onExpand={this.expandAndSelect}
-                propertiesPixelWidth={this.props.propertiesPixelWidth}
+                propertiesPixelWidth={this.props.timelinePropertiesWidth}
               />
             </div>
             <div
@@ -250,7 +276,7 @@ export default class ComponentHeadingRow extends React.Component {
                   ...STYLES.actionButton,
                   display: this.props.row.element.getSource() ? 'block' : 'none',
                 }}
-                onClick={this.toggleLock.bind(this)}
+                onClick={this.toggleLock}
               >
                 {
                   this.props.row.element.isLocked()
@@ -263,14 +289,15 @@ export default class ComponentHeadingRow extends React.Component {
                 className="event-handler-triggerer-button light-on-hover"
                 style={{
                   ...STYLES.actionButton,
-                }}>
+                }}
+              >
                 {(this.props.isExpanded || this.props.hasAttachedActions)
                   ? <EventHandlerTriggerer
                     element={this.props.row.element}
                     row={this.props.row}
                     boltColor={boltColor}
                     onEventHandlerTriggered={this.props.onEventHandlerTriggered}
-                    />
+                  />
                   : ''}
               </div>
             </div>
@@ -282,7 +309,8 @@ export default class ComponentHeadingRow extends React.Component {
           className="component-collapsed-segments-box"
           style={{
             height: 'inherit',
-          }}>
+          }}
+        >
           {(!this.props.isExpanded)
             ? <CollapsedPropertyTimelineSegments
               component={this.props.component}
@@ -290,7 +318,7 @@ export default class ComponentHeadingRow extends React.Component {
               rowHeight={this.props.rowHeight}
               row={this.props.row}
               backgroundColor={backgroundColor}
-              isNested={this.isNested}/>
+            />
           : ''}
         </div>
       }
@@ -298,11 +326,3 @@ export default class ComponentHeadingRow extends React.Component {
     );
   }
 }
-
-ComponentHeadingRow.propTypes = {
-  row: React.PropTypes.object.isRequired,
-  component: React.PropTypes.object.isRequired,
-  timeline: React.PropTypes.object.isRequired,
-  rowHeight: React.PropTypes.number.isRequired,
-  onEventHandlerTriggered: React.PropTypes.func.isRequired,
-};

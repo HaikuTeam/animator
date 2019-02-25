@@ -1,15 +1,28 @@
 import * as React from 'react';
 import ClusterRow from './ClusterRow';
-import PropertyRow from './PropertyRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
 import PropertyManager from './PropertyManager';
+import PropertyRow from './PropertyRow';
 
-class RowManager extends React.PureComponent {
-  handleUpdate = (what) => {
+export interface RowManagerProps {
+  group: {rows: any[]};
+  indexOfGroup: number;
+  prevGroup: any;
+  rowHeight: number;
+  getActiveComponent (): any;
+  showEventHandlersEditor (): void;
+  onDoubleClickToMoveGauge (): void;
+  setEditingRowTitleStatus (): void;
+  showBezierEditor (): void;
+  timelinePropertiesWidth: number;
+}
+
+class RowManager extends React.PureComponent<RowManagerProps> {
+  handleUpdate = (what: string) => {
     if (what === 'row-collapsed' || what === 'row-expanded') {
       this.forceUpdate();
     }
-  }
+  };
 
   componentDidMount () {
     this.props.group.rows.forEach((row) => {
@@ -19,8 +32,8 @@ class RowManager extends React.PureComponent {
     });
   }
 
-  componentWillUpdate ({group}) {
-    group.rows.forEach((row) => {
+  componentWillUpdate ({group}: RowManagerProps) {
+    group.rows.forEach((row: any) => {
       if (row.isHeading() || row.isClusterHeading()) {
         // In case we already had a bound listener, remove it.
         row.removeListener('update', this.handleUpdate);
@@ -37,7 +50,7 @@ class RowManager extends React.PureComponent {
     });
   }
 
-  renderComponentRow = (row, index, group) => {
+  renderComponentRow = (row: any, index: number, group: any) => {
     // Cluster rows only display if collapsed, otherwise we show their properties
     const activeComponent = this.props.getActiveComponent();
     if (row.isClusterHeading() && !row.isExpanded()) {
@@ -87,7 +100,16 @@ class RowManager extends React.PureComponent {
             timelinePropertiesWidth={this.props.timelinePropertiesWidth}
           />
         ),
-        (row.isExpanded() && <PropertyManager key={`wereree-${row.getUniqueKey()}`} element={row.element} timelinePropertiesWidth={this.props.timelinePropertiesWidth}/>),
+        (
+          row.isExpanded() &&
+          (
+            <PropertyManager
+              key={`property-manager-child-${row.getUniqueKey()}`}
+              element={row.element}
+              timelinePropertiesWidth={this.props.timelinePropertiesWidth}
+            />
+          )
+        ),
       ];
     }
 
