@@ -3,14 +3,9 @@ import ClusterRow from './ClusterRow';
 import PropertyRow from './PropertyRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
 import PropertyManager from './PropertyManager';
+
 class RowManager extends React.PureComponent {
-  constructor (props) {
-    super(props);
-
-    this.handleUpdate = this.handleUpdate.bind(this);
-  }
-
-  handleUpdate (what) {
+  handleUpdate = (what) => {
     if (what === 'row-collapsed' || what === 'row-expanded') {
       this.forceUpdate();
     }
@@ -88,7 +83,6 @@ class RowManager extends React.PureComponent {
             isHidden={row.isHidden()}
             isSelected={row.isSelected()}
             hasAttachedActions={row.element.getVisibleEvents().length > 0}
-            dragHandleProps={this.props.dragHandleProps}
             setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
             timelinePropertiesWidth={this.props.timelinePropertiesWidth}
           />

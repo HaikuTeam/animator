@@ -630,13 +630,13 @@
     tslib "^1.8.1"
 
 "@haiku/core@^3.1.32":
-  version "4.3.11"
+  version "4.4.0"
 
 "@haiku/core@^3.2.16":
-  version "4.3.11"
+  version "4.4.0"
 
 "@haiku/core@^3.4.6":
-  version "4.3.11"
+  version "4.4.0"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
@@ -4750,10 +4750,6 @@ hoist-non-react-statics@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.3.1.tgz#343db84c6018c650778898240135a1420ee22ce0"
 
-hoist-non-react-statics@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.5.0.tgz#d2ca2dfc19c5a91c5a6615ce8e564ef0347e2a40"
-
 home-path@^1.0.1:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/home-path/-/home-path-1.0.5.tgz#788b29815b12d53bacf575648476e6f9041d133f"
@@ -5004,7 +5000,7 @@ interpret@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.1.0.tgz#7ed1b1410c6a0e0f78cf95d3b8440c63f78b8614"
 
-invariant@^2.0.0, invariant@^2.2.0:
+invariant@^2.2.0:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   dependencies:
@@ -5769,14 +5765,6 @@ locate-path@^3.0.0:
     p-locate "^3.0.0"
     path-exists "^3.0.0"
 
-lodash-es@^4.17.5:
-  version "4.17.8"
-  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.8.tgz#6fa8c8c5d337481df0bdf1c0d899d42473121e45"
-
-lodash-es@^4.2.1:
-  version "4.17.4"
-  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.4.tgz#dcc1d7552e150a0640073ba9cb31d70f032950e7"
-
 lodash._baseassign@^3.0.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/lodash._baseassign/-/lodash._baseassign-3.2.0.tgz#8c38a099500f215ad09e59f1722fd0c52bfe0a4e"
@@ -5943,7 +5931,7 @@ lodash@^3.6.0:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.5.1, lodash@^4.8.0, lodash@~4.17.4:
+lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.3.0, lodash@^4.5.1, lodash@^4.8.0, lodash@~4.17.4:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -6145,10 +6133,6 @@ mem@^1.1.0:
 memoize-one@5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-5.0.0.tgz#d55007dffefb8de7546659a1722a5d42e128286e"
-
-memoize-one@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-3.1.1.tgz#ef609811e3bc28970eac2884eece64d167830d17"
 
 memoizee@^0.4.3:
   version "0.4.6"
@@ -7574,11 +7558,7 @@ radium@0.18.1:
     inline-style-prefixer "^1.0.3"
     rimraf "^2.4.0"
 
-raf-schd@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/raf-schd/-/raf-schd-2.1.1.tgz#0b59964cee2e96b7dd46ffaeb5c08740f3a5e7ab"
-
-raf@^3.1.0, raf@^3.3.2:
+raf@^3.3.2:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/raf/-/raf-3.4.0.tgz#a28876881b4bc2ca9117d4138163ddb80f781575"
   dependencies:
@@ -7657,21 +7637,6 @@ react-animations@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/react-animations/-/react-animations-0.1.0.tgz#519b6f4fe0f90b49fbfd4fcd73d978c5087130b1"
 
-react-beautiful-dnd@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/react-beautiful-dnd/-/react-beautiful-dnd-6.0.1.tgz#f5b70cc37188bd9e79c2bd2152bebfadb2861cff"
-  dependencies:
-    babel-runtime "^6.26.0"
-    invariant "^2.2.2"
-    memoize-one "^3.1.1"
-    prop-types "^15.6.0"
-    raf-schd "^2.1.1"
-    react-motion "^0.5.2"
-    react-redux "^5.0.6"
-    redux "^3.7.2"
-    redux-thunk "^2.2.0"
-    reselect "^3.0.1"
-
 react-color@^2.14.1:
   version "2.17.0"
   resolved "https://registry.yarnpkg.com/react-color/-/react-color-2.17.0.tgz#e14b8a11f4e89163f65a34c8b43faf93f7f02aaa"
@@ -7734,14 +7699,6 @@ react-list@^0.8.9:
   dependencies:
     prop-types "15"
 
-react-motion@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/react-motion/-/react-motion-0.5.2.tgz#0dd3a69e411316567927917c6626551ba0607316"
-  dependencies:
-    performance-now "^0.2.0"
-    prop-types "^15.5.8"
-    raf "^3.1.0"
-
 react-onclickoutside@^6.4.0:
   version "6.7.0"
   resolved "https://registry.yarnpkg.com/react-onclickoutside/-/react-onclickoutside-6.7.0.tgz#997a4d533114c9a0a104913638aa26afc084f75c"
@@ -7756,17 +7713,6 @@ react-popover@^0.4.18:
     lodash.throttle "^3.0.3"
     prop-types "^15.5.10"
     react-dom-factories "^1.0.0"
-
-react-redux@^5.0.6:
-  version "5.0.7"
-  resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-5.0.7.tgz#0dc1076d9afb4670f993ffaef44b8f8c1155a4c8"
-  dependencies:
-    hoist-non-react-statics "^2.5.0"
-    invariant "^2.0.0"
-    lodash "^4.17.5"
-    lodash-es "^4.17.5"
-    loose-envify "^1.1.0"
-    prop-types "^15.6.0"
 
 react-router-dom@^4.1.1:
   version "4.2.2"
@@ -8002,19 +7948,6 @@ redent@^1.0.0:
   dependencies:
     indent-string "^2.1.0"
     strip-indent "^1.0.1"
-
-redux-thunk@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.2.0.tgz#e615a16e16b47a19a515766133d1e3e99b7852e5"
-
-redux@^3.7.2:
-  version "3.7.2"
-  resolved "https://registry.yarnpkg.com/redux/-/redux-3.7.2.tgz#06b73123215901d25d065be342eb026bc1c8537b"
-  dependencies:
-    lodash "^4.2.1"
-    lodash-es "^4.2.1"
-    loose-envify "^1.1.0"
-    symbol-observable "^1.0.3"
 
 reflect-metadata@^0.1.12:
   version "0.1.12"
@@ -8297,10 +8230,6 @@ require-uncached@^1.0.2:
   dependencies:
     caller-path "^0.1.0"
     resolve-from "^1.0.0"
-
-reselect@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/reselect/-/reselect-3.0.1.tgz#efdaa98ea7451324d092b2b2163a6a1d7a9a2147"
 
 resolve-cwd@^2.0.0:
   version "2.0.0"
@@ -9231,10 +9160,6 @@ svgo@^1.0.5:
 symbol-observable@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.0.1.tgz#8340fc4702c3122df5d22288f88283f513d3fdd4"
-
-symbol-observable@^1.0.3:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.1.0.tgz#5c68fd8d54115d9dfb72a84720549222e8db9b32"
 
 symbol-tree@^3.2.1:
   version "3.2.2"

@@ -175,7 +175,6 @@ export default class ComponentHeadingRow extends React.Component {
               visibility: this.props.isExpanded || depth >= 2 ? 'hidden' : 'visible',
             }}
             className="component-heading-row-drag-handle js-avoid-marquee-init"
-            {...this.props.dragHandleProps}
             tabIndex={null}>
             <span
               className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
@@ -306,5 +305,4 @@ ComponentHeadingRow.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   onEventHandlerTriggered: React.PropTypes.func.isRequired,
-  dragHandleProps: React.PropTypes.object,
 };
