@@ -249,3 +249,16 @@ input[type=number]::-webkit-outer-spin-button {
   outline: 1px solid yellowgreen;
 }
 */
+
+
+.dragging .row-manager * {
+  pointer-events: none;
+}
+
+.drag-grip-wrapper {
+  cursor: -webkit-grab;
+}
+
+.drag-grip-wrapper:active {
+  cursor: -webkit-grabbing;
+}

@@ -147,6 +147,18 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
     });
   };
 
+  onDragStart = (event: React.DragEvent<any>) => {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('componentId', this.props.row.element.getComponentId());
+    setTimeout(() => {
+      document.body.classList.add('dragging');
+    }, 100);
+  };
+
+  onDragEnd = () => {
+    document.body.classList.remove('dragging');
+  };
+
   render () {
     const componentId = this.props.row.element.getComponentId();
     const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK;
@@ -160,6 +172,8 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className="component-heading-row no-select js-avoid-marquee-init"
         draggable={true}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
         onMouseOver={this.hoverRow}
         onMouseOut={this.unhoverRow}
         style={{

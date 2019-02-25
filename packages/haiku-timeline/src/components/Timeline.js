@@ -14,9 +14,9 @@ import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import BezierPopup from './BezierPopup';
 import ControlsArea from './ControlsArea';
+import ComponentRows from './ComponentRows';
 import ExpressionInput from './ExpressionInput';
 import ScrubberInterior from './ScrubberInterior';
-import RowManager from './RowManager';
 import SimplifiedFrameGrid from './SimplifiedFrameGrid';
 import FrameActionsGrid from './FrameActionsGrid';
 import IntercomWidget from './IntercomWidget';
@@ -1395,29 +1395,6 @@ class Timeline extends React.Component {
     }
   };
 
-  renderComponentRows () {
-    const activeComponent = this.getActiveComponent();
-    const groups = activeComponent.getDisplayableRowsGroupedByElementInZOrder();
-
-    return groups.map((group, indexOfGroup) => (
-      <RowManager
-        key={`property-row-group-${group.id}-${indexOfGroup}`}
-        group={group}
-        indexOfGroup={indexOfGroup}
-        prevGroup={groups[indexOfGroup - 1]}
-        rowHeight={this.state.rowHeight}
-        getActiveComponent={() => {
-          return this.getActiveComponent();
-        }}
-        showEventHandlersEditor={this.showEventHandlersEditor}
-        onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
-        setEditingRowTitleStatus={this.setEditingRowTitleStatus}
-        showBezierEditor={this.showBezierEditor}
-        timelinePropertiesWidth={this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()}
-      />
-    ));
-  }
-
   onTimelineClick = () => {
     if (!this.refs.expressionInput.doesClickOriginatedFromMouseDown()) {
       this.getActiveComponent().getRows().forEach((row) => {
@@ -1494,7 +1471,17 @@ class Timeline extends React.Component {
           propertiesPixelWidth={propertiesPixelWidth}
           onMouseDown={this.onScrollViewMouseDown}
         >
-          {this.renderComponentRows()}
+          {
+            <ComponentRows
+              rowHeight={this.state.rowHeight}
+              getActiveComponent={this.getActiveComponent}
+              mixpanel={this.props.mixpanel}
+              showEventHandlersEditor={this.showEventHandlersEditor}
+              onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
+              setEditingRowTitleStatus={this.setEditingRowTitleStatus}
+              showBezierEditor={this.showBezierEditor}
+            />
+          }
         </ScrollView>
         {this.renderBottomControls()}
         <ExpressionInput

@@ -1,23 +1,31 @@
+// @ts-ignore
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import Palette from 'haiku-ui-common/lib/Palette';
 import * as React from 'react';
 import ClusterRow from './ClusterRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
 import PropertyManager from './PropertyManager';
 import PropertyRow from './PropertyRow';
+import lodash = require('lodash');
 
 export interface RowManagerProps {
   group: {rows: any[]};
   indexOfGroup: number;
-  prevGroup: any;
   rowHeight: number;
   getActiveComponent (): any;
   showEventHandlersEditor (): void;
   onDoubleClickToMoveGauge (): void;
   setEditingRowTitleStatus (): void;
   showBezierEditor (): void;
+  onDragOverCallback (): void;
   timelinePropertiesWidth: number;
+  reflection: number;
+  mixpanel: any;
 }
 
 class RowManager extends React.PureComponent<RowManagerProps> {
+  private timelineViewport: HTMLElement;
+
   handleUpdate = (what: string) => {
     if (what === 'row-collapsed' || what === 'row-expanded') {
       this.forceUpdate();
@@ -25,6 +33,7 @@ class RowManager extends React.PureComponent<RowManagerProps> {
   };
 
   componentDidMount () {
+    this.timelineViewport = document.getElementById('timeline');
     this.props.group.rows.forEach((row) => {
       if (row.isHeading() || row.isClusterHeading()) {
         row.on('update', this.handleUpdate);
@@ -117,13 +126,74 @@ class RowManager extends React.PureComponent<RowManagerProps> {
     return null;
   };
 
+  onDragEnter = (event: React.DragEvent<any>) => {
+    event.preventDefault();
+    this.setState({canReceiveDrag: true});
+  };
+
+  adjustViewportScroll = lodash.throttle((y: number) => {
+    if (y < 105) {
+      this.timelineViewport.scrollBy({
+        top: -65,
+        behavior: 'smooth',
+      });
+    } else if (window.innerHeight - y < 105) {
+      this.timelineViewport.scrollBy({
+        top: 65,
+        behavior: 'smooth',
+      });
+    }
+  }, 60);
+
+  onDragOver = (event: React.DragEvent<any>) => {
+    event.preventDefault();
+    this.adjustViewportScroll(event.nativeEvent.y);
+  };
+
+  onDrop = (event: React.DragEvent<any>) => {
+    const componentId = event.dataTransfer.getData('componentId')
+    const activeComponent = this.props.getActiveComponent();
+
+    logger.info(`z-drop ${componentId} at`, this.props.reflection);
+    this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
+
+    activeComponent.zShiftIndices(
+      componentId,
+      activeComponent.getInstantiationTimelineName(),
+      activeComponent.getInstantiationTimelineTime(),
+      this.props.reflection - 1,
+      {from: 'timeline'},
+      this.props.onDragOverCallback,
+    );
+
+    this.setState({canReceiveDrag: false});
+    document.body.classList.remove('dragging');
+  };
+
+  onDragLeave = () => {
+    this.setState({canReceiveDrag: false});
+  };
+
+  state = {
+    canReceiveDrag: false,
+  };
+
   render () {
     const elements = this.props.group.rows
       .filter((row) => !row.isWithinCollapsedRow())
       .map(this.renderComponentRow);
 
     return (
-      <div>
+      <div
+        className="row-manager"
+        style={{
+          borderBottom: this.state.canReceiveDrag ? `4px solid ${Palette.PINK}` : 'none',
+        }}
+        onDragOver={this.onDragOver}
+        onDragEnter={this.onDragEnter}
+        onDragLeave={this.onDragLeave}
+        onDrop={this.onDrop}
+      >
         {elements}
       </div>
     );
