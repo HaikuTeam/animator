@@ -40,6 +40,7 @@ import {
   isPreviewMode,
 } from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
@@ -1762,7 +1763,7 @@ export default class Creator extends React.Component {
     return (
       <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
         <div style={{position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
-          <Hai loop={true} sizing="contain" contextMenu="disabled" />
+          <AnimatorSVG />
         </div>
         <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
       </div>
@@ -2112,10 +2113,14 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        <ProjectLoader show={this.shouldShowProjectLoader()}>
+        <ProjectLoader show={true} show={this.shouldShowProjectLoader()}>
           {this.showGenericLoader
             ? <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
-            : <span style={{marginTop: 450, zIndex: 1}}>Initializing project…</span>
+            : (<span style={{zIndex: 1}}>
+                <div style={{width: 150, margin: '0 auto'}}><AnimatorSVG /></div>
+                <div className="load-bar" />
+                <div style={{marginTop: 30, zIndex: 1}}>Initializing project…</div>
+              </span>)
           }
         </ProjectLoader>
         {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>

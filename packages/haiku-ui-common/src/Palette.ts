@@ -28,7 +28,7 @@ export default {
 
   // new stuff - prefer these instead!
   BLACK: '#0C0C0C',
-  BLUE: '#488192',
+  BLUE: '#04B6CB',
   DARK_PINK: '#E934F2', // used in the tour (buttons and UI)
   DARK_ROCK: '#5B7373',
   DARKEST_COAL: '#0F171A',

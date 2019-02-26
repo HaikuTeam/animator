@@ -1,13 +1,14 @@
 import * as React from 'react';
 import * as path from 'path';
 import Palette from 'haiku-ui-common/lib/Palette';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 
 const STYLES = {
   fullScreenCenterWrap: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    color: Palette.SUNSTONE,
+    color: Palette.ROCK,
     backgroundColor: Palette.COAL,
     zIndex: 6,
     display: 'flex',
@@ -15,7 +16,7 @@ const STYLES = {
     justifyContent: 'center',
     flexDirection: 'column',
     userSelect: 'none',
-    fontSize: 24,
+    fontSize: 18,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -56,7 +57,8 @@ class ProjectLoader extends React.PureComponent {
     this.webview.style.width = '100%';
     this.webview.style.height = '100%';
     this.webview.addEventListener('dom-ready', () => {
-      this.webview.send('mount', mountArguments);
+      // this.webview.send('mount', mountArguments);
+      this.webview.send('mount');
     });
 
     this.destroyMountChildren();
@@ -70,7 +72,8 @@ class ProjectLoader extends React.PureComponent {
 
     if (this.props.show ^ nextProps.show) {
       if (nextProps.show) {
-        this.webview.send('mount', mountArguments);
+        // this.webview.send('mount', mountArguments);
+        this.webview.send('mount');
       } else {
         this.webview.send('unmount');
       }
@@ -92,10 +95,9 @@ class ProjectLoader extends React.PureComponent {
         }}
         id="js-helper-project-loader"
       >
-        <div
-          style={STYLES.loadingScreen}
-          ref={this.persistMount}
-        />
+        <div style={STYLES.loadingScreen} ref={this.persistMount}>
+          <div style={STYLES.logo}><AnimatorSVG/></div>
+        </div>
         {this.props.children}
       </div>
     );
