@@ -206,7 +206,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
               marginTop: 3,
               marginRight: 3,
               display: this.props.row.isRootRow() ? 'none' : 'inline-block',
-              visibility: this.props.isExpanded || depth >= 2 ? 'hidden' : 'visible',
+              visibility: depth >= 2 ? 'hidden' : 'visible',
             }}
             className="component-heading-row-drag-handle js-avoid-marquee-init"
             tabIndex={null}
