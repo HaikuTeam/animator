@@ -187,6 +187,7 @@ export const DASH_STYLES: React.CSSProperties = {
   menuOption: {
     opacity: 0.84,
     display: 'block',
+    textTransform: 'uppercase',
     transform: 'translateY(0px)',
     transition: 'opacity 120ms ease, transform 390ms cubic-bezier(.35,.44,0,1.3)',
     pointerEvents: 'auto',
