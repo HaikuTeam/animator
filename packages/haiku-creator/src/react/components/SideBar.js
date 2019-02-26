@@ -1,13 +1,9 @@
 import * as React from 'react';
 import * as Radium from 'radium';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {
-  ChevronLeftMenuIconSVG,
-  StateInspectorIconSVG,
-  LibraryIconSVG,
-  LogoMiniSVG,
-  } from 'haiku-ui-common/lib/react/OtherIcons';
+import {ChevronLeftMenuIconSVG, StateInspectorIconSVG, LibraryIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import {BTN_STYLES} from '../styles/btnShared';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 
 const STYLES = {
   container: {
@@ -76,8 +72,11 @@ const STYLES = {
     padding: '3px 5px',
     fontSize: 10,
     lineHeight: 1,
-    backgroundColor: Palette.BLUE,
     borderRadius: 4,
+  },
+  logo: {
+    width: 19,
+    marginTop: 6,
   },
 };
 
@@ -110,9 +109,9 @@ class SideBar extends React.Component {
     return (
       <div style={STYLES.container} className="layout-box" id="sidebar">
         <div style={[STYLES.bar, {paddingLeft: this.state.isFullscreen ? 15 : 82}]} className="frame">
-          <LogoMiniSVG />
+          <div style={STYLES.logo}><AnimatorSVG /></div>
           {this.props.isPro &&
-            <div style={[STYLES.proBadge, this.state.isFullscreen && {left: 34}]}>PRO</div>
+            <div style={[STYLES.proBadge, this.state.isFullscreen && {left: 34}]}>13 Days left</div>
           }
           <button
             id="go-to-dashboard"

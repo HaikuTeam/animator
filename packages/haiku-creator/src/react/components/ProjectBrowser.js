@@ -9,7 +9,8 @@ import NotificationExplorer from './notifications/NotificationExplorer';
 import ProjectThumbnail from './ProjectThumbnail';
 import {TourUtils} from 'haiku-common/lib/types/enums';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
-import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {UserIconSVG, LogOutSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
@@ -530,7 +531,7 @@ class ProjectBrowser extends React.Component {
         </div>
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.mini, DASH_STYLES.noSelect]}>
           <span style={DASH_STYLES.popover.icon}>
-            <LogoMicroSVG style={{transform: 'translateY(2px)'}} />
+            <AnimatorSVG style={{transform: 'translateY(2px)'}} />
           </span>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.softwareVersion}</span>
         </div>
