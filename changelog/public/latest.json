@@ -1,13 +1,13 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Added placeholder support for the Vue adapter."
     ],
     "Fixes": [
       "Added a notice when trying to edit Bounce/Elastic curves via double-click.",
       "Prevented property inputs on the Timeline from closing unexpectedly.",
-      "Fixes a crash when trying to animate invalid paths.",
-      "Fixes issues with the Timeline playback controls.",
+      "Fixed a crash when trying to animate invalid paths.",
+      "Fixed issues with the Timeline playback controls.",
       "Prevented marquee controls on stage from being affected by zoom."
     ]
   }

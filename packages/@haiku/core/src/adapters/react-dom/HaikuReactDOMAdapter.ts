@@ -69,7 +69,7 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
       let haikuConfig = {
         ref: this.mount,
         vanities: {
-          'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
+          'controlFlow.placeholder': (
             element,
             surrogate,
             value,
@@ -77,34 +77,32 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
             timeline,
             receiver,
             sender,
-          ) {
-            visit(this.mount, (node) => {
-              const flexId = flexIdIfSame(element, node);
-              if (flexId) {
-                if (element.__memory.placeholder.surrogate !== surrogate) {
-                  if (
-                    typeof surrogate.type === 'string' ||
-                    (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
-                    // What *should happen* in the DOM renderer is:
-                    // this new swapped DOM element will be updated (not replaced!)
-                    // with the attributes of the virtual element at the same position
-                    const div = document.createElement('div');
-                    node.parentNode.replaceChild(div, node);
-                    // tslint:disable-next-line:no-parameter-reassignment
-                    node = div;
-                  }
-                  node.style.visibility = 'hidden';
-                  ReactDOM.render(surrogate, node);
-                  window.requestAnimationFrame(() => {
-                    element.__memory.placeholder.surrogate = surrogate;
-                    node.style.visibility = 'visible';
-                  });
-                  sender.markHorizonElement(element);
-                  sender.markForFullFlush();
+          ) => visit(this.mount, (node) => {
+            const flexId = flexIdIfSame(element, node);
+            if (flexId) {
+              if (element.__memory.placeholder.surrogate !== surrogate) {
+                if (
+                  typeof surrogate.type === 'string' ||
+                  (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
+                  // What *should happen* in the DOM renderer is:
+                  // this new swapped DOM element will be updated (not replaced!)
+                  // with the attributes of the virtual element at the same position
+                  const div = document.createElement('div');
+                  node.parentNode.replaceChild(div, node);
+                  // tslint:disable-next-line:no-parameter-reassignment
+                  node = div;
                 }
+                node.style.visibility = 'hidden';
+                ReactDOM.render(surrogate, node);
+                window.requestAnimationFrame(() => {
+                  element.__memory.placeholder.surrogate = surrogate;
+                  node.style.visibility = 'visible';
+                });
+                sender.markHorizonElement(element);
+                sender.markForFullFlush();
               }
-            });
-          }.bind(this),
+            }
+          }),
         },
       };
 
