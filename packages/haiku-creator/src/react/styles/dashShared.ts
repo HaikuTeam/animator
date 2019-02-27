@@ -36,6 +36,7 @@ export const DASH_STYLES: React.CSSProperties = {
     color: Palette.ROCK,
   },
   bannerNotice: {
+    fontWeight: 'bold',
     margin: '0 7px 0 0px',
     border: '1px solid' + Palette.BLUE,
     borderRadius: 3,
