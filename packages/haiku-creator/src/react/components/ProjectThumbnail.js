@@ -18,7 +18,7 @@ class ProjectThumbnail extends React.Component {
   }
 
   launchProjectIfAllowed = () => {
-    if (this.props.allowInteractions) {
+    if (this.props.allowInteractions && !this.props.expiredTrialNonPro) {
       this.props.launchProject();
     }
   };
@@ -159,7 +159,7 @@ class ProjectThumbnail extends React.Component {
             title="Show project options"
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
             onClick={(e) => {
-              // Prevend launching project, as parent div has onClick handler
+              // Prevent launching project, as parent div has onClick handler
               e.stopPropagation();
               if (this.props.allowInteractions) {
                 this.setState({
