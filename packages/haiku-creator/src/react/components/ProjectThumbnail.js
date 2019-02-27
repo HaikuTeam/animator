@@ -27,6 +27,16 @@ class ProjectThumbnail extends React.Component {
     shell.openExternal(this.props.projectShareUrl);
   }
 
+  showDeleteModal = (e) => {
+    e.stopPropagation();
+    this.props.showDeleteModal();
+  };
+
+  showItemInFolder = (e) => {
+    e.stopPropagation();
+    shell.showItemInFolder(this.props.projectPath);
+  };
+
   render () {
     return (
       <div
@@ -117,10 +127,7 @@ class ProjectThumbnail extends React.Component {
           </span>}
           {this.props.projectExistsLocally && <span
             key="reveal"
-            onClick={(e) => {
-              e.stopPropagation();
-              shell.showItemInFolder(this.props.projectPath);
-            }}
+            onClick={this.showItemInFolder}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
@@ -131,10 +138,7 @@ class ProjectThumbnail extends React.Component {
           </span>}
           {this.props.allowDelete && <span
             key="delete"
-            onClick={(e) => {
-              e.stopPropagation()
-              this.props.showDeleteModal()
-            }}
+            onClick={this.showDeleteModal}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
