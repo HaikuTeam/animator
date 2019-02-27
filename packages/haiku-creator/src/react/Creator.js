@@ -1818,7 +1818,7 @@ export default class Creator extends React.Component {
   }
 
   showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
-    if (!this.envoyProject) {
+    if (!this.state.isUserAuthenticated || !this.envoyProject || !this.user || this.state.expiredTrialNonPro) {
       return;
     }
     this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projectToDuplicate});
