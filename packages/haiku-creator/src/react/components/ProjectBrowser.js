@@ -605,6 +605,8 @@ class ProjectBrowser extends React.Component {
   }
 
   render () {
+    const { trialDaysRemaining} = this.props;
+
     return (
       <div style={DASH_STYLES.dashWrap}>
         {/* This hack allows the italic and strong variants of the font to be preloaded, avoiding FOUT */}
@@ -620,6 +622,9 @@ class ProjectBrowser extends React.Component {
         }
 
         <div style={DASH_STYLES.frame} className="frame">
+          { trialDaysRemaining > 0 &&
+            <span style={{marginRight: 8}}>{trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''} in your free trial`}</span>
+          }
           <NotificationExplorer
             lastViewedChangelog={this.props.lastViewedChangelog}
             onShowChangelogModal={this.props.onShowChangelogModal} />

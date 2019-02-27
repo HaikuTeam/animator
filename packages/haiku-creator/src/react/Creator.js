@@ -706,10 +706,7 @@ export default class Creator extends React.Component {
         const pro = org.Role === inkstone.organization.Role.PRO;
         if (!pro) {
           this.user.getTrialDaysRemaining().then((trialDaysRemaining) => {
-            alert(trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''} in your free trial.`);
-            this.setState({
-              trialDaysRemaining,
-            });
+            this.setState({trialDaysRemaining});
           });
         }
       });
@@ -2129,6 +2126,7 @@ export default class Creator extends React.Component {
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
                   isPro={this.state.privateProjectLimit == null}
+                  trialDaysRemaining={this.state.trialDaysRemaining}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
