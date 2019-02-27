@@ -266,6 +266,10 @@ class ProjectBrowser extends React.Component {
     this.props.explorePro('project-browser-titlebar');
   };
 
+  exploreProLockoutModal = () => {
+    this.props.explorePro('project-browser-lockoutmodal');
+  };
+
   offlineElement () {
     if (!this.shouldShowOfflineNotice) {
       return null;
@@ -542,6 +546,7 @@ class ProjectBrowser extends React.Component {
   renderLockoutModal () {
     return (
       <LockoutModal
+        explorePro={this.exploreProLockoutModal}
         onClose={() => {
           this.setState({showLockoutModal: false});
         }}
@@ -642,7 +647,6 @@ class ProjectBrowser extends React.Component {
             </button>)
             : (
               <span
-                title="Upgrade to Haiku Pro"
                 style={DASH_STYLES.bannerNotice}
                 onClick={this.exploreProTitlebar}>
                 Go Pro

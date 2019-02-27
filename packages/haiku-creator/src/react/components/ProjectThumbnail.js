@@ -107,7 +107,10 @@ class ProjectThumbnail extends React.Component {
           </span>}
           {this.props.projectExistsLocally && <span
             key="reveal"
-            onClick={() => shell.showItemInFolder(this.props.projectPath)}
+            onClick={(e) => {
+              e.stopPropagation();
+              shell.showItemInFolder(this.props.projectPath);
+            }}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
@@ -118,7 +121,10 @@ class ProjectThumbnail extends React.Component {
           </span>}
           {this.props.allowDelete && <span
             key="delete"
-            onClick={this.props.showDeleteModal}
+            onClick={(e) => {
+              e.stopPropagation()
+              this.props.showDeleteModal()
+            }}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
