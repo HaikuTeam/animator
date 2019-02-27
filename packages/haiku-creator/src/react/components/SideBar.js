@@ -117,7 +117,7 @@ class SideBar extends React.Component {
               aria-label={trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''} in your free trial`}
               data-tooltip={true}
               data-tooltip-bottom={true}>
-              {trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain`}
+              {trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''}`}
             </div>
           }
           <button
