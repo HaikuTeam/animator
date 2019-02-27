@@ -270,6 +270,10 @@ class ProjectBrowser extends React.Component {
     this.props.explorePro('project-browser-lockoutmodal');
   };
 
+  exploreProLockoutHeading = () => {
+    this.props.explorePro('project-browser-lockoutheading');
+  };
+
   offlineElement () {
     if (!this.shouldShowOfflineNotice) {
       return null;
@@ -289,7 +293,6 @@ class ProjectBrowser extends React.Component {
                 BTN_STYLES.btnPrimary,
                 DASH_STYLES.btn,
               ]}
-              title="Upgrade to Animator Pro"
               onClick={this.exploreProOffline}>Go Pro
               <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
                 <ExternalLinkSVG color={Palette.SUNSTONE}/>
@@ -679,7 +682,23 @@ class ProjectBrowser extends React.Component {
             </button>
           </Popover>
         </div>
-
+        {this.props.expiredTrialNonPro && 
+          (<div style={{display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center'}}>
+            <div style={DASH_STYLES.heading}><strong>Your 14 day trial has expired.</strong> Go Pro to continue working on your projects!</div>
+            <div>
+              <span
+                style={[
+                  BTN_STYLES.btnText,
+                  BTN_STYLES.btnPrimary,
+                ]}
+                onClick={this.exploreProLockoutHeading}>Go Pro
+                  <span style={{ width: 14, height: 14, transform: 'translateY(-2px)', marginLeft: 4 }}>
+                  <ExternalLinkSVG color={Palette.SUNSTONE} />
+                </span>
+              </span>
+            </div>
+          </div>)
+        }
         {this.projectsListElement()}
         <Paginator
           firstItemToDisplay={this.state.firstDisplayedProject}

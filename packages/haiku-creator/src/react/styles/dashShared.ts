@@ -35,6 +35,13 @@ export const DASH_STYLES: React.CSSProperties = {
     justifyContent: 'flex-end',
     color: Palette.ROCK,
   },
+  heading:  {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    color: Palette.ROCK,
+  },
   bannerNotice: {
     fontWeight: 'bold',
     margin: '0 7px 0 0px',
