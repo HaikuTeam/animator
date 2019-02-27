@@ -241,7 +241,7 @@ class StageTitleBar extends React.Component {
             return this.props.createNotice({
               type: 'danger',
               title: 'Uh oh!',
-              message: 'Haiku is having a problem accessing your project. 😢  Please restart Haiku. If you see this error again, contact Haiku for support.',
+              message: 'Animator is having a problem accessing your project. 😢  Please restart Animator. If you see this error again, contact Haiku for support.',
             });
           }
 
@@ -791,7 +791,7 @@ class StageTitleBar extends React.Component {
             BTN_STYLES.rightBtns,
             {border: '1px solid ' + Palette.COAL, padding: '4px 5px'},
             !this.props.isTimelineReady && STYLES.disabled,
-            isPreviewMode(this.props.interactionMode) && {border: '1px solid ' + Palette.PINK}
+            isPreviewMode(this.props.interactionMode) && {border: '1px solid ' + Palette.PINK},
           ]}
         >
           <EyeIconSVG color={this.getConglomerateComponentButtonColor()} />
