@@ -6,10 +6,10 @@ export default function ({styles}) {
       <h2 style={styles.heading}>Library</h2>
       <p style={styles.text}>
         The Library is your home base for design assets and components.
-        Here you can <strong>import your design files</strong>, or <strong>create new ones</strong> right from inside Haiku.
+        Here you can <strong>import your design files</strong>, or <strong>create new ones</strong> right from inside Animator.
         <br />
         <br />
-        Haiku keeps your assets in sync when you make changes in your design tools.
+        Animator keeps your assets in sync when you make changes in your design tools.
       </p>
     </div>
   );
