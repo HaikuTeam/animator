@@ -65,7 +65,6 @@ class ProjectThumbnail extends React.Component {
           ]}
           onClick={() => {
             if (this.props.expiredTrialNonPro) {
-              // TODO: Open the sharelink
               this.openBrowserToProjectSharePage();
             } else if (!this.state.isMenuActive) {
               this.launchProjectIfAllowed();
@@ -94,6 +93,17 @@ class ProjectThumbnail extends React.Component {
           {this.props.expiredTrialNonPro ? 'View Online' : 'Open'}
           </span>
 
+          {(!this.props.expiredTrialNonPro) && <span
+            key="view-online-alt"
+            onClick={this.openBrowserToProjectSharePage}
+            style={[
+              DASH_STYLES.menuOption,
+              DASH_STYLES.opt2,
+              !this.state.isMenuActive && DASH_STYLES.gone,
+            ]}
+          >
+            View Online
+          </span>}
           {(this.props.projectExistsLocally && !this.props.expiredTrialNonPro) && <span
             key="duplicate"
             onClick={this.props.showDuplicateProjectModal}
