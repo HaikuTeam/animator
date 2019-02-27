@@ -40,7 +40,7 @@ const STYLES = {
     fontSize: '13px',
   },
   inner: {
-    padding: '10px 25px 60px',
+    padding: '10px 25px 80px',
   },
   upgradeWrap: {
     color: Palette.SUNSTONE,
@@ -55,23 +55,10 @@ const STYLES = {
     cursor: 'pointer',
   },
   btnGoToProjects: {
-    textTransform: 'uppercase',
-    display: 'inline-block',
-    marginTop: 10,
+    margin: '0 auto',
+    display: 'inline',
+    float: 'none',
     backgroundColor: Palette.DARKEST_COAL,
-    color: Palette.SUNSTONE,
-    padding: '2px 10px',
-    borderRadius: '2px',
-    cursor: 'pointer',
-  },
-  btnSecondary: {
-    textTransform: 'uppercase',
-    display: 'inline-block',
-    marginTop: 10,
-    backgroundColor: 'transparent',
-    padding: '2px 10px',
-    border: '1px solid ' + Palette.LIGHT_BLUE,
-    borderRadius: '2px',
   },
   strong : {
     fontWeight: 'bold',
@@ -96,41 +83,29 @@ class LockoutModal extends React.PureComponent {
               <p><span style={STYLES.strong}>Your 14 day trial has expired.</span> Go Pro to continue working on your projects!</p>
               <p><span style={STYLES.strong}>Your projects are still accessible</span> but you must upgrade to continue editing.</p>
               <p>You can access your source files and share links from the dashboard.</p>
-            </div>
-            <div>
-
-            <div style={[{
-              display: 'inline-block',
-            }]}>
-              <span onClick={this.props.onClose} style={STYLES.btnGoToProjects}>
-                Go to my projects
+              <div style={{textAlign: 'center'}}>
+                <span onClick={this.props.onClose} style={{...BTN_STYLES.btnText, ...STYLES.btnGoToProjects}}>
+                  Go to my projects
               </span>
-            </div>
-
-            <div style={[{
-              display: 'inline-block',
-            }]}>
-              <span onClick={this.explorePro} style={STYLES.btnSecondary}>
-                Go Pro
-                <span
-                    style={{
-                      width: 11,
-                      height: 11,
-                      display: 'inline-block',
-                      marginLeft: 4,
-                      transform: 'translateY(1px)',
-                    }}>
-                  <ExternalLinkIconSVG color={Palette.LIGHT_BLUE} />
-                </span>
-              </span>
-              <span>
-                Starting at $15/month
-              </span>
-            </div>
+              </div>
             </div>
           </div>
-          <ModalFooter>
 
+          <ModalFooter>
+            <span style={{display: 'inline-block', marginRight: 8}}>Starting at $15/month</span>
+            <span onClick={this.props.explorePro} style={{...BTN_STYLES.btnText, ...BTN_STYLES.btnPrimary}}>
+              Go Pro
+                <span
+                style={{
+                  width: 11,
+                  height: 11,
+                  display: 'inline-block',
+                  marginLeft: 4,
+                  transform: 'translateY(-1px)',
+                }}>
+                <ExternalLinkIconSVG color={Palette.SUNSTONE} />
+              </span>
+            </span>
           </ModalFooter>
         </ModalWrapper>
       </div>
