@@ -22,8 +22,10 @@
   "dependencies": {
     "@babel/parser": "^7.0.0",
     "@haiku/core": "4.4.0",
+    "@haiku/taylor-creatorintro": "^0.0.5",
+    "@haiku/taylor-hai": "^0.0.7",
     "@haiku/tina-haikuerror": "^0.0.6",
-    "@haiku/tina-nocon": "^0.0.3",
+    "@haiku/taylor-nocon": "^0.0.2",
     "async": "^2.5.0",
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",

@@ -17,7 +17,7 @@ import {BTN_STYLES} from '../styles/btnShared';
 import LockoutModal from './LockoutModal';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 import {Paginator} from 'haiku-ui-common/lib/react/Paginator';
-import * as  NoCon from '@haiku/tina-nocon/react';
+import * as  NoCon from '@haiku/taylor-nocon/react';  // Actual Ku Credit: Ms Tina!
 
 const STYLES = {
   adminButton: {

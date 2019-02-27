@@ -642,26 +642,29 @@
 "@haiku/taylor-creatorintro@^0.0.5":
   version "0.0.5"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-creatorintro/-/taylor-creatorintro-0.0.5.tgz#03d7ad1241b2be9d1bfb7fe292597746f96fe6eb"
+  integrity sha512-A3gXR1BI9Bir95wFFp6GdWMtpK7boiJd7h4Zg+tgaLM3tcoVlOxybTD4yPwMsYOed7dSMWyVTnGE4sNHgxN/EQ==
   dependencies:
     "@haiku/core" "^3.4.6"
 
 "@haiku/taylor-hai@^0.0.7":
   version "0.0.7"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-hai/-/taylor-hai-0.0.7.tgz#313a06f7bf8307de4edb1fec4eed130b59dde761"
+  integrity sha512-mLVJFWtsxm0bn7T0A4N7o1G5bQfOdMLaFZwVD2OnYUU78OuYND2GNwm43iSoSamQTc+AnEXYHQN6lTOFMVvhMw==
   dependencies:
     "@haiku/core" "^3.2.16"
+
+"@haiku/taylor-nocon@^0.0.2":
+  version "0.0.2"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-nocon/-/taylor-nocon-0.0.2.tgz#4e44c1143d0ad5475266c81f65df31ceee3af039"
+  integrity sha512-jdBF7zV+a2OdBXPqnwh0vTASI1ILl6SaN3LwiGwGarUN5oXqgiCdxVqWTeS+hHmnMSGtD0EDxfPxzwft96O0ww==
+  dependencies:
+    "@haiku/core" "^4.4.0"
 
 "@haiku/tina-haikuerror@^0.0.6":
   version "0.0.6"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftina-haikuerror/-/tina-haikuerror-0.0.6.tgz#bff0617db13684118ac4e97cb5781b7eb3d4b488"
   dependencies:
     "@haiku/core" "^4.3.0"
-
-"@haiku/tina-nocon@^0.0.3":
-  version "0.0.3"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftina-nocon/-/tina-nocon-0.0.3.tgz#8dbaa0c108b2f6dfb9c741e80c633037abffe2a3"
-  dependencies:
-    "@haiku/core" "^4.0.0"
 
 "@icons/material@^0.2.4":
   version "0.2.4"
