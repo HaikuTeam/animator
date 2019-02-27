@@ -2110,7 +2110,7 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        <ProjectLoader show={true} show={this.shouldShowProjectLoader()}>
+        <ProjectLoader show={this.shouldShowProjectLoader()}>
           {this.showGenericLoader
             ? <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
             : (<span style={{zIndex: 1}}>
