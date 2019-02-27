@@ -160,8 +160,7 @@ class ChangelogModal extends React.PureComponent {
             </PrettyScroll>
           </div>
         </ModalWrapper>;
-      </div > ;
-    )
+    </div>);
   }
 }
 
