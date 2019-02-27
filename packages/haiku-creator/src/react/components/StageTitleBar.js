@@ -25,7 +25,6 @@ import {
   showGlassOnStage,
 } from 'haiku-ui-common/lib/interactionModes';
 import AlignToolBox from './AlignToolBox';
-import { O_DSYNC } from 'constants';
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
