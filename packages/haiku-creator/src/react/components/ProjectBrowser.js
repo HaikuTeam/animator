@@ -58,7 +58,7 @@ class ProjectBrowser extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.expiredTrialNonPro) {
+    if (!this.props.expiredTrialNonPro && nextProps.expiredTrialNonPro) {
       this.setState({showLockoutModal: true});
     }
 
@@ -613,7 +613,7 @@ class ProjectBrowser extends React.Component {
   }
 
   render () {
-    const { trialDaysRemaining} = this.props;
+    const {trialDaysRemaining} = this.props;
 
     return (
       <div style={DASH_STYLES.dashWrap}>
@@ -682,7 +682,7 @@ class ProjectBrowser extends React.Component {
             </button>
           </Popover>
         </div>
-        {this.props.expiredTrialNonPro && 
+        {this.props.expiredTrialNonPro &&
           (<div style={{display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center'}}>
             <div style={DASH_STYLES.heading}><strong>Your 14 day trial has expired.</strong> Go Pro to continue working on your projects!</div>
             <div>
@@ -692,7 +692,7 @@ class ProjectBrowser extends React.Component {
                   BTN_STYLES.btnPrimary,
                 ]}
                 onClick={this.exploreProLockoutHeading}>Go Pro
-                  <span style={{ width: 14, height: 14, transform: 'translateY(-2px)', marginLeft: 4 }}>
+                  <span style={{width: 14, height: 14, transform: 'translateY(-2px)', marginLeft: 4}}>
                   <ExternalLinkSVG color={Palette.SUNSTONE} />
                 </span>
               </span>
