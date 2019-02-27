@@ -629,14 +629,11 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
-"@haiku/core@^3.1.32":
-  version "4.3.11"
-
 "@haiku/core@^3.2.16":
-  version "4.3.11"
+  version "4.4.0"
 
 "@haiku/core@^3.4.6":
-  version "4.3.11"
+  version "4.4.0"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
@@ -653,12 +650,6 @@
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-hai/-/taylor-hai-0.0.7.tgz#313a06f7bf8307de4edb1fec4eed130b59dde761"
   dependencies:
     "@haiku/core" "^3.2.16"
-
-"@haiku/taylor-ipreview2@^0.0.2":
-  version "0.0.2"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-ipreview2/-/taylor-ipreview2-0.0.2.tgz#d46e790046082107bb2dc624fd72132e8ba9dd6a"
-  dependencies:
-    "@haiku/core" "^3.1.32"
 
 "@haiku/tina-haikuerror@^0.0.6":
   version "0.0.6"

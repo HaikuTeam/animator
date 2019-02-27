@@ -66,10 +66,6 @@ const STYLES = {
 };
 
 class LockoutModal extends React.PureComponent {
-  constructor (props) {
-    super();
-  }
-
   render () {
     return (
       <div style={DASH_STYLES.overlay} onClick={this.props.onClose}>
