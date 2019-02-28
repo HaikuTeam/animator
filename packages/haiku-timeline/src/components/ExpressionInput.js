@@ -458,11 +458,6 @@ export default class ExpressionInput extends React.Component {
         // when presented as the formal final value for this method
         clean = (desiredExpressionSign === EXPR_SIGNS.EQ) ? ensureEq(clean) : ensureRet(clean);
 
-        // Avoid spurious errors due to trailing dots while we're in the middle of typing expressions.
-        if (clean[clean.length - 1] === '.') {
-          clean = clean.substr(0, clean.length - 1);
-        }
-
         return {
           kind: EXPR_KINDS.MACHINE,
           params: [], // To populate later
