@@ -281,11 +281,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
               <ComponentHeadingRowHeading
                 setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
                 row={this.props.row}
-                isExpanded={this.props.isExpanded}
-                isSelected={this.props.isSelected}
-                onEventHandlerTriggered={this.props.onEventHandlerTriggered}
                 onExpand={this.expandAndSelect}
-                propertiesPixelWidth={this.props.timelinePropertiesWidth}
               />
             </div>
             <div
