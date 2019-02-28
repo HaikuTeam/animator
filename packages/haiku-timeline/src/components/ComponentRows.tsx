@@ -14,7 +14,7 @@ export interface ComponentRowsProps {
   showBezierEditor (): void;
 }
 
-export default class ComponentRows extends React.PureComponent<ComponentRowsProps> {
+export default class ComponentRows extends React.Component<ComponentRowsProps> {
   private timelineViewport: HTMLElement;
 
   state = {
