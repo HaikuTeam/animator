@@ -44,7 +44,6 @@ import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
-import * as Hai from '@haiku/taylor-hai/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';

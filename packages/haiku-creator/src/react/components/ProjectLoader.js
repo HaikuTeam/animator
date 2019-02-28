@@ -31,17 +31,17 @@ const STYLES = {
   },
 };
 
-const mountArguments = {
-  options: {
-    loop: true,
-    sizing: 'contain',
-    contextMenu: 'disabled',
-    alwaysComputeSizing: true,
-  },
-  bytecodePath: require.resolve('@haiku/taylor-hai/code/main/code'),
-  width: '100%',
-  height: '450px',
-};
+// const mountArguments = {
+//   options: {
+//     loop: true,
+//     sizing: 'contain',
+//     contextMenu: 'disabled',
+//     alwaysComputeSizing: true,
+//   },
+//   bytecodePath: require.resolve('@haiku/taylor-hai/code/main/code'),
+//   width: '100%',
+//   height: '450px',
+// };
 
 class ProjectLoader extends React.PureComponent {
   destroyMountChildren () {

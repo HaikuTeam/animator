@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import * as Radium from 'radium';
-import * as IPreview from '@haiku/taylor-ipreview2/react';
+// import * as IPreview from '@haiku/taylor-ipreview2/react';
 
 const STYLES = {
   disabled: {
