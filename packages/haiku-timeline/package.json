@@ -35,7 +35,6 @@
     "radium": "0.18.1",
     "raven-js": "^3.18.1",
     "react": "15.6.2",
-    "react-beautiful-dnd": "^6.0.1",
     "react-dom": "15.6.2",
     "react-draggable": "2.2.3",
     "react-intercom": "^1.0.14",

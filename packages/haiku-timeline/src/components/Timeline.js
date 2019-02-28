@@ -1,7 +1,6 @@
 import {remote, ipcRenderer} from 'electron';
 import * as React from 'react';
 import * as lodash from 'lodash';
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as Project from 'haiku-serialization/src/bll/Project';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
@@ -15,9 +14,9 @@ import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 import BezierPopup from './BezierPopup';
 import ControlsArea from './ControlsArea';
+import ComponentRows from './ComponentRows';
 import ExpressionInput from './ExpressionInput';
 import ScrubberInterior from './ScrubberInterior';
-import RowManager from './RowManager';
 import SimplifiedFrameGrid from './SimplifiedFrameGrid';
 import FrameActionsGrid from './FrameActionsGrid';
 import IntercomWidget from './IntercomWidget';
@@ -1379,27 +1378,6 @@ class Timeline extends React.Component {
     this._doHandleMouseMovesInGauge = false;
   }
 
-  renderRowManager ({group, indexOfGroup, prevGroup, dragHandleProps}) {
-    return (
-      <RowManager
-        key={`property-row-group-${group.id}-${indexOfGroup}`}
-        group={group}
-        indexOfGroup={indexOfGroup}
-        prevGroup={prevGroup}
-        rowHeight={this.state.rowHeight}
-        dragHandleProps={dragHandleProps}
-        getActiveComponent={() => {
-          return this.getActiveComponent();
-        }}
-        showEventHandlersEditor={this.showEventHandlersEditor}
-        onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
-        setEditingRowTitleStatus={this.setEditingRowTitleStatus}
-        showBezierEditor={this.showBezierEditor}
-        timelinePropertiesWidth={this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()}
-      />
-    );
-  }
-
   updatePropertiesPanelSize = (width) => {
     this.getActiveComponent().getCurrentTimeline().setPropertiesPixelWidth(width);
     this.forceUpdate();
@@ -1416,105 +1394,6 @@ class Timeline extends React.Component {
       });
     }
   };
-
-  renderComponentRows () {
-    const activeComponent = this.getActiveComponent();
-    const groups = activeComponent.getDisplayableRowsGroupedByElementInZOrder();
-    const timeline = activeComponent.getCurrentTimeline();
-
-    return (
-      <DragDropContext
-        onDragEnd={(result) => {
-          // No destination means no change
-          if (!result.destination) {
-            return;
-          }
-
-          const idx = result.destination.index;
-          const reflection = groups.length - idx - 1;
-          logger.info(`z-drop ${result.draggableId} at`, reflection);
-
-          this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
-
-          activeComponent.zShiftIndices(
-            result.draggableId,
-            activeComponent.getInstantiationTimelineName(),
-            activeComponent.getInstantiationTimelineTime(),
-            reflection - 1,
-            {from: 'timeline'},
-            () => {
-              this.forceUpdate();
-            },
-          );
-        }}
-      >
-        <Droppable
-          droppableId="componentRowsDroppable"
-          ignoreContainerClipping={true}
-        >
-          {(provided, snapshot) => {
-            return (
-              <div
-                className="droppable-wrapper"
-                style={{paddingBottom: 20}}
-                ref={provided.innerRef}
-              >
-                {groups.map((group, indexOfGroup) => {
-                  const prevGroup = groups[indexOfGroup - 1];
-
-                  if (prevGroup) {
-                    return (
-                      <Draggable
-                        key={`property-row-group-${group.id}-${indexOfGroup}`}
-                        draggableId={group.id}
-                        index={indexOfGroup}
-                      >
-                        {(providedDraggable) => {
-                          // HACK: Don't allow the draggable element to be positioned above the top bar controls
-                          const {transform, top} = providedDraggable.draggableProps.style;
-                          const transformXRegex = /(\d*)px\)/;
-                          if (transform && top && top - parseInt(transform.match(transformXRegex)[1], 10) <= 35) {
-                            providedDraggable.draggableProps.style.transform = transform.replace(transformXRegex, `${top - 35}px)`);
-                          }
-
-                          return (
-                            <div>
-                              <div
-                                className="droppable-wrapper no-select"
-                                ref={providedDraggable.innerRef}
-                                {...providedDraggable.draggableProps}
-                                style={{...providedDraggable.draggableProps.style}}
-                              >
-                                {this.renderRowManager({
-                                  group,
-                                  indexOfGroup,
-                                  prevGroup,
-                                  dragHandleProps: providedDraggable.dragHandleProps,
-                                })}
-                              </div>
-                              {providedDraggable.placeholder}
-                            </div>
-                          );
-                        }}
-                      </Draggable>
-                    );
-                  }
-
-                  return this.renderRowManager({
-                    group,
-                    indexOfGroup,
-                    prevGroup,
-                  });
-                })}
-                {provided.placeholder}
-              </div>
-            );
-          }}
-        </Droppable>
-      </DragDropContext>
-
-    );
-  }
 
   onTimelineClick = () => {
     if (!this.refs.expressionInput.doesClickOriginatedFromMouseDown()) {
@@ -1583,7 +1462,7 @@ class Timeline extends React.Component {
           )
         }
         <PropertiesPanelResizer
-          propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
+          propertiesPixelWidth={propertiesPixelWidth}
           updatePropertiesPanelSize={this.updatePropertiesPanelSize}
         />
         {this.renderTopControls()}
@@ -1592,7 +1471,18 @@ class Timeline extends React.Component {
           propertiesPixelWidth={propertiesPixelWidth}
           onMouseDown={this.onScrollViewMouseDown}
         >
-          {this.renderComponentRows()}
+          {
+            <ComponentRows
+              rowHeight={this.state.rowHeight}
+              getActiveComponent={this.getActiveComponent}
+              mixpanel={this.props.mixpanel}
+              showEventHandlersEditor={this.showEventHandlersEditor}
+              onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
+              setEditingRowTitleStatus={this.setEditingRowTitleStatus}
+              showBezierEditor={this.showBezierEditor}
+              propertiesPixelWidth={propertiesPixelWidth}
+            />
+          }
         </ScrollView>
         {this.renderBottomControls()}
         <ExpressionInput

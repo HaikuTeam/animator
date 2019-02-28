@@ -1171,15 +1171,15 @@ export default class ExpressionInput extends React.Component {
     if (rawValueDescriptor && Property.hasColorPopup(rawValueDescriptor.propertyName)) {
       if (rawValueDescriptor.computedValue) {
         return rawValueDescriptor.computedValue;
-      } else {
-        const fallbackValue = '#fff';
-
-        if (!Boolean(this.codemirror.getValue())) {
-          this.setEditorValue(fallbackValue);
-        }
-
-        return fallbackValue;
       }
+
+      const fallbackValue = '#fff';
+
+      if (!Boolean(this.codemirror.getValue())) {
+        this.setEditorValue(fallbackValue);
+      }
+
+      return fallbackValue;
     }
 
     return false;
