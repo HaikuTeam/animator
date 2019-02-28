@@ -112,6 +112,9 @@ export const DASH_STYLES: React.CSSProperties = {
       boxShadow: '0 10px 40px 0 rgba(21,32,34,0.69)',
     },
   },
+  deadCard: {
+    cursor: 'not-allowed',
+  },
   cardAsButton: {
     position: 'relative',
     flex: '1 1 240px',

@@ -431,7 +431,11 @@ class ProjectBrowser extends React.Component {
           <ProjectThumbnail
             key={projectObject.projectName}
             allowDelete={this.props.isOnline || projectObject.local}
-            allowInteractions={!this.state.areProjectsLoading}
+            allowInteractions={
+              this.props.expiredTrialNonPro ?
+                !(this.state.areProjectsLoading || !projectObject.repositoryUrl || projectObject.isFork) :
+                !this.state.areProjectsLoading
+            }
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectExistsLocally={projectObject.projectExistsLocally}

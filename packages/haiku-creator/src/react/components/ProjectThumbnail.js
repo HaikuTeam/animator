@@ -37,12 +37,40 @@ class ProjectThumbnail extends React.Component {
     shell.showItemInFolder(this.props.projectPath);
   };
 
+  onClick = () => {
+    if (!this.props.allowInteractions) {
+      return;
+    }
+
+    if (this.props.expiredTrialNonPro) {
+      return this.openBrowserToProjectSharePage();
+    }
+
+    if (!this.state.isMenuActive) {
+      return this.launchProjectIfAllowed();
+    }
+  };
+
+  onMouseOver = () => {
+    if (this.props.allowInteractions) {
+      this.setState({isHovered: true});
+    }
+  };
+
+  onMouseLeave = () => {
+    if (this.props.allowInteractions) {
+      this.setState({isHovered: false});
+    }
+  };
+
   render () {
     return (
       <div
         style={[DASH_STYLES.card,
           this.props.isDeleted && DASH_STYLES.deleted,
-          this.props.cardHeight && {height: this.props.cardHeight}]}
+          this.props.cardHeight && {height: this.props.cardHeight},
+          !this.props.allowInteractions && DASH_STYLES.deadCard,
+        ]}
         id={`js-utility-${this.props.projectName}`}
         key="wrap"
         onMouseLeave={() => {
@@ -73,23 +101,9 @@ class ProjectThumbnail extends React.Component {
             this.props.cardHeight && {height: this.props.cardHeight - 30},
             (this.state.isMenuActive || this.state.isHovered) && {opacity: 1},
           ]}
-          onClick={() => {
-            if (this.props.expiredTrialNonPro) {
-              this.openBrowserToProjectSharePage();
-            } else if (!this.state.isMenuActive) {
-              this.launchProjectIfAllowed();
-            }
-          }}
-          onMouseOver={() => {
-            if (this.props.allowInteractions) {
-              this.setState({isHovered: true});
-            }
-          }}
-          onMouseLeave={() => {
-            if (this.props.allowInteractions) {
-              this.setState({isHovered: false});
-            }
-          }}
+          onClick={this.onClick}
+          onMouseOver={this.onMouseOver}
+          onMouseLeave={this.onMouseLeave}
         >
           <span
             key="open"
