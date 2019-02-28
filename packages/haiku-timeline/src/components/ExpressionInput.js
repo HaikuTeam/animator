@@ -991,10 +991,6 @@ export default class ExpressionInput extends React.Component {
     return max;
   }
 
-  getEvaluatorText () {
-    return this.state.evaluatorText || '•••';
-  }
-
   getPropertyName () {
     const row = this.props.component.getFocusedRow();
     const name = (row && row.getPropertyName()) || '';
@@ -1346,10 +1342,12 @@ export default class ExpressionInput extends React.Component {
         onMouseDown={this.onMouseDown}
       >
         <div style={this.getSubWrapperStyle(hasPopover)}>
-          <span id="expression-input-tooltip" style={this.getTooltipStyle()}>
-            <span id="expression-input-tooltip-tri" style={this.getTooltipTriStyle()} />
-            {this.getEvaluatorText()}
-          </span>
+          {this.state.evaluatorText &&
+            <span id="expression-input-tooltip" style={this.getTooltipStyle()}>
+              <span id="expression-input-tooltip-tri" style={this.getTooltipTriStyle()} />
+              {this.state.evaluatorText}
+            </span>
+          }
           <div
             id="expression-input-editor-context"
             className={this.getEditorContextClassName()}
