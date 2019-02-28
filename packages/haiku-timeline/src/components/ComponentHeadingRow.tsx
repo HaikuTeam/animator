@@ -343,7 +343,6 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
               timeline={this.props.timeline}
               rowHeight={this.props.rowHeight}
               row={this.props.row}
-              backgroundColor={backgroundColor}
             />
           : ''}
         </div>
