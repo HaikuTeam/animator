@@ -2116,16 +2116,12 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        <ProjectLoader show={this.shouldShowProjectLoader()}>
-          {this.showGenericLoader
-            ? <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
-            : (<span style={{zIndex: 1}}>
-                <div style={{width: 150, margin: '0 auto'}}><AnimatorSVG /></div>
-                <div className="load-bar" />
-                <div style={{marginTop: 30, zIndex: 1}}>Initializing project…</div>
-              </span>)
-          }
-        </ProjectLoader>
+        {this.shouldShowProjectLoader() && (
+          <ProjectLoader
+            softwareVersion={this.state.softwareVersion}
+            message={this.showGenericLoader ? 'Loading…' : 'Initializing project…'}
+          />
+        )}
         {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
