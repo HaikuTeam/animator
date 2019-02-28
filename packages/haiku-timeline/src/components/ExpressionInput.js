@@ -370,17 +370,7 @@ export default class ExpressionInput extends React.Component {
         }
 
         if (cm.hasFocus()) {
-          const completions = parse.completions.sort((a, b) => {
-            const na = a.name.toLowerCase();
-            const nb = b.name.toLowerCase();
-            if (na < nb) {
-              return -1;
-            }
-            if (na > nb) {
-              return 1;
-            }
-            return 0;
-          }).slice(0, MAX_AUTOCOMPLETION_ENTRIES);
+          const completions = parse.completions.slice(0, MAX_AUTOCOMPLETION_ENTRIES);
 
           // Highlight the initial completion in the list
           if (completions[0]) {

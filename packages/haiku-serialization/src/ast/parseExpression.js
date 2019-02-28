@@ -132,29 +132,28 @@ function smushKeys (out, base, obj, depth, minDepth, maxDepth) {
 }
 
 function populateCompletions (target, injectables, keywords, declarations) {
-  const completions = {};
-
   const segs = getSegsList([], target);
-
-  const chain = segs.map((identifierNode) => identifierNode.name).join('.');
 
   // Nothing to do if we have no segments
   if (segs.length < 1) {
-    return completions;
+    return [];
   }
+
+  const completions = new Set();
+  const chain = segs.map((identifierNode) => identifierNode.name).join('.');
 
   // Only try to match declarations and keywords if we are only dealing with one segment
   if (segs.length === 1) {
     for (const declarationKey in declarations) {
       if (fsm(segs[0].name, declarationKey) > MATCH_WEIGHTS.DECLARATIONS) {
-        completions[declarationKey] = true;
+        completions.add(declarationKey);
       }
     }
 
     for (const keywordKey in keywords) {
       if (!FORBIDDEN_EXPRESSION_TOKENS[keywordKey]) {
         if (fsm(segs[0].name, keywordKey) > MATCH_WEIGHTS.KEYWORDS) {
-          completions[keywordKey] = true;
+          completions.add(keywordKey);
         }
       }
     }
@@ -163,15 +162,54 @@ function populateCompletions (target, injectables, keywords, declarations) {
   const found = {};
   findMatches(found, segs, 0, injectables);
 
-  const smush = smushKeys([], null, found, 0, segs.length - 1, segs.length);
-  for (let i = 0; i < smush.length; i++) {
-    completions[smush[i]] = true;
+  smushKeys([], null, found, 0, segs.length - 1, segs.length).forEach((smushed) => {
+    completions.add(smushed);
+  });
+
+  // If there is exactly one completion, and it's identical to our chain, we should not show completions.
+  if (completions.size === 1 && completions.has(chain)) {
+    return [];
   }
 
-  // Strip out any exact matches, leaving only remainders
-  if (completions[chain]) {
-    delete completions[chain];
-  }
+  const nChain = chain.toLowerCase();
+
+  // We impose a strict weak ordering, as follows:
+  //  - exact matches are at the front
+  //  - case-insensitive typeahead matches come next
+  //  - the remainder is sorted lexographically
+  return Array.from(completions).sort((a, b) => {
+    const na = a.toLowerCase();
+    const nb = b.toLowerCase();
+
+    // Ensures exact matches are always at the top.
+    if (a === chain) {
+      return -1;
+    }
+
+    if (b === chain) {
+      return 1;
+    }
+
+    // Ensures typeahead matches come next after exact matches.
+    if (na.startsWith(nChain)) {
+      return -1;
+    }
+
+    if (nb.startsWith(nChain)) {
+      return 1;
+    }
+
+    // The rest can be sorted lexographically.
+    if (na < nb) {
+      return -1;
+    }
+
+    if (na > nb) {
+      return 1;
+    }
+
+    return 0;
+  }).map(dataizeCompletion);
 
   // // Strip out any completions that are 'below' the current completion,
   // // but preserve those that are 'above' so we can reveal new possibilities
@@ -390,10 +428,8 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
     if (target && (target.type === 'Identifier' || target.type === 'MemberExpression')) {
       completions = populateCompletions(target, injectables, keywords, declarations);
     } else {
-      completions = {};
+      completions = [];
     }
-
-    completions = Object.keys(completions).map(dataizeCompletion);
 
     const tokenInvalidity = isTokenStreamInvalid(tokens, options);
     if (tokenInvalidity) {
