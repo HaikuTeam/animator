@@ -26,11 +26,11 @@ export default class ComponentRows extends React.Component<ComponentRowsProps> {
     this.timelineViewport = document.getElementById('timeline');
   }
 
-  onDragStart = (componentID: string) => {
+  enterDragState = (componentID: string) => {
     this.setState({forceCollapse: true, currentDraggingComponent: componentID});
   };
 
-  onDrop = () => {
+  leaveDragState = () => {
     this.setState({forceCollapse: false, currentDraggingComponent: ''});
   };
 
@@ -59,7 +59,7 @@ export default class ComponentRows extends React.Component<ComponentRowsProps> {
     const groups = activeComponent.getDisplayableRowsGroupedByElementInZOrder();
 
     return (
-      <div onDragOver={this.onDragOver}>
+      <div onDragOver={this.onDragOver} onDragEnd={this.leaveDragState}>
         <style>
           {`
             .row-manager-receiving-drag::before {
@@ -83,8 +83,8 @@ export default class ComponentRows extends React.Component<ComponentRowsProps> {
             mixpanel={this.props.mixpanel}
             reflection={Math.max(0, (groups.length - 2) - indexOfGroup)}
             showEventHandlersEditor={this.props.showEventHandlersEditor}
-            onDragStart={this.onDragStart}
-            onDrop={this.onDrop}
+            onDragStart={this.enterDragState}
+            onDrop={this.leaveDragState}
             forceCollapse={this.state.forceCollapse}
             onDoubleClickToMoveGauge={this.props.onDoubleClickToMoveGauge}
             setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
