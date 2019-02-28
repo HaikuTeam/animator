@@ -1,7 +1,5 @@
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import Palette from 'haiku-ui-common/lib/Palette';
-import lodash = require('lodash');
 import * as React from 'react';
 import ClusterRow from './ClusterRow';
 import ComponentHeadingRow from './ComponentHeadingRow';
@@ -10,21 +8,25 @@ import PropertyRow from './PropertyRow';
 
 export interface RowManagerProps {
   group: {rows: any[]};
-  indexOfGroup: number;
   rowHeight: number;
   getActiveComponent (): any;
   showEventHandlersEditor (): void;
   onDoubleClickToMoveGauge (): void;
   setEditingRowTitleStatus (): void;
   showBezierEditor (): void;
-  onDragOverCallback (): void;
+  onDrop (): void;
   timelinePropertiesWidth: number;
   reflection: number;
   mixpanel: any;
+  forceCollapse: boolean;
+  currentDraggingComponent: string;
+  onDragStart (componentId: string): void;
 }
 
 class RowManager extends React.PureComponent<RowManagerProps> {
-  private timelineViewport: HTMLElement;
+  state = {
+    canReceiveDrag: false,
+  };
 
   handleUpdate = (what: string) => {
     if (what === 'row-collapsed' || what === 'row-expanded') {
@@ -33,7 +35,6 @@ class RowManager extends React.PureComponent<RowManagerProps> {
   };
 
   componentDidMount () {
-    this.timelineViewport = document.getElementById('timeline');
     this.props.group.rows.forEach((row) => {
       if (row.isHeading() || row.isClusterHeading()) {
         row.on('update', this.handleUpdate);
@@ -101,16 +102,17 @@ class RowManager extends React.PureComponent<RowManagerProps> {
             component={activeComponent}
             row={row}
             onEventHandlerTriggered={this.props.showEventHandlersEditor}
-            isExpanded={row.isExpanded()}
+            isExpanded={row.isRootRow() ? true : (this.props.forceCollapse ? false : row.isExpanded())}
             isHidden={row.isHidden()}
             isSelected={row.isSelected()}
             hasAttachedActions={row.element.getVisibleEvents().length > 0}
             setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
             timelinePropertiesWidth={this.props.timelinePropertiesWidth}
+            onDragStart={this.props.onDragStart}
           />
         ),
         (
-          row.isExpanded() &&
+          (!this.props.forceCollapse || row.isRootRow()) && row.isExpanded() &&
           (
             <PropertyManager
               key={`property-manager-child-${row.getUniqueKey()}`}
@@ -127,43 +129,32 @@ class RowManager extends React.PureComponent<RowManagerProps> {
   };
 
   onDragEnter = (event: React.DragEvent<any>) => {
-    event.preventDefault();
-    this.setState({canReceiveDrag: true});
-  };
-
-  adjustViewportScroll = lodash.throttle((y: number) => {
-    if (y < 105) {
-      this.timelineViewport.scrollBy({
-        top: -65,
-        behavior: 'smooth',
-      });
-    } else if (window.innerHeight - y < 105) {
-      this.timelineViewport.scrollBy({
-        top: 65,
-        behavior: 'smooth',
-      });
+    if (
+      this.props.group.rows[0] &&
+      this.props.group.rows[0].element.getComponentId() !== this.props.currentDraggingComponent
+      ) {
+      event.preventDefault();
+      this.setState({canReceiveDrag: true});
     }
-  }, 60);
+  };
 
   onDragOver = (event: React.DragEvent<any>) => {
     event.preventDefault();
-    this.adjustViewportScroll(event.nativeEvent.y);
   };
 
   onDrop = (event: React.DragEvent<any>) => {
-    const componentId = event.dataTransfer.getData('componentId');
     const activeComponent = this.props.getActiveComponent();
 
-    logger.info(`z-drop ${componentId} at`, this.props.reflection);
+    logger.info(`z-drop ${this.props.currentDraggingComponent} at`, this.props.reflection);
     this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
 
     activeComponent.zShiftIndices(
-      componentId,
+      this.props.currentDraggingComponent,
       activeComponent.getInstantiationTimelineName(),
       activeComponent.getInstantiationTimelineTime(),
-      this.props.reflection - 1,
+      this.props.reflection,
       {from: 'timeline'},
-      this.props.onDragOverCallback,
+      this.props.onDrop,
     );
 
     this.setState({canReceiveDrag: false});
@@ -174,21 +165,24 @@ class RowManager extends React.PureComponent<RowManagerProps> {
     this.setState({canReceiveDrag: false});
   };
 
-  state = {
-    canReceiveDrag: false,
-  };
+  getElements () {
+    if (this.props.forceCollapse) {
+      return this.props.group.rows
+        .filter((row) => (row.isHeading() && !row.isWithinCollapsedRow()) || row.parent.isRootRow())
+        .map(this.renderComponentRow);
+    }
 
-  render () {
-    const elements = this.props.group.rows
+    return this.props.group.rows
       .filter((row) => !row.isWithinCollapsedRow())
       .map(this.renderComponentRow);
+  }
+
+  render () {
+    const elements = this.getElements();
 
     return (
       <div
-        className="row-manager"
-        style={{
-          borderBottom: this.state.canReceiveDrag ? `4px solid ${Palette.PINK}` : 'none',
-        }}
+        className={`row-manager ${this.state.canReceiveDrag ? 'row-manager-receiving-drag' : ''}`}
         onDragOver={this.onDragOver}
         onDragEnter={this.onDragEnter}
         onDragLeave={this.onDragLeave}

@@ -1462,7 +1462,7 @@ class Timeline extends React.Component {
           )
         }
         <PropertiesPanelResizer
-          propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
+          propertiesPixelWidth={propertiesPixelWidth}
           updatePropertiesPanelSize={this.updatePropertiesPanelSize}
         />
         {this.renderTopControls()}
@@ -1480,6 +1480,7 @@ class Timeline extends React.Component {
               onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
               setEditingRowTitleStatus={this.setEditingRowTitleStatus}
               showBezierEditor={this.showBezierEditor}
+              propertiesPixelWidth={propertiesPixelWidth}
             />
           }
         </ScrollView>

@@ -255,10 +255,14 @@ input[type=number]::-webkit-outer-spin-button {
   pointer-events: none;
 }
 
-.drag-grip-wrapper {
+.component-heading-row-drag-handle {
   cursor: -webkit-grab;
 }
 
-.drag-grip-wrapper:active {
+.component-heading-row-drag-handle:active {
   cursor: -webkit-grabbing;
+}
+
+.row-manager-receiving-drag {
+  position: relative;
 }

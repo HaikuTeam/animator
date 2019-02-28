@@ -111,7 +111,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
         this.props.row.isRootRow())
         ? (
           <div
-            className="component-heading-row-heading-root-box"
+            className="component-heading-row-heading-root-box js-avoid-marquee-init"
             style={{
               display: 'inline-block',
               transform: 'translateY(1px)',
@@ -154,6 +154,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               {this.getIcon()}
             </span>
             <span
+              className="js-avoid-marquee-init"
               style={{
                 display: 'inline-block',
                 height: 20,

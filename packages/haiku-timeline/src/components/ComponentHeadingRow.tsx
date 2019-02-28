@@ -34,6 +34,7 @@ export interface ComponentHeadingRowProps {
   hasAttachedActions: boolean;
   timelinePropertiesWidth: number;
   setEditingRowTitleStatus (): void;
+  onDragStart (componentId: string): void;
 }
 
 export default class ComponentHeadingRow extends React.Component<ComponentHeadingRowProps> {
@@ -148,11 +149,26 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
   };
 
   onDragStart = (event: React.DragEvent<any>) => {
+    const headingHTML = event.currentTarget.querySelector('.component-heading-row-heading-child-box');
+    const ghostImage = headingHTML.cloneNode(true);
+    const componentId = this.props.row.element.getComponentId();
+
+    ghostImage.style.fontFamily = 'Fira Sans';
+    ghostImage.style.position = 'fixed';
+    ghostImage.style.fontSize = '12px';
+    ghostImage.style.paddingLeft = '20px';
+    ghostImage.style.background = Palette.LIGHT_GRAY;
+    ghostImage.style.width = `${this.props.timelinePropertiesWidth}px`;
+    ghostImage.style.top = 10000;
+    document.body.appendChild(ghostImage);
+    event.dataTransfer.setDragImage(ghostImage, 0, 0);
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('componentId', this.props.row.element.getComponentId());
-    setTimeout(() => {
+
+    setImmediate(() => {
+      ghostImage.remove();
       document.body.classList.add('dragging');
-    }, 100);
+      this.props.onDragStart(componentId);
+    });
   };
 
   onDragEnd = () => {
@@ -212,7 +228,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
             tabIndex={null}
           >
             <span
-              className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
+              className="opacity-on-hover js-avoid-marquee-init"
               style={{display: 'block'}}
             >
               <DragGrip />
