@@ -202,6 +202,13 @@ export default class Creator extends React.Component {
       this._lastMouseX = nativeEvent.clientX;
       this._lastMouseY = nativeEvent.clientY;
     });
+    document.addEventListener('selectionchange', () => {
+      // Repress weird Select All behaviors that negatively affect drag and drop from Library.
+      const selection = window.getSelection();
+      if (selection.anchorNode && selection.anchorNode.className === 'react-draggable') {
+        selection.removeAllRanges();
+      }
+    });
     document.addEventListener('drag', (nativeEvent) => {
       // When the drag ends, for some reason the position goes to 0, so hack this...
       if (nativeEvent.clientX > 0 && nativeEvent.clientY > 0) {
