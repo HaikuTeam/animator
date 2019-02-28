@@ -12,7 +12,8 @@ module.exports = function requestElementCoordinates (
   // if the loading screen is present, wait 300ms and try again
   const loader = document.getElementById('js-helper-project-loader');
   // When the loader transform style is "none", that means it's visible.
-  if (loader && loader.style.transform === 'none') {
+  // if (loader && loader.style.transform === 'none') {
+  if (loader) {
     return setTimeout(() => {
       requestElementCoordinates.apply(this, [
         ...arguments,
