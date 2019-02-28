@@ -580,6 +580,16 @@ export default class ExpressionInput extends React.Component {
         // Enter when single-line commits the value
         // Meta+Enter when single-line commits the value
         keydownEvent.preventDefault();
+
+        // If something is currently highlighted in the autocompletion menu, select and commit.
+        if (highlightedAutoCompletions.length > 0) {
+          this.chooseHighlightedAutoCompletion();
+          // Note: we have to setImmediate() here to allow the change to bubble down to state.
+          return setImmediate(() => {
+            return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
+          });
+        }
+
         return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
       }
 
