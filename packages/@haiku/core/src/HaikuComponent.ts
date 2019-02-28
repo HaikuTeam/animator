@@ -17,7 +17,7 @@ import {
   ParsedValueClusterCollection,
   TwoPointFiveDimensionalLayoutProperty,
 } from './api';
-import Config from './Config';
+import Config, {DEFAULTS} from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
@@ -3619,11 +3619,38 @@ export const ATTRS_CAMEL_TO_HYPH = {
   xHeight: 'x-height',
 };
 
+const PositionSchema = {
+  x: 'number',
+  y: 'number',
+  z: 'number',
+};
+
 export const ATTRS_HYPH_TO_CAMEL = {};
 
 for (const camel in ATTRS_CAMEL_TO_HYPH) {
   ATTRS_HYPH_TO_CAMEL[ATTRS_CAMEL_TO_HYPH[camel]] = camel;
 }
+
+INJECTABLES.$element = {
+  schema: {
+    offset: PositionSchema,
+    attributes: {},
+    tagName: 'string',
+    matrix: [],
+    opacity: 'number',
+    origin: PositionSchema,
+    rotation: PositionSchema,
+    scale: PositionSchema,
+    shown: 'boolean',
+    size: {x: 'number', y: 'number'},
+    sizeAbsolute: PositionSchema,
+    sizeProportional: PositionSchema,
+    translation: PositionSchema,
+  },
+  summon (injectees, component: HaikuComponent, node) {
+    injectees.$element = HaikuElement.findOrCreateByNode(node);
+  },
+};
 
 INJECTABLES.$window = {
   schema: {},
@@ -3639,8 +3666,36 @@ INJECTABLES.$mount = {
   },
 };
 
-INJECTABLES.$core = {
+INJECTABLES.$timeline = {
   schema: {},
+  summon (injectees, component: HaikuComponent, node, timelineName: string) {
+    injectees.$timeline = component.getTimeline(timelineName);
+  },
+};
+
+INJECTABLES.$clock = {
+  schema: {
+    destroy: 'function',
+    getExplicitTime: 'function',
+    getFrameDuration: 'function',
+    getTime: 'function',
+    setTime: 'function',
+    isRunning: 'function',
+    run: 'function',
+    start: 'function',
+    assignOptions: 'function',
+  },
+  summon (injectees, component: HaikuComponent) {
+    injectees.$clock = component.getClock();
+  },
+};
+
+INJECTABLES.$core = {
+  schema: {
+    options: DEFAULTS,
+    timeline: INJECTABLES.$timeline.schema,
+    clock: INJECTABLES.$clock.schema,
+  },
   summon (injectees, component: HaikuComponent, node, timelineName: string) {
     injectees.$core = {
       component,
@@ -3660,7 +3715,7 @@ INJECTABLES.$context = {
 };
 
 INJECTABLES.$component = {
-  schema: {},
+  schema: INJECTABLES.$element.schema,
   summon (injectees, component: HaikuComponent) {
     injectees.$component = component;
   },
@@ -3680,13 +3735,6 @@ INJECTABLES.$top = {
   },
 };
 
-INJECTABLES.$clock = {
-  schema: {},
-  summon (injectees, component: HaikuComponent) {
-    injectees.$timeline = component.getClock();
-  },
-};
-
 INJECTABLES.$state = {
   schema: {},
   summon (injectees, component: HaikuComponent) {
@@ -3694,29 +3742,15 @@ INJECTABLES.$state = {
   },
 };
 
-INJECTABLES.$timeline = {
-  schema: {},
-  summon (injectees, component: HaikuComponent, node, timelineName: string) {
-    injectees.$timeline = component.getTimeline(timelineName);
-  },
-};
-
-INJECTABLES.$element = {
-  schema: {},
-  summon (injectees, component: HaikuComponent, node) {
-    injectees.$element = HaikuElement.findOrCreateByNode(node);
-  },
-};
-
 INJECTABLES.$parent = {
-  schema: {},
+  schema: INJECTABLES.$element.schema,
   summon (injectees, component: HaikuComponent, node) {
     injectees.$parent = HaikuElement.findOrCreateByNode(node).parent;
   },
 };
 
 INJECTABLES.$container = {
-  schema: {},
+  schema: INJECTABLES.$element.schema,
   summon (injectees, component: HaikuComponent, node) {
     const element = HaikuElement.findOrCreateByNode(node);
     injectees.$container = element.owner;
@@ -3724,14 +3758,20 @@ INJECTABLES.$container = {
 };
 
 INJECTABLES.$children = {
-  schema: {},
+  schema: INJECTABLES.$element.schema.children,
   summon (injectees, component: HaikuComponent, node) {
     injectees.$children = HaikuElement.findOrCreateByNode(node).children;
   },
 };
 
 INJECTABLES.$tree = {
-  schema: {},
+  schema: {
+    parent: INJECTABLES.$element.schema,
+    chidren: INJECTABLES.$element.schema.children,
+    component: INJECTABLES.$element.schema,
+    root: INJECTABLES.$element.schema,
+    element: INJECTABLES.$element.schema,
+  },
   summon (injectees, component: HaikuComponent, node) {
     const element = HaikuElement.findOrCreateByNode(node);
     injectees.$tree = {
@@ -3745,7 +3785,21 @@ INJECTABLES.$tree = {
 };
 
 INJECTABLES.$user = {
-  schema: {},
+  schema: {
+    mouse: {
+      x: 'number',
+      y: 'number',
+      down: 'boolean',
+      buttons: [],
+    },
+    mouches: [],
+    keys: {},
+    touches: [],
+    pan: {
+      x: 'number',
+      y: 'number',
+    },
+  },
   summon (injectees, component: HaikuComponent, node) {
     if (component.isLiveMode()) {
       injectees.$user = component.context.getGlobalUserState();
@@ -3907,7 +3961,11 @@ INJECTABLES.$payload = {
 };
 
 INJECTABLES.$helpers = {
-  schema: {},
+  schema: {
+    now: 'function',
+    rand: 'function',
+    find: 'function',
+  },
   summon (injectees, component: HaikuComponent) {
     injectees.$helpers = component.helpers;
   },

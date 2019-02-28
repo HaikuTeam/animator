@@ -1,6 +1,7 @@
 {
   "sections": {
     "What's new": [
+      "Better auto-complete items in Expressions.",
       "Added placeholder support for the Vue adapter."
     ],
     "Fixes": [
@@ -8,6 +9,7 @@
       "Prevented property inputs on the Timeline from closing unexpectedly.",
       "Fixed a crash when trying to animate invalid paths.",
       "Fixed issues with the Timeline playback controls.",
+      "Fixed the value of the `$clock` injectable.",
       "Prevented marquee controls on stage from being affected by zoom."
     ]
   }

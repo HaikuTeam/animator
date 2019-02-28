@@ -370,17 +370,7 @@ export default class ExpressionInput extends React.Component {
         }
 
         if (cm.hasFocus()) {
-          const completions = parse.completions.sort((a, b) => {
-            const na = a.name.toLowerCase();
-            const nb = b.name.toLowerCase();
-            if (na < nb) {
-              return -1;
-            }
-            if (na > nb) {
-              return 1;
-            }
-            return 0;
-          }).slice(0, MAX_AUTOCOMPLETION_ENTRIES);
+          const completions = parse.completions.slice(0, MAX_AUTOCOMPLETION_ENTRIES);
 
           // Highlight the initial completion in the list
           if (completions[0]) {
@@ -467,6 +457,11 @@ export default class ExpressionInput extends React.Component {
         // The caller can decide whether they want the expression symbol to officially be '=' or 'return'
         // when presented as the formal final value for this method
         clean = (desiredExpressionSign === EXPR_SIGNS.EQ) ? ensureEq(clean) : ensureRet(clean);
+
+        // Avoid spurious errors due to trailing dots while we're in the middle of typing expressions.
+        if (clean[clean.length - 1] === '.') {
+          clean = clean.substr(0, clean.length - 1);
+        }
 
         return {
           kind: EXPR_KINDS.MACHINE,
@@ -575,6 +570,16 @@ export default class ExpressionInput extends React.Component {
         // Enter when single-line commits the value
         // Meta+Enter when single-line commits the value
         keydownEvent.preventDefault();
+
+        // If something is currently highlighted in the autocompletion menu, select and commit.
+        if (highlightedAutoCompletions.length > 0) {
+          this.chooseHighlightedAutoCompletion();
+          // Note: we have to setImmediate() here to allow the change to bubble down to state.
+          return setImmediate(() => {
+            return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
+          });
+        }
+
         return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
       }
 
