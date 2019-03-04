@@ -162,9 +162,9 @@ export default function createRightClickMenu (domElement, component) {
       )
     }
     lines.push(
-      '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' +
+      '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haikuforteams.com" target="_blank">' +
       haikuIcon +
-      '  Crafted in Haiku</a>',
+      '  Crafted in Haiku Animator</a>',
     );
     /* tslint:enable */
 

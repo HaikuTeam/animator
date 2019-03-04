@@ -645,7 +645,7 @@ class ProjectBrowser extends React.Component {
             ? (<button
               id="haiku-button-show-new-project-modal"
               key="new_proj"
-              title="Create new Haiku project"
+              title="Create new Animator project"
               onClick={() => this.showNewProjectModal()}
               style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
             >

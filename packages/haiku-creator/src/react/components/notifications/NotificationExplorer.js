@@ -49,7 +49,7 @@ class NotificationExplorer extends React.PureComponent {
     return (
       <div
         style={STYLES.wrapper}
-        title="Learn about the latest Haiku updates"
+        title="Learn about the latest Animator updates"
         onClick={() => {
           this.showChangelogModal();
         }}>
