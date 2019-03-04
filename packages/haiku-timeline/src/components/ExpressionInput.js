@@ -143,6 +143,7 @@ export default class ExpressionInput extends React.Component {
     this._injectables = {}; // List of current custom keywords (to be erased/reset)
     this._paramcache = null;
     this._parse = null; // Cache of last parse of the input field
+    this._mouseDownStarted = false;
 
     this.codemirror = CodeMirror(document.createElement('div'), {
       theme: 'haiku',
@@ -369,17 +370,7 @@ export default class ExpressionInput extends React.Component {
         }
 
         if (cm.hasFocus()) {
-          const completions = parse.completions.sort((a, b) => {
-            const na = a.name.toLowerCase();
-            const nb = b.name.toLowerCase();
-            if (na < nb) {
-              return -1;
-            }
-            if (na > nb) {
-              return 1;
-            }
-            return 0;
-          }).slice(0, MAX_AUTOCOMPLETION_ENTRIES);
+          const completions = parse.completions.slice(0, MAX_AUTOCOMPLETION_ENTRIES);
 
           // Highlight the initial completion in the list
           if (completions[0]) {
@@ -574,6 +565,16 @@ export default class ExpressionInput extends React.Component {
         // Enter when single-line commits the value
         // Meta+Enter when single-line commits the value
         keydownEvent.preventDefault();
+
+        // If something is currently highlighted in the autocompletion menu, select and commit.
+        if (highlightedAutoCompletions.length > 0) {
+          this.chooseHighlightedAutoCompletion();
+          // Note: we have to setImmediate() here to allow the change to bubble down to state.
+          return setImmediate(() => {
+            return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
+          });
+        }
+
         return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false);
       }
 
@@ -985,10 +986,6 @@ export default class ExpressionInput extends React.Component {
     return max;
   }
 
-  getEvaluatorText () {
-    return this.state.evaluatorText || '•••';
-  }
-
   getPropertyName () {
     const row = this.props.component.getFocusedRow();
     const name = (row && row.getPropertyName()) || '';
@@ -1165,15 +1162,15 @@ export default class ExpressionInput extends React.Component {
     if (rawValueDescriptor && Property.hasColorPopup(rawValueDescriptor.propertyName)) {
       if (rawValueDescriptor.computedValue) {
         return rawValueDescriptor.computedValue;
-      } else {
-        const fallbackValue = '#fff';
-
-        if (!Boolean(this.codemirror.getValue())) {
-          this.setEditorValue(fallbackValue);
-        }
-
-        return fallbackValue;
       }
+
+      const fallbackValue = '#fff';
+
+      if (!Boolean(this.codemirror.getValue())) {
+        this.setEditorValue(fallbackValue);
+      }
+
+      return fallbackValue;
     }
 
     return false;
@@ -1307,6 +1304,22 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
+  doesClickOriginatedFromMouseDown () {
+    return this._mouseDownStarted;
+  }
+
+  cleanMouseDownTracker () {
+    this._mouseDownStarted = false;
+  }
+
+  onMouseUp = () => {
+    this._mouseDownStarted = false;
+  };
+
+  onMouseDown = () => {
+    this._mouseDownStarted = true;
+  };
+
   render () {
     const rawValueDescriptor = this.getValueDescriptorForPopover();
     const rangePopover = this.renderRangePopover(rawValueDescriptor);
@@ -1316,12 +1329,20 @@ export default class ExpressionInput extends React.Component {
     const hasPopover = hasColorPopover || hasRangePopover;
 
     return (
-      <div id="expression-input-holster" style={this.getRootStyle(hasColorPopover)} onClick={this.stopPropagation}>
+      <div
+        id="expression-input-holster"
+        style={this.getRootStyle(hasColorPopover)}
+        onClick={this.stopPropagation}
+        onMouseUp={this.onMouseUp}
+        onMouseDown={this.onMouseDown}
+      >
         <div style={this.getSubWrapperStyle(hasPopover)}>
-          <span id="expression-input-tooltip" style={this.getTooltipStyle()}>
-            <span id="expression-input-tooltip-tri" style={this.getTooltipTriStyle()} />
-            {this.getEvaluatorText()}
-          </span>
+          {this.state.evaluatorText &&
+            <span id="expression-input-tooltip" style={this.getTooltipStyle()}>
+              <span id="expression-input-tooltip-tri" style={this.getTooltipTriStyle()} />
+              {this.state.evaluatorText}
+            </span>
+          }
           <div
             id="expression-input-editor-context"
             className={this.getEditorContextClassName()}

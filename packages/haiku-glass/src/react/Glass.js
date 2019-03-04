@@ -3125,6 +3125,7 @@ export class Glass extends React.Component {
             height,
             stroke: Palette.DARKER_ROCK2,
             'stroke-width': 1,
+            'vector-effect': 'non-scaling-stroke',
             fill: Palette.ROCK,
             'fill-opacity': 0.25,
             rx: 1,

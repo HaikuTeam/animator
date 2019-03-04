@@ -299,7 +299,7 @@ tape("Keyframe.07", t => {
 
     t.true(
       Keyframe.groupHasBezierEditableCurves([kfs[0]]),
-      "Returns true if a single keyframe with a descomposable curve is provided"
+      "Returns true if a single keyframe with a decomposable curve is provided"
     );
 
     t.false(
@@ -310,13 +310,13 @@ tape("Keyframe.07", t => {
     kfs[1].curve = "easeIn";
     t.false(
       Keyframe.groupHasBezierEditableCurves(selection),
-      "Returns false if a group of curves contain different curves, even if all are non descomposable"
+      "Returns false if a group of curves contain different curves, even if all are non decomposable"
     );
 
     kfs[1].curve = "easeOutBounce";
     t.false(
       Keyframe.groupHasBezierEditableCurves([kfs[1]]),
-      "Returns false if the group contains a descomposable curve"
+      "Returns false if the group contains a decomposable curve"
     );
 
     process.env.HAIKU_SUBPROCESS = subproc;

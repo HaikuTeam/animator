@@ -244,10 +244,10 @@ class Keyframe extends BaseModel {
   }
 
   /**
-   * @method hasDescomposableCurve
+   * @method hasDecomposableCurve
    * @description Return if the current curve body is composed of multiple Bezier Curves.
    */
-  hasDescomposableCurve () {
+  hasDecomposableCurve () {
     return this.hasCurveBody() && isDecomposableCurve(this.getCurve());
   }
 
@@ -1055,7 +1055,7 @@ Keyframe.groupHasBezierEditableCurves = (keyframes) => {
 
   return keyframes
     .filter((kf) => kf.hasCurveBody())
-    .every((kf) => kf.getCurve() === referenceCurve && !kf.hasDescomposableCurve());
+    .every((kf) => kf.getCurve() === referenceCurve && !kf.hasDecomposableCurve());
 };
 
 module.exports = Keyframe;

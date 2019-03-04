@@ -4368,6 +4368,13 @@ class ActiveComponent extends BaseModel {
 
   /**
    * @method zShiftIndices
+   *
+   * @param {string} componentId ID of the component to change the zIndex value
+   * @param {string} timelineName Name of the timeline
+   * @param {string} timelineTime Time in which the change should be saved
+   * @param {string} newIndex New zIndex value
+   * @param {object} metadata
+   * @param {function} cb
    */
   zShiftIndices (
     componentId,
