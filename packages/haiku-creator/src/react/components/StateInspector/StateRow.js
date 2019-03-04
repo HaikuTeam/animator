@@ -47,7 +47,7 @@ const STYLES = {
     backgroundColor: Palette.BLUE,
     float: 'right',
     marginRight: 4,
-    color: Palette.ROCK,
+    color: '#FAFBFC',
   },
   pillValue: {
     backgroundColor: Color(Palette.GRAY).lighten(0.17),
