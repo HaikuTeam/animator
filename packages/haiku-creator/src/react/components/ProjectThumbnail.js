@@ -119,7 +119,7 @@ class ProjectThumbnail extends React.Component {
 
           {(!this.props.expiredTrialNonPro) && <span
             key="view-online-alt"
-            onClick={this.openBrowserToProjectSharePage}
+            onClick={this.openBrowserToProjectSharePage.bind(this)}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
