@@ -1,8 +1,10 @@
-# Haiku Core
+# Animator Core
 
 [![NPM](https://nodei.co/npm/@haiku/core.png)](https://nodei.co/npm/@haiku/core/)
 
-Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai). It helps power the Haiku editing experience and also renders the designs you create as animated, interactive components anywhere on the web.
+Animator Core is the runtime and rendering engine for [Haiku Animator](https://www.haikuforteams.com/) and the components you create with Animator.  This engine is a dependency for any Haiku Animator components that are run on the web.
+
+Note that for iOS and Android, Haiku Animator [also supports exporting to Lottie](https://docs.haiku.ai/embedding-and-using-haiku/lottie.html).  Animator Core is only used when rendering Animator components for the web.
 
 <br>
 <p align="center">
@@ -10,25 +12,13 @@ Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai).
 </p>
 <br>
 
-## Developer Preview
-
-[Haiku for Mac](https://haiku.ai) gives designers the power to create web-ready animations, but that's only half the story. The other half is what happens to that animation in your codebase — and that's where Haiku Core comes in.
-
-<br>
-
-### Interprets Haiku-designed components for rendering on the web
-
-<br>
-<p align="center">
-  <img width="80%" src='docs/assets/visual-of-ui-code.png' />
-</p>
-<br>
-
-Haiku for Mac turns your designs into components and Haiku Core renders them. Since Haiku Core is built on pure and open web standards (HTML, CSS, JavaScript), your users won't ever need to install a plugin.
-
 <br>
 
 ### Compatible with modern browsers
+
+<br>
+
+Animator Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge. Its footprint is ~50kB gzipped.
 
 <br>
 <p align="center">
@@ -36,42 +26,29 @@ Haiku for Mac turns your designs into components and Haiku Core renders them. Si
 </p>
 <br>
 
-Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge. Its current footprint is ~50K gzipped.
-
-<br>
-
-### Native support with Lottie
-
-<p align="center" style="padding:30px">
-  <img width="60%" src='docs/assets/lottie-and-mobile-logos.png' />
-</p>
-
-[Haiku for Mac](https://haiku.ai) supports exporting to Lottie for native rendering of animations on iOS and Android. Check out [our blog post on Lottie](https://medium.com/haiku-blog/lottie-without-after-effects-9c5a8e74c239) or read more in [our docs.](https://docs.haiku.ai/embedding-and-using-haiku/lottie.html) (Note: Interactions and dynamic components aren't currently supported by Lottie.)
-
-<br>
 
 ### Hackable + compatible with existing codebases
 
-Haiku Core provides a simple and familiar API for runtime manipulation of components that were built in Haiku. You can play and pause animations, react to events, and even pass in dynamic data. (See the [docs](https://docs.haiku.ai) for more info.)
+Animator Core provides a simple and familiar API for runtime manipulation of components that were built in Animator. You can play and pause animations, react to events, and even pass in dynamic data. (See the [docs](https://docs.haiku.ai/embedding-and-using-haiku/haiku-core-api.html) for more info.)
 
 <br>
 
 ### Getting started
 
-Creating a Haiku component begins in Haiku for Mac:
+Creating an Animator component begins in Haiku Animator:
 
-1. Design a component in Haiku for Mac — or ask your designer for a component's Haiku share URL
+1. Design a component in Animator — or ask your designer for a component's Animator share URL
 2. Install the Haiku CLI: `$ yarn global add @haiku/cli` or `$ npm i @haiku/cli --global`
 3. Add that component to an existing React or web codebase: `$ haiku install @haiku/yourusername-yourcomponent`
 4. Seamlessly update the component as its design changes: `$ haiku upgrade [projectname] [--version=rev]`
 
-**Dev tip:** If you have Haiku for Mac installed, you can also `$ npm link` or `$ yarn link` your Haiku components to make them available to your codebase toolchain's hot reloading hooks. Haiku projects live in `~/.haiku/projects`.
+**Dev tip:** If you have Animator installed, you can also `$ npm link` or `$ yarn link` your Animator components to make them available to your codebase toolchain's hot reloading hooks. Animator projects live in `~/.haiku/projects`.
 
 <br>
 
 #### Direct installation
 
-If you want to install and develop with Haiku Core directly, you can do so with:
+If you want to install and develop with Animator Core directly, you can do so with:
 
     $ npm install @haiku/core
 
@@ -79,7 +56,7 @@ Or via yarn:
 
     $ yarn add @haiku/core
 
-Haiku Core is also available via Haiku's CDN:
+Animator Core is also available via Haiku's CDN:
 
     <!-- specific version -->
     <script src="https://code.haiku.ai/scripts/core/HaikuCore.VERSION.js"></script>
@@ -96,14 +73,14 @@ For our full documentation (a work in progress), please see [docs.haiku.ai](http
 
 Simple:
 
-    import HaikuCore from "@haiku/core/dom";
-    const definition = {template: {elementName: 'div', children: ['Hello Haiku!']}};
-    const factory = HaikuCore(definition);
+    import AnimatorCore from "@haiku/core/dom";
+    const definition = {template: {elementName: 'div', children: ['Hello Animator!']}};
+    const factory = AnimatorCore(definition);
     const component = factory(document.getElementById("mount"));
 
 Animated:
 
-    import HaikuCore from "@haiku/core/dom";
+    import AnimatorCore from "@haiku/core/dom";
     const definition = {
       timelines: {
         Default: {
@@ -124,12 +101,12 @@ Animated:
         children: ['Hello Animation!'],
       },
     };
-    const factory = HaikuCore(definition);
+    const factory = AnimatorCore(definition);
     const component = factory(document.getElementById("mount"));
 
 Interactive:
 
-    import HaikuCore from "@haiku/core/dom";
+    import AnimatorCore from "@haiku/core/dom";
     const definition = {
       options: {
         autoplay: false,
@@ -172,7 +149,7 @@ Interactive:
         attributes: {id: 'box'},
       },
     };
-    const factory = HaikuCore(definition);
+    const factory = AnimatorCore(definition);
     const component = factory(document.getElementById("mount"));
 
 <br>
@@ -184,7 +161,7 @@ By default, Haiku tracks usage of published components by transmitting metadata 
 To disable this, set the `mixpanel` option to `false`:
 
     // ...
-    const factory = HaikuCore(definition);
+    const factory = AnimatorCore(definition);
     const component = factory(document.getElementById("mount"), {
       mixpanel: false // Or the string of your own Mixpanel API token
     })
@@ -222,7 +199,7 @@ Please send contributions via [pull request](https://github.com/HaikuTeam/core/p
 
 ## Development
 
-To develop Haiku Core locally:
+To develop Animator Core locally:
 
 1. Fork the repo
 2. `$ yarn install`
