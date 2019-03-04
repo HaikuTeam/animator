@@ -9,13 +9,15 @@ import NotificationExplorer from './notifications/NotificationExplorer';
 import ProjectThumbnail from './ProjectThumbnail';
 import {TourUtils} from 'haiku-common/lib/types/enums';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
-import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {UserIconSVG, LogOutSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
+import LockoutModal from './LockoutModal';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 import {Paginator} from 'haiku-ui-common/lib/react/Paginator';
-import * as  NoCon from '@haiku/tina-nocon/react';
+import * as  NoCon from '@haiku/taylor-nocon/react';  // Actual Ku Credit: Ms Tina!
 
 const STYLES = {
   adminButton: {
@@ -38,6 +40,7 @@ class ProjectBrowser extends React.Component {
       isPopoverOpen: false,
       showNewProjectModal: false,
       showDeleteModal: false,
+      showLockoutModal: false,
       recordedDelete: '',
       recordedNewProjectName: '',
       projToDelete: '',
@@ -55,6 +58,10 @@ class ProjectBrowser extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
+    if (!this.props.expiredTrialNonPro && nextProps.expiredTrialNonPro) {
+      this.setState({showLockoutModal: true});
+    }
+
     if (this.props.isOnline ^ nextProps.isOnline) {
       // Value has changed.
       // This reload should be silent iff offline is allowed.
@@ -68,6 +75,10 @@ class ProjectBrowser extends React.Component {
 
   componentDidMount () {
     this.loadProjects();
+
+    if (this.props.expiredTrialNonPro) {
+      this.setState({showLockoutModal: true});
+    }
 
     this.props.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel;
@@ -255,6 +266,14 @@ class ProjectBrowser extends React.Component {
     this.props.explorePro('project-browser-titlebar');
   };
 
+  exploreProLockoutModal = () => {
+    this.props.explorePro('project-browser-lockoutmodal');
+  };
+
+  exploreProLockoutHeading = () => {
+    this.props.explorePro('project-browser-lockoutheading');
+  };
+
   offlineElement () {
     if (!this.shouldShowOfflineNotice) {
       return null;
@@ -265,15 +284,15 @@ class ProjectBrowser extends React.Component {
         <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
           <div style={{height: 160}}><NoCon loop={true} sizing="cover" /></div>
           <div style={DASH_STYLES.notice}>
-            <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haiku hosting services.<br/>Are you connected to the Internet?</div>
-            <div>Upgrade to Haiku Pro for offline capabilities.</div>
+            <div style={DASH_STYLES.noticeTitle}>Are you connected to the Internet?</div>
+            <div>The Animator free trial requires an active intenet connection.</div>
+            <div>Upgrade to Animator Pro for offline capabilities.</div>
             <div
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.btnPrimary,
                 DASH_STYLES.btn,
               ]}
-              title="Upgrade to Haiku Pro"
               onClick={this.exploreProOffline}>Go Pro
               <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
                 <ExternalLinkSVG color={Palette.SUNSTONE}/>
@@ -294,6 +313,10 @@ class ProjectBrowser extends React.Component {
   }
 
   renderNewProjectBoxorama () {
+    if (this.props.expiredTrialNonPro) {
+      return false;
+    }
+
     return (
       <div
         style={[
@@ -345,9 +368,8 @@ class ProjectBrowser extends React.Component {
 
       const perCardHeight = cardHeight + DASH_STYLES.card.marginTop;
       const rows = Math.floor(availableHeight / (perCardHeight));
-
-      // New project box is counted as a new project
-      const numProjectsPerPage = Math.max(columns * rows, 1);
+      const accountForNewProjBtn = this.props.expiredTrialNonPro ? 1 : 0;
+      const numProjectsPerPage = Math.max(columns * rows + accountForNewProjBtn, 1);
 
       if (this.state.numProjectsPerPage === numProjectsPerPage) {
         return;
@@ -382,14 +404,14 @@ class ProjectBrowser extends React.Component {
     if (this.shouldShowOfflineNotice || this.props.areProjectsLoading) {
       return null;
     }
-    const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
+    const {showDeleteModal, showNewProjectModal, showChangelogModal, showLockoutModal} = this.state;
 
     return (
       <div
         style={[
           DASH_STYLES.projectsWrapper,
           {opacity: this.state.fadeOutProjects ? 0 : 1},
-          (showDeleteModal || showNewProjectModal || showChangelogModal) && {filter: 'blur(2px)'},
+          (showDeleteModal || showNewProjectModal || showChangelogModal || showLockoutModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout();
@@ -409,15 +431,21 @@ class ProjectBrowser extends React.Component {
           <ProjectThumbnail
             key={projectObject.projectName}
             allowDelete={this.props.isOnline || projectObject.local}
-            allowInteractions={!this.state.areProjectsLoading}
+            allowInteractions={
+              this.props.expiredTrialNonPro ?
+                !(this.state.areProjectsLoading || !projectObject.repositoryUrl || projectObject.isFork) :
+                !this.state.areProjectsLoading
+            }
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectExistsLocally={projectObject.projectExistsLocally}
             projectPath={projectObject.projectPath}
+            projectShareUrl={projectObject.projectShareUrl}
             isDeleted={projectObject.isDeleted}
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
+            expiredTrialNonPro={this.props.expiredTrialNonPro}
             cardHeight={this.state.cardHeight}
           />
         ))}
@@ -514,11 +542,22 @@ class ProjectBrowser extends React.Component {
         </div>
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.mini, DASH_STYLES.noSelect]}>
           <span style={DASH_STYLES.popover.icon}>
-            <LogoMicroSVG style={{transform: 'translateY(2px)'}} />
+            <AnimatorSVG style={{transform: 'translateY(2px)'}} />
           </span>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.softwareVersion}</span>
         </div>
       </div>
+    );
+  }
+
+  renderLockoutModal () {
+    return (
+      <LockoutModal
+        explorePro={this.exploreProLockoutModal}
+        onClose={() => {
+          this.setState({showLockoutModal: false});
+        }}
+      />
     );
   }
 
@@ -578,6 +617,8 @@ class ProjectBrowser extends React.Component {
   }
 
   render () {
+    const {trialDaysRemaining} = this.props;
+
     return (
       <div style={DASH_STYLES.dashWrap}>
         {/* This hack allows the italic and strong variants of the font to be preloaded, avoiding FOUT */}
@@ -588,41 +629,40 @@ class ProjectBrowser extends React.Component {
 
         {this.state.showDeleteModal && this.renderDeleteModal()}
 
-        <div style={DASH_STYLES.frame} className="frame">
-          {
-            this.props.privateProjectLimit !== null && this.state.projectsList.length > 0 && (
-              <div style={{marginRight: 15}}>
-                <strong>{this.state.projectsList.filter((projectObject) => !projectObject.isPublic).length}</strong>
-                <span>/</span>
-                <strong>{this.props.privateProjectLimit}</strong>
-                <span>&nbsp; private projects in use</span>
-                <span
-                  title="Upgrade to Haiku Pro"
-                  style={DASH_STYLES.bannerNotice}
-                  onClick={this.exploreProTitlebar}>
-                  Go Pro
-                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
-                    <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>
-                  </span>
-                </span>
-              </div>
-            )
-          }
+        {(this.props.expiredTrialNonPro && this.state.showLockoutModal) &&
+          this.renderLockoutModal()
+        }
 
+        <div style={DASH_STYLES.frame} className="frame">
+          { trialDaysRemaining > 0 &&
+            <span style={{marginRight: 8}}>{trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''} in your free trial`}</span>
+          }
           <NotificationExplorer
             lastViewedChangelog={this.props.lastViewedChangelog}
             onShowChangelogModal={this.props.onShowChangelogModal} />
 
-          <button
-            id="haiku-button-show-new-project-modal"
-            key="new_proj"
-            title="Create new Haiku project"
-            onClick={() => this.showNewProjectModal()}
-            style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
-          >
-            <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
-            <span>New Project</span>
-          </button>
+          { !this.props.expiredTrialNonPro
+            ? (<button
+              id="haiku-button-show-new-project-modal"
+              key="new_proj"
+              title="Create new Haiku project"
+              onClick={() => this.showNewProjectModal()}
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
+            >
+              <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
+              <span>New Project</span>
+            </button>)
+            : (
+              <span
+                style={DASH_STYLES.bannerNotice}
+                onClick={this.exploreProTitlebar}>
+                Go Pro
+                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                  <ExternalLinkSVG color={Palette.LIGHT_BLUE} />
+                </span>
+              </span>
+            )
+          }
 
           <Popover
             onOuterAction={this.closePopover}
@@ -646,13 +686,29 @@ class ProjectBrowser extends React.Component {
             </button>
           </Popover>
         </div>
-
+        {this.props.expiredTrialNonPro &&
+          (<div style={{display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center'}}>
+            <div style={DASH_STYLES.heading}><strong>Your 14 day trial has expired.</strong> Go Pro to continue working on your projects!</div>
+            <div>
+              <span
+                style={[
+                  BTN_STYLES.btnText,
+                  BTN_STYLES.btnPrimary,
+                ]}
+                onClick={this.exploreProLockoutHeading}>Go Pro
+                  <span style={{width: 14, height: 14, transform: 'translateY(-2px)', marginLeft: 4}}>
+                  <ExternalLinkSVG color={Palette.SUNSTONE} />
+                </span>
+              </span>
+            </div>
+          </div>)
+        }
         {this.projectsListElement()}
         <Paginator
           firstItemToDisplay={this.state.firstDisplayedProject}
           numItemsPerPage={this.state.numProjectsPerPage}
           numTotalItems={this.state.projectsList.length}
-          blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal}
+          blur={this.state.showDeleteModal || this.state.showNewProjectModal || this.state.showChangelogModal || this.state.showLockoutModal}
           fadeOut={this.state.fadeOutProjects}
           onChangeFirstItemToDisplay={this.changeFirstItemToDisplay}
         />
@@ -668,6 +724,7 @@ ProjectBrowser.propTypes = {
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
   showChangelogModal: React.PropTypes.bool.isRequired,
+  expiredTrialNonPro: React.PropTypes.bool.isRequired,
   onShowProxySettings: React.PropTypes.func.isRequired,
   privateProjectLimit: React.PropTypes.number,
 };

@@ -43,7 +43,7 @@ class ProxyHelpScreen extends React.PureComponent {
           </ModalHeader>
           <div style={STYLES.modalBody}>
           Proxies and firewalls can sometimes interfere with your connection to
-          Haiku. If you’re struggling to connect, here are a few steps that can resolve the problem:
+          Animator. If you’re struggling to connect, here are a few steps that can resolve the problem:
           <ul>
             {HELP_STEPS.map((step, idx) => {
               return (

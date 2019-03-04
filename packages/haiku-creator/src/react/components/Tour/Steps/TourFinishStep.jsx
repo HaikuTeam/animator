@@ -5,7 +5,7 @@ export default function ({styles, openLink}) {
     <div>
       <h2 style={styles.heading}>That’s a wrap!</h2>
       <div style={styles.text}>
-        Now it's your turn to build something awesome using Haiku. You can <strong>check out the following resources</strong> to help you kick-start your first project:
+        Now it's your turn to build something awesome using Animator. You can <strong>check out the following resources</strong> to help you kick-start your first project:
 
         <div style={styles.linksWrapper}>
           - <a onClick={openLink} href="https://www.haiku.ai/learn/" style={styles.link}>Tutorials</a> <br />

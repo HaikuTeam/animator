@@ -20,7 +20,7 @@ if (!app) {
   throw new Error('You can only run electron.js from an electron process');
 }
 
-app.setName('Haiku');
+app.setName('Animator');
 app.setAsDefaultProtocolClient('haiku');
 
 // Haiku main window

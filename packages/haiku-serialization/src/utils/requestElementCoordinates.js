@@ -11,8 +11,9 @@ module.exports = function requestElementCoordinates (
 
   // if the loading screen is present, wait 300ms and try again
   const loader = document.getElementById('js-helper-project-loader');
-  // When the loader transform style is "none", that means it's visible.
-  if (loader && loader.style.transform === 'none') {
+  // (deprecated) webview project loader: when the loader transform style is "none", that means it's visible.
+  // Current: when the loader is present on the page, that means it's visible.
+  if (loader) {
     return setTimeout(() => {
       requestElementCoordinates.apply(this, [
         ...arguments,

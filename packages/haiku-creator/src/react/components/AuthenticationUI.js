@@ -5,7 +5,8 @@ import {shell} from 'electron';
 import {shake} from 'react-animations';
 import {FadingCircle} from 'better-react-spinkit';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {LogoGradientSVG, UserIconSVG, PasswordIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {UserIconSVG, PasswordIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import {getAccountUrl, getUrl} from 'haiku-common/lib/environments';
 
 const STYLES = {
@@ -44,6 +45,10 @@ const STYLES = {
   },
   inputHolster: {
     position: 'relative',
+  },
+  logoHolster: {
+    width: 96,
+    margin: '0 auto',
   },
   tooltip: {
     backgroundColor: Color(Palette.RED).fade(0.1),
@@ -324,7 +329,7 @@ class AuthenticationUI extends React.Component {
     return (
       <div style={STYLES.container}>
         <div style={[STYLES.formWrap, STYLES.center, this.state.error && STYLES.errorShake]}>
-          <LogoGradientSVG />
+          <div style={STYLES.logoHolster}><AnimatorSVG /></div>
           <div style={STYLES.title}>Log in to Your Account</div>
           {this.errorElement()}
           {this.usernameElement()}

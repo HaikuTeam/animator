@@ -30,12 +30,12 @@ export const BTN_STYLES = {
     },
   },
   btnText: {
+    fontWeight: 'bold',
     height: '25px',
     padding: '4px 9px',
     fontSize: 11,
     letterSpacing: '1.3px',
     marginRight: '5px',
-    lineHeight: 1,
     display: 'flex',
     alignItems: 'center',
     float: 'right',
@@ -43,6 +43,7 @@ export const BTN_STYLES = {
     borderBottomRightRadius: 3,
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
+    textTransform: 'uppercase',
     color: Palette.SUNSTONE,
     transform: 'scale(1)',
     cursor: 'pointer',
@@ -66,6 +67,13 @@ export const BTN_STYLES = {
   },
   btnPrimaryAlt: {
     backgroundColor: Color(Palette.FATHER_COAL).darken(0.2),
+  },
+  btnSecondary: {
+    textTransform: 'uppercase',
+    display: 'inline-block',
+    marginTop: 10,
+    backgroundColor: 'transparent',
+    border: '1px solid ' + Palette.LIGHT_BLUE,
   },
   btnCancel: {
     letterSpacing: '1.3px',

@@ -253,6 +253,29 @@ input::-webkit-input-placeholder {
 }
 */
 
+body {
+  background-color: #2D373A;
+}
+
+.load-bar {
+    height: 10px;
+    width: 150px;
+    margin-top: 20px;
+    margin: 20px auto 0;
+    border-radius: 10px;
+    background-image: linear-gradient(-45deg, #04B6CB 25%, rgba(255, 154, 26, 0) 25%, rgba(255, 154, 26, 0) 50%, #04B6CB 50%, #04B6CB 75%, rgba(255, 154, 26, 0) 75%);
+    background-color: #0098AA;
+    background-size: 50px 50px;
+    border: 1px solid #04B6CB;
+    border-bottom-color: #0098AA;
+    animation: move 2s linear infinite;
+}
+
+@keyframes move {
+  0%   { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+
 .toast {
   transform: translateY(0);
 }

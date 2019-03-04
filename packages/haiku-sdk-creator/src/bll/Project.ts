@@ -36,6 +36,7 @@ export interface HaikuProject {
   projectPath: string;
   projectName: string;
   projectExistsLocally: boolean;
+  projectShareUrl: string;
   isPublic: boolean;
   branchName: string;
   local: boolean;
@@ -70,6 +71,8 @@ const getSafeOrganizationName = (maybeOrgName: string) => {
   return orgName.replace(WHITESPACE_REGEX, UNDERSCORE);
 };
 
+const shareUrl = process.env.HAIKU_SHARE || 'https://share.haiku.ai/';
+
 export class ProjectHandler extends EnvoyHandler {
   private currentProject: HaikuProject;
   private currentSha: string;
@@ -100,6 +103,7 @@ export class ProjectHandler extends EnvoyHandler {
     return {
       projectPath,
       authorName,
+      projectShareUrl: shareUrl + project.UniqueId,
       local: false,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(project.Name),
@@ -312,6 +316,7 @@ export class ProjectHandler extends EnvoyHandler {
       local: true,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(name),
+      projectShareUrl: process.env.HAIKU_SHARE  || 'https://share.haiku.ai/',
       projectExistsLocally: existsSync(projectPath),
       repositoryUrl: '',
       forkComplete: false,
@@ -463,18 +468,13 @@ export class ProjectHandler extends EnvoyHandler {
         framerate: 15,
         outlet: 'cdn',
       },
+      {
+        format: ExporterFormat.Video,
+        filename: path.join(project.projectPath, 'animation.mp4'),
+        framerate: 30,
+        outlet: 'cdn',
+      },
     ];
-
-    if (this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
-      requests.push(
-        {
-          format: ExporterFormat.Video,
-          filename: path.join(project.projectPath, 'animation.mp4'),
-          framerate: 30,
-          outlet: 'cdn',
-        },
-      );
-    }
 
     return requests;
   }

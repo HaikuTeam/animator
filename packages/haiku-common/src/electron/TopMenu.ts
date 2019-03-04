@@ -6,7 +6,7 @@ import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
 import {TourUtils} from '../types/enums';
 
-app.setName('Haiku');
+app.setName('Animator');
 
 export interface UndoState {
   canUndo: boolean;
@@ -154,7 +154,7 @@ export default class TopMenu {
         },
       },
       {
-        label: 'About Haiku',
+        label: 'About Animator',
         click: () => {
           shell.openExternal('https://www.haiku.ai/');
         },

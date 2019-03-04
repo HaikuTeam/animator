@@ -35,8 +35,16 @@ export const DASH_STYLES: React.CSSProperties = {
     justifyContent: 'flex-end',
     color: Palette.ROCK,
   },
+  heading:  {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    color: Palette.ROCK,
+  },
   bannerNotice: {
-    margin: '0 -7px 0 7px',
+    fontWeight: 'bold',
+    margin: '0 7px 0 0px',
     border: '1px solid' + Palette.BLUE,
     borderRadius: 3,
     padding: '0 8px',
@@ -103,6 +111,9 @@ export const DASH_STYLES: React.CSSProperties = {
     ':hover': {
       boxShadow: '0 10px 40px 0 rgba(21,32,34,0.69)',
     },
+  },
+  deadCard: {
+    cursor: 'not-allowed',
   },
   cardAsButton: {
     position: 'relative',
@@ -187,6 +198,7 @@ export const DASH_STYLES: React.CSSProperties = {
   menuOption: {
     opacity: 0.84,
     display: 'block',
+    textTransform: 'uppercase',
     transform: 'translateY(0px)',
     transition: 'opacity 120ms ease, transform 390ms cubic-bezier(.35,.44,0,1.3)',
     pointerEvents: 'auto',

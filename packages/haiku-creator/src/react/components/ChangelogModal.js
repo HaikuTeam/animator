@@ -5,7 +5,7 @@ import {
   ModalWrapper,
   ModalHeader,
 } from 'haiku-ui-common/lib/react/Modal';
-import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {BTN_STYLES} from '../styles/btnShared';
 import {DASH_STYLES} from '../styles/dashShared';
@@ -25,7 +25,9 @@ const STYLES = {
     padding: '20px 40px 60px',
   },
   iconStyle: {
-    marginRight: '8px',
+    width: 27,
+    marginRight: 7,
+    marginTop: 2,
   },
   button: {
     ...BTN_STYLES.btnText,
@@ -119,7 +121,7 @@ class ChangelogModal extends React.PureComponent {
           <div style={STYLES.modalContent}>
             <div>
               <div style={STYLES.logoAndVersion}>
-                <LogoMicroSVG style={STYLES.iconStyle} size={24} />
+                <div style={STYLES.iconStyle}><AnimatorSVG /></div>
                 <span style={STYLES.version}>{process.env.HAIKU_RELEASE_VERSION}</span>
               </div>
             </div>
@@ -157,9 +159,8 @@ class ChangelogModal extends React.PureComponent {
               </div>
             </PrettyScroll>
           </div>
-        </ModalWrapper>
-      </div>
-    );
+        </ModalWrapper>;
+    </div>);
   }
 }
 

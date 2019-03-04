@@ -1,6 +1,9 @@
+// This file is now irrelevant unless we can fix @haiku/taylor/ipreview2
+// (I couldn't get it working from within Haiku proper when I needed to update the colors)
+
 import * as React from 'react';
 import * as Radium from 'radium';
-import * as IPreview from '@haiku/taylor-ipreview2/react';
+// import * as IPreview from '@haiku/taylor-ipreview2/react';
 
 const STYLES = {
   disabled: {

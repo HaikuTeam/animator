@@ -28,7 +28,6 @@ import ProxyHelpScreen from './components/ProxyHelpScreen';
 import ProxySettingsScreen from './components/ProxySettingsScreen';
 import ChangelogModal from './components/ChangelogModal';
 import NewProjectModal from './components/NewProjectModal';
-import {OfflineExportUpgradeModal} from './components/OfflineExportUpgradeModal';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {EXPORTER_CHANNEL, ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
@@ -41,16 +40,17 @@ import {
   isPreviewMode,
 } from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
+import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
-import * as Hai from '@haiku/taylor-hai/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
 import {FailWhale} from './components/Popups/FailWhale';
 import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
+import {inkstone} from '@haiku/sdk-inkstone';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -151,7 +151,7 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
-      showOfflineExportUpgradeModal: false,
+      expiredTrialNonPro: false,
       // This is a sensible default to avoid flashes of offline warnings.
       // (The Envoy server will protect us from any potential abuse.)
       allowOffline: true,
@@ -201,6 +201,13 @@ export default class Creator extends React.Component {
     document.addEventListener('mousemove', (nativeEvent) => {
       this._lastMouseX = nativeEvent.clientX;
       this._lastMouseY = nativeEvent.clientY;
+    });
+    document.addEventListener('selectionchange', () => {
+      // Repress weird Select All behaviors that negatively affect drag and drop from Library.
+      const selection = window.getSelection();
+      if (selection.anchorNode && selection.anchorNode.className === 'react-draggable') {
+        selection.removeAllRanges();
+      }
     });
     document.addEventListener('drag', (nativeEvent) => {
       // When the drag ends, for some reason the position goes to 0, so hack this...
@@ -694,9 +701,25 @@ export default class Creator extends React.Component {
       });
 
       this.checkOnlineStatus();
+
+      this.user.isTrialExpired().then((isTrialExpired) => {
+        this.setState({
+          expiredTrialNonPro: isTrialExpired,
+        });
+      });
+
+      this.user.getOrganization().then((org) => {
+        const pro = org.Role === inkstone.organization.Role.PRO;
+        if (!pro) {
+          this.user.getTrialDaysRemaining().then((trialDaysRemaining) => {
+            this.setState({trialDaysRemaining});
+          });
+        }
+      });
     });
 
     this.user.load().then(({user, organization}) => {
+
       this.setState({
         readyForAuth: true,
         isUserAuthenticated: user && organization,
@@ -797,45 +820,33 @@ export default class Creator extends React.Component {
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
       this.envoyExporter = exporterChannel;
       ipcRenderer.on('global-menu:save-as', (_, extension, request) => {
-        exporterChannel.checkOfflinePrivileges().then((allowOffline) => {
-          if (!allowOffline) {
-            this.setState({
-              showOfflineExportUpgradeModal: true,
-              offlineExportUpgradeModalMetadata: {
-                extension,
-                framerate: request.framerate,
-              },
-            });
-            return;
-          }
+        switch (extension) {
+          case 'gif':
+            request.format = ExporterFormat.AnimatedGif;
+            break;
+          case 'mp4':
+            request.format = ExporterFormat.Video;
+            break;
+          case 'json':
+            request.format = ExporterFormat.Bodymovin;
+            break;
+        }
 
-          switch (extension) {
-            case 'gif':
-              request.format = ExporterFormat.AnimatedGif;
-              break;
-            case 'mp4':
-              request.format = ExporterFormat.Video;
-              break;
-            case 'json':
-              request.format = ExporterFormat.Bodymovin;
-              break;
-          }
+        dialog.showSaveDialog(undefined, {
+          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
+          filters: [{
+            name: request.format, extensions: [extension],
+          }],
+        },
+          (filename) => {
+            if (!filename) {
+              return;
+            }
 
-          dialog.showSaveDialog(undefined, {
-            defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
-            filters: [{
-              name: request.format, extensions: [extension],
-            }],
+            request.filename = filename;
+            exporterChannel.save(request);
           },
-            (filename) => {
-              if (!filename) {
-                return;
-              }
-
-              request.filename = filename;
-              exporterChannel.save(request);
-            });
-        });
+        );
       });
     });
 
@@ -1755,7 +1766,7 @@ export default class Creator extends React.Component {
     return (
       <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
         <div style={{position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
-          <Hai loop={true} sizing="contain" contextMenu="disabled" />
+          <AnimatorSVG />
         </div>
         <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
       </div>
@@ -1812,20 +1823,8 @@ export default class Creator extends React.Component {
     ) : null;
   }
 
-  renderOfflineExportUpgradeModal () {
-    return this.state.showOfflineExportUpgradeModal ? (
-      <OfflineExportUpgradeModal
-        onClose={() => {
-          this.setState({showOfflineExportUpgradeModal: false});
-        }}
-        explorePro={this.explorePro}
-        metadata={this.state.offlineExportUpgradeModalMetadata}
-      />
-    ) : null;
-  }
-
   showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
-    if (!this.envoyProject) {
+    if (!this.state.isUserAuthenticated || !this.envoyProject || !this.user || this.state.expiredTrialNonPro) {
       return;
     }
     this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projectToDuplicate});
@@ -2073,7 +2072,6 @@ export default class Creator extends React.Component {
           </div>
         </CSSTransition>
         {this.renderChangelogModal()}
-        {this.renderOfflineExportUpgradeModal()}
         {this.renderNewProjectModal()}
         {!this.state.tearingDown && this.envoyClient &&
           <Tour
@@ -2105,6 +2103,8 @@ export default class Creator extends React.Component {
           onShowChangelogModal={this.showChangelogModal}
           privateProjectLimit={this.state.privateProjectLimit}
           showChangelogModal={this.state.showChangelogModal}
+          expiredTrialNonPro={this.state.expiredTrialNonPro}
+          trialDaysRemaining={this.state.trialDaysRemaining}
           username={this.state.username}
           softwareVersion={this.state.softwareVersion}
           organizationName={this.state.organizationName}
@@ -2116,18 +2116,19 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient}
           {...this.props} />
         }
-        <ProjectLoader show={this.shouldShowProjectLoader()}>
-          {this.showGenericLoader
-            ? <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
-            : <span style={{marginTop: 450, zIndex: 1}}>Initializing project…</span>
-          }
-        </ProjectLoader>
+        {this.shouldShowProjectLoader() && (
+          <ProjectLoader
+            softwareVersion={this.state.softwareVersion}
+            message={this.showGenericLoader ? 'Loading…' : 'Initializing project…'}
+          />
+        )}
         {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
           <div className="layout-box" style={{overflow: 'visible'}}>
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
                   isPro={this.state.privateProjectLimit == null}
+                  trialDaysRemaining={this.state.trialDaysRemaining}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
@@ -2198,7 +2199,7 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
-                    supportOfflineExport={this.state.allowOffline}
+                    supportOfflineExport={true} // supportOfflineExport is now stub/legacy logic after switching from Free Tier to Free Trial
                     explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}

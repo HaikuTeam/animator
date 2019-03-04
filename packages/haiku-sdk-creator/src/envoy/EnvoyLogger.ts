@@ -8,7 +8,7 @@ export default class EnvoyLogger implements Console {
   Console: NodeJS.ConsoleConstructor;
   memory: any;
 
-  constructor (private readonly logLevel: EnvoyLogLevel, private readonly logger?: Console) {
+  constructor (private readonly logLevel: EnvoyLogLevel, private readonly logger?: any) {
     if (!this.logger) {
       this.logger = LoggerInstance;
     }

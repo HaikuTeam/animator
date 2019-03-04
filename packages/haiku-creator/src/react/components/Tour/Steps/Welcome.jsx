@@ -32,7 +32,7 @@ export default class Welcome extends React.Component {
 
     return (
       <div>
-        <h2 style={styles.heading}>Welcome to Haiku</h2>
+        <h2 style={styles.heading}>Welcome to Animator</h2>
         <p style={styles.text}>Would you like to take the guided tour?</p>
         {
           !didTakeTour() &&

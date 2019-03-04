@@ -12,7 +12,7 @@ import Toggle from './Toggle';
 import {PublicPrivateOptInModal} from './PublicPrivateOptInModal';
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal';
 import {
-  ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG,
+  EyeIconSVG, ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG,
 } from 'haiku-ui-common/lib/react/OtherIcons';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
@@ -117,9 +117,6 @@ const STYLES = {
     color: Palette.ROCK,
     cursor: 'default',
     fontStyle: 'italic',
-  },
-  previewToggle: {
-    float: 'right',
   },
   popupNotice: {
     display: 'inline-block',
@@ -244,7 +241,7 @@ class StageTitleBar extends React.Component {
             return this.props.createNotice({
               type: 'danger',
               title: 'Uh oh!',
-              message: 'Haiku is having a problem accessing your project. 😢  Please restart Haiku. If you see this error again, contact Haiku for support.',
+              message: 'Animator is having a problem accessing your project. 😢  Please restart Animator. If you see this error again, contact Haiku for support.',
             });
           }
 
@@ -782,13 +779,23 @@ class StageTitleBar extends React.Component {
         >
           {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
         </button>
-
-        <Toggle
-          onToggle={this.props.onPreviewModeToggled}
-          style={STYLES.previewToggle}
+        <button
+          key="toggle-preview"
+          id="preview"
+          aria-label="Publish project"
+          aria-label="Toggle preview"
+          onClick={this.props.onPreviewModeToggled}
           disabled={!this.props.isTimelineReady}
-          active={isPreviewMode(this.props.interactionMode)}
-        />
+          style={[
+            BTN_STYLES.btnIcon,
+            BTN_STYLES.rightBtns,
+            {border: '1px solid ' + Palette.COAL, padding: '4px 5px'},
+            !this.props.isTimelineReady && STYLES.disabled,
+            isPreviewMode(this.props.interactionMode) && {border: '1px solid ' + Palette.PINK},
+          ]}
+        >
+          <EyeIconSVG color={this.getConglomerateComponentButtonColor()} />
+        </button>
 
         {this.state.showPublicPrivateOptInModal && !this.props.isPreviewMode &&
           <PublicPrivateOptInModal

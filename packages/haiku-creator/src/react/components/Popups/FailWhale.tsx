@@ -66,7 +66,7 @@ export class FailWhale extends React.PureComponent<FailWhaleProps> {
           <div style={STYLES.textContent}>
             <h2 style={STYLES.header}>Something went wrong</h2>
             <p>
-              Haiku encountered an unexpected error and needs to restart. <strong>
+              Animator encountered an unexpected error and needs to restart. <strong>
                 Don't worry, your latest work is saved.</strong>
             </p>
             <p>
@@ -82,7 +82,7 @@ export class FailWhale extends React.PureComponent<FailWhaleProps> {
             </p>
             <div style={STYLES.buttonWrapper}>
               <button style={STYLES.button} onClick={this.props.restart}>
-                Restart Haiku
+                Restart Animator
               </button>
             </div>
           </div>

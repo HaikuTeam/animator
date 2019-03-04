@@ -18,8 +18,48 @@ class ProjectThumbnail extends React.Component {
   }
 
   launchProjectIfAllowed = () => {
-    if (this.props.allowInteractions) {
+    if (this.props.allowInteractions && !this.props.expiredTrialNonPro) {
       this.props.launchProject();
+    }
+  };
+
+  openBrowserToProjectSharePage () {
+    shell.openExternal(this.props.projectShareUrl);
+  }
+
+  showDeleteModal = (e) => {
+    e.stopPropagation();
+    this.props.showDeleteModal();
+  };
+
+  showItemInFolder = (e) => {
+    e.stopPropagation();
+    shell.showItemInFolder(this.props.projectPath);
+  };
+
+  onClick = () => {
+    if (!this.props.allowInteractions) {
+      return;
+    }
+
+    if (this.props.expiredTrialNonPro) {
+      return this.openBrowserToProjectSharePage();
+    }
+
+    if (!this.state.isMenuActive) {
+      return this.launchProjectIfAllowed();
+    }
+  };
+
+  onMouseOver = () => {
+    if (this.props.allowInteractions) {
+      this.setState({isHovered: true});
+    }
+  };
+
+  onMouseLeave = () => {
+    if (this.props.allowInteractions) {
+      this.setState({isHovered: false});
     }
   };
 
@@ -28,7 +68,9 @@ class ProjectThumbnail extends React.Component {
       <div
         style={[DASH_STYLES.card,
           this.props.isDeleted && DASH_STYLES.deleted,
-          this.props.cardHeight && {height: this.props.cardHeight}]}
+          this.props.cardHeight && {height: this.props.cardHeight},
+          !this.props.allowInteractions && DASH_STYLES.deadCard,
+        ]}
         id={`js-utility-${this.props.projectName}`}
         key="wrap"
         onMouseLeave={() => {
@@ -59,21 +101,9 @@ class ProjectThumbnail extends React.Component {
             this.props.cardHeight && {height: this.props.cardHeight - 30},
             (this.state.isMenuActive || this.state.isHovered) && {opacity: 1},
           ]}
-          onClick={() => {
-            if (!this.state.isMenuActive) {
-              this.launchProjectIfAllowed();
-            }
-          }}
-          onMouseOver={() => {
-            if (this.props.allowInteractions) {
-              this.setState({isHovered: true});
-            }
-          }}
-          onMouseLeave={() => {
-            if (this.props.allowInteractions) {
-              this.setState({isHovered: false});
-            }
-          }}
+          onClick={this.onClick}
+          onMouseOver={this.onMouseOver}
+          onMouseLeave={this.onMouseLeave}
         >
           <span
             key="open"
@@ -84,9 +114,21 @@ class ProjectThumbnail extends React.Component {
               !this.state.isHovered && DASH_STYLES.gone2,
             ]}
           >
-            OPEN
+          {this.props.expiredTrialNonPro ? 'View Online' : 'Open'}
           </span>
-          {this.props.projectExistsLocally && <span
+
+          {(!this.props.expiredTrialNonPro) && <span
+            key="view-online-alt"
+            onClick={this.openBrowserToProjectSharePage}
+            style={[
+              DASH_STYLES.menuOption,
+              DASH_STYLES.opt2,
+              !this.state.isMenuActive && DASH_STYLES.gone,
+            ]}
+          >
+            View Online
+          </span>}
+          {(this.props.projectExistsLocally && !this.props.expiredTrialNonPro) && <span
             key="duplicate"
             onClick={this.props.showDuplicateProjectModal}
             style={[
@@ -99,7 +141,7 @@ class ProjectThumbnail extends React.Component {
           </span>}
           {this.props.projectExistsLocally && <span
             key="reveal"
-            onClick={() => shell.showItemInFolder(this.props.projectPath)}
+            onClick={this.showItemInFolder}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
@@ -110,7 +152,7 @@ class ProjectThumbnail extends React.Component {
           </span>}
           {this.props.allowDelete && <span
             key="delete"
-            onClick={this.props.showDeleteModal}
+            onClick={this.showDeleteModal}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
@@ -131,7 +173,7 @@ class ProjectThumbnail extends React.Component {
             title="Show project options"
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
             onClick={(e) => {
-              // Prevend launching project, as parent div has onClick handler
+              // Prevent launching project, as parent div has onClick handler
               e.stopPropagation();
               if (this.props.allowInteractions) {
                 this.setState({
