@@ -20,7 +20,7 @@ if (!app) {
   throw new Error('You can only run electron.js from an electron process');
 }
 
-app.setName('Animator');
+app.setName('Haiku Animator');
 app.setAsDefaultProtocolClient('haiku');
 
 // Haiku main window
@@ -122,7 +122,7 @@ function createWindow () {
   mixpanel.haikuTrack('app:initialize');
 
   browserWindow = new BrowserWindow({
-    title: 'Haiku',
+    title: 'Haiku Animator',
     show: false, // Don't show the window until we are ready-to-show (see below)
     titleBarStyle: 'hiddenInset',
     minWidth: 700,
@@ -164,7 +164,7 @@ function createWindow () {
     protocol.unregisterProtocol('web+haikuroot');
   });
 
-  browserWindow.setTitle('Haiku');
+  browserWindow.setTitle('Haiku Animator');
   browserWindow.maximize();
   browserWindow.loadURL(appUrl);
 

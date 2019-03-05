@@ -6,7 +6,7 @@ import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
 import {TourUtils} from '../types/enums';
 
-app.setName('Animator');
+app.setName('Haiku Animator');
 
 export interface UndoState {
   canUndo: boolean;
@@ -156,7 +156,7 @@ export default class TopMenu {
       {
         label: 'About Animator',
         click: () => {
-          shell.openExternal('https://www.haiku.ai/');
+          shell.openExternal('https://www.haikuforteams.com');
         },
       },
       {
@@ -172,21 +172,21 @@ export default class TopMenu {
 
     if (process.env.NODE_ENV !== 'production') {
       mainMenuPieces.push({
-        label: 'Reload Haiku',
+        label: 'Reload Animator',
         accelerator: 'CmdOrCtrl+R',
         role: 'reload',
       });
     }
 
     mainMenuPieces.push({
-      label: 'Minimize Haiku',
+      label: 'Minimize Animator',
       accelerator: 'CmdOrCtrl+M',
       role: 'minimize',
     });
 
     if (isMac()) {
       mainMenuPieces.push({
-        label: 'Hide Haiku',
+        label: 'Hide Animator',
         accelerator: 'CmdOrCtrl+H',
         role: 'hide',
       });
@@ -197,7 +197,7 @@ export default class TopMenu {
         type: 'separator',
       },
       {
-        label: 'Quit Haiku',
+        label: 'Quit Animator',
         accelerator: 'CmdOrCtrl+Q',
         role: 'quit',
       },
@@ -428,7 +428,7 @@ export default class TopMenu {
           {
             label: 'Community on Slack',
             click: () => {
-              shell.openExternal('https://www.haiku.ai/slack-community/');
+              shell.openExternal('https://www.haikuforteams.com/slack-community/');
             },
           },
           {
@@ -440,7 +440,7 @@ export default class TopMenu {
           {
             label: 'Blog',
             click: () => {
-              shell.openExternal('https://www.haiku.ai/blog/');
+              shell.openExternal('https://www.haikuforteams.com/blog/');
             },
           }, {type: 'separator'},
           {
@@ -492,12 +492,12 @@ export default class TopMenu {
           }, {type: 'separator'}, {
             label: 'Terms of Service',
             click: () => {
-              shell.openExternal('https://www.haiku.ai/terms-of-service.html');
+              shell.openExternal('https://www.haikuforteams.com/terms-of-service.html');
             },
           }, {
             label: 'Privacy Policy',
             click: () => {
-              shell.openExternal('https://www.haiku.ai/privacy-policy.html');
+              shell.openExternal('https://www.haikuforteams.com/privacy-policy.html');
             },
           },
         ],

@@ -332,7 +332,7 @@ class StageTitleBar extends React.Component {
     const noticeNotice = this.props.createNotice({
       type: 'info',
       title: 'No need to save!',
-      message: 'Haiku saves your work automatically',
+      message: 'Animator saves your work automatically',
     });
 
     window.setTimeout(() => {
