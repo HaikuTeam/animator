@@ -6,7 +6,7 @@ import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
 import {TourUtils} from '../types/enums';
 
-app.setName('Animator');
+app.setName('Haiku Animator');
 
 export interface UndoState {
   canUndo: boolean;
