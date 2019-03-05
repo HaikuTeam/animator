@@ -1,6 +1,55 @@
 # Changelog
 
 
+## 4.4.0
+
+### Bug Fixes
+
+ * replace Animator with Haiku Animator when setting the app name
+ * set s/Haiku Animator/Animator on browserwindow context
+ * revert app name in  field
+ * increase contrast of state inspector pills
+ * add bind to appease react and es6
+ * replace Haiku with Animator here and there
+ * remove too-clever trailing dot hack, which caused more issues
+ * detect the project loader correctly in the tour
+ * do not CTA "View Online" for unviewable projects
+ * repress weird select all behavior that breaks DnD
+ * don't show dots on top of expression editor
+ * typo on changelog
+ * remove 'unused' 'ku
+ * reset timeline states when a drop occurs outside of the timeline
+ * don't use a React.PureComponent for ComponentRows
+ * ensure sensible, ordered options in the autocomplete menu
+ * let Enter send autocomplete selections
+ * replace app installer screen
+ * prevent launching from projtitle click if expired
+ * disallow new proj on cmmd +N for expireds
+ * days remaining pluralization
+ * rename Haiku to Animator is most-all places
+ * remove ui testing piece
+ * remove unused var
+ * stop propagation on thumbnail link clicks
+ * unbork buttons
+ * avoid glass marquee controls from being affected by zoom
+ * properly set internal state variables on `Timeline.seekAndPause`
+ * update missing reference to activeComponent
+ * prevent the expression input from closing if the mose event originated from itself
+ * hook up a toast when trying to edit Bounce/Elastic curves
+ * typo s/Descomposable/Decomposable
+ * better function detection
+
+### Features
+
+ * update app icns files
+ * add perma-banner to dash if expired
+ * display trial dayz remaining in topbars
+ * replace project loader
+ * add placeholder support for the Vue adapter.
+ * add basic schema declarations for injectables
+ * port from free tier to free trial
+ * add an optional callback for state transitions
+
 ## 4.3.12
 
 ### Bug Fixes

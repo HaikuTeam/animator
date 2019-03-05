@@ -9110,5 +9110,212 @@
       "label": "fix",
       "message": "check if we get a valid color string before trying to infer its model"
     }
+  },
+  "4.4.0": {
+    "90b07403fd051187b3ca06be1eda0c4be687a763": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "replace Animator with Haiku Animator when setting the app name"
+    },
+    "fc0167a69e389880a51e404cfe8b0e5e21af8cea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "set s/Haiku Animator/Animator on browserwindow context"
+    },
+    "7a5c92bd28e7d88a67ce986418a6a9112a6f7d52": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "revert app name in  field"
+    },
+    "ccf35292fe4cd38f99bd25c3508c471c16fb8afc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "increase contrast of state inspector pills"
+    },
+    "01b4bd038105e866bd83855c099859c689ba46bf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add bind to appease react and es6"
+    },
+    "501d4798b11f48bdcc08854366618a17d83e928e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "replace Haiku with Animator here and there"
+    },
+    "1e73ebe5effe67a1f556516e32e8cce638b90239": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove too-clever trailing dot hack, which caused more issues"
+    },
+    "dc420fc0fdd23bfa1cf5ccd936f5ad0417ce742c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "detect the project loader correctly in the tour"
+    },
+    "406863ac60530d7dff44a2b7b3a60aae078da2ee": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not CTA \"View Online\" for unviewable projects"
+    },
+    "f9a977167429a68c2959629d05ad2939edca7b4a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "repress weird select all behavior that breaks DnD"
+    },
+    "7bc852296c39ee83719ad3e3406951a44eef0571": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't show dots on top of expression editor"
+    },
+    "23bebfda53d01065a626ae5760f23c0a04e8d718": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "typo on changelog"
+    },
+    "667b871226d7940381f2e819d33cd5f119d382c7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove 'unused' 'ku"
+    },
+    "fad8ca4a3ecae9d83169b17bed739207b1f73fda": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reset timeline states when a drop occurs outside of the timeline"
+    },
+    "a95b169b5790aca8dd464dd6fcec69bb218eba54": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't use a React.PureComponent for ComponentRows"
+    },
+    "f843a8c196e5a5a3b05edaae6625eb875c8554e0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure sensible, ordered options in the autocomplete menu"
+    },
+    "57a987dce6357d1d3b76e5ebda01b4d290de689e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "let Enter send autocomplete selections"
+    },
+    "e504d61fcc57aa3f164076b3b8f2b7eecef29959": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "update app icns files"
+    },
+    "6b1d25ca693f90947226ef1d56f298f67d51fed1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "replace app installer screen"
+    },
+    "7d812acee48a7827cc0eeb786a20a65c3d913a78": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent launching from projtitle click if expired"
+    },
+    "4b5728bc0272d279529ed7eafb5f501f93d1358b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disallow new proj on cmmd +N for expireds"
+    },
+    "859a428a020e563e39aa7b98c98e66baca4f0bc4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "days remaining pluralization"
+    },
+    "b669e1770ab3ce908493a4ca47cd17be1c2adacf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "rename Haiku to Animator is most-all places"
+    },
+    "da5ed28ff859036756519d88363707116cfe4733": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove ui testing piece"
+    },
+    "60bf4679765206c63fa2f9462a060d58cecbed75": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove unused var"
+    },
+    "34298c4d94af9569bd7a1cbf5230a595866eb4c0": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add perma-banner to dash if expired"
+    },
+    "b439700e02a2e1194f1ad5b108f7117242cab962": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "stop propagation on thumbnail link clicks"
+    },
+    "a18dd0a839b3a67350193bcb5a9325b8ab2fe42f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "unbork buttons"
+    },
+    "ee0d0f1f6173d52b6520320146b2c38f156aadbf": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "display trial dayz remaining in topbars"
+    },
+    "89da35838b3525b92863f0c74cbaafd2224c61f3": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "replace project loader"
+    },
+    "0fc61502af43804012a3c5d25fc84ab570644ff8": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add placeholder support for the Vue adapter."
+    },
+    "e1ef9a41ff79033cd1b821dd4ac25d383d6bb2c0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid glass marquee controls from being affected by zoom"
+    },
+    "9fe283ba8afea9c0ee6e324c61f088ab6f1dca9a": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add basic schema declarations for injectables"
+    },
+    "6a9ab498500f4fda1c8bca627edb765267251f7b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "properly set internal state variables on `Timeline.seekAndPause`"
+    },
+    "e05632ea70642bc76213f1e7e135050a5018d046": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update missing reference to activeComponent"
+    },
+    "62ec31262c3095bd9e1f0b3aeeb5c325dabd213e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent the expression input from closing if the mose event originated from itself"
+    },
+    "a6f942c9a254392a9ba339d10d38fcc67b7216ac": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hook up a toast when trying to edit Bounce/Elastic curves"
+    },
+    "32e00fd405860362b8e212c8311f4691215d7800": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "port from free tier to free trial"
+    },
+    "4ce702749c01d6d62d8581228c04d780d41bff04": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "typo s/Descomposable/Decomposable"
+    },
+    "39a6f7bdbab8104b3c1c2e297fb0a28a1c57dc9d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "better function detection"
+    },
+    "6a570e4b27fe406e283a376e4800589f152e6db3": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add an optional callback for state transitions"
+    }
   }
 }
