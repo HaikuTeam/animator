@@ -122,7 +122,7 @@ function createWindow () {
   mixpanel.haikuTrack('app:initialize');
 
   browserWindow = new BrowserWindow({
-    title: 'Animator',
+    title: 'Haiku Animator',
     show: false, // Don't show the window until we are ready-to-show (see below)
     titleBarStyle: 'hiddenInset',
     minWidth: 700,
@@ -164,7 +164,7 @@ function createWindow () {
     protocol.unregisterProtocol('web+haikuroot');
   });
 
-  browserWindow.setTitle('Animator');
+  browserWindow.setTitle('Haiku Animator');
   browserWindow.maximize();
   browserWindow.loadURL(appUrl);
 
