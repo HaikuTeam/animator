@@ -4,7 +4,7 @@
       "FIRST!"
     ],
     "Fixes": [
-      "FIRST!"
+      "Modified core Vue adapter for compatibility with production builds."
     ]
   }
 }

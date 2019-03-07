@@ -127,13 +127,21 @@ export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
     destroyed () {
       this.haiku.callUnmount();
     },
-    template: `
-<div
-  id="haiku-vueroot-${randomString(24)}"
-  style="position: relative; margin: 0; padding: 0; border: 0; width: 100%; height: 100%; transform: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)"
->
-  <slot></slot>
-</div>
-`,
+    render (createElement) {
+      return createElement('div', {
+        attrs: {
+          id: `haiku-vueroot-${randomString(24)}`,
+        },
+        style: {
+          position: 'relative',
+          margin: 0,
+          padding: 0,
+          border: 0,
+          width: '100%',
+          height: '100%',
+          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
+        },
+      }, this.$slots.default);
+    },
   };
 }
