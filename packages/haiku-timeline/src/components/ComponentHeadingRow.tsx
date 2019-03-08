@@ -149,6 +149,10 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
   };
 
   onDragStart = (event: React.DragEvent<any>) => {
+    if (this.props.row.isRootRow()) {
+      return false;
+    }
+
     const headingHTML = event.currentTarget.querySelector('.component-heading-row-heading-child-box');
     const ghostImage = headingHTML.cloneNode(true);
     const componentId = this.props.row.element.getComponentId();
@@ -181,13 +185,14 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
     const propertiesPixelWidth = this.props.timeline.getPropertiesPixelWidth();
     const depth = this.props.row.getDepthAmongRows();
     const backgroundColor = this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY;
+    const isRootRow = this.props.row.isRootRow();
 
     return (
       <div
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className="component-heading-row no-select js-avoid-marquee-init"
-        draggable={true}
+        draggable={!isRootRow}
         onDragStart={this.onDragStart}
         onDragEnd={this.onDragEnd}
         onMouseOver={this.hoverRow}
@@ -212,7 +217,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
             position: 'sticky',
             top: 0,
             left: 0,
-            paddingLeft: this.props.row.isRootRow() ? 5 : 0,
+            paddingLeft: isRootRow ? 5 : 0,
             width: propertiesPixelWidth,
             zIndex: zIndex.headingRow.base,
           }}
@@ -221,7 +226,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
             style={{
               marginTop: 3,
               marginRight: 3,
-              display: this.props.row.isRootRow() ? 'none' : 'inline-block',
+              display: isRootRow ? 'none' : 'inline-block',
               visibility: depth >= 2 ? 'hidden' : 'visible',
             }}
             className="component-heading-row-drag-handle js-avoid-marquee-init"
@@ -238,7 +243,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
             className="component-heading-row-inner no-select"
             style={{
               width: this.props.row.isExpanded()
-                ? this.props.row.isRootRow()
+                ? isRootRow
                   ? propertiesPixelWidth - 160
                   : propertiesPixelWidth - 200
                 : propertiesPixelWidth,
@@ -264,7 +269,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
                 style={{
                   width: 11,
                   padding: '0 3px',
-                  ...(!this.props.row.isRootRow() && {
+                  ...(!isRootRow && {
                     marginTop: 3,
                     marginLeft: -3,
                     marginRight: 3,
