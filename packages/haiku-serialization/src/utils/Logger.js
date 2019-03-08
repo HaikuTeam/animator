@@ -127,6 +127,10 @@ class Logger extends EventEmitter {
     console.count(...args);
   }
 
+  countReset (...args) {
+    console.countReset(...args);
+  }
+
   dir (...args) {
     console.dir(...args);
   }
@@ -165,6 +169,10 @@ class Logger extends EventEmitter {
 
   time (...args) {
     this.logger.profile(args, {view: this.view});
+  }
+
+  timeLog (...args) {
+    console.timeLog(...args);
   }
 
   timeEnd (...args) {

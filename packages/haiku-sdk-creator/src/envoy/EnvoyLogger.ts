@@ -48,6 +48,10 @@ export default class EnvoyLogger implements Console {
     return this.logger.count(...args);
   }
 
+  countReset (label?: string) {
+    return this.logger.countReset(label);
+  }
+
   debug (...args: any[]) {
     return this.logger.debug(...args);
   }
@@ -106,6 +110,10 @@ export default class EnvoyLogger implements Console {
 
   timeEnd (...args: any[]) {
     return this.logger.timeEnd(...args);
+  }
+
+  timeLog (label?: string, ...data: any[]) {
+    return this.logger.timeLog(label, ...data);
   }
 
   timeStamp (...args: any[]) {
