@@ -291,15 +291,17 @@ export default class Plumbing extends EventEmitter {
         });
 
         // If we were spawned as a subprocess inside of electron main, tell our parent to launch creator.
-        if (typeof process.send === 'function') {
-          process.send({
-            haiku,
-            message: 'launchCreator',
-          });
-        } else if (process.versions && !!process.versions.electron) {
-          // We are in electron main (e.g. in a test context).
-          global.process.env.HAIKU_ENV = JSON.stringify(haiku);
-          require('haiku-creator/lib/electron');
+        if (haiku.mode !== 'headless') {
+          if (typeof process.send === 'function') {
+            process.send({
+              haiku,
+              message: 'launchCreator',
+            });
+          } else if (process.versions && !!process.versions.electron) {
+            // We are in electron main (e.g. in a test context).
+            global.process.env.HAIKU_ENV = JSON.stringify(haiku);
+            require('haiku-creator/lib/electron');
+          }
         }
 
         return cb(null, host, port, server, null, haiku.envoy);

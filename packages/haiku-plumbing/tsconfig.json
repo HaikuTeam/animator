@@ -11,6 +11,7 @@
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "ESNext",
+    "skipLibCheck": true,
     "types": [
       "node"
     ],

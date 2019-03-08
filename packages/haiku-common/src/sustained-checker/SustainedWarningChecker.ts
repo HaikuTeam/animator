@@ -4,6 +4,7 @@
  *
  * TODO: Move this file to haiku-creator
  */
+import {BytecodeSummonable} from '@haiku/core/lib/api';
 import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 
 export enum SustainedWarningKind {
@@ -51,8 +52,8 @@ export default class SustainedWarningChecker {
             const maybeFunc = bytecodeTimeline[timelineName][componentId][propertyName][keyframeMs];
             // Checks only injected (Haiku.inject) function parameters. To do a more
             // complete expression parsing, parseExpression can be used
-            if (typeof maybeFunc.value === 'function') {
-              const funcParams = maybeFunc.value.specification.params;
+            if (maybeFunc.value instanceof Function) {
+              const funcParams = (maybeFunc.value as BytecodeSummonable).specification.params;
 
               funcParams.forEach((param: string) => {
                 // If function parameter param is not found in injectables list, create a

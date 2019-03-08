@@ -14,11 +14,13 @@ async.each(allPackages, (pack, next) => {
   }
 
   const command = pack.pkg.scripts['test-report'];
-  log.log('fetching test report for ' + pack.name);
+  log.log(`fetching test report for ${pack.name}`);
   cp.exec(command, {cwd: pack.abspath, stdio: 'inherit'}, (err) => {
     if (err) {
       log.err(`caught error in ${pack.shortname} test-report: ${err.toString()}`);
       hadError = true;
+    } else {
+      log.log(`finished fetching test report for ${pack.name}`);
     }
     next();
   });

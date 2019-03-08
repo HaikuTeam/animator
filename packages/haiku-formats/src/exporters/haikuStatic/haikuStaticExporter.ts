@@ -1,4 +1,4 @@
-import {BytecodeNode} from '@haiku/core/lib/api';
+import {BytecodeNode, BytecodeSummonable} from '@haiku/core/lib/api';
 import {writeFile} from 'fs-extra';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
@@ -34,7 +34,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
         }
 
         timelineProperty[keyframe] = {
-          value: evaluateInjectedFunctionInExportContext(value, this.bytecode),
+          value: evaluateInjectedFunctionInExportContext(value as BytecodeSummonable, this.bytecode),
           curve: timelineProperty[keyframe].curve,
         };
       }

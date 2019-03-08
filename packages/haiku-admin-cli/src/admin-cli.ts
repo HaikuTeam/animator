@@ -1,5 +1,5 @@
 import {client} from '@haiku/sdk-client';
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 
 import {adminSdk} from './sdk';
