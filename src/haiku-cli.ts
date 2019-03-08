@@ -12,7 +12,7 @@ import {
 import {bootstrapSceneFilesSync} from '@haiku/sdk-client/lib/bootstrapSceneFilesSync';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import {execSync} from 'child_process';
 import * as dedent from 'dedent';
 import * as fs from 'fs';
@@ -204,7 +204,7 @@ function doChangePassword (context: IContext) {
 
       inkstone.user.changePassword(token, params, (err, responseBody, response) => {
         if (err) {
-          context.writeLine(chalk.bold(`Unabled to change password: `) + err);
+          context.writeLine(chalk.bold('Unabled to change password: ') + err);
           process.exit(1);
         } else {
           context.writeLine(chalk.green('Password updated.'));
@@ -230,7 +230,7 @@ function doClone (context: IContext) {
             context.writeLine(chalk.bold(`Project ${projectName} not found.`));
             break;
           case ErrorCode.ErrorCodeProjectNameRequired:
-            context.writeLine(chalk.bold(`Project name is required.`));
+            context.writeLine(chalk.bold('Project name is required.'));
             break;
         }
         process.exit(1);
