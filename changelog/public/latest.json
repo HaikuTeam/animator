@@ -5,7 +5,8 @@
     ],
     "Fixes": [
       "Modified core Vue adapter for compatibility with production builds.",
-      "Improved undo/redo management in Timeline inputs."
+      "Improved undo/redo management in Timeline inputs.",
+      "Fixed a bug causing the app to crash when dragging the Main row of the Timeline."
     ]
   }
 }
