@@ -34,7 +34,7 @@
     "@types/dotenv": "^4.0.3",
     "@types/fs-extra": "^4.0.8",
     "@types/mkdirp": "^0.3.29",
-    "@types/node": "^8.9.4",
+    "@types/node": "10.12.30",
     "@types/request": "^2.0.0",
     "cross-env": "^5.1.6",
     "haiku-testing": "4.5.0",
