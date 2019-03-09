@@ -21,7 +21,7 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
-    "@types/node": "8.9.4",
+    "@types/node": "10.12.30",
     "@types/tape": "^4.2.32",
     "sinon": "^5.0.10",
     "xml-js": "^1.6.4"

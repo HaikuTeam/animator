@@ -32,7 +32,8 @@
   },
   "resolutions": {
     "@haiku/core": "^4.0.0",
-    "**/@types/react": "15.6.11"
+    "**/@types/react": "15.6.11",
+    "@types/node": "10.12.30"
   },
   "dependencies": {
     "@haiku/cli": "4.5.0",
