@@ -204,7 +204,7 @@ function doChangePassword (context: IContext) {
 
       inkstone.user.changePassword(token, params, (err, responseBody, response) => {
         if (err) {
-          context.writeLine(chalk.bold('Unabled to change password: ') + err);
+          context.writeLine(chalk.bold('Unable to change password: ') + err);
           process.exit(1);
         } else {
           context.writeLine(chalk.green('Password updated.'));
