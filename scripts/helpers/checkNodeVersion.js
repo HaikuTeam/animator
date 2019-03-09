@@ -2,7 +2,7 @@ const cp = require('child_process');
 
 const log = require('./log');
 
-const NODE_VERSION = '8.9.3';
+const NODE_VERSION = '8.15.1';
 
 module.exports = () => {
   const nodeVersion = cp.execSync('node --version').toString().trim();

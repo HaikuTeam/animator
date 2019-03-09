@@ -64,7 +64,7 @@
     "@types/node-fetch": "^2.1.1",
     "@types/qs": "^6.5.1",
     "cross-env": "^5.1.6",
-    "electron": "2.0.8",
+    "electron": "2.0.18",
     "electron-devtools-installer": "^2.2.4",
     "haiku-testing": "4.5.0",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",

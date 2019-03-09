@@ -60,9 +60,9 @@
     "dependency-graph": "^0.5.0",
     "derequire": "^2.0.6",
     "dotenv": "^5.0.1",
-    "electron": "2.0.8",
-    "electron-builder": "20.15.1",
-    "electron-rebuild": "^1.7.3",
+    "electron": "2.0.18",
+    "electron-builder": "20.38.5",
+    "electron-rebuild": "^1.8.4",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",
     "glob": "^7.1.2",
@@ -100,7 +100,7 @@
     "nodeGypRebuild": false,
     "productName": "Haiku",
     "forceCodeSigning": true,
-    "electronVersion": "2.0.8",
+    "electronVersion": "2.0.18",
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [

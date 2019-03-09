@@ -9,9 +9,9 @@ Haiku monorepo. Plus command-line tools to make cross-project scripting simpler.
 
     $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
 
-2.) node 8.9.3:
+2.) node 8.15.1:
 
-    $ nvm install 8.9.3 && nvm alias default 8.9.3
+    $ nvm install 8.15.1 && nvm alias default 8.15.1 && nvm use 8.15.1
 
 3.) yarn 1.9.4:
 
