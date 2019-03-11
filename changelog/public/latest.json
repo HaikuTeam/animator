@@ -1,7 +1,7 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Added Lottie support for line animations."
     ],
     "Fixes": [
       "Modified core Vue adapter for compatibility with production builds."
