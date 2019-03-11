@@ -12,8 +12,10 @@ import {
 } from './bodymovinEnums';
 import {
   BodymovinCoordinates,
+  BodymovinDimensions,
   BodymovinPathComponent,
   BodymovinProperty,
+  Keyframe,
 } from './bodymovinTypes';
 
 const {polyPointsStringToPoints} = SVGPoints;
@@ -163,7 +165,7 @@ export const alwaysAbsolute = (maybePercent: string|number, basis: number): numb
  * @param shape
  * @returns {[number , number]}
  */
-export const getShapeDimensions = (shape: any): [number, number] => {
+export const getShapeDimensions = (shape: any): BodymovinDimensions => {
   switch (shape[ShapeKey.Type]) {
     case ShapeType.Rectangle:
     case ShapeType.Ellipse:
@@ -177,7 +179,19 @@ export const getShapeDimensions = (shape: any): [number, number] => {
       // box of all shapes. It is suitable for all polygons (convex and concave), but might miss e.g. an arc or bezier
       // curve whose path traces beyond the convex hull of the set of vertices. The upshot of missing this is
       // currently only that we might fail to perfectly render a gradient fill, so it's not the end of the world!
-      const vertices = shape[ShapeKey.Vertices][PropertyKey.Value][PathKey.Points];
+      const vertices = [];
+      if (shape[ShapeKey.Vertices][PropertyKey.Animated]) {
+        vertices.push(...shape[ShapeKey.Vertices][PropertyKey.Value].reduce(
+          (accumulator: BodymovinDimensions[], value: Keyframe<BodymovinDimensions>) => {
+            if (value.hasOwnProperty(AnimationKey.Start)) {
+              accumulator.push(...value[AnimationKey.Start], ...value[AnimationKey.End]);
+            }
+            return accumulator;
+          }, []));
+      } else {
+        vertices.push(...shape[ShapeKey.Vertices][PropertyKey.Value][PathKey.Points]);
+      }
+
       return [
         Math.max(...vertices.map((vertex: number[]) => vertex[0])),
         Math.max(...vertices.map((vertex: number[]) => vertex[1])),

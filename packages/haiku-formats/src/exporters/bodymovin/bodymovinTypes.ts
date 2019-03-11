@@ -10,6 +10,8 @@ import {
 
 export type BodymovinCoordinates = [number, number];
 
+export type BodymovinDimensions = [number, number];
+
 export type BodymovinPathComponent = BodymovinCoordinates[];
 
 export type BodymovinProperty = {
