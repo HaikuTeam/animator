@@ -62,7 +62,7 @@ import {
   rotationTransformer,
   scaleTransformer,
 } from './bodymovinTransformers';
-import {BodymovinFill, BodymovinShape, BodymovinTransform, SvgInheritable} from './bodymovinTypes';
+import {BodymovinFill, BodymovinShape, BodymovinTransform, Keyframe, MaybeAnimated, SvgInheritable} from './bodymovinTypes';
 import {
   alwaysAbsolute,
   alwaysArray,
@@ -233,7 +233,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   private getValueAnimation (
     timelineProperty: BytecodeTimelineProperty, startKeyframe: number, endKeyframe: number,
     mutator?: MutatorType, disableRecursion: boolean = false,
-  ) {
+  ): Keyframe<any> {
+    // Note: curve is guaranteed to exist due to the work done in normalizeCurves(), which is always called before
+    // this private method.
+    const curve = timelineProperty[startKeyframe].curve as Curve;
+    const [xOut, yOut, xIn, yIn] = getCurveInterpolationPoints(curve);
+
     // (Lottie assumes linear if not provided.)
     const animation = {
       [AnimationKey.Time]: startKeyframe,
@@ -243,14 +248,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       [AnimationKey.End]: alwaysArray(
         maybeApplyMutatorToProperty(timelineProperty[endKeyframe].value, mutator, disableRecursion),
       ),
+      [AnimationKey.BezierIn]: {x: [xIn], y: [yIn]},
+      [AnimationKey.BezierOut]: {x: [xOut], y: [yOut]},
     };
-
-    // Note: curve is guaranteed to exist due to the work done in normalizeCurves(), which is always called before
-    // this private method.
-    const curve = timelineProperty[startKeyframe].curve as Curve;
-    const [xOut, yOut, xIn, yIn] = getCurveInterpolationPoints(curve);
-    animation[AnimationKey.BezierIn] = {x: [xIn], y: [yIn]};
-    animation[AnimationKey.BezierOut] = {x: [xOut], y: [yOut]};
 
     // If we have found the new "last" keyframe, note it now.
     this.outPoint = Math.max(this.outPoint, endKeyframe);
@@ -264,10 +264,10 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param {Function?} mutator
    * @returns {{}}
    */
-  private getValue (
+  private getValue<T = any> (
     timelineProperty: (BytecodeTimelineProperty|BytecodeTimelineProperty[]), mutator?: MutatorType,
     disableRecursion: boolean = false,
-  ): object {
+  ): MaybeAnimated<T> {
     if (Array.isArray(timelineProperty) && !disableRecursion) {
       return timelineProperty
         .map((scalarTimelineProperty) => this.getValue(scalarTimelineProperty, mutator))
@@ -801,9 +801,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       [TransformKey.StrokeMiterlimit]: Number(initialValueOr(timeline, 'strokeMiterlimit', 1)),
     };
 
-    const dasharray = initialValueOrNull(timeline, 'strokeDasharray');
-    if (dasharray) {
-      stroke[TransformKey.StrokeDasharray] = dasharrayTransformer(dasharray);
+    if (timelineHasProperties(timeline, 'strokeDasharray')) {
+      stroke[TransformKey.StrokeDasharray] = dasharrayTransformer(
+        initialValueOrNull(timeline, 'strokeDasharray'),
+        timelineHasProperties(timeline, 'strokeDashoffset') ?
+          this.getValue<number>(timeline.strokeDashoffset) :
+          undefined,
+      );
     }
 
     return stroke;

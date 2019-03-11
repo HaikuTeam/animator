@@ -8,6 +8,7 @@ import {
   StrokeLinecap,
   StrokeLinejoin,
 } from './bodymovinEnums';
+import {MaybeAnimated} from './bodymovinTypes';
 import {getFixedPropertyValue} from './bodymovinUtils';
 
 /**
@@ -116,25 +117,41 @@ export const fillruleTransformer = (fillrule: string) => {
  */
 const dasharrayRoles = [DasharrayRole.Dash, DasharrayRole.Gap];
 
+export interface DasharraySpec {
+  [DasharrayKey.Role]: DasharrayRole;
+  [DasharrayKey.Value]: MaybeAnimated<number>;
+  [LayerKey.Name]: string;
+}
+
 /**
  * Transforms a CSS strokeDasharray into After Effects Dashes.
  * @param {string} dasharray
  * @returns {{[key in DasharrayKey]: any}[]}
  */
-export const dasharrayTransformer = (dasharray: string) => {
+export const dasharrayTransformer = (dasharray: string, dashoffset?: MaybeAnimated<number>): DasharraySpec[] => {
   if (!dasharray) {
     return [];
   }
 
   // Get dash gaps as an array of numbers, and double it if we have an odd number of values.
-  let dashGaps = dasharray.toString().split(',').map((value) => Number(value.trim()));
-  if (dashGaps.length % 2 === 1) {
-    dashGaps = dashGaps.concat(dashGaps);
+  const dashes = dasharray.toString().split(',').map((value) => Number(value.trim()));
+  if (dashes.length % 2 === 1) {
+    dashes.push(...dashes);
   }
 
-  return dashGaps.map((value, index) => ({
+  const transformed = dashes.map((value, index) => ({
     [DasharrayKey.Role]: dasharrayRoles[index % 2],
     [DasharrayKey.Value]: getFixedPropertyValue(value),
     [LayerKey.Name]: index.toString(),
   }));
+
+  if (dashoffset) {
+    transformed.push({
+      [DasharrayKey.Role]: DasharrayRole.Offset,
+      [DasharrayKey.Value]: dashoffset,
+      [LayerKey.Name]: dashes.length.toString(),
+    });
+  }
+
+  return transformed;
 };

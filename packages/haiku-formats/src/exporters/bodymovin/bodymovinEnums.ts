@@ -120,6 +120,7 @@ export const enum FillRule {
 export const enum DasharrayRole {
   Dash = 'd',
   Gap = 'g',
+  Offset = 'o',
 }
 
 export const enum DasharrayKey {
