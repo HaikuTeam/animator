@@ -180,7 +180,11 @@ class Timeline extends React.Component {
           // This event triggers on `mousedown`, we make the assumption that a
           // mousedown + mouse movement on one of the elements below is a drag,
           // therefore we stop the marquee selection by returning `false`.
-          return !(typeof event.target.className !== 'string' || event.target.className.includes('js-avoid-marquee-init'));
+          return !(
+            event.clientX < this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() ||
+            typeof event.target.className !== 'string' ||
+            event.target.className.includes('js-avoid-marquee-init')
+          );
         },
         onChange: lodash.throttle((finalArea) => {
           if (
