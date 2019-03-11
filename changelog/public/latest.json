@@ -4,7 +4,8 @@
       "Added Lottie support for line animations."
     ],
     "Fixes": [
-      "Modified core Vue adapter for compatibility with production builds."
+      "Modified core Vue adapter for compatibility with production builds.",
+      "Improved undo/redo management in Timeline inputs."
     ]
   }
 }

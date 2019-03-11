@@ -144,6 +144,7 @@ export default class ExpressionInput extends React.Component {
     this._paramcache = null;
     this._parse = null; // Cache of last parse of the input field
     this._mouseDownStarted = false;
+    this._historyMap = new Map();
 
     this.codemirror = CodeMirror(document.createElement('div'), {
       theme: 'haiku',
@@ -298,6 +299,8 @@ export default class ExpressionInput extends React.Component {
     if (changeObject.origin === SET_VALUE_ORIGIN) {
       return void (0);
     }
+
+    this._historyMap.set(this.props.component.getFocusedRow().getUniqueKey(), cm.getHistory());
 
     // Any change should unset the current error state of the
     this.setState({
@@ -852,6 +855,10 @@ export default class ExpressionInput extends React.Component {
       editedValue: originalValue,
     }, () => {
       this.recalibrateEditor();
+      if (!this._historyMap.get(focusedRow.getUniqueKey())) {
+        this._historyMap.set(focusedRow.getUniqueKey(), {done: [], undone: []});
+      }
+      this.codemirror.setHistory(this._historyMap.get(focusedRow.getUniqueKey()));
       this.handleEditorChange(this.codemirror, {});
     });
   }
