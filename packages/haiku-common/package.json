@@ -21,7 +21,7 @@
   ],
   "license": "UNLICENSED",
   "devDependencies": {
-    "electron": "2.0.18",
+    "electron": "2.0.8",
     "cross-env": "^5.1.6",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "nyc": "^13.0.1",
