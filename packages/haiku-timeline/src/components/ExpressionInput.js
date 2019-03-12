@@ -300,7 +300,9 @@ export default class ExpressionInput extends React.Component {
       return void (0);
     }
 
-    this._historyMap.set(this.props.component.getFocusedRow().getUniqueKey(), cm.getHistory());
+    if (this.props.component.getFocusedRow()) {
+      this._historyMap.set(this.props.component.getFocusedRow().getUniqueKey(), cm.getHistory());
+    }
 
     // Any change should unset the current error state of the
     this.setState({
