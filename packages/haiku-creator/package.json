@@ -20,7 +20,7 @@
     "start": "electron ./lib/electron.js"
   },
   "dependencies": {
-    "@babel/parser": "^7.0.0",
+    "@babel/parser": "7.0.0",
     "@haiku/core": "4.5.0",
     "@haiku/tina-haikuerror": "^0.0.6",
     "@haiku/taylor-nocon": "^0.0.2",
@@ -65,7 +65,6 @@
     "@types/qs": "^6.5.1",
     "cross-env": "^5.1.6",
     "electron": "2.0.18",
-    "electron-devtools-installer": "^2.2.4",
     "haiku-testing": "4.5.0",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "leaked-handles": "^5.2.0",

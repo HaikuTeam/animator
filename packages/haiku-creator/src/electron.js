@@ -170,11 +170,6 @@ function createWindow () {
 
   if (process.env.DEV === '1' || process.env.DEV === 'creator') {
     browserWindow.openDevTools();
-
-    const {default: installExtension, REACT_DEVELOPER_TOOLS} = require('electron-devtools-installer');
-    installExtension(REACT_DEVELOPER_TOOLS)
-        .then((name) => console.log(`Added Extension:  ${name}`))
-        .catch((err) => console.log('An error occurred: ', err));
   }
 
   // Sending our haiku configuration into the view so it can correctly set up
