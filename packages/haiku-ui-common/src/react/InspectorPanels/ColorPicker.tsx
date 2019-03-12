@@ -156,6 +156,10 @@ class HaikuColorPicker extends React.PureComponent<HaikuColorPickerProps> {
   };
 
   render () {
+    if (this.state.valueDisplay === null) {
+      return null;
+    }
+
     return (
       <div style={STYLES.wrapper} className="color-picker-wrapper">
         <style>

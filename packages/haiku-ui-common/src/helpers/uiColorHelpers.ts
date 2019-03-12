@@ -9,7 +9,7 @@ export enum DISPLAY_VALUES {
 
 export function derivateDisplayValueFromColorString (colorString: string) {
   if (typeof colorString !== 'string' || !get(colorString)) {
-    return DISPLAY_VALUES.HEX;
+    return null;
   }
 
   return colorString.charAt(0) === '#'

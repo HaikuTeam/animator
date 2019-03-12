@@ -833,10 +833,15 @@ export default class ExpressionInput extends React.Component {
     }
 
     const originalDescriptor = focusedRow.getPropertyValueDescriptor();
+
+    // HACK: add an UI fallback for color properties with undefined values.
+    if (Property.hasColorPopup(originalDescriptor.propertyName) && originalDescriptor.computedValue === undefined) {
+      originalDescriptor.computedValue = "#fff"
+    }
+
     const originalValue = toValueDescriptor(originalDescriptor);
 
     let editingMode = EDITOR_MODES.SINGLE_LINE;
-
     // If we received an input with multiple lines that is a machine, assume it should be treated like
     // an expression with a multi-line view, otherwise just a normal expression term
     if (originalValue.kind === EXPR_KINDS.MACHINE) {
@@ -1169,17 +1174,11 @@ export default class ExpressionInput extends React.Component {
 
   getDisplayColor (rawValueDescriptor) {
     if (rawValueDescriptor && Property.hasColorPopup(rawValueDescriptor.propertyName)) {
-      if (rawValueDescriptor.computedValue) {
+      if (rawValueDescriptor.computedValue && derivateDisplayValueFromColorString(rawValueDescriptor.computedValue) !== null) {
         return rawValueDescriptor.computedValue;
       }
 
-      const fallbackValue = '#fff';
-
-      if (!Boolean(this.codemirror.getValue())) {
-        this.setEditorValue(fallbackValue);
-      }
-
-      return fallbackValue;
+      return this.codemirror.getValue();
     }
 
     return false;
