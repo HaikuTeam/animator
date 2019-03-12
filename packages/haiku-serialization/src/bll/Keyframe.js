@@ -1,5 +1,6 @@
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default;
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default;
+const Curve = require('@haiku/core/lib/api').Curve;
 const isDecomposableCurve = require('haiku-formats/lib/exporters/curves').isDecomposableCurve;
 const getCurveInterpolationPoints = require('haiku-formats/lib/exporters/curves').getCurveInterpolationPoints;
 const BaseModel = require('./BaseModel');
@@ -222,7 +223,8 @@ class Keyframe extends BaseModel {
   }
 
   isTransitionSegment () {
-    return !!this.getCurve();
+    const curve = this.getCurve();
+    return Boolean(curve) && (Boolean(Curve[this.getCurveCapitalized()]) || Array.isArray(curve));
   }
 
   isConstantSegment () {
