@@ -47,7 +47,7 @@
     "opn": "^5.3.0",
     "qs": "6.4.0",
     "radium": "0.18.1",
-    "raven-js": "^3.18.1",
+    "raven-js": "3.21.0",
     "react": "15.6.2",
     "react-animations": "0.1.0",
     "react-dom": "15.6.2",

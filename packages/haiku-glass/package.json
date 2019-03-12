@@ -19,7 +19,7 @@
     "moment": "2.18.1",
     "qs": "6.4.0",
     "radium": "0.18.1",
-    "raven-js": "^3.18.1",
+    "raven-js": "3.21.0",
     "react": "15.6.2",
     "react-dom": "15.6.2",
     "react-transition-group": "^1.1.2"
