@@ -1167,7 +1167,7 @@ export default class ExpressionInput extends React.Component {
 
   getDisplayColor (rawValueDescriptor) {
     if (rawValueDescriptor && Property.hasColorPopup(rawValueDescriptor.propertyName)) {
-      if (rawValueDescriptor.computedValue) {
+      if (rawValueDescriptor.computedValue && derivateDisplayValueFromColorString(rawValueDescriptor.computedValue) !== null) {
         return rawValueDescriptor.computedValue;
       }
 
