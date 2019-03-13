@@ -22,7 +22,7 @@ switch (platform) {
     const distRoot = path.resolve(ROOT, 'dist');
     const {productName} = require(path.join(ROOT, 'package.json')).build;
     const zipTarget = path.join(distRoot, `${productName}-${nowVersion()}-mac.zip`);
-    cp.execSync(`/usr/bin/zip -r -7 '${zipTarget}' Haiku.app`, {cwd: path.join(distRoot, 'mac'), stdio: 'inherit'});
+    cp.execSync(`/usr/bin/ditto -c -k --sequesterRsrc --keepParent Haiku.app '${zipTarget}'`, {cwd: path.join(distRoot, 'mac'), stdio: 'inherit'});
     break;
   case 'windows':
     // process.env.WIN_CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`
