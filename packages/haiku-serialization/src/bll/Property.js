@@ -594,12 +594,12 @@ Property.areAnyKeyframesDefined = (elementName, propertyName, keyframesObject) =
 Property.DISPLAY_RULES = {
   content: {jit: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED], add: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED]},
   'controlFlow.if': {
-    jit: [(experimentIsEnabled(Experiment.ControlFlowIf)) ? NON_ROOT_ONLY : NEVER],
-    add: [(experimentIsEnabled(Experiment.ControlFlowIf)) ? IF_EXPLICIT_OR_DEFINED : NEVER],
+    jit: [NEVER],
+    add: [NEVER],
   },
   'controlFlow.repeat': {
-    jit: [(experimentIsEnabled(Experiment.ControlFlowRepeat)) ? NON_ROOT_ONLY : NEVER],
-    add: [(experimentIsEnabled(Experiment.ControlFlowRepeat)) ? IF_EXPLICIT_OR_DEFINED : NEVER],
+    jit: [NEVER],
+    add: [NEVER],
   },
   'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT_OR_DEFINED], keyframe: [ALWAYS]},
   height: {jit: [NEVER], add: [IF_DEFINED, IF_IN_SCHEMA], keyframe: [ALWAYS]},
