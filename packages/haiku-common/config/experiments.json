@@ -16,7 +16,6 @@
   "PreserveFrontMatterInCode": true,
   "OutliningElementsOnStage": false,
   "OutliningElementsOnStageFromStage": false,
-  "ControlFlowIf": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "DumpBase64Images": true,
   "WindowMenu": false,

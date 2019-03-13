@@ -24,7 +24,6 @@ export enum Experiment {
   Snapping = 'Snapping',
   PinchToZoomInGlass = 'PinchToZoomInGlass',
   PreserveFrontMatterInCode = 'PreserveFrontMatterInCode',
-  ControlFlowIf = 'ControlFlowIf',
   ExpandTimelinePropertiesFromStageChanges = 'ExpandTimelinePropertiesFromStageChanges',
   DumpBase64Images = 'DumpBase64Images',
   WindowMenu = 'WindowMenu',
