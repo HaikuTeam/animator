@@ -4,7 +4,7 @@
       "FIRST!"
     ],
     "Fixes": [
-      "FIRST!"
+      "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu."
     ]
   }
 }
