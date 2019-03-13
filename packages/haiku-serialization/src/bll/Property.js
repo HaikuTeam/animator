@@ -78,6 +78,9 @@ Property.humanizePropertyName = (propertyName) => {
 };
 
 Property.humanizePropertyNamePart = (propertyNamePart) => {
+  if (Property.PREFIX_TO_CLUSTER_NAME[propertyNamePart]) {
+    return Property.PREFIX_TO_CLUSTER_NAME[propertyNamePart];
+  }
   return titlecase(decam(propertyNamePart));
 };
 
