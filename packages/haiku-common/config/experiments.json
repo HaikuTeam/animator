@@ -17,7 +17,6 @@
   "OutliningElementsOnStage": false,
   "OutliningElementsOnStageFromStage": false,
   "ControlFlowIf": true,
-  "ControlFlowRepeat": true,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "DumpBase64Images": true,
   "WindowMenu": false,
