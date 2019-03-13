@@ -9317,5 +9317,102 @@
       "label": "feat",
       "message": "add an optional callback for state transitions"
     }
+  },
+  "4.5.0": {
+    "0fa1fe0de9404ffa68a78563b8c20912f4528dbc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "work around corrupted zip archive from latest build stack by zipping manually on mac"
+    },
+    "de7524752f08810e3464c4b9261703b94c77729a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "roll back raven to known working versions"
+    },
+    "152006ba15581346cfab644e6ea6bf335474704a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "freeze @babel dependencies at 7.0.0 due to AST errors in 7.3.4"
+    },
+    "2678e6be9fc368c862ecec837d8a4970067ab46d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "get non-crashing animator lottie export"
+    },
+    "905e019c8e46f5947a58e08051b3f56aa77161eb": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reroll yarn.lock"
+    },
+    "065e60b9989b665f905d3d1f67a809a6f69e915c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hammer out some deps issues"
+    },
+    "af287f7a3cd16f3302a4fc4fbfdd01f453166518": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update Console implementation for new @types/node"
+    },
+    "6b614e8cf81235386d412ae89e24256cf68203c2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update build dependencies against Electron 2.x"
+    },
+    "4a57c59a3e24bed20d1823cd67b6adbff26d929b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "smarter setting of UI fallback value for color properties"
+    },
+    "09d834404c54701c82104d4c6b0d2bd4a3040c78": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only display the color picker for color strings"
+    },
+    "b6645c967f94e8e1f84005357a30f48ededed0c0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure we have a focused row before setting undo/redo history"
+    },
+    "df619f0ce335257e883038f1a4609cde98a726db": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the logic to determine if a Keyframe is a transition"
+    },
+    "4f756be13d86150793c465efd0814c01b76786a0": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent crashes when trying to drag the root row"
+    },
+    "acae68456e1718602b7839c144449af5ff111651": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent timeline marquee from initiating from the properties panel"
+    },
+    "b8ca3083211e2bea3c71353ce856d7fec24f3f99": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use separate keyboard history for every Timeline input field"
+    },
+    "2cc3a56b254af4c827624b5d4c4daae8ed08d041": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support animated stroke-dashoffset"
+    },
+    "511bf83edc7cd210d6d6514cef5aa3cd8c441f4b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use pre-compiled templates in Vue adapter"
+    },
+    "71e4938eed79f7b01d27ba4c4e4a584248d3504b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "replace Haiku with Animator here and there"
+    },
+    "4ce3c008234accf9dbfc081146bc1fea6bc019d7": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add placeholder support for the Vue adapter."
+    }
   }
 }

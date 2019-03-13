@@ -1,6 +1,33 @@
 # Changelog
 
 
+## 4.5.0
+
+### Bug Fixes
+
+ * work around corrupted zip archive from latest build stack by zipping manually on mac
+ * roll back raven to known working versions
+ * freeze @babel dependencies at 7.0.0 due to AST errors in 7.3.4
+ * get non-crashing animator lottie export
+ * reroll yarn.lock
+ * hammer out some deps issues
+ * update Console implementation for new @types/node
+ * update build dependencies against Electron 2.x
+ * smarter setting of UI fallback value for color properties
+ * only display the color picker for color strings
+ * ensure we have a focused row before setting undo/redo history
+ * improve the logic to determine if a Keyframe is a transition
+ * prevent crashes when trying to drag the root row
+ * prevent timeline marquee from initiating from the properties panel
+ * use separate keyboard history for every Timeline input field
+ * support animated stroke-dashoffset
+ * use pre-compiled templates in Vue adapter
+ * replace Haiku with Animator here and there
+
+### Features
+
+ * add placeholder support for the Vue adapter.
+
 ## 4.4.0
 
 ### Bug Fixes
