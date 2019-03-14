@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 4.5.1
+
+### Bug Fixes
+
+ * resolve NPM publish failure on uglified dependencies
+ * use 'Position' instead of 'Translation' in the JIT menu
+ * reroll yarn.lock
+ * reroll yarn.lock
+ * reroll yarn.lock
+ * hammer out some deps issues
+ * use pre-compiled templates in Vue adapter
+
 ## 4.5.0
 
 ### Bug Fixes

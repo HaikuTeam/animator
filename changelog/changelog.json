@@ -9414,5 +9414,42 @@
       "label": "feat",
       "message": "add placeholder support for the Vue adapter."
     }
+  },
+  "4.5.1": {
+    "a85bc7a707a4ec6c27d3b6f2583d12ba3b274359": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "resolve NPM publish failure on uglified dependencies"
+    },
+    "06f3923c673ded3fb3f963f63b6a95e20d5c3982": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use 'Position' instead of 'Translation' in the JIT menu"
+    },
+    "7c7dffc644993de30ee34c581b9d892b260be943": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reroll yarn.lock"
+    },
+    "fa8fb4f4522faab75ca5a41b5d572b93aa7af0f7": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reroll yarn.lock"
+    },
+    "a1d74f9232d10e037524968f5471ceb0a6ec6369": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "reroll yarn.lock"
+    },
+    "9b5fdadcebfe6ed648ae69f5c6b7263420358390": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "hammer out some deps issues"
+    },
+    "1edeb9e07412ac33f6f4890feb5f775e847b31d2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use pre-compiled templates in Vue adapter"
+    }
   }
 }
