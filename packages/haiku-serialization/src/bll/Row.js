@@ -455,7 +455,7 @@ class Row extends BaseModel {
   }
 
   getKeyframes () {
-    return Keyframe.where({row: this}).sort((a, b) => a.index - b.index);
+    return Keyframe.where({row: this}).sort((a, b) => a.getMs() - b.getMs());
   }
 
   getKeyframeByMs (ms) {

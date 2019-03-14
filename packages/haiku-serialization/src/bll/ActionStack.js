@@ -577,26 +577,6 @@ ActionStack.METHOD_INVERTERS = {
     },
   },
 
-  changeKeyframeValue: {
-    before: (ac, [componentId, timelineName, propertyName, keyframeMs, newValue]) => {
-      const oldValue = ac.getKeyframeValue(componentId, timelineName, keyframeMs, propertyName);
-      return {
-        method: ac.changeKeyframeValue.name,
-        params: [componentId, timelineName, propertyName, keyframeMs, oldValue],
-      };
-    },
-  },
-
-  changeSegmentCurve: {
-    before: (ac, [componentId, timelineName, propertyName, keyframeMs, newCurve]) => {
-      const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName);
-      return {
-        method: ac.changeSegmentCurve.name,
-        params: [componentId, timelineName, propertyName, keyframeMs, oldCurve],
-      };
-    },
-  },
-
   createKeyframe: {
     before: (ac, [componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue]) => {
       const oldValue = ac.getKeyframeValue(componentId, timelineName, keyframeStartMs, propertyName);
@@ -611,37 +591,6 @@ ActionStack.METHOD_INVERTERS = {
       return {
         method: ac.deleteKeyframe.name,
         params: [componentId, timelineName, propertyName, keyframeStartMs],
-      };
-    },
-  },
-
-  deleteKeyframe: {
-    before: (ac, [componentId, timelineName, propertyName, keyframeMs]) => {
-      const elementName = ac.getSafeElementNameOfComponentId(componentId);
-      const oldValue = ac.getKeyframeValue(componentId, timelineName, keyframeMs, propertyName);
-      const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName);
-      return {
-        method: ac.createKeyframe.name,
-        params: [componentId, timelineName, elementName, propertyName, keyframeMs, oldValue, oldCurve, null, null, null],
-      };
-    },
-  },
-
-  joinKeyframes: {
-    before: (ac, [componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve]) => {
-      return {
-        method: ac.splitSegment.name,
-        params: [componentId, timelineName, elementName, propertyName, keyframeMsLeft],
-      };
-    },
-  },
-
-  splitSegment: {
-    before: (ac, [componentId, timelineName, elementName, propertyName, keyframeMs]) => {
-      const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName);
-      return {
-        method: ac.joinKeyframes.name,
-        params: [componentId, timelineName, elementName, propertyName, keyframeMs, null, oldCurve],
       };
     },
   },

@@ -1197,9 +1197,6 @@ const COMMITTABLE_METHODS = {
   batchUpsertEventHandlers: (relpath, [_, selectorName]) => {
     return `Edited ${selectorName} actions in ${relpath}`;
   },
-  changeKeyframeValue: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
-    return `Changed keyframe ${componentId} ${propertyName} ${keyframeMs} in ${relpath}`;
-  },
   changeSegmentCurve: (relpath, [_, componentId, timelineName, propertyName, keyframeMs, curve]) => {
     return `Changed curve on ${componentId} ${propertyName} ${keyframeMs} to ${curve} in ${relpath}`;
   },

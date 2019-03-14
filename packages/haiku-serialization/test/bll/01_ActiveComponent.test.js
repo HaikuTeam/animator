@@ -1,324 +1,362 @@
 const tape = require('tape');
 const path = require('path');
 const fse = require('haiku-fs-extra');
-const {VERSION} = require('@haiku/core/lib/HaikuComponent');
 
 const Project = require('./../../src/bll/Project');
 const File = require('./../../src/bll/File');
+const async = require('async');
 
 const waitUntilFileProbablyWroteToDisk = (fn) => {
   return setTimeout(fn, 2000); // Disk writes happen on a 500ms interval
 };
 
-tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
-  t.plan(6);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
-      const ac0 = project.getCurrentActiveComponent();
-      t.ok(ac0, 'ac present');
-      return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        t.equal(mana.attributes['haiku-source'], 'designs/Path.svg', 'rel source is in mana attribute');
-        const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']];
-        t.deepEqual(timeline, {'style.position': {0: {value: 'absolute'}}, 'style.margin': {0: {value: '0'}}, 'style.padding': {0: {value: '0'}}, 'style.border': {0: {value: '0'}}, 'sizeAbsolute.x': {0: {value: 99}}, 'sizeMode.x': {0: {value: 1}}, 'sizeAbsolute.y': {0: {value: 69}}, 'sizeMode.y': {0: {value: 1}}, 'translation.x': {0: {edited: true, value: 275}}, 'translation.y': {0: {edited: true, value: 200}}, 'style.zIndex': {0: {value: 1}}}, 'timeline is ok');
-        const subtemplate = ac0.getReifiedBytecode().template.children[0];
-        t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok');
-        return waitUntilFileProbablyWroteToDisk(() => {
-          return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
-            t.error(err, 'no err fetching code');
-            fse.removeSync(folder);
-            t.ok(true);
-          });
-        });
-      });
-    });
+// tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
+//   t.plan(6);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       t.ok(ac0, 'ac present');
+//       return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         t.equal(mana.attributes['haiku-source'], 'designs/Path.svg', 'rel source is in mana attribute');
+//         const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']];
+//         t.deepEqual(timeline, {'style.position': {0: {value: 'absolute'}}, 'style.margin': {0: {value: '0'}}, 'style.padding': {0: {value: '0'}}, 'style.border': {0: {value: '0'}}, 'sizeAbsolute.x': {0: {value: 99}}, 'sizeMode.x': {0: {value: 1}}, 'sizeAbsolute.y': {0: {value: 69}}, 'sizeMode.y': {0: {value: 1}}, 'translation.x': {0: {edited: true, value: 275}}, 'translation.y': {0: {edited: true, value: 200}}, 'style.zIndex': {0: {value: 1}}}, 'timeline is ok');
+//         const subtemplate = ac0.getReifiedBytecode().template.children[0];
+//         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok');
+//         return waitUntilFileProbablyWroteToDisk(() => {
+//           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
+//             t.error(err, 'no err fetching code');
+//             fse.removeSync(folder);
+//             t.ok(true);
+//           });
+//         });
+//       });
+//     });
+//   });
+// });
+
+// tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
+//   t.plan(9);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'delete-01');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         t.equal(ac0.getReifiedBytecode().template.children.length, 1, 'has one child');
+//         t.equal(ac0.getReifiedBytecode().template.children[0].attributes['haiku-id'], mana.attributes['haiku-id'], 'instantiatee id correct');
+//         return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
+//           t.error(err, 'no err reading file after inst');
+//           const lines = contents.split('\n');
+//           t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'haiku require is in place');
+//           return ac0.deleteComponents([mana.attributes['haiku-id']], {from: 'test'}, (err) => {
+//             t.error(err, 'no err deleting');
+//             t.equal(ac0.getReifiedBytecode().template.children.length, 0, 'correct number of children');
+//             return waitUntilFileProbablyWroteToDisk(() => {
+//               return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
+//                 t.error(err, 'no err reading file after del');
+//                 const lines = contents.split('\n');
+//                 t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'haiku require is in place at line 0');
+//                 fse.removeSync(folder);
+//                 t.ok(true);
+//               });
+//             });
+//           });
+//         });
+//       });
+//     });
+//   });
+// });
+
+// tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
+//   t.plan(1);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-02');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doShallowWorkOnly: false, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         return waitUntilFileProbablyWroteToDisk(() => {
+//           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
+//             if (err) {
+//               throw err;
+//             }
+//             fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_2); // Other one
+//             return project.mergeDesigns({'designs/Circle.svg': true}, {from: 'test'}, (err) => {
+//               if (err) {
+//                 throw err;
+//               }
+//               return waitUntilFileProbablyWroteToDisk(() => {
+//                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
+//                   if (err) {
+//                     throw err;
+//                   }
+//                   fse.removeSync(folder);
+//                   t.ok(true);
+//                 });
+//               });
+//             });
+//           });
+//         });
+//       });
+//     });
+//   });
+// });
+
+// tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
+//   t.plan(1);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-03');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doShallowWorkOnly: false, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       return ac0.instantiateComponent('designs/PercyNose.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         return waitUntilFileProbablyWroteToDisk(() => {
+//           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
+//             if (err) {
+//               throw err;
+//             }
+//             fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_2); // Other one
+//             return project.mergeDesigns({'designs/PercyNose.svg': true}, {from: 'test'}, (err) => {
+//               if (err) {
+//                 throw err;
+//               }
+//               return waitUntilFileProbablyWroteToDisk(() => {
+//                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
+//                   if (err) {
+//                     throw err;
+//                   }
+//                   fse.removeSync(folder);
+//                   t.ok(true);
+//                 });
+//               });
+//             });
+//           });
+//         });
+//       });
+//     });
+//   });
+// });
+
+// tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
+//   t.plan(3);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-01');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
+//         const pasteable1 = el1.clip({from: 'test'});
+//         return ac0.pasteThings([pasteable1], {}, {from: 'test'}, (err) => {
+//           t.error(err, 'no err from paste');
+//           t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'], `${mana.attributes['haiku-id']}`);
+//           t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`]);
+//           fse.removeSync(folder);
+//         });
+//       });
+//     });
+//   });
+// });
+
+// tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
+//   t.plan(3);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-01');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
+//         const pasteable1 = el1.clip({from: 'test'});
+//         return ac0.pasteThings([pasteable1], {}, {from: 'test'}, (err) => {
+//           t.error(err, 'no err from paste');
+//           t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'], `${mana.attributes['haiku-id']}`);
+//           t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`]);
+//           fse.removeSync(folder);
+//         });
+//       });
+//     });
+//   });
+// });
+
+// tape('ActiveComponent.prototype.pasteThing[2]', (t) => {
+//   t.plan(2);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-02');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
+//       const ac0 = project.getCurrentActiveComponent();
+//       let el0;
+//       let el1;
+//       return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
+//         if (err) {
+//           throw err;
+//         }
+//         el0 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
+//         return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
+//           if (err) {
+//             throw err;
+//           }
+//           el1 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
+//           const pasteables = [el0.clip({from: 'test'}), el1.clip({from: 'test'})];
+//           return ac0.pasteThings(pasteables, {}, {from: 'test'}, (err) => {
+//             t.error(err, 'no err from paste');
+//             t.is(ac0.getReifiedBytecode().template.children.length, 4, 'elements were multipasted');
+//             fse.removeSync(folder);
+//           });
+//         });
+//       });
+//     });
+//   });
+// });
+
+tape('ActiveComponent.prototype.joinKeyframes', (t) => {
+  setActiveComponent((folder, project, ac) => {
+    let componentId;
+    fse.outputFileSync(path.join(folder, 'designs/Rect.svg'), RECT_SVG_1);
+    async.series([
+      (cb) => {
+        console.log('--------------------one');
+        return ac.instantiateComponent('designs/Rect.svg', {x: 100, y: 100}, {from: 'test'}, cb);
+      },
+      (cb) => {
+        componentId = ac.getReifiedBytecode().template.children[0].attributes['haiku-id'];
+        return cb();
+      },
+      (cb) => {
+        ac.joinKeyframes(
+          ac.getPrimaryKey(),
+          'Default',
+          'haiku:Main-03757d2ca1026e0a',
+          'translation.x',
+          0,
+          100,
+          'linear',
+          {from: 'test'},
+          cb,
+        );
+      },
+      (cb) => {
+        const bytecode = ac.getReifiedBytecode();
+        console.log('----------------------2', bytecode);
+        t.equal(bytecode.timelines.Default[componentId]['translation.x'][0], {value: 100, curve: 'linear'});
+        // cb();
+        t.end();
+      },
+    ]);
   });
 });
 
-tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
-  t.plan(9);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'delete-01');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
-      const ac0 = project.getCurrentActiveComponent();
-      return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        t.equal(ac0.getReifiedBytecode().template.children.length, 1, 'has one child');
-        t.equal(ac0.getReifiedBytecode().template.children[0].attributes['haiku-id'], mana.attributes['haiku-id'], 'instantiatee id correct');
-        return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
-          t.error(err, 'no err reading file after inst');
-          const lines = contents.split('\n');
-          t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'haiku require is in place');
-          return ac0.deleteComponents([mana.attributes['haiku-id']], {from: 'test'}, (err) => {
-            t.error(err, 'no err deleting');
-            t.equal(ac0.getReifiedBytecode().template.children.length, 0, 'correct number of children');
-            return waitUntilFileProbablyWroteToDisk(() => {
-              return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
-                t.error(err, 'no err reading file after del');
-                const lines = contents.split('\n');
-                t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'haiku require is in place at line 0');
-                fse.removeSync(folder);
-                t.ok(true);
-              });
-            });
-          });
-        });
-      });
-    });
-  });
-});
-
-tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
-  t.plan(1);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-02');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doShallowWorkOnly: false, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1);
-      const ac0 = project.getCurrentActiveComponent();
-      return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        return waitUntilFileProbablyWroteToDisk(() => {
-          return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
-            if (err) {
- throw err;
-}
-            fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_2); // Other one
-            return project.mergeDesigns({'designs/Circle.svg': true}, {from: 'test'}, (err) => {
-              if (err) {
- throw err;
-}
-              return waitUntilFileProbablyWroteToDisk(() => {
-                return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
-                  if (err) {
- throw err;
-}
-                  fse.removeSync(folder);
-                  t.ok(true);
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
-});
-
-tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
-  t.plan(1);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-03');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doShallowWorkOnly: false, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_1);
-      const ac0 = project.getCurrentActiveComponent();
-      return ac0.instantiateComponent('designs/PercyNose.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        return waitUntilFileProbablyWroteToDisk(() => {
-          return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
-            if (err) {
- throw err;
-}
-            fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_2); // Other one
-            return project.mergeDesigns({'designs/PercyNose.svg': true}, {from: 'test'}, (err) => {
-              if (err) {
- throw err;
-}
-              return waitUntilFileProbablyWroteToDisk(() => {
-                return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
-                  if (err) {
- throw err;
-}
-                  fse.removeSync(folder);
-                  t.ok(true);
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
-});
-
-tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
-  t.plan(3);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-01');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
-      const ac0 = project.getCurrentActiveComponent();
-      return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
-        const pasteable1 = el1.clip({from: 'test'});
-        return ac0.pasteThings([pasteable1], {}, {from: 'test'}, (err) => {
-          t.error(err, 'no err from paste');
-          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'], `${mana.attributes['haiku-id']}`);
-          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`]);
-          fse.removeSync(folder);
-        });
-      });
-    });
-  });
-});
-
-tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
-  t.plan(3);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-01');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
-      const ac0 = project.getCurrentActiveComponent();
-      return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
-        const pasteable1 = el1.clip({from: 'test'});
-        return ac0.pasteThings([pasteable1], {}, {from: 'test'}, (err) => {
-          t.error(err, 'no err from paste');
-          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'], `${mana.attributes['haiku-id']}`);
-          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`]);
-          fse.removeSync(folder);
-        });
-      });
-    });
-  });
-});
-
-tape('ActiveComponent.prototype.pasteThing[2]', (t) => {
-  t.plan(2);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-02');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
-      const ac0 = project.getCurrentActiveComponent();
-      let el0, el1;
-      return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
-        if (err) {
- throw err;
-}
-        el0 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
-        return ac0.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, mana) => {
-          if (err) {
- throw err;
-}
-          el1 = ac0.findElementByComponentId(mana.attributes['haiku-id']);
-          const pasteables = [el0.clip({from: 'test'}), el1.clip({from: 'test'})];
-          return ac0.pasteThings(pasteables, {}, {from: 'test'}, (err) => {
-            t.error(err, 'no err from paste');
-            t.is(ac0.getReifiedBytecode().template.children.length, 4, 'elements were multipasted');
-            fse.removeSync(folder);
-          });
-        });
-      });
-    });
-  });
-});
-
-tape('ActiveComponent.prototype.batchUpsertEventHandlers[1]', (t) => {
-  t.plan(1);
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'BUEH-01');
-  fse.removeSync(folder);
-  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
-  const platform = {};
-  const userconfig = {};
-  const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
-  const envoyOptions = {mock: true};
-  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
-    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
-      if (err) {
- throw err;
-}
-      const ac0 = project.getCurrentActiveComponent();
-      const haikuId = ac0.getArtboard().getElementHaikuId();
-      const selectorName = `haiku:${haikuId}`;
-      return ac0.batchUpsertEventHandlers(selectorName, SERIALIZED_EVENTS, {from: 'test'}, (err) => {
-        if (err) {
- throw err;
-}
-        t.equal(typeof ac0.getReifiedBytecode().eventHandlers[selectorName].click.handler, 'function', 'handler is fn');
-        fse.removeSync(folder);
-      });
-    });
-  });
-});
+// tape('ActiveComponent.prototype.batchUpsertEventHandlers[1]', (t) => {
+//   t.plan(1);
+//   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'BUEH-01');
+//   fse.removeSync(folder);
+//   const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+//   const platform = {};
+//   const userconfig = {};
+//   const fileOptions = {doWriteToDisk: true, skipDiffLogging: true};
+//   const envoyOptions = {mock: true};
+//   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+//     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+//       if (err) {
+//         throw err;
+//       }
+//       const ac0 = project.getCurrentActiveComponent();
+//       const haikuId = ac0.getArtboard().getElementHaikuId();
+//       const selectorName = `haiku:${haikuId}`;
+//       return ac0.batchUpsertEventHandlers(selectorName, SERIALIZED_EVENTS, {from: 'test'}, (err) => {
+//         if (err) {
+//           throw err;
+//         }
+//         t.equal(typeof ac0.getReifiedBytecode().eventHandlers[selectorName].click.handler, 'function', 'handler is fn');
+//         fse.removeSync(folder);
+//       });
+//     });
+//   });
+// });
 
 const SERIALIZED_EVENTS = {
   click: {
@@ -560,3 +598,29 @@ const OVAL_TRES = `
     </g>
 </svg>
 `;
+
+const setActiveComponent = (callback) => {
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'tweens');
+
+  fse.removeSync(folder);
+
+  const websocket = {on: () => {}, send: () => {}, action: () => {}, connect: () => {}};
+  const platform = {};
+  const userconfig = {};
+  const fileOptions = {doWriteToDisk: false, skipDiffLogging: false};
+  const envoyOptions = {mock: true};
+
+  Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    if (err) {
+      throw err;
+    }
+
+    return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
+      if (err) {
+        throw err;
+      }
+
+      callback(folder, project, project.getCurrentActiveComponent());
+    });
+  });
+};

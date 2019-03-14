@@ -1,29 +1,6 @@
 const tape = require('tape');
 const Bytecode = require('./../../src/bll/Bytecode');
 
-tape('changeKeyframeValue', (t) => {
-  t.plan(2);
-  const bytecode = {
-    states: {},
-    eventHandlers: {},
-    timelines: {
-      Default: {
-        'haiku:abcdefghijk': {
-          opacity: {
-            150: {
-              value: 1,
-            },
-          },
-        },
-      },
-    },
-    template: {elementName: 'svg', attributes: {'haiku-id': 'abcdefghijk'}},
-  };
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"150":{"value":1}}}}');
-  Bytecode.changeKeyframeValue(bytecode, 'abcdefghijk', 'Default', 'opacity', 150, 0.5);
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"150":{"value":0.5,"edited":true}}}}');
-});
-
 tape('changePlaybackSpeed', (t) => {
   t.plan(2);
   const bytecode = {
@@ -35,33 +12,6 @@ tape('changePlaybackSpeed', (t) => {
   t.equal(JSON.stringify(bytecode), '{"states":{},"eventHandlers":{},"timelines":{},"template":{"elementName":"svg","attributes":{"haiku-id":"abcdefghijk"}}}');
   Bytecode.changePlaybackSpeed(bytecode, 63);
   t.equal(JSON.stringify(bytecode), '{"states":{},"eventHandlers":{},"timelines":{},"template":{"elementName":"svg","attributes":{"haiku-id":"abcdefghijk"}},"options":{"fps":60}}');
-});
-
-tape('changeSegmentCurve', (t) => {
-  t.plan(2);
-  const bytecode = {
-    states: {},
-    eventHandlers: {},
-    timelines: {
-      Default: {
-        'haiku:abcdefghijk': {
-          opacity: {
-            0: {
-              value: 0,
-              curve: 'linear',
-            },
-            150: {
-              value: 1,
-            },
-          },
-        },
-      },
-    },
-    template: {elementName: 'svg', attributes: {'haiku-id': 'abcdefghijk'}},
-  };
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0,"curve":"linear"},"150":{"value":1}}}}');
-  Bytecode.changeSegmentCurve(bytecode, 'abcdefghijk', 'Default', 'opacity', 0, 'easeOutBounce');
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0,"curve":"easeOutBounce","edited":true},"150":{"value":1}}}}');
 });
 
 tape('componentIdToSelector', (t) => {
@@ -204,29 +154,6 @@ tape('createTimeline', (t) => {
   t.equal(JSON.stringify(bytecode), '{"states":{},"eventHandlers":{},"timelines":{"Default":{}},"template":{}}');
   Bytecode.createTimeline(bytecode, 'FooBar');
   t.equal(JSON.stringify(bytecode), '{"states":{},"eventHandlers":{},"timelines":{"Default":{},"FooBar":{}},"template":{}}');
-});
-
-tape('deleteKeyframe', (t) => {
-  t.plan(1);
-  const bytecode = {
-    states: {},
-    eventHandlers: {},
-    timelines: {
-      Default: {
-        'haiku:abcdefghijk': {
-          foo: {
-            0: {value: 1},
-            100: {value: 2, curve: 'linear'},
-            200: {value: 3, curve: 'linear'},
-            300: {value: 4},
-          },
-        },
-      },
-    },
-    template: {elementName: 'svg', attributes: {'haiku-id': 'abcdefghijk'}},
-  };
-  Bytecode.deleteKeyframe(bytecode, 'abcdefghijk', 'Default', 'foo', 200);
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"foo":{"0":{"value":1},"100":{"value":2,"curve":"linear"},"300":{"value":4}}}}');
 });
 
 tape('deleteTimeline', (t) => {
@@ -399,31 +326,4 @@ tape('renameTimeline', (t) => {
   t.equal(JSON.stringify(bytecode), '{"states":{},"eventHandlers":{},"timelines":{"Default":{},"FooBar":{}},"template":{}}');
   Bytecode.renameTimeline(bytecode, 'FooBar', 'BazQux');
   t.equal(JSON.stringify(bytecode), '{"states":{},"eventHandlers":{},"timelines":{"Default":{},"BazQux":{}},"template":{}}');
-});
-
-tape('splitSegment', (t) => {
-  t.plan(2);
-  const bytecode = {
-    states: {},
-    eventHandlers: {},
-    timelines: {
-      Default: {
-        'haiku:abcdefghijk': {
-          opacity: {
-            0: {
-              value: 0,
-              curve: 'linear',
-            },
-            150: {
-              value: 1,
-            },
-          },
-        },
-      },
-    },
-    template: {elementName: 'svg', attributes: {'haiku-id': 'abcdefghijk'}},
-  };
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0,"curve":"linear"},"150":{"value":1}}}}');
-  Bytecode.splitSegment(bytecode, 'abcdefghijk', 'Default', 'svg', 'opacity', 0);
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0},"150":{"value":1}}}}');
 });

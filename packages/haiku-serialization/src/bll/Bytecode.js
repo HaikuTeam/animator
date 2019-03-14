@@ -822,13 +822,6 @@ Bytecode.batchUpsertEventHandlers = (
   return bytecode;
 };
 
-Bytecode.changeKeyframeValue = (bytecode, componentId, timelineName, propertyName, keyframeMs, newValue) => {
-  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName);
-  property[keyframeMs].value = Bytecode.unserializeValue(newValue);
-  property[keyframeMs].edited = true;
-  return property;
-};
-
 Bytecode.changePlaybackSpeed = (bytecode, framesPerSecond) => {
   if (!bytecode.options) {
     bytecode.options = {};
@@ -837,16 +830,6 @@ Bytecode.changePlaybackSpeed = (bytecode, framesPerSecond) => {
   if (bytecode.options.fps > 60) {
     bytecode.options.fps = 60;
   }
-};
-
-Bytecode.changeSegmentCurve = (bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve) => {
-  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName);
-  if (!property[keyframeMs]) {
-    property[keyframeMs] = {};
-  }
-  property[keyframeMs].curve = Bytecode.unserializeValue(newCurve); // Curves are usually strings, but can be functions
-  property[keyframeMs].edited = true;
-  return property;
 };
 
 Bytecode.componentIdToSelector = (componentId) => {
@@ -920,48 +903,6 @@ Bytecode.createTimeline = (bytecode, timelineName, timelineDescriptor) => {
     merge(timeline, Bytecode.unserializeValue(timelineDescriptor));
   }
   return timeline;
-};
-
-Bytecode.deleteKeyframe = (bytecode, componentId, timelineName, propertyName, keyframeMs) => {
-  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName);
-
-  const mss = Bytecode.getSortedKeyframeKeys(property);
-
-  const list = mss.map((ms, i) => {
-    const prev = mss[i - 1];
-    const next = mss[i + 1];
-    return {
-      edited: property[ms].edited,
-      curve: property[ms].curve,
-      value: property[ms].value,
-      index: i,
-      start: ms,
-      end: (next !== undefined) ? next : ms,
-      first: prev === undefined,
-      last: next === undefined,
-    };
-  });
-
-  const curr = list.filter((item) => item.start === keyframeMs)[0];
-
-  if (!curr) {
-    return property;
-  }
-
-  const prev = list[curr.index - 1];
-  const next = list[curr.index + 1];
-
-  // First delete our keyframe
-  delete property[keyframeMs];
-
-  // Remove the curve from the previous keyframe if it has no subsequent keyframe to attach to
-  if (prev && !next) {
-    property[prev.start] = {};
-    property[prev.start].value = prev.value;
-    if (prev.edited) {
-      property[prev.start].edited = true;
-    }
-  }
 };
 
 Bytecode.deleteStateValue = (bytecode, stateName) => {
@@ -1110,21 +1051,6 @@ Bytecode.unserializeValue = (value, referenceEvaluator = referenceEvaluatorMissi
     referenceEvaluator,
     skipFunctions,
   );
-};
-
-// aka remove curve
-Bytecode.splitSegment = (bytecode, componentId, timelineName, elementName, propertyName, keyframeMs) => {
-  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName);
-
-  if (property[keyframeMs]) {
-    const orig = property[keyframeMs];
-    property[keyframeMs] = {value: orig.value};
-    if (orig.edited) {
-      property[keyframeMs].edited = true;
-    }
-  }
-
-  return property;
 };
 
 Bytecode.upsertEventHandler = (bytecode, selectorName, eventName, handlerDescriptor) => {

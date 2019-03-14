@@ -2024,6 +2024,10 @@ class ActiveComponent extends BaseModel {
   deleteSelectedKeyframes (metadata) {
     const keyframes = this.getSelectedKeyframes();
 
+    if (Keyframe.groupIsSingleTween(keyframes)) {
+      return keyframes[0].removeCurve(metadata);
+    }
+
     keyframes.forEach((keyframe) => {
       if (!keyframe.isTransitionSegment()) {
         const prev = keyframe.prev();
@@ -2180,9 +2184,19 @@ class ActiveComponent extends BaseModel {
               ? bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value
               : lodash.clone(bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value);
 
+            const keyfCurve = Array.isArray(bytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve)
+              ? [...bytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve]
+              : bytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve;
+
             updates[timelineName][componentId][propertyName][keyframeMs] = {
               value: keyfVal,
             };
+
+            if (keyfCurve) {
+              updates[timelineName][componentId][propertyName][keyframeMs].curve = keyfCurve;
+            } else {
+              updates[timelineName][componentId][propertyName][keyframeMs].curve = null;
+            }
           }
         }
       }
@@ -3350,42 +3364,6 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method changeKeyframeValue
-   */
-  changeKeyframeValue (componentId, timelineName, propertyName, keyframeMs, newValueSerial, metadata, cb) {
-    const newValue = Bytecode.unserializeValue(newValueSerial, (ref) => {
-      return this.evaluateReference(ref);
-    });
-
-    return this.project.updateHook('changeKeyframeValue', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newValue), metadata, (fire) => {
-      return this.changeKeyframeValueActual(componentId, timelineName, propertyName, keyframeMs, newValue, metadata, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
-
-        return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
-          forceFlush: true,
-          clearCacheOptions: {
-            doClearEntityCaches: true,
-          },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
-    });
-  }
-
-  changeKeyframeValueActual (componentId, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.changeKeyframeValue(bytecode, componentId, timelineName, propertyName, keyframeMs, newValue);
-      done();
-    }, cb);
-  }
-
-  /**
    * @method changeSegmentCurve
    */
   changeSegmentCurve (componentId, timelineName, propertyName, keyframeMs, newCurveSerial, metadata, cb) {
@@ -3393,32 +3371,19 @@ class ActiveComponent extends BaseModel {
       return this.evaluateReference(ref);
     });
 
-    return this.project.updateHook('changeSegmentCurve', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newCurve), metadata, (fire) => {
-      return this.changeSegmentCurveActual(componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
-
-        return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
-          forceFlush: true,
-          clearCacheOptions: {
-            doClearEntityCaches: true,
+    const updates = {
+      [timelineName]: {
+        [componentId]: {
+          [propertyName]: {
+            [keyframeMs]: {
+              curve: newCurve,
+            },
           },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
-    });
-  }
+        },
+      },
+    };
 
-  changeSegmentCurveActual (componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.changeSegmentCurve(bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve);
-      done();
-    }, cb);
+    this.updateKeyframes(updates, {}, metadata, cb);
   }
 
   /**
@@ -3429,96 +3394,44 @@ class ActiveComponent extends BaseModel {
       return this.evaluateReference(ref);
     });
 
-    return this.project.updateHook('joinKeyframes', this.getRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, Bytecode.serializeValue(newCurve), metadata, (fire) => {
-      return this.joinKeyframesActual(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
-
-        return this.reload({
-          hardReload: true,
-          forceFlush: true,
-          clearCacheOptions: {
-            doClearEntityCaches: true,
+    const updates = {
+      [timelineName]: {
+        [componentId]: {
+          [propertyName]: {
+            [keyframeMsLeft]: {
+              curve: newCurve,
+            },
           },
-          customRehydrate: () => {
-            if (this.project.isRemoteRequest(metadata)) {
-              this.rehydrate();
-              return;
-            }
-            const element = this.findElementByComponentId(componentId);
-            if (element) {
-              const row = element.getPropertyRowByPropertyName(propertyName);
-              if (row) {
-                const keyframe = row.getKeyframeByMs(keyframeMsLeft);
-                if (keyframe) {
-                  keyframe.setCurve(newCurve);
-                }
-              }
-            }
-          },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
-    });
-  }
+        },
+      },
+    };
 
-  joinKeyframesActual (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.joinKeyframes(bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve);
-      done();
-    }, cb);
+    this.updateKeyframes(updates, {}, metadata, cb);
   }
 
   /**
    * @method splitSegment
    */
   splitSegment (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
-    return this.project.updateHook('splitSegment', this.getRelpath(), componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (fire) => {
-      return this.splitSegmentActual(componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
+    const updates = {
+      [timelineName]: {
+        [componentId]: {
+          [propertyName]: {
+            [keyframeMs]: {
+              curve: null,
+            },
+          },
+        },
+      },
+    };
 
-        return this.reload({
-          hardReload: true,
-          forceFlush: true,
-          clearCacheOptions: {
-            doClearEntityCaches: true,
-          },
-          customRehydrate: () => {
-            if (this.project.isRemoteRequest(metadata)) {
-              this.rehydrate();
-              return;
-            }
-            const element = this.findElementByComponentId(componentId);
-            if (element) {
-              const row = element.getPropertyRowByPropertyName(propertyName);
-              if (row) {
-                const keyframe = row.getKeyframeByMs(keyframeMs);
-                if (keyframe) {
-                  keyframe.setCurve(null);
-                }
-              }
-            }
-          },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
+    return this.updateKeyframes(updates, {}, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err);
+        return cb(err);
+      }
+      return cb();
     });
-  }
-
-  splitSegmentActual (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.splitSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs);
-      done();
-    }, cb);
   }
 
   getKeyframesObjectForPropertyNames (timelineName, componentId, propertyNames) {
@@ -3779,6 +3692,15 @@ class ActiveComponent extends BaseModel {
               if (propertyObj === null) {
                 // Special directive to remove this property if defined.
                 delete bytecode.timelines[timelineName][selector][propertyName][keyframeMs];
+                // Note: we set fallbackToInitialKeyframeIfProvided to `false` here, ensuring that we always use the
+                // "implicit" value for properties whose first keyframes are created at a time after t = 0.
+                this.ensureZerothKeyframe(
+                  bytecode,
+                  timelineName,
+                  componentId,
+                  propertyName,
+                  false, // fallbackToInitialKeyframeIfProvided
+                );
                 continue;
               }
               if (!bytecode.timelines[timelineName][selector][propertyName][keyframeMs]) {
@@ -3789,17 +3711,29 @@ class ActiveComponent extends BaseModel {
                 ? propertyObj.value
                 : lodash.clone(propertyObj.value);
 
-              bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value = keyfVal;
+              if (keyfVal) {
+                bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value = keyfVal;
+              }
 
-              // Note: we set fallbackToInitialKeyframeIfProvided to `false` here, ensuring that we always use the
-              // "implicit" value for properties whose first keyframes are created at a time after t = 0.
-              this.ensureZerothKeyframe(
-                bytecode,
-                timelineName,
-                componentId,
-                propertyName,
-                false, // fallbackToInitialKeyframeIfProvided
-              );
+              const keyfCurve = Array.isArray(propertyObj.curve)
+                ? [...propertyObj.curve]
+                : propertyObj.curve;
+
+              if (keyfCurve === null) {
+                delete bytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve;
+              } else if (keyfCurve) {
+                bytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve = keyfCurve;
+              }
+
+              // // Note: we set fallbackToInitialKeyframeIfProvided to `false` here, ensuring that we always use the
+              // // "implicit" value for properties whose first keyframes are created at a time after t = 0.
+              // this.ensureZerothKeyframe(
+              //   bytecode,
+              //   timelineName,
+              //   componentId,
+              //   propertyName,
+              //   false, // fallbackToInitialKeyframeIfProvided
+              // );
 
               if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
                 Bytecode.addDefaultCurveIfNecessary(
@@ -4060,61 +3994,37 @@ class ActiveComponent extends BaseModel {
    * @method deleteKeyframe
    */
   deleteKeyframe (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
-    return this.project.updateHook('deleteKeyframe', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, metadata, (fire) => {
-      return this.deleteKeyframeActual(componentId, timelineName, propertyName, keyframeMs, metadata, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err);
-          return cb(err);
-        }
-
-        // In case we ended up with a materially different, immutable-looking property group after removing a
-        // second-from-last keyframe, request a force flush.
-        return this.reload({
-          hardReload: true,
-          clearCacheOptions: {
-            doClearEntityCaches: true,
+    const updates = {
+      [timelineName]: {
+        [componentId]: {
+          [propertyName]: {
+            [keyframeMs]: null,
           },
-          customRehydrate: () => {
-            if (this.project.isRemoteRequest(metadata)) {
-              this.rehydrate();
-              return;
-            }
+        },
+      },
+    };
 
-            const element = this.findElementByComponentId(componentId);
-            if (!element) { // Entity may not exist in all views
-              return;
-            }
+    this.updateKeyframes(updates, {}, metadata, () => {
 
-            const row = element.getPropertyRowByPropertyName(propertyName);
-            if (!row) { // Entity may not exist in all views
-              return;
-            }
+      if (this.project.isRemoteRequest(metadata)) {
+        this.rehydrate();
+        return;
+      }
 
-            row.getKeyframes().forEach((keyframe) => keyframe.updateOwnMetadata());
-            row.rehydrate();
-          },
-        }, null, () => {
-          fire();
-          return cb();
-        });
-      });
+      const element = this.findElementByComponentId(componentId);
+      if (!element) { // Entity may not exist in all views
+        return;
+      }
+
+      const row = element.getPropertyRowByPropertyName(propertyName);
+      if (!row) { // Entity may not exist in all views
+        return;
+      }
+
+      row.getKeyframes().forEach((keyframe) => keyframe.updateOwnMetadata());
+      row.rehydrate();
+      return cb();
     });
-  }
-
-  deleteKeyframeActual (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      Bytecode.deleteKeyframe(bytecode, componentId, timelineName, propertyName, keyframeMs);
-
-      this.ensureZerothKeyframe(
-        bytecode,
-        timelineName,
-        componentId,
-        propertyName,
-        true, // fallbackToInitialKeyframeIfProvided
-      );
-
-      done();
-    }, cb);
   }
 
   get nextSuggestedGroupName () {

@@ -346,10 +346,6 @@ class Keyframe extends BaseModel {
     return this;
   }
 
-  getIndex () {
-    return this.index;
-  }
-
   getValue (serialized) {
     if (serialized) {
       return expressionToRO(this.value);
@@ -846,7 +842,7 @@ class Keyframe extends BaseModel {
    * @description When debugging, use this to log a concise shorthand of this entity.
    */
   dump () {
-    let str = `${this.row.getPropertyNameString()}[${this.getIndex()}]:${this.getMs()}/${this.getCurve() || '!'}`;
+    let str = `${this.row.getPropertyNameString()}:${this.getMs()}/${this.getCurve() || '!'}`;
     if (this.isTransitionSegment()) {
       str += ' {t}';
     }
@@ -873,7 +869,6 @@ Keyframe.DEFAULT_OPTIONS = {
     element: true,
     row: true,
     ms: true,
-    index: true,
     value: true,
   },
 };
