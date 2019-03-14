@@ -1,11 +1,14 @@
 import * as electron from 'electron';
+import * as fs from 'fs';
 // @ts-ignore
-import {download, unzip} from 'haiku-serialization/src/utils/fileManipulation';
+import {ditto, download, unzip} from 'haiku-serialization/src/utils/fileManipulation';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import nodeFetch from 'node-fetch';
 import * as os from 'os';
+import * as path from 'path';
 import * as qs from 'qs';
+import * as uuid from 'uuid';
 
 const DEFAULT_OPTIONS = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -22,42 +25,40 @@ export interface CheckResult {
 }
 
 export default {
-  update (url: string, progressCallback: (progress: number) => void, options = DEFAULT_OPTIONS) {
-    return new Promise((resolve, reject) => {
-      if (process.env.HAIKU_SKIP_AUTOUPDATE !== '1') {
-        if (
-          !options.server ||
-          !options.environment ||
-          !options.branch ||
-          !options.platform ||
-          !options.version
-        ) {
-          return reject(Error('Missing release/autoupdate environment variables'));
-        }
-
-        const tempPath = os.tmpdir();
-        const zipPath = `${tempPath}/haiku.zip`;
-        // FIXME: these paths are macOS specific, it's ok for now, but
-        // we should look into a cross platform solution
-        const installationPath = '/Applications';
-        const execPath = '/Applications/Haiku.app/Contents/MacOS/Haiku';
-
-        logger.info('[autoupdater] About to download an update:', options, url);
-
-        download(url, zipPath, progressCallback)
-          .then(() => {
-            return unzip(zipPath, installationPath);
-          })
-          .then(() => {
-            electron.remote.app.relaunch({execPath});
-            electron.remote.app.exit();
-          })
-          .catch(reject);
-      } else {
-        /* If autoupdate is intentionally skipped, just silently resolve */
-        resolve();
+  async update (url: string, progressCallback: (progress: number) => void, options = DEFAULT_OPTIONS) {
+    if (process.env.HAIKU_SKIP_AUTOUPDATE !== '1') {
+      if (
+        !options.server ||
+        !options.environment ||
+        !options.branch ||
+        !options.platform ||
+        !options.version
+      ) {
+        throw(Error('Missing release/autoupdate environment variables'));
       }
-    });
+
+      const tempPath = os.tmpdir();
+      const zipPath = path.join(tempPath, `${uuid.v4()}.zip`);
+      const extractPath = path.join(tempPath, uuid.v4());
+      const appPath = path.resolve(electron.remote.app.getPath('exe'), '..', '..', '..');
+      logger.info('[autoupdater] About to download an update:', options, url);
+      await download(url, zipPath, progressCallback);
+      // `unzip` first, you can unzip in `ditto` by providing the `-xk` flags, but trying to target `/Applications`
+      // throws permission errors.
+      await unzip(zipPath, extractPath);
+      const newAppName = fs.readdirSync(extractPath).find((file) => {
+        return path.extname(file) === '.app';
+      });
+
+      if (!newAppName) {
+        throw(Error('Couldn\'t find a valid application from the downloaded zip'));
+      }
+
+      // `ditto` the contents of the extract path folder (the .app package) into `appPath`
+      await ditto(path.join(extractPath, newAppName), appPath);
+      electron.remote.app.relaunch();
+      electron.remote.app.exit();
+    }
   },
 
   checkUpdates () {

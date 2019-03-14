@@ -52,6 +52,18 @@ module.exports = {
     });
   },
 
+  ditto (src, dest) {
+    const saneSrc = JSON.stringify(src);
+    const saneDest = JSON.stringify(dest);
+    const dittoComand = `ditto ${saneSrc} ${saneDest}`;
+
+    return new Promise((resolve, reject) => {
+      exec(dittoComand, {}, (err) => {
+        err ? reject(err) : resolve(true);
+      });
+    });
+  },
+
   sanitize (name) {
     if (typeof name !== 'string') {
       return '';

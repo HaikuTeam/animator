@@ -22,8 +22,8 @@
   "dependencies": {
     "@babel/parser": "7.0.0",
     "@haiku/core": "4.5.2",
-    "@haiku/tina-haikuerror": "^0.0.6",
     "@haiku/taylor-nocon": "^0.0.2",
+    "@haiku/tina-haikuerror": "^0.0.6",
     "async": "^2.5.0",
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
@@ -57,9 +57,11 @@
     "react-onclickoutside": "^6.4.0",
     "react-popover": "^0.4.18",
     "react-selectize": "^3.0.1",
-    "react-transition-group": "^2.2.1"
+    "react-transition-group": "^2.2.1",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
+    "@types/uuid": "^3.2.1",
     "@types/fs-extra": "^4.0.8",
     "@types/node-fetch": "^2.1.1",
     "@types/qs": "^6.5.1",
