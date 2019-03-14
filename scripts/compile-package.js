@@ -42,7 +42,10 @@ if (argv.uglify) {
       log.log('uglifying ' + file);
 
       try {
-        const code = uglify2.minify(file).code;
+        const {code} = uglify2.minify(fse.readFileSync(file).toString());
+        if (!code) {
+          throw new Error('Encountered error during minification');
+        }
         return fse.outputFile(file, code, (writeError) => {
           if (writeError) {
             return next(writeError);
