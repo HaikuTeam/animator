@@ -836,7 +836,7 @@ export default class ExpressionInput extends React.Component {
 
     // HACK: add an UI fallback for color properties with undefined values.
     if (Property.hasColorPopup(originalDescriptor.propertyName) && originalDescriptor.computedValue === undefined) {
-      originalDescriptor.computedValue = "#fff"
+      originalDescriptor.computedValue = '#fff';
     }
 
     const originalValue = toValueDescriptor(originalDescriptor);

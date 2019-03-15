@@ -132,13 +132,13 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
             <div style={STYLES.description}>
               Visible on the <ExternalLink
                 style={STYLES.link}
-                href={`https://share.haiku.ai/`}
+                href={'https://share.haiku.ai/'}
               >
                 Haiku Community
               </ExternalLink>,
               and able to be <ExternalLink
                 style={STYLES.link}
-                href={`https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html#forking`}
+                href={'https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html#forking'}
               >
                 forked
               </ExternalLink>

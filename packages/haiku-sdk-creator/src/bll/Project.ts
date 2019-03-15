@@ -316,7 +316,7 @@ export class ProjectHandler extends EnvoyHandler {
       local: true,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(name),
-      projectShareUrl: process.env.HAIKU_SHARE  || 'https://share.haiku.ai/',
+      projectShareUrl: process.env.HAIKU_SHARE || 'https://share.haiku.ai/',
       projectExistsLocally: existsSync(projectPath),
       repositoryUrl: '',
       forkComplete: false,

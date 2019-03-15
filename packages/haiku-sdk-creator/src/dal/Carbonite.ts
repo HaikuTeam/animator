@@ -22,7 +22,7 @@ export const crashReportFork = (
   zipPath: string,
   finalUrl: string,
 ) => {
-  logger.info(`[carbonite] initiating crash report`, projectPath, zipName, zipPath, cleanPresignedUrl(finalUrl));
+  logger.info('[carbonite] initiating crash report', projectPath, zipName, zipPath, cleanPresignedUrl(finalUrl));
   process.env.HAIKU_CRASH_REPORT_PROJECT_PATH = projectPath;
   process.env.HAIKU_CRASH_REPORT_ZIP_PATH = zipPath;
   process.env.HAIKU_CRASH_REPORT_ZIP_NAME = zipName;
@@ -62,7 +62,7 @@ const upload = (url: string, filePath: string): Promise<request.RequestResponse>
         url,
         {body: data, headers: {'x-amz-acl': 'public-read'}},
         (requestErr, response) => {
-          logger.info(`[carbonite] upload complete`);
+          logger.info('[carbonite] upload complete');
 
           if (requestErr) {
             reject(requestErr);

@@ -28,7 +28,7 @@ export default function HaikuAngularDOMAdapter (
   selector, haikuComponentFactory, optionalRawBytecode?): ModuleWithProviders {
   @Component({
     selector,
-    template: `<div #mount class="haiku-angular-wrapper" [id]="randomId"><ng-content></ng-content></div>`,
+    template: '<div #mount class="haiku-angular-wrapper" [id]="randomId"><ng-content></ng-content></div>',
     styles: [`
       div {
         position: relative;

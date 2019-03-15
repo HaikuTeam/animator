@@ -41,10 +41,10 @@ tape(
               VERSION,
             );
             const {__function: {body}} = functionToRFO(component.bytecode.eventHandlers.foo.click.handler);
-            t.true(body.indexOf(`this.seek(1000, 'ms');`) > 0);
+            t.true(body.indexOf("this.seek(1000, 'ms');") > 0);
             t.true(
               // tslint:disable-next-line:max-line-length
-              body.indexOf(`this.getDefaultTimeline().gotoAndPlay(functionThatReturns2({ blah: functionThatReturns2('hey') }), 'ms');`) >
+              body.indexOf("this.getDefaultTimeline().gotoAndPlay(functionThatReturns2({ blah: functionThatReturns2('hey') }), 'ms');") >
                 0,
             );
             teardown();

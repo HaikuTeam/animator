@@ -85,7 +85,7 @@ export default class EnvoyServer {
           return;
         }
 
-        this.logger.info(`[haiku envoy server] client connected`);
+        this.logger.info('[haiku envoy server] client connected');
 
         client.id = generateUUIDv4();
         this.clientRegistry.set(client.id, client);
