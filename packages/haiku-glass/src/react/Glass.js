@@ -3014,7 +3014,6 @@ export class Glass extends React.Component {
 
     this.renderSelectionMarquee(overlays);
 
-    this.renderHoverOutline(overlays);
     this.renderSnapLines(overlays);
 
     return overlays;
@@ -3067,34 +3066,6 @@ export class Glass extends React.Component {
         break;
       default:
         // ...noop.
-    }
-  }
-
-  renderHoverOutline (overlays) {
-    if (
-      !experimentIsEnabled(Experiment.OutliningElementsOnStage) ||
-      this.isPreviewMode() ||
-      this.isMarqueeActive()
-    ) {
-      return;
-    }
-
-    const activeComponent = this.getActiveComponent();
-    if (activeComponent) {
-      const hoveredElement = Element.findHoveredElement(activeComponent);
-
-      if (hoveredElement && !hoveredElement.isSelected()) {
-        const points = hoveredElement.getBoxPointsTransformed();
-        overlays.push(
-          boxMana(
-            [points[0], points[2], points[8], points[6]].map((point) => [
-              point.x,
-              point.y,
-            ]),
-            Palette.LIGHTEST_PINK,
-          ),
-        );
-      }
     }
   }
 
