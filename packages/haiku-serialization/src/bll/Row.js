@@ -1,5 +1,6 @@
 const BaseModel = require('./BaseModel');
 const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty');
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
 
 const NAVIGATION_DIRECTIONS = {
   SAME: 0,
@@ -204,9 +205,11 @@ class Row extends BaseModel {
       this._isHovered = true;
       this.emit('update', 'row-hovered');
 
-      // Roundabout! Note that elements, when hovered, will hover their corresponding row
-      if (this.isHeading() && this.element && !this.element.isHovered() && !this.element.isSelected()) {
-        this.element.hoverOn(metadata);
+      if (experimentIsEnabled(Experiment.OutliningElementsOnStageFromStage)) {
+        // Roundabout! Note that elements, when hovered, will hover their corresponding row
+        if (this.isHeading() && this.element && !this.element.isHovered() && !this.element.isSelected()) {
+          this.element.hoverOn(metadata);
+        }
       }
     }
     return this;
@@ -230,9 +233,11 @@ class Row extends BaseModel {
       this._isHovered = false;
       this.emit('update', 'row-unhovered');
 
-      // Roundabout! Note that elements, when hovered, will hover their corresponding row
-      if (this.isHeading() && this.element && this.element.isHovered()) {
-        this.element.hoverOff(metadata);
+      if (experimentIsEnabled(Experiment.OutliningElementsOnStageFromStage)) {
+        // Roundabout! Note that elements, when hovered, will hover their corresponding row
+        if (this.isHeading() && this.element && this.element.isHovered()) {
+          this.element.hoverOff(metadata);
+        }
       }
     }
     return this;
