@@ -14,7 +14,6 @@
   "Snapping": true,
   "PinchToZoomInGlass": true,
   "PreserveFrontMatterInCode": true,
-  "OutliningElementsOnStage": false,
   "OutliningElementsOnStageFromStage": false,
   "ExpandTimelinePropertiesFromStageChanges": true,
   "DumpBase64Images": true,

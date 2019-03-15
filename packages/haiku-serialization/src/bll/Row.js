@@ -203,11 +203,6 @@ class Row extends BaseModel {
     if (!this._isHovered) {
       this._isHovered = true;
       this.emit('update', 'row-hovered');
-
-      // Roundabout! Note that elements, when hovered, will hover their corresponding row
-      if (this.isHeading() && this.element && !this.element.isHovered() && !this.element.isSelected()) {
-        this.element.hoverOn(metadata);
-      }
     }
     return this;
   }
@@ -229,11 +224,6 @@ class Row extends BaseModel {
     if (this._isHovered) {
       this._isHovered = false;
       this.emit('update', 'row-unhovered');
-
-      // Roundabout! Note that elements, when hovered, will hover their corresponding row
-      if (this.isHeading() && this.element && this.element.isHovered()) {
-        this.element.hoverOff(metadata);
-      }
     }
     return this;
   }

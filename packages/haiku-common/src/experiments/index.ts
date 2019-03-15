@@ -9,7 +9,6 @@ import {getExperimentConfig} from './config';
 export enum Experiment {
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
   AdvancedMultiTransform = 'AdvancedMultiTransform',
-  OutliningElementsOnStage = 'OutliningElementsOnStage',
   OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
   DirectSelectionOfPrimitives = 'DirectSelectionOfPrimitives',
   IpcIntegrityCheck = 'IpcIntegrityCheck',
