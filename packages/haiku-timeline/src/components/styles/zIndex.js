@@ -91,6 +91,14 @@ const zIndex = {
     base: 99999,
   },
 
+  bezierEditor: {
+    base: 100,
+  },
+
+  bottomControls: {
+    base: 50,
+  },
+
   areaPostMaxKeyframe: {
     base: 3,
   },

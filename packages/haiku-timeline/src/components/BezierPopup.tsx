@@ -1,8 +1,8 @@
 import BezierEditor from 'haiku-ui-common/lib/react/Bezier/BezierEditor';
 import * as React from 'react';
-
-const HEIGHT = 280;
-const WIDTH = 250;
+// @ts-ignore
+import * as Draggable from 'react-draggable';
+import zIndex from './styles/zIndex';
 
 export interface BezierPopupProps {
   keyframes?: any[];
@@ -10,13 +10,19 @@ export interface BezierPopupProps {
   y?: number;
   onHide: () => void;
   activeComponent: {
-    changeCurveOnSelectedKeyframes: (bezier: number[], metadata: object) => void,
+    changeCurveOnSelectedKeyframes: (bezier: number[], metadata: object) => void;
   };
   timeline: any;
 }
 
 export default class BezierPopup extends React.Component<BezierPopupProps> {
   private mounted = false;
+  private handleDown = false;
+  private handleClass = 'handle';
+  private editorSize = {
+    height: 280,
+    width: 250,
+  };
 
   state = {
     currentBezier: this.bezierPointsFromEditingCurve,
@@ -70,49 +76,72 @@ export default class BezierPopup extends React.Component<BezierPopupProps> {
       return this.referenceKeyframe.getCurveInterpolationPoints();
     }
 
-    return  [];
+    return [];
   }
 
-  get boundXPosition (): number {
-    let x = this.props.x;
-
-    if (x + WIDTH > window.innerWidth) {
-      x = x - WIDTH;
+  hide = (event: React.MouseEvent<any>) => {
+    if (event.target === event.currentTarget && !this.handleDown) {
+      this.props.onHide();
     }
+  };
 
-    if (x - WIDTH < 0) {
-      x = window.innerWidth - WIDTH;
-    }
+  authorizeDrag = (dragEvent: React.DragEvent<any>) => {
+    const target = dragEvent.target as HTMLElement;
+    return Boolean(target.className && target.className.includes && target.className.includes('handle'));
+  };
 
-    return x;
-  }
+  onEnterHandle = () => {
+    this.handleDown = true;
+  };
 
-  get boundYPosition (): number {
-    let y = this.props.y;
-
-    if (y + HEIGHT > window.innerHeight) {
-      y = y - HEIGHT;
-    }
-
-    if (y - HEIGHT < 0) {
-      y = (HEIGHT / 2) + 40;
-    }
-
-    return y;
-  }
+  onLeaveHandle = () => {
+    this.handleDown = false;
+  };
 
   render () {
+    const xMax = window.innerWidth - this.editorSize.width;
+    const yMax = window.innerHeight - this.editorSize.height;
     return (
-      <BezierEditor
-        x={this.boundXPosition}
-        y={this.boundYPosition}
-        popupWidth={WIDTH}
-        popupHeight={HEIGHT}
-        onHide={this.props.onHide}
-        onChange={this.displayChanges}
-        onValueChangeFinish={this.save}
-        value={this.state.currentBezier}
-      />
+      <div
+        style={{
+          position: 'fixed',
+          zIndex: zIndex.bezierEditor.base,
+          background: 'transparent',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        onClick={this.hide}
+      >
+        <Draggable
+          defaultPosition={{
+            x: Math.min(this.props.x, xMax),
+            y: Math.min(this.props.y - this.editorSize.height / 2, yMax),
+          }}
+          handle={`.${this.handleClass}`}
+          bounds={{
+            top: 0,
+            left: this.props.timeline.getPropertiesPixelWidth(),
+            right: xMax,
+            bottom: yMax,
+          }}
+          onStart={this.authorizeDrag}
+        >
+          <div style={{display: 'inline-block'}}>
+            <BezierEditor
+              wrapperClass={this.handleClass}
+              onEnterHandle={this.onEnterHandle}
+              onLeaveHandle={this.onLeaveHandle}
+              popupWidth={this.editorSize.width}
+              popupHeight={this.editorSize.height}
+              onChange={this.displayChanges}
+              onValueChangeFinish={this.save}
+              value={this.state.currentBezier}
+            />
+          </div>
+        </Draggable>
+      </div>
     );
   }
 }

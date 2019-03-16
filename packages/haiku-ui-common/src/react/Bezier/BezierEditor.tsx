@@ -1,7 +1,5 @@
 import * as React from 'react';
-
 import Palette from '../../Palette';
-import Popover from '../Popover';
 import BezierCurveGraph from './BezierCurveGraph';
 import BezierOnionPreview from './BezierOnionPreview';
 import Grid from './Grid';
@@ -16,14 +14,20 @@ function onEnterHandle (hover: number) {
 }
 function onDownHandle (hover: number, event: React.MouseEvent<any>) {
   event.preventDefault();
+  if (this.props.onEnterHandle) {
+    this.props.onEnterHandle();
+  }
   this.setState({
     hover: null,
     down: hover,
   });
 }
 
-function onLeaveHandle () {
+function onLeaveHandle (event: React.MouseEvent<any>) {
   if (!this.state.down) {
+    if (this.props.onLeaveHandle) {
+      this.props.onLeaveHandle();
+    }
     this.setState({
       hover: null,
     });
@@ -31,10 +35,11 @@ function onLeaveHandle () {
 }
 
 export interface BezierEditorProps {
-  value: number[];
+  value?: number[];
   onChange: (value: number[]) => void;
   onValueChangeFinish: () => void;
-  onHide: () => void;
+  onEnterHandle?: () => void;
+  onLeaveHandle?: () => void;
   width?: number;
   height?: number;
   popupWidth: number;
@@ -53,13 +58,12 @@ export interface BezierEditorProps {
   handleColor?: string;
   progressColor?: string;
   readOnly?: boolean;
-  x: number;
-  y: number;
   pointers?: {
     down: string;
     hover: string;
     def: string;
   };
+  wrapperClass?: string;
 }
 
 export default class BezierEditor extends React.Component<BezierEditorProps> {
@@ -83,6 +87,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
       hover: 'pointer',
       def: 'default',
     },
+    wrapperClass: '',
   };
 
   state = {
@@ -99,7 +104,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
 
   root: HTMLElement | SVGElement;
 
-  onDownLeave = (e: React.MouseEvent<any>) => {
+  onDownLeave = (e: MouseEvent) => {
     if (this.state.down) {
       this.onDownMove(e);
       this.setState({
@@ -108,7 +113,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
     }
   };
 
-  onDownMove = (e: React.MouseEvent<any>) => {
+  onDownMove = (e: MouseEvent) => {
     if (this.state.down) {
       e.preventDefault();
       const i = 2 * (this.state.down - 1);
@@ -120,7 +125,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
     }
   };
 
-  onDownUp = (e: React.MouseEvent<any>) => {
+  onDownUp = (e: MouseEvent) => {
     e.preventDefault();
     this.props.onValueChangeFinish();
     this.setState({
@@ -128,7 +133,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
     });
   };
 
-  positionForEvent = (e: React.MouseEvent<any>) => {
+  positionForEvent = (e: MouseEvent) => {
     const rect = this.root.getBoundingClientRect();
     let y = e.clientY;
 
@@ -190,9 +195,7 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
       pointers,
       popupHeight,
       popupWidth,
-      x,
-      y,
-      onHide,
+      wrapperClass,
     } = this.props;
     const {down, hover} = this.state;
 
@@ -217,14 +220,16 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
       ...style,
     };
 
-    const containerEvents =
-      readOnly || !down
-        ? {}
-        : {
-          onMouseMove: this.onDownMove,
-          onMouseUp: this.onDownUp,
-          onMouseLeave: this.onDownLeave,
-        };
+    if (readOnly || !down) {
+      window.removeEventListener('mousemove', this.onDownMove);
+      window.removeEventListener('mouseup', this.onDownUp);
+      window.removeEventListener('mouseleave', this.onDownLeave);
+    } else {
+      window.addEventListener('mousemove', this.onDownMove);
+      window.addEventListener('mouseup', this.onDownUp);
+      window.addEventListener('mouseleave', this.onDownLeave);
+    }
+
     const handle1Events =
       readOnly || down
         ? {}
@@ -243,8 +248,8 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
         };
 
     return (
-      <Popover x={x} y={y} onHide={onHide} {...containerEvents}>
         <div
+          className={wrapperClass}
           style={{
             background: Palette.COAL,
             borderRadius: 4,
@@ -308,7 +313,6 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
             )}
           </svg>
         </div>
-      </Popover>
     );
   }
 }
