@@ -1,7 +1,7 @@
 import {get, to} from '@haiku/core/lib/vendor/color-string/index';
 import {ColorResult} from 'react-color';
 
-export enum DISPLAY_VALUES {
+export enum DisplayValues {
   HEX,
   HSL,
   RGB,
@@ -13,17 +13,17 @@ export function derivateDisplayValueFromColorString (colorString: string) {
   }
 
   return colorString.charAt(0) === '#'
-    ? DISPLAY_VALUES.HEX
-    : DISPLAY_VALUES[get(colorString).model.toUpperCase()] || DISPLAY_VALUES.HEX;
+    ? DisplayValues.HEX
+    : DisplayValues[get(colorString).model.toUpperCase()] || DisplayValues.HEX;
 }
 
 export function derivateStringFromColorResult (result: ColorResult & { source: string }) {
   const values: [number, number, number, number] =
-  Number(result.source) === DISPLAY_VALUES.HSL
+  Number(result.source) === DisplayValues.HSL
   ? [roundValue(result.hsl.h), roundValue(result.hsl.s * 100), roundValue(result.hsl.l * 100), result.hsl.a]
   : [result.rgb.r, result.rgb.g, result.rgb.b, result.hsl.a];
 
-  return to(DISPLAY_VALUES[result.source].toLowerCase(), values);
+  return to(DisplayValues[result.source].toLowerCase(), values);
 }
 
 function roundValue (value: number) {
