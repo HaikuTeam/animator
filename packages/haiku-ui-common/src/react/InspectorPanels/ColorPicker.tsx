@@ -2,7 +2,7 @@ import * as React from 'react';
 import {CustomPicker, CustomPickerProps} from 'react-color';
 import {Alpha, Checkboard, EditableInput, Hue, Saturation} from 'react-color/lib/components/common';
 import {EditableInputStyles} from 'react-color/lib/components/common/EditableInput';
-import {DISPLAY_VALUES} from '../../helpers/uiColorHelpers';
+import {DisplayValues} from '../../helpers/uiColorHelpers';
 import Palette from '../../Palette';
 
 declare module 'react-color' {
@@ -114,7 +114,7 @@ const STYLES: React.CSSProperties = {
 };
 
 export interface HaikuColorPickerProps extends CustomPickerProps<any> {
-  displayValue: DISPLAY_VALUES;
+  displayValue: DisplayValues;
 }
 
 class SliderPointer extends React.PureComponent {
@@ -140,10 +140,10 @@ class HaikuColorPicker extends React.PureComponent<HaikuColorPickerProps> {
   };
 
   onChange = (data: any) => {
-    let source: DISPLAY_VALUES;
+    let source: DisplayValues;
 
-    if (data.a !== 1 && this.state.valueDisplay === DISPLAY_VALUES.HEX) {
-      source = DISPLAY_VALUES.RGB;
+    if (data.a !== 1 && this.state.valueDisplay === DisplayValues.HEX) {
+      source = DisplayValues.RGB;
       this.setState({valueDisplay: source});
     } else {
       source = this.state.valueDisplay;
@@ -197,9 +197,9 @@ class HaikuColorPicker extends React.PureComponent<HaikuColorPickerProps> {
                 style={STYLES.select}
                 onChange={this.onValueDisplayChange}
               >
-                <option value={DISPLAY_VALUES.HEX}>HEX</option>
-                <option value={DISPLAY_VALUES.HSL}>HSL</option>
-                <option value={DISPLAY_VALUES.RGB}>RGB</option>
+                <option value={DisplayValues.HEX}>HEX</option>
+                <option value={DisplayValues.HSL}>HSL</option>
+                <option value={DisplayValues.RGB}>RGB</option>
               </select>
             </div>
           </div>
