@@ -1,7 +1,7 @@
 {
   "sections": {
     "What's new": [
-      "FIRST!"
+      "Added the ability drag and reposition the Bezier Editor."
     ],
     "Fixes": [
       "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
