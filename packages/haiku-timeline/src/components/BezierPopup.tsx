@@ -101,6 +101,7 @@ export default class BezierPopup extends React.Component<BezierPopupProps> {
   render () {
     const xMax = window.innerWidth - this.editorSize.width;
     const yMax = window.innerHeight - this.editorSize.height;
+    const yMin = 10;
     return (
       <div
         style={{
@@ -117,7 +118,7 @@ export default class BezierPopup extends React.Component<BezierPopupProps> {
         <Draggable
           defaultPosition={{
             x: Math.min(this.props.x, xMax),
-            y: Math.min(this.props.y - this.editorSize.height / 2, yMax),
+            y: Math.max(yMin, Math.min(this.props.y - this.editorSize.height / 2, yMax)),
           }}
           handle={`.${this.handleClass}`}
           bounds={{
