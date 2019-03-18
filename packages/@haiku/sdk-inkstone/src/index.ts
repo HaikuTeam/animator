@@ -906,6 +906,7 @@ export namespace inkstone {
       AmountOff: number|null;
       PercentOff: number|null;
       Valid: boolean;
+      Name?: string;
     }
 
     /**
