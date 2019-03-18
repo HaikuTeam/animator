@@ -2,7 +2,7 @@
   "name": "@haiku/core",
   "version": "4.5.2",
   "description": "Haiku Core is a JavaScript library for building user interfaces",
-  "homepage": "https://haiku.ai",
+  "homepage": "https://www.haikuforteams.com",
   "directories": {
     "lib": "lib",
     "dom": "dom",

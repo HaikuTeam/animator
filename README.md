@@ -4,7 +4,7 @@
 
 Animator Core is the runtime and rendering engine for [Haiku Animator](https://www.haikuforteams.com/) and the components you create with Animator.  This engine is a dependency for any Haiku Animator components that are run on the web.
 
-Note that for iOS and Android, Haiku Animator [also supports exporting to Lottie](https://docs.haiku.ai/embedding-and-using-haiku/lottie.html).  Animator Core is only used when rendering Animator components for the web.
+Note that for iOS and Android, Haiku Animator [also supports exporting to Lottie](https://docs.haikuforteams.com/embedding-and-using-haiku/lottie.html).  Animator Core is only used when rendering Animator components for the web.
 
 <br>
 <p align="center">
@@ -29,7 +29,7 @@ Animator Core is compatible with all major modern web browsers: Firefox, Chrome,
 
 ### Hackable + compatible with existing codebases
 
-Animator Core provides a simple and familiar API for runtime manipulation of components that were built in Animator. You can play and pause animations, react to events, and even pass in dynamic data. (See the [docs](https://docs.haiku.ai/embedding-and-using-haiku/haiku-core-api.html) for more info.)
+Animator Core provides a simple and familiar API for runtime manipulation of components that were built in Animator. You can play and pause animations, react to events, and even pass in dynamic data. (See the [docs](https://docs.haikuforteams.com/embedding-and-using-haiku/haiku-core-api.html) for more info.)
 
 <br>
 
@@ -65,7 +65,7 @@ Animator Core is also available via Haiku's CDN:
 
 ### API / Docs
 
-For our full documentation (a work in progress), please see [docs.haiku.ai](https://docs.haiku.ai). We welcome your contributions [on Github](https://github.com/HaikuTeam/docs).
+For our full documentation (a work in progress), please see [docs.haikuforteams.com](https://docs.haikuforteams.com/). We welcome your contributions [on Github](https://github.com/HaikuTeam/docs).
 
 <br>
 
@@ -129,7 +129,7 @@ Interactive:
       timelines: {
         Default: {
           "#box": {
-            "content": { 0: { 
+            "content": { 0: {
               value: function (clicks) {
                 return clicks + "";
               },
