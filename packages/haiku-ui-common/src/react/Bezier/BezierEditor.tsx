@@ -114,7 +114,9 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
   };
 
   onDownMove = (e: MouseEvent) => {
-    if (this.state.down) {
+    if (e.clientX < 0 || e.clientY < 0 || e.clientX > window.innerWidth || e.clientY > window.innerHeight) {
+      this.onDownUp(e);
+    } else if (this.state.down) {
       e.preventDefault();
       const i = 2 * (this.state.down - 1);
       const value = [].concat(this.props.value);
@@ -176,6 +178,22 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
     this.root = root;
   };
 
+  addMouseListeners () {
+    window.addEventListener('mousemove', this.onDownMove);
+    window.addEventListener('mouseup', this.onDownUp);
+    window.addEventListener('mouseleave', this.onDownLeave);
+  }
+
+  removeMouseListeners () {
+    window.removeEventListener('mousemove', this.onDownMove);
+    window.removeEventListener('mouseup', this.onDownUp);
+    window.removeEventListener('mouseleave', this.onDownLeave);
+  }
+
+  componentWillUnmount () {
+    this.removeMouseListeners();
+  }
+
   render () {
     const {
       value,
@@ -221,13 +239,9 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
     };
 
     if (readOnly || !down) {
-      window.removeEventListener('mousemove', this.onDownMove);
-      window.removeEventListener('mouseup', this.onDownUp);
-      window.removeEventListener('mouseleave', this.onDownLeave);
+      this.removeMouseListeners();
     } else {
-      window.addEventListener('mousemove', this.onDownMove);
-      window.addEventListener('mouseup', this.onDownUp);
-      window.addEventListener('mouseleave', this.onDownLeave);
+      this.addMouseListeners();
     }
 
     const handle1Events =
