@@ -2269,9 +2269,6 @@ export class Glass extends React.Component {
       case 93: this.handleKeyCommand(false); break;
     }
 
-    const proxy = this.fetchProxyElementForSelection();
-    proxy.handleKeyUp();
-
     if (this.getActiveComponent()) {
       this.getActiveComponent().getSelectionMarquee().endSelection();
     }

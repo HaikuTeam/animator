@@ -4,8 +4,10 @@
       "Added the ability drag and reposition the Bezier Editor."
     ],
     "Fixes": [
-      "Renamed 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
+      "Fixed a crash when pressing `Cmd + A` while an element is being dragged.",
       "Fixed a crash when an invalid curve value is entered while the Curve Editor is open.",
+      "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
+      "Renamed 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
       "Removed a drag ghost image appearing while keyframes are dragged."
     ]
   }
