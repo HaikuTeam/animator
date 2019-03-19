@@ -5,7 +5,8 @@
     ],
     "Fixes": [
       "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
-      "Reworded 'Translation' to 'Position' in the Timeline 'ADD +' menu."
+      "Reworded 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
+      "Removed a drag ghost image randomly appearing when keyframes are dragged."
     ]
   }
 }
