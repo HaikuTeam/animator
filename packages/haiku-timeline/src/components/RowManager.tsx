@@ -182,7 +182,7 @@ class RowManager extends React.PureComponent<RowManagerProps> {
 
     return (
       <div
-        className={`row-manager ${this.state.canReceiveDrag ? 'row-manager-receiving-drag' : ''}`}
+        className={`no-select-children row-manager ${this.state.canReceiveDrag ? 'row-manager-receiving-drag' : ''}`}
         onDragOver={this.onDragOver}
         onDragEnter={this.onDragEnter}
         onDragLeave={this.onDragLeave}
