@@ -1357,7 +1357,7 @@ class Timeline extends React.Component {
           position: 'fixed',
           bottom: 0,
           left: 0,
-          zIndex: 10000,
+          zIndex: zIndex.bottomControls.base,
         }}>
         <TimelineRangeScrollbar
           disableTimelinePointerEvents={() => {
