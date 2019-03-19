@@ -5,7 +5,8 @@
     ],
     "Fixes": [
       "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
-      "Reworded 'Translation' to 'Position' in the Timeline 'ADD +' menu."
+      "Reworded 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
+      "Fixed a bug causing the app to crash when an invalid curve value is entered while the Curve Editor is open."
     ]
   }
 }
