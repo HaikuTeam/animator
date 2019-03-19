@@ -11,6 +11,7 @@ export enum SvgTag {
   PathShape = 'path',
   PolygonShape = 'polygon',
   PolylineShape = 'polyline',
+  LineShape = 'line',
   Svg = 'svg',
   Use = 'use',
   // Not really SVG tags, but behave like them in our layout semantics.

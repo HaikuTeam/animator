@@ -1,7 +1,8 @@
 {
   "sections": {
     "What's new": [
-      "Added the ability drag and reposition the Bezier Editor."
+      "Added the ability drag and reposition the Bezier Editor.",
+      "Added support for <line> elements in Lottie export."
     ],
     "Fixes": [
       "Fixed a crash when pressing `Cmd + A` while an element is being dragged.",

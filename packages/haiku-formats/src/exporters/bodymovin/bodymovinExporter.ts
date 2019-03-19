@@ -778,7 +778,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private strokeShapeFromTimeline (timeline: BytecodeTimelineProperties) {
     // Return early if there is nothing to render.
-    if (!timelineHasProperties(timeline, 'stroke', 'strokeWidth') || initialValue(timeline, 'stroke') === 'none') {
+    if (!timelineHasProperties(timeline, 'stroke') || initialValue(timeline, 'stroke') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Stroke,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
@@ -794,12 +794,17 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const stroke = {
       [ShapeKey.Type]: ShapeType.Stroke,
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'strokeOpacity', 100, opacityTransformer),
-      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseFloat),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
       [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'strokeLinecap')),
       [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'strokeLinejoin')),
       [TransformKey.StrokeMiterlimit]: Number(initialValueOr(timeline, 'strokeMiterlimit', 1)),
     };
+
+    if (timelineHasProperties(timeline, 'strokeWidth')) {
+      stroke[TransformKey.StrokeWidth] = this.getValue(timeline.strokeWidth, parseFloat);
+    } else {
+      stroke[TransformKey.StrokeWidth] = getFixedPropertyValue(1);
+    }
 
     if (timelineHasProperties(timeline, 'strokeDasharray')) {
       stroke[TransformKey.StrokeDasharray] = dasharrayTransformer(
@@ -1064,6 +1069,28 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         this.decorateRectangle(timeline, shape, transform);
         groupItems.push(shape);
         break;
+      case SvgTag.LineShape:
+        if (timelineHasProperties(timeline, 'x1', 'y1', 'x2', 'y2')) {
+          console.log([
+            initialValue(timeline, 'x1'),
+            initialValue(timeline, 'y1'),
+            initialValue(timeline, 'x2'),
+            initialValue(timeline, 'y2'),
+          ].join(' '));
+          timeline.points = {
+            0: {
+              value: [
+                initialValue(timeline, 'x1'),
+                initialValue(timeline, 'y1'),
+                initialValue(timeline, 'x2'),
+                initialValue(timeline, 'y2'),
+              ].join(' '),
+            },
+          };
+          this.decoratePolygon(timeline, shape);
+          groupItems.push(shape);
+        }
+        break;
       case SvgTag.PolygonShape:
       case SvgTag.PolylineShape:
         this.decoratePolygon(timeline, shape);
@@ -1193,6 +1220,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       case SvgTag.PathShape:
       case SvgTag.PolygonShape:
       case SvgTag.PolylineShape:
+      case SvgTag.LineShape:
         this.handleShape(node, parentNode);
         break;
       default:
