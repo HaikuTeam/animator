@@ -11,8 +11,8 @@ tape('Keyframe.01', (t) => {
   t.plan(44);
   return setupTest('keyframe-01', (err, ac, rows, done) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     t.equal(Keyframe.where({_selected: true, component: ac}).length, 0, 'no kfs selected');
     const kfs = rows[2].getKeyframes();
 
@@ -132,8 +132,8 @@ tape('Keyframe.02', (t) => {
   t.plan(6);
   return setupTest('keyframe-02', (err, ac, rows, done) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     const kfs = rows[2].getKeyframes();
     // When I drag the keyframe at frame 0 a newly keyframe is created at frame 0
     t.equal(kfs[0].getMs(), 0, 'ms ok to begin');
@@ -144,11 +144,11 @@ tape('Keyframe.02', (t) => {
     let once = false;
     ac.on('update', (what, row) => {
       if (what !== 'reloaded') {
- return;
-}
+        return;
+      }
       if (once) {
- return;
-}
+        return;
+      }
       once = true;
 
       const kfs2 = rows[2].getKeyframes();
@@ -173,8 +173,8 @@ tape('Keyframe.03', (t) => {
   t.plan(2);
   return setupTest('keyframe-03', (err, ac, rows, done) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     const kfs = rows[2].getKeyframes();
     t.equal(kfs.length, 6, 'kfs len ok');
 
@@ -182,11 +182,11 @@ tape('Keyframe.03', (t) => {
     let once = true;
     ac.on('update', (what, row) => {
       if (what !== 'keyframe-delete') {
- return;
-}
+        return;
+      }
       if (row.isHeading()) {
- return;
-}
+        return;
+      }
       if (once) {
         once = false;
         t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete');
@@ -205,8 +205,8 @@ tape('Keyframe.04', (t) => {
   t.plan(3);
   return setupTest('keyframe-04', (err, ac, rows, done) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     const kfs = rows[2].getKeyframes();
     fireClick(kfs[0], false, {shift: false});
     t.equal(ac.checkIfSelectedKeyframesAreMovableToZero(), false, 'the first keyframe cannot be moved to zero');
@@ -226,8 +226,8 @@ tape('Keyframe.05', (t) => {
   t.plan(2);
   return setupTest('keyframe-05', (err, ac, rows, done) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     const kfs = rows[2].getKeyframes();
     const cachedValue = kfs[0].value;
 
@@ -237,11 +237,11 @@ tape('Keyframe.05', (t) => {
     let once = false;
     ac.on('update', (what, row) => {
       if (what !== 'reloaded') {
- return;
-}
+        return;
+      }
       if (once) {
- return;
-}
+        return;
+      }
       once = true;
       const kfs2 = rows[2].getKeyframes();
 
@@ -259,8 +259,8 @@ tape('Keyframe.06', (t) => {
   process.env.HAIKU_SUBPROCESS = 'timeline';
   return setupTest('keyframe-06', (err, ac, rows, done) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     const kfs = rows[2].getKeyframes();
     const selection = [kfs[0], kfs[1]];
 
@@ -280,43 +280,43 @@ tape('Keyframe.06', (t) => {
   });
 });
 
-tape("Keyframe.07", t => {
+tape('Keyframe.07', (t) => {
   const subproc = process.env.HAIKU_SUBPROCESS;
-  process.env.HAIKU_SUBPROCESS = "timeline";
-  return setupTest("keyframe-07", (err, ac, rows, done) => {
+  process.env.HAIKU_SUBPROCESS = 'timeline';
+  return setupTest('keyframe-07', (err, ac, rows, done) => {
     if (err) {
       throw err;
     }
     const kfs = rows[2].getKeyframes();
     const selection = [kfs[0], kfs[1]];
 
-    kfs[0].curve = "linear";
-    kfs[1].curve = "linear";
+    kfs[0].curve = 'linear';
+    kfs[1].curve = 'linear';
     t.true(
       Keyframe.groupHasBezierEditableCurves(selection),
-      "Returns true if a group of keyframes have editable curves and are all the same"
+      'Returns true if a group of keyframes have editable curves and are all the same',
     );
 
     t.true(
       Keyframe.groupHasBezierEditableCurves([kfs[0]]),
-      "Returns true if a single keyframe with a decomposable curve is provided"
+      'Returns true if a single keyframe with a decomposable curve is provided',
     );
 
     t.false(
       Keyframe.groupHasBezierEditableCurves([]),
-      "Returns false if no keyframes are provided"
+      'Returns false if no keyframes are provided',
     );
 
-    kfs[1].curve = "easeIn";
+    kfs[1].curve = 'easeInOutBack';
     t.false(
       Keyframe.groupHasBezierEditableCurves(selection),
-      "Returns false if a group of curves contain different curves, even if all are non decomposable"
+      'Returns false if a group of curves contain different curves, even if all are non decomposable',
     );
 
-    kfs[1].curve = "easeOutBounce";
+    kfs[1].curve = 'easeOutBounce';
     t.false(
       Keyframe.groupHasBezierEditableCurves([kfs[1]]),
-      "Returns false if the group contains a decomposable curve"
+      'Returns false if the group contains a decomposable curve',
     );
 
     process.env.HAIKU_SUBPROCESS = subproc;
@@ -325,26 +325,82 @@ tape("Keyframe.07", t => {
   });
 });
 
-tape("Keyframe.08", t => {
+tape('Keyframe.08', (t) => {
   const subproc = process.env.HAIKU_SUBPROCESS;
-  process.env.HAIKU_SUBPROCESS = "timeline";
-  return setupTest("keyframe-07", (err, ac, rows, done) => {
+  process.env.HAIKU_SUBPROCESS = 'timeline';
+  return setupTest('keyframe-07', (err, ac, rows, done) => {
     if (err) {
       throw err;
     }
     const kf = rows[2].getKeyframes()[0];
 
-    kf.curve = 'linear'
-    t.equal(kf.getCurveCapitalized(), 'Linear', 'capitalizes defined curves')
+    kf.curve = 'linear';
+    t.equal(kf.getCurveCapitalized(), 'Linear', 'capitalizes defined curves');
 
-    kf.curve = 'easeInOut'
-    t.equal(kf.getCurveCapitalized(), 'EaseInOut', 'capitalizes defined curves')
+    kf.curve = 'easeInOut';
+    t.equal(kf.getCurveCapitalized(), 'EaseInOut', 'capitalizes defined curves');
 
     kf.curve = [0, 0.3, 0.2, 1];
-    t.equal(kf.getCurveCapitalized(), 'Custom', 'returns "Custom" when a curve is defined by an array')
+    t.equal(kf.getCurveCapitalized(), 'Custom', 'returns "Custom" when a curve is defined by an array');
 
-    kf.curve = null
-    t.equal(kf.getCurveCapitalized(), '', 'returns an empty string when a curve is not defined')
+    kf.curve = null;
+    t.equal(kf.getCurveCapitalized(), '', 'returns an empty string when a curve is not defined');
+
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done();
+    t.end();
+  });
+});
+
+tape('Keyframe.09', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = 'timeline';
+  return setupTest('keyframe-09', (err, ac, rows, done) => {
+    if (err) {
+      throw err;
+    }
+    const kf = rows[2].getKeyframes()[0];
+
+    kf.curve = null;
+    t.equal(kf.hasCurveBody(), false, '#hasCurveBody returns false if the keyframe does not have a curve');
+
+    kf.curve = 'null';
+    t.equal(kf.hasCurveBody(), false, '#hasCurveBody returns false for invalid curve strings');
+    kf.curve = 'invalidcurve';
+    t.equal(kf.hasCurveBody(), false, '#hasCurveBody returns false for invalid curve strings');
+
+    kf.curve = [0, 0.3, 0.2, 1];
+    t.equal(kf.hasCurveBody(), true, '#hasCurveBody returns true for array-defined curves');
+
+    kf.curve = 'linear';
+    t.equal(kf.hasCurveBody(), true, '#hasCurveBody returns true for a valid curve string');
+
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done();
+    t.end();
+  });
+});
+
+tape('Keyframe.10', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = 'timeline';
+  return setupTest('keyframe-09', (err, ac, rows, done) => {
+    if (err) {
+      throw err;
+    }
+    const kf = rows[2].getKeyframes()[0];
+
+    kf.curve = null;
+    t.equal(kf.getCurveInterpolationPoints(), undefined, '#getCurveInterpolationPoints returns undefined if the curve is not valid');
+
+    kf.curve = 'null';
+    t.equal(kf.getCurveInterpolationPoints(), undefined, '#getCurveInterpolationPoints returns undefined if the curve is not valid');
+
+    kf.curve = [0, 0.3, 0.2, 1];
+    t.equal(kf.getCurveInterpolationPoints(), kf.curve, '#getCurveInterpolationPoints returns the same curve definition if the curve is already interpolated');
+
+    kf.curve = 'linear';
+    t.deepEqual(kf.getCurveInterpolationPoints(), [0, 0, 1, 1], '#getCurveInterpolationPoints returns an array if ');
 
     process.env.HAIKU_SUBPROCESS = subproc;
     done();
@@ -428,14 +484,14 @@ function mockKeySpec (kf, keySpec = {}) {
 
 function mockViewSpec (kf, onCurve) {
   if (!onCurve) {
- return {};
-}
+    return {};
+  }
   if (kf.hasConstantBody()) {
- return {isViaConstantBodyView: true};
-}
+    return {isViaConstantBodyView: true};
+  }
   if (kf.hasCurveBody()) {
- return {isViaTransitionBodyView: true};
-}
+    return {isViaTransitionBodyView: true};
+  }
   return {};
 }
 
@@ -450,14 +506,14 @@ function setupTest (name, cb) {
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
       if (err) {
- throw err;
-}
+        throw err;
+      }
       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
       const ac = project.getCurrentActiveComponent();
       return ac.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err, info, mana) => {
         if (err) {
- throw err;
-}
+          throw err;
+        }
         const rows = ac.getRows().filter((row) => row.isProperty()).slice(0, 3);
         return async.eachSeries(rows, (row, next) => {
           const mss = [0, 100, 200, 300, 400, 500];
@@ -467,8 +523,8 @@ function setupTest (name, cb) {
           }, next);
         }, (err) => {
           if (err) {
- throw err;
-}
+            throw err;
+          }
           cb(null, ac, rows, () => {
             fse.removeSync(folder);
           });
