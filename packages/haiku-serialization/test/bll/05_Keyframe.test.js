@@ -280,7 +280,7 @@ tape('Keyframe.06', (t) => {
   });
 });
 
-tape('Keyframe.07', t => {
+tape('Keyframe.07', (t) => {
   const subproc = process.env.HAIKU_SUBPROCESS;
   process.env.HAIKU_SUBPROCESS = 'timeline';
   return setupTest('keyframe-07', (err, ac, rows, done) => {
@@ -294,29 +294,29 @@ tape('Keyframe.07', t => {
     kfs[1].curve = 'linear';
     t.true(
       Keyframe.groupHasBezierEditableCurves(selection),
-      'Returns true if a group of keyframes have editable curves and are all the same'
+      'Returns true if a group of keyframes have editable curves and are all the same',
     );
 
     t.true(
       Keyframe.groupHasBezierEditableCurves([kfs[0]]),
-      'Returns true if a single keyframe with a decomposable curve is provided'
+      'Returns true if a single keyframe with a decomposable curve is provided',
     );
 
     t.false(
       Keyframe.groupHasBezierEditableCurves([]),
-      'Returns false if no keyframes are provided'
+      'Returns false if no keyframes are provided',
     );
 
-    kfs[1].curve = 'easeIn';
+    kfs[1].curve = 'easeInOutBack';
     t.false(
       Keyframe.groupHasBezierEditableCurves(selection),
-      'Returns false if a group of curves contain different curves, even if all are non decomposable'
+      'Returns false if a group of curves contain different curves, even if all are non decomposable',
     );
 
     kfs[1].curve = 'easeOutBounce';
     t.false(
       Keyframe.groupHasBezierEditableCurves([kfs[1]]),
-      'Returns false if the group contains a decomposable curve'
+      'Returns false if the group contains a decomposable curve',
     );
 
     process.env.HAIKU_SUBPROCESS = subproc;
@@ -325,7 +325,7 @@ tape('Keyframe.07', t => {
   });
 });
 
-tape('Keyframe.08', t => {
+tape('Keyframe.08', (t) => {
   const subproc = process.env.HAIKU_SUBPROCESS;
   process.env.HAIKU_SUBPROCESS = 'timeline';
   return setupTest('keyframe-07', (err, ac, rows, done) => {
@@ -345,6 +345,62 @@ tape('Keyframe.08', t => {
 
     kf.curve = null;
     t.equal(kf.getCurveCapitalized(), '', 'returns an empty string when a curve is not defined');
+
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done();
+    t.end();
+  });
+});
+
+tape('Keyframe.09', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = 'timeline';
+  return setupTest('keyframe-09', (err, ac, rows, done) => {
+    if (err) {
+      throw err;
+    }
+    const kf = rows[2].getKeyframes()[0];
+
+    kf.curve = null;
+    t.equal(kf.hasCurveBody(), false, '#hasCurveBody returns false if the keyframe does not have a curve');
+
+    kf.curve = 'null';
+    t.equal(kf.hasCurveBody(), false, '#hasCurveBody returns false for invalid curve strings');
+    kf.curve = 'invalidcurve';
+    t.equal(kf.hasCurveBody(), false, '#hasCurveBody returns false for invalid curve strings');
+
+    kf.curve = [0, 0.3, 0.2, 1];
+    t.equal(kf.hasCurveBody(), true, '#hasCurveBody returns true for array-defined curves');
+
+    kf.curve = 'linear';
+    t.equal(kf.hasCurveBody(), true, '#hasCurveBody returns true for a valid curve string');
+
+    process.env.HAIKU_SUBPROCESS = subproc;
+    done();
+    t.end();
+  });
+});
+
+tape('Keyframe.10', (t) => {
+  const subproc = process.env.HAIKU_SUBPROCESS;
+  process.env.HAIKU_SUBPROCESS = 'timeline';
+  return setupTest('keyframe-09', (err, ac, rows, done) => {
+    if (err) {
+      throw err;
+    }
+    const kf = rows[2].getKeyframes()[0];
+
+    kf.curve = null;
+    t.equal(kf.getCurveInterpolationPoints(), undefined, '#getCurveInterpolationPoints returns undefined if the curve is not valid');
+
+    kf.curve = 'null';
+    t.equal(kf.getCurveInterpolationPoints(), undefined, '#getCurveInterpolationPoints returns undefined if the curve is not valid');
+
+    kf.curve = [0, 0.3, 0.2, 1];
+    t.equal(kf.getCurveInterpolationPoints(), kf.curve, '#getCurveInterpolationPoints returns the same curve definition if the curve is already interpolated');
+
+    kf.curve = 'linear';
+    t.deepEqual(kf.getCurveInterpolationPoints(), [0, 0, 1, 1], '#getCurveInterpolationPoints returns an array if ');
 
     process.env.HAIKU_SUBPROCESS = subproc;
     done();

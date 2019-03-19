@@ -239,9 +239,9 @@ class Keyframe extends BaseModel {
   }
 
   hasCurveBody () {
-    return (
+    return Boolean(
       this.next() &&
-      this.getCurve()
+      this.isTransitionSegment(),
     );
   }
 
@@ -258,7 +258,9 @@ class Keyframe extends BaseModel {
    * @description Returns the curve descomposed
    */
   getCurveInterpolationPoints () {
-    return getCurveInterpolationPoints(this.getCurve());
+    if (this.isTransitionSegment()) {
+      return getCurveInterpolationPoints(this.getCurve());
+    }
   }
 
   isSoloKeyframe () {
