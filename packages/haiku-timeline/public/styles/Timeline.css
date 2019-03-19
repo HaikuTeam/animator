@@ -194,11 +194,6 @@ input:focus, button:focus {
   height: 100%;
 }
 
-#timeline .no-select {
-  -webkit-user-select: none;
-  cursor: default;
-}
-
 #timeline .no-incrementor input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -208,6 +203,10 @@ input[type=number]::-webkit-outer-spin-button {
 .no-select {
   -webkit-user-select: none;
   cursor: default;
+}
+
+.no-select-children * {
+  -webkit-user-select: none;
 }
 
 :root {

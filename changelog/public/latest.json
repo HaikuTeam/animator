@@ -4,9 +4,9 @@
       "Added the ability drag and reposition the Bezier Editor."
     ],
     "Fixes": [
-      "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
-      "Reworded 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
-      "Fixed a bug causing the app to crash when an invalid curve value is entered while the Curve Editor is open."
+      "Renamed 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
+      "Fixed a crash when an invalid curve value is entered while the Curve Editor is open.",
+      "Removed a drag ghost image appearing while keyframes are dragged."
     ]
   }
 }
