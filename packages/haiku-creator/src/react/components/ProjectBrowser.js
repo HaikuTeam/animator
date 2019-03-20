@@ -701,6 +701,16 @@ class ProjectBrowser extends React.Component {
                 </span>
               </span>
             </div>
+            <ExternalLink
+              style={{
+                ...BTN_STYLES.btnCancel,
+                marginTop: 10,
+                marginRight: 0,
+              }}
+              href={`https://zackbrown1.typeform.com/to/hApKZ2?username=${this.props.username}&orgname=${this.props.organizationName}`}
+            >
+              Tell us why not
+            </ExternalLink>
           </div>)
         }
         {this.projectsListElement()}
