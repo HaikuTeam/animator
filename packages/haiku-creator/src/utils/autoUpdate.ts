@@ -8,7 +8,7 @@ import nodeFetch from 'node-fetch';
 import * as os from 'os';
 import * as path from 'path';
 import * as qs from 'qs';
-import * as uuid from 'uuid';
+import {v4} from 'uuid';
 
 const DEFAULT_OPTIONS = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -38,8 +38,8 @@ export default {
       }
 
       const tempPath = os.tmpdir();
-      const zipPath = path.join(tempPath, `${uuid.v4()}.zip`);
-      const extractPath = path.join(tempPath, uuid.v4());
+      const zipPath = path.join(tempPath, `${v4()}.zip`);
+      const extractPath = path.join(tempPath, v4());
       const appPath = path.resolve(electron.remote.app.getPath('exe'), '..', '..', '..');
       logger.info('[autoupdater] About to download an update:', options, url);
       await download(url, zipPath, progressCallback);
