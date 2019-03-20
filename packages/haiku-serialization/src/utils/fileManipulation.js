@@ -43,7 +43,7 @@ module.exports = {
   unzip (zipPath, destination) {
     const saneZipPath = JSON.stringify(zipPath);
     const saneDestination = JSON.stringify(destination);
-    const unzipCommand = `unzip -o -qq ${saneZipPath} -d ${saneDestination}`;
+    const unzipCommand = `/usr/bin/unzip -o -qq ${saneZipPath} -d ${saneDestination}`;
 
     return new Promise((resolve, reject) => {
       exec(unzipCommand, {}, (err) => {
@@ -55,7 +55,7 @@ module.exports = {
   ditto (src, dest) {
     const saneSrc = JSON.stringify(src);
     const saneDest = JSON.stringify(dest);
-    const dittoComand = `ditto ${saneSrc} ${saneDest}`;
+    const dittoComand = `/usr/bin/ditto ${saneSrc} ${saneDest}`;
 
     return new Promise((resolve, reject) => {
       exec(dittoComand, {}, (err) => {
