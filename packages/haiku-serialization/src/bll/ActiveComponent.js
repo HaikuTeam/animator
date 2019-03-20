@@ -2024,6 +2024,10 @@ class ActiveComponent extends BaseModel {
   deleteSelectedKeyframes (metadata) {
     const keyframes = this.getSelectedKeyframes();
 
+    if (Keyframe.groupIsSingleTween(keyframes)) {
+      return keyframes[0].removeCurve(metadata);
+    }
+
     keyframes.forEach((keyframe) => {
       if (!keyframe.isTransitionSegment()) {
         const prev = keyframe.prev();
