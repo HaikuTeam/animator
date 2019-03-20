@@ -34,7 +34,7 @@ export default {
         !options.platform ||
         !options.version
       ) {
-        throw(Error('Missing release/autoupdate environment variables'));
+        throw new Error('Missing release/autoupdate environment variables');
       }
 
       const tempPath = os.tmpdir();
@@ -51,7 +51,7 @@ export default {
       });
 
       if (!newAppName) {
-        throw(Error('Couldn\'t find a valid application from the downloaded zip'));
+        throw new Error('Couldn\'t find a valid application from the downloaded zip');
       }
 
       // `ditto` the contents of the extract path folder (the .app package) into `appPath`
