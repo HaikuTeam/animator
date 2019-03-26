@@ -22,7 +22,7 @@ import * as  NoCon from '@haiku/taylor-nocon/react';  // Actual Ku Credit: Ms Ti
 const STYLES = {
   adminButton: {
     // TODO: make this a bit more insane?
-    backgroundColor: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
   },
 };
 
