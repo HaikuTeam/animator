@@ -1,8 +1,6 @@
 import * as React from 'react';
-import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 import zIndex from './styles/zIndex';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 class ScrollView extends React.PureComponent {
   constructor (props) {

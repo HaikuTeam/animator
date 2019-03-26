@@ -647,7 +647,7 @@ class ProjectBrowser extends React.Component {
               key="new_proj"
               title="Create new Animator project"
               onClick={() => this.showNewProjectModal()}
-              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover]}
             >
               <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
               <span>New Project</span>
@@ -678,7 +678,7 @@ class ProjectBrowser extends React.Component {
               onClick={this.openPopover}
               style={[
                 BTN_STYLES.btnIcon,
-                BTN_STYLES.btnIconHovered,
+                BTN_STYLES.btnIconHover,
                 this.props.isAdmin && STYLES.adminButton,
               ]}
             >
