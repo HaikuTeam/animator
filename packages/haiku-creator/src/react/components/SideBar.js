@@ -3,7 +3,6 @@ import * as Radium from 'radium';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {ChevronLeftMenuIconSVG, StateInspectorIconSVG, LibraryIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import {BTN_STYLES} from '../styles/btnShared';
-import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
 
 const STYLES = {
   container: {
@@ -110,7 +109,6 @@ class SideBar extends React.Component {
     return (
       <div style={STYLES.container} className="layout-box" id="sidebar">
         <div style={[STYLES.bar, {paddingLeft: this.state.isFullscreen ? 9 : 74}]} className="frame">
-          <div style={STYLES.logo}><AnimatorSVG /></div>
           {trialDaysRemaining > 0 &&
             <div
               style={[STYLES.proBadge, this.state.isFullscreen && {left: 34}]}
