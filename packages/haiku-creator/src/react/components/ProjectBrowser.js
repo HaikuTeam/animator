@@ -288,6 +288,7 @@ class ProjectBrowser extends React.Component {
             <div>The Animator free trial requires an active intenet connection.</div>
             <div>Upgrade to Animator Pro for offline capabilities.</div>
             <div
+              key="go-pro-button"
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.btnPrimary,
