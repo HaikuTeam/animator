@@ -296,7 +296,7 @@ export const DASH_STYLES: React.CSSProperties = {
     transform: 'translateX(-50%)',
     borderLeft: '10px solid transparent',
     borderRight: '10px solid transparent',
-    borderBottom: '10px solid ' + Palette.COAL,
+    borderBottom: `10px solid ${Palette.COAL}`,
   },
   emptyState: {
     position: 'absolute',
@@ -414,7 +414,7 @@ export const DASH_STYLES: React.CSSProperties = {
     display: 'inline-block',
   },
   notice: {
-    border: '1px solid ' + Palette.LIGHT_BLUE,
+    border: `1px solid ${Palette.LIGHT_BLUE}`,
     padding: '34px 50px 30px',
     textAlign: 'center',
     position: 'relative',

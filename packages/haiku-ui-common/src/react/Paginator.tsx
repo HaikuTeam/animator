@@ -11,6 +11,7 @@ const STYLES = {
     pointerEvents: 'none',
     bottom: '0px',
     transition: 'opacity 125ms, filter 140ms',
+    userSelect: 'none',
   },
   pagerHolster: {
     transform: 'translateY(-12px)',

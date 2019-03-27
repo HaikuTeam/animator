@@ -22,7 +22,7 @@ import * as  NoCon from '@haiku/taylor-nocon/react';  // Actual Ku Credit: Ms Ti
 const STYLES = {
   adminButton: {
     // TODO: make this a bit more insane?
-    backgroundColor: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
   },
 };
 
@@ -288,6 +288,7 @@ class ProjectBrowser extends React.Component {
             <div>The Animator free trial requires an active intenet connection.</div>
             <div>Upgrade to Animator Pro for offline capabilities.</div>
             <div
+              key="go-pro-button"
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.btnPrimary,
@@ -647,7 +648,7 @@ class ProjectBrowser extends React.Component {
               key="new_proj"
               title="Create new Animator project"
               onClick={() => this.showNewProjectModal()}
-              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover]}
             >
               <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
               <span>New Project</span>
@@ -678,7 +679,7 @@ class ProjectBrowser extends React.Component {
               onClick={this.openPopover}
               style={[
                 BTN_STYLES.btnIcon,
-                BTN_STYLES.btnIconHovered,
+                BTN_STYLES.btnIconHover,
                 this.props.isAdmin && STYLES.adminButton,
               ]}
             >
