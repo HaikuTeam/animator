@@ -11,7 +11,8 @@
       "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
       "Renamed 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
       "Removed a drag ghost image appearing while keyframes are dragged.",
-      "Fixed a crash when the internet connection is lost on some scenarios."
+      "Fixed a crash when the internet connection is lost on some scenarios.",
+      "Added helpful warnings when trying to import big design assets."
     ]
   }
 }
