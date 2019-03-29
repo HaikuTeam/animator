@@ -1,10 +1,16 @@
-import * as React from 'react';
 import {remote} from 'electron';
 import {isMac} from 'haiku-common/lib/environments/os';
-import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import * as React from 'react';
 
-class FileSystemImporter extends React.PureComponent {
-  showImportDialog () {
+export interface FileSystemImporterProps {
+  onFileDrop (files: string[]): void;
+  style?: React.CSSProperties;
+  text?: string;
+}
+
+class FileSystemImporter extends React.PureComponent<FileSystemImporterProps> {
+  showImportDialog = () => {
     const validExtensions = [
       'svg',
       'ai',
@@ -33,17 +39,15 @@ class FileSystemImporter extends React.PureComponent {
       },
       this.props.onFileDrop,
     );
-  }
+  };
 
   render () {
     return (
       <div
         style={this.props.style}
-        onClick={() => {
-          this.showImportDialog();
-        }}
+        onClick={this.showImportDialog}
       >
-        {this.props.text ? this.props.text : 'Import From File'}
+        {this.props.text || 'Import From File'}
       </div>
     );
   }
