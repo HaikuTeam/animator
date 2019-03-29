@@ -10,12 +10,15 @@ import Palette from 'haiku-ui-common/lib/Palette';
 import {LoadingTopBar} from 'haiku-ui-common/lib/react/LoadingTopBar';
 import {didAskedForSketch} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
-import {Figma} from 'haiku-serialization/src/bll/Figma';
+import {Figma, MAX_ITEMS_TO_IMPORT} from 'haiku-serialization/src/bll/Figma';
 import * as sketchUtils from 'haiku-serialization/src/utils/sketchUtils';
 import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';
 import FileImporter from './FileImporter';
 import DesignFileCreator from './DesignFileCreator';
+import {statSync} from 'fs';
+import {basename, extname} from 'path';
+import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 
 const openWithDefaultProgram = (asset) => {
   shell.openItem(asset.getAbspath());
@@ -197,7 +200,7 @@ class Library extends React.Component {
     });
   }
 
-  importFigmaAsset (url) {
+  importFigmaAsset (url, warnOnComplexFile = false) {
     if (!this.props.servicesEnvoyClient) {
       return;
     }
@@ -205,8 +208,21 @@ class Library extends React.Component {
     this.setState({isLoading: true, loadingProgress: 80, loadingSpeed: '20s', lockLoadingFromWatchers: true});
     const projectFolder = this.props.projectModel.folder;
     return this.props.servicesEnvoyClient.figmaImportSVG({url, projectFolder}, this.state.figma.token)
-      .then(() => {
+      .then((numberOfItems) => {
         this.setState({isLoading: false, loadingProgress: null, loadingSpeed: null, lockLoadingFromWatchers: false});
+        if (numberOfItems >= MAX_ITEMS_TO_IMPORT && warnOnComplexFile) {
+          this.props.createNotice({
+            type: 'warning',
+            title: 'Warning',
+            message: (
+              <span>
+                This project seems to be a complex project and we imported a limited amount of elements.
+                For more information please check this <ExternalLink style={{textDecoration: 'underline'}} href="https://help.haikuforteams.com/troubleshooting/troubleshooting-figma-imports">article</ExternalLink>.
+              </span>
+            ),
+          });
+          mixpanel.haikuTrack('creator:figma:complex-design-warning-shown');
+        }
       })
       .catch((error = {}) => {
         const message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.';
@@ -368,7 +384,21 @@ class Library extends React.Component {
     );
   }
 
+  warnComplexFiles (filePaths) {
+    filePaths.forEach((path) => {
+      if (statSync(path).size > 30000000) { // 30MB, number found by experimentation
+        this.props.createNotice({
+          type: 'warning',
+          title: 'Warning',
+          message: `${basename(path)} seems to be a big file, you may experience performance problems.`,
+        });
+        mixpanel.haikuTrack(`creator:${extname(path)}:complex-design-warning-shown`);
+      }
+    });
+  }
+
   handleFileDrop = (filePaths) => {
+    this.warnComplexFiles(filePaths);
     this.setState({isLoading: true});
 
     this.props.projectModel.bulkLinkAssets(

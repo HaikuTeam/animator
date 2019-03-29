@@ -14,7 +14,7 @@ const STYLES: React.CSSProperties = {
 
 export interface FigmaImporterProps {
   onPopoverHide (): void;
-  onImportFigmaAsset (): void;
+  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
   onAskForFigmaAuth (): void;
   figma: any;
   style: React.CSSProperties;

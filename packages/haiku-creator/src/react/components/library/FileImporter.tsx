@@ -51,7 +51,7 @@ const STYLES: React.CSSProperties = {
 export interface FileImporterProps {
   onFileDrop (paths: string[]): void;
   conglomerateComponent (options: any): void;
-  onImportFigmaAsset (): void;
+  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
   onAskForFigmaAuth (): void;
   figma: any;
 }

@@ -29,7 +29,7 @@ const FOLDERS = {
   [VALID_TYPES.FRAME]: 'frames/',
 };
 
-const MAX_ITEMS_TO_IMPORT = 100;
+export const MAX_ITEMS_TO_IMPORT = 100;
 
 const PRIORITY_TO_IMPORT = [
   VALID_TYPES.SLICE,
@@ -75,22 +75,26 @@ class Figma {
     logger.info('[figma] about to import document with id ' + id);
     mixpanel.haikuTrack('creator:figma:fileImport:start');
 
-    return this.fetchDocument(id)
-      .then((rawDocument) => {
-        const document = JSON.parse(rawDocument);
-        const abspath = path.join(projectFolder, 'designs', `${id}-${document.name}.figma`);
-        assetBaseFolder = `${abspath}.contents`;
-        this.createFolders(assetBaseFolder);
-        return document;
-      })
-      .then((document) => this.findInstantiableElements(document, id))
-      .then((elements) => this.sortElementsByPriorityToImport(elements))
-      .then((elements) => this.getSVGLinks(elements, id))
-      .then((elements) => this.getSVGContents(elements))
-      .then((elements) => this.writeSVGInDisk(elements, assetBaseFolder))
-      .then(() => {
-        mixpanel.haikuTrack('creator:figma:fileImport:success');
-      });
+    return new Promise((resolve, reject) => {
+      this.fetchDocument(id)
+        .then((rawDocument) => {
+          const document = JSON.parse(rawDocument);
+          const abspath = path.join(projectFolder, 'designs', `${id}-${document.name}.figma`);
+          assetBaseFolder = `${abspath}.contents`;
+          this.createFolders(assetBaseFolder);
+          return document;
+        })
+        .then((document) => this.findInstantiableElements(document, id))
+        .then((elements) => this.sortElementsByPriorityToImport(elements))
+        .then((elements) => this.getSVGLinks(elements, id))
+        .then((elements) => this.getSVGContents(elements))
+        .then((elements) => this.writeSVGInDisk(elements, assetBaseFolder))
+        .then((elements) => {
+          mixpanel.haikuTrack('creator:figma:fileImport:success');
+          resolve(elements.length);
+        })
+        .catch(reject);
+    });
   }
 
   /**
