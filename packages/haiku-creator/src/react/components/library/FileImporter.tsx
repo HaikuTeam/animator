@@ -1,13 +1,15 @@
-import * as React from 'react';
 import * as Color from 'color';
-import * as Popover from 'react-popover';
-import Palette from 'haiku-ui-common/lib/Palette';
+// @ts-ignore
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as React from 'react';
+// @ts-ignore
+import * as Popover from 'react-popover';
+import {DASH_STYLES} from '../../styles/dashShared';
 import FigmaImporter from './importers/FigmaImporter';
 import FileSystemImporter from './importers/FileSystemImporter';
-import {DASH_STYLES} from '../../styles/dashShared';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   popover: {
     background: Palette.COAL,
     borderRadius: '4px',
@@ -46,14 +48,18 @@ const STYLES = {
   },
 };
 
-class FileImporter extends React.PureComponent {
-  constructor (props) {
-    super(props);
+export interface FileImporterProps {
+  onFileDrop (paths: string[]): void;
+  conglomerateComponent (options: any): void;
+  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
+  onAskForFigmaAuth (): void;
+  figma: any;
+}
 
-    this.state = {
-      isPopoverOpen: false,
-    };
-  }
+class FileImporter extends React.PureComponent<FileImporterProps> {
+  state = {
+    isPopoverOpen: false,
+  };
 
   showPopover = () => {
     this.setState({isPopoverOpen: true});
@@ -64,7 +70,7 @@ class FileImporter extends React.PureComponent {
     this.setState({isPopoverOpen: false});
   };
 
-  onFileDrop = (filePaths) => {
+  onFileDrop = (filePaths: string[]) => {
     this.hidePopover();
 
     if (filePaths) {
@@ -138,14 +144,5 @@ class FileImporter extends React.PureComponent {
     );
   }
 }
-
-FileImporter.propTypes = {
-  onFileDrop: React.PropTypes.func.isRequired,
-  onImportFigmaAsset: React.PropTypes.func.isRequired,
-  onAskForFigmaAuth: React.PropTypes.func.isRequired,
-  figma: React.PropTypes.object,
-  websocket: React.PropTypes.object.isRequired,
-  projectModel: React.PropTypes.object.isRequired,
-};
 
 export default FileImporter;

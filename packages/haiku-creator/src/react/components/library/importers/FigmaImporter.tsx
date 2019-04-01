@@ -1,7 +1,7 @@
 import * as React from 'react';
 import FigmaForm from './FigmaForm';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   button: {
     color: 'inherit',
     fontSize: 'inherit',
@@ -12,27 +12,29 @@ const STYLES = {
   },
 };
 
-class FigmaImporter extends React.PureComponent {
-  constructor (props) {
-    super(props);
+export interface FigmaImporterProps {
+  onPopoverHide (): void;
+  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
+  onAskForFigmaAuth (): void;
+  figma: any;
+  style: React.CSSProperties;
+}
 
-    this.state = {
-      isFormVisible: false,
-    };
-  }
+class FigmaImporter extends React.PureComponent<FigmaImporterProps> {
+  state = {
+    isFormVisible: false,
+  };
 
-  renderForm () {
+  renderForm = () => {
     this.setState({isFormVisible: true});
-  }
+  };
 
   render () {
     return (
       <div style={this.props.style}>
         <button
           style={STYLES.button}
-          onClick={() => {
-            this.renderForm();
-          }}
+          onClick={this.renderForm}
         >
           Connect Figma Project
         </button>
@@ -49,11 +51,5 @@ class FigmaImporter extends React.PureComponent {
     );
   }
 }
-
-FigmaImporter.propTypes = {
-  onPopoverHide: React.PropTypes.func.isRequired,
-  onImportFigmaAsset: React.PropTypes.func.isRequired,
-  figma: React.PropTypes.object,
-};
 
 export default FigmaImporter;

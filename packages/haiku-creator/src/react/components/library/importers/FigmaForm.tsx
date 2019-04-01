@@ -1,11 +1,13 @@
-import * as React from 'react';
-import Palette from 'haiku-ui-common/lib/Palette';
+// @ts-ignore
 import {Figma} from 'haiku-serialization/src/bll/Figma';
+// @ts-ignore
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import {DASH_STYLES} from '../../../styles/dashShared';
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as React from 'react';
 import {BTN_STYLES} from '../../../styles/btnShared';
+import {DASH_STYLES} from '../../../styles/dashShared';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   form: {
     position: 'absolute',
     background: Palette.COAL,
@@ -41,14 +43,25 @@ const STYLES = {
   },
 };
 
-class FigmaForm extends React.PureComponent {
-  constructor (props) {
-    super(props);
-    this.state = {
-      isMessageVisible: false,
-      error: null,
-    };
-  }
+export interface FigmaFormProps {
+  figma: any;
+  onAskForFigmaAuth (): void;
+  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
+  onPopoverHide (): void;
+}
+
+export interface FigmaFormState {
+  isMessageVisible: boolean;
+  error: null|string;
+}
+
+class FigmaForm extends React.PureComponent<FigmaFormProps, FigmaFormState> {
+  private inputRef: HTMLInputElement;
+
+  state: FigmaFormState = {
+    isMessageVisible: false,
+    error: null,
+  };
 
   componentDidMount () {
     if (!this.props.figma.token) {
@@ -58,17 +71,17 @@ class FigmaForm extends React.PureComponent {
     mixpanel.haikuTrack('creator:file-importer:open-figma');
   }
 
-  onFormSubmit (submitEvent) {
+  onFormSubmit = (submitEvent: React.FormEvent<HTMLFormElement>) => {
     submitEvent.preventDefault();
     const url = this.inputRef.value;
 
     if (Figma.parseProjectURL(url)) {
-      this.props.onImportFigmaAsset(url);
+      this.props.onImportFigmaAsset(url, true);
       this.setState({isMessageVisible: true});
     } else {
       this.setState({error: 'Invalid URL'});
     }
-  }
+  };
 
   render () {
     return (
@@ -84,9 +97,7 @@ class FigmaForm extends React.PureComponent {
           </div>
         ) : (
           <form
-            onSubmit={(submitEvent) => {
-              this.onFormSubmit(submitEvent);
-            }}
+            onSubmit={this.onFormSubmit}
             style={STYLES.form}
           >
             <label style={STYLES.inputTitle}>Project URL</label>
@@ -109,10 +120,5 @@ class FigmaForm extends React.PureComponent {
     );
   }
 }
-
-FigmaForm.propTypes = {
-  onPopoverHide: React.PropTypes.func.isRequired,
-  onImportFigmaAsset: React.PropTypes.func.isRequired,
-};
 
 export default FigmaForm;
