@@ -390,7 +390,7 @@ class Library extends React.Component {
         this.props.createNotice({
           type: 'warning',
           title: 'Warning',
-          message: `${basename(path)} seems to be a big file, you may experience performance problems.`,
+          message: `${basename(path)} is a large file, you may experience performance problems.`,
         });
         mixpanel.haikuTrack(`creator:${extname(path)}:complex-design-warning-shown`);
       }
