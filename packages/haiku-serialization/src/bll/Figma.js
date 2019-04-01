@@ -29,7 +29,7 @@ const FOLDERS = {
   [VALID_TYPES.FRAME]: 'frames/',
 };
 
-export const MAX_ITEMS_TO_IMPORT = 100;
+const MAX_ITEMS_TO_IMPORT = 100;
 
 const PRIORITY_TO_IMPORT = [
   VALID_TYPES.SLICE,
@@ -399,4 +399,4 @@ class Figma {
   }
 }
 
-module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME};
+module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME, MAX_ITEMS_TO_IMPORT};
