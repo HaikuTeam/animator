@@ -102,7 +102,9 @@ class RowManager extends React.PureComponent<RowManagerProps> {
             component={activeComponent}
             row={row}
             onEventHandlerTriggered={this.props.showEventHandlersEditor}
-            isExpanded={row.isRootRow() ? true : (this.props.forceCollapse ? false : row.isExpanded())}
+            isExpanded={
+              (row.isRootRow() && this.props.forceCollapse) || (!this.props.forceCollapse && row.isExpanded())
+            }
             isHidden={row.isHidden()}
             isSelected={row.isSelected()}
             hasAttachedActions={row.element.getVisibleEvents().length > 0}
