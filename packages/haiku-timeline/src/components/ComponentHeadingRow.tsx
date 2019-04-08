@@ -269,11 +269,9 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
                 style={{
                   width: 11,
                   padding: '0 3px',
-                  ...(!isRootRow && {
-                    marginTop: 3,
-                    marginLeft: -3,
-                    marginRight: 3,
-                  }),
+                  marginTop: 3,
+                  marginLeft: -3,
+                  marginRight: 3,
                 }}
                 onClick={this.toggleExpandAndSelect}
               >
