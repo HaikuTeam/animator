@@ -50,8 +50,8 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
       }
 
       const urls = {
-        patch: `https://s3.amazonaws.com/${bucket}/${target}/Haiku%20Animator-${version}-${platform}-pending.zip`,
-        download: `https://s3.amazonaws.com/${bucket}/${target}/Haiku%20Animator-${version}.dmg`,
+        patch: `https://s3.amazonaws.com/${bucket}/${target}/Haiku-${version}-${platform}-pending.zip`,
+        download: `https://s3.amazonaws.com/${bucket}/${target}/Haiku-${version}.dmg`,
       };
 
       return cb(null, {
