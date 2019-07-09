@@ -100,7 +100,7 @@
     },
     "npmRebuild": false,
     "nodeGypRebuild": false,
-    "productName": "Haiku Animator",
+    "productName": "Haiku",
     "forceCodeSigning": true,
     "electronVersion": "2.0.8",
     "mac": {
