@@ -13,7 +13,8 @@
       "Removed a drag ghost image appearing while keyframes are dragged.",
       "Fixed a crash when the internet connection is lost on some scenarios.",
       "Added helpful warnings when trying to import complex design assets.",
-      "Fixed a bug causing the Timeline to appear empty when the Main Row is collapsed."
+      "Fixed a bug causing the Timeline to appear empty when the Main Row is collapsed.",
+      "Fixed a bug causing to ask the user to install Sketch, even though it was already installed."
     ]
   }
 }
