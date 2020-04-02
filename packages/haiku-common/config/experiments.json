@@ -5,7 +5,7 @@
   "IpcIntegrityCheck": true,
   "CrashOnIpcIntegrityCheckFailure": true,
   "OrderedActionStack": true,
-  "CodeEditor": true,
+  "CodeEditor": false,
   "WarnOnUndefinedStateVariables": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": true,
