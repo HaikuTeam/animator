@@ -3,6 +3,7 @@ const winston = require('winston');
 const jsonStringify = require('fast-safe-stringify');
 const EventEmitter = require('events');
 const {isProduction} = require('haiku-common/lib/environments');
+const {isWindows} = require('haiku-common/lib/environments/os');
 
 require('colors'); // TODO: use non-string-extending module
 
@@ -72,7 +73,8 @@ class Logger extends EventEmitter {
     }
 
     // In prod, we don't really benefit from sending logs to the dev console.
-    if (!isProduction()) {
+    // In Windows, our logging library (winston) has problems with stdout.
+    if (!isProduction() && !isWindows()) {
       transports.push(new winston.transports.Console({
         format: winston.format.combine(
           haikuFormat,

@@ -34,9 +34,11 @@ import {
   fetchProjectConfigInfo,
 } from './project-folder/ProjectDefinitions';
 import {dumpBase64Images} from './project-folder/AssetUtils';
+import {isMac} from 'haiku-common/lib/environments/os';
 
-Sketch.findAndUpdateInstallPath();
-
+if (isMac()) {
+  Sketch.findAndUpdateInstallPath();
+}
 const UNLOGGABLE_METHODS = {
   masterHeartbeat: true,
 };
