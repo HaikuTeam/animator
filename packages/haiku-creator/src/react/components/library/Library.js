@@ -142,6 +142,7 @@ class Library extends React.Component {
     this.isIllustratorInstalled = true;
 
     this.props.user.getConfig(UserSettings.FigmaToken).then((figmaToken) => {
+      figmaToken = process.env.FIGMA_TOKEN || figmaToken
       const figma = new Figma({token: figmaToken});
       this.setState({figma});
     });
@@ -176,6 +177,7 @@ class Library extends React.Component {
         });
       });
   }
+  
 
   onAuthCallback (_, path, params) {
     switch (path) {
