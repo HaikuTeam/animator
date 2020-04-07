@@ -3,7 +3,7 @@ const {exec} = require('child_process');
 const logger = require('./LoggerInstance');
 const {isMac} = require('haiku-common/lib/environments/os');
 
-const SKETCH_PATH_FINDER = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`;
+const SKETCH_PATH_FINDER = `mdfind "kMDItemKind == 'Application'" | grep Sketch.app`
 const PARSER_CLI_PATH = '/Contents/Resources/sketchtool/bin/sketchtool';
 let sketchInstalledCache = null;
 
@@ -79,10 +79,9 @@ module.exports = {
         this.getDumpInfo()
           .then(this.dumpToPaths)
           .then(this.pathsToInstallationInfo)
-          .then(this.findBestPath)
-          .then((bestPath) => {
-            sketchInstalledCache = Boolean(bestPath);
-            resolve(bestPath);
+          .then((path) => {
+            sketchInstalledCache = Boolean(path);
+            resolve(path);
           })
           .catch((error) => {
             logger.info('[sketch utils] error finding Sketch: ', error);

@@ -29,10 +29,10 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.We
 choco install git python2 -y 
 
 # Install nodejs 
-choco install nodejs-lts -y --version 8.9.3
+choco install nodejs-lts -y --version 8.15.1
 
 # Ignore dependencies to force using specified node version 
-choco install yarn -y --version 1.9.2  --ignore-dependencies
+choco install yarn -y --version 1.13.0  --ignore-dependencies
 
 # Update PowerShell environment vars
 refreshenv
@@ -42,6 +42,12 @@ npm install -g windows-build-tools@2.3.0
 ```
 
 In Windows is not possible to login in Figma while running Animator in development. In order to connect with Figma, is needed to set an environment variable called `FIGMA_TOKEN` with a Figma token as value.
+
+If the app fails to start because of wrong precompiled binaries, try re-building them (can take some time)
+
+```
+yarn electron-rebuild
+```
 
 ### Linux
 
