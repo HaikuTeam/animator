@@ -41,6 +41,8 @@ refreshenv
 npm install -g windows-build-tools@2.3.0
 ```
 
+In Windows is not possible to login in Figma while running Animator in development. In order to connect with Figma, is needed to set an environment variable called `FIGMA_TOKEN` with a Figma token as value.
+
 If the app fails to start because of wrong precompiled binaries, try re-building them (can take some time)
 
 ```
