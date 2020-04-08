@@ -96,13 +96,6 @@ export default class TopMenu {
         click: () => {
           this.sender.send('global-menu:open-finder');
         },
-      }, {
-        label: 'Open in Terminal',
-        accelerator: 'CmdOrCtrl+Option+T',
-        enabled: this.options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:open-terminal');
-        },
       },
       // This functionality causes a crash in prod for unknown reasons. Uncomment when fixed.
       // {
@@ -114,6 +107,19 @@ export default class TopMenu {
       //   },
       // },
     ];
+
+    if (isMac()) {
+      developerMenuItems.push(
+        {
+          label: 'Open in Terminal',
+          accelerator: 'CmdOrCtrl+Option+T',
+          enabled: this.options.isProjectOpen,
+          click: () => {
+            this.sender.send('global-menu:open-terminal');
+          },
+        }
+      )
+    }
 
     if (global.process.env.NODE_ENV !== 'production') {
       developerMenuItems.push(
