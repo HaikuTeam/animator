@@ -91,7 +91,7 @@ export default class TopMenu {
 
     const developerMenuItems = [
       {
-        label: isWindows ? 'Open in File Explorer': 'Open in Finder',
+        label: isWindows() ? 'Open in File Explorer' : 'Open in Finder',
         accelerator: 'CmdOrCtrl+Option+F',
         enabled: this.options.isProjectOpen,
         click: () => {
