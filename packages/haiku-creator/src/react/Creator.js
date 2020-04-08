@@ -469,7 +469,13 @@ export default class Creator extends React.Component {
       this.togglePreviewMode();
     });
 
-    window.addEventListener('dragover', Asset.preventDefaultDrag, false);
+    window.addEventListener('dragover', (dragEvent) => {
+      if (this.state.assetDragging) {
+        return dragEvent.preventDefault();
+      }
+
+      Asset.preventDefaultDrag(dragEvent)
+    }, false);
 
     window.addEventListener('blur', () => {
       Globals.allKeysUp();

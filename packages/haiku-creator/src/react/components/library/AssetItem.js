@@ -131,7 +131,8 @@ const STYLES = {
     position: 'absolute',
     cursor: 'pointer',
     right: 10,
-    transform: 'rotate(90deg)',
+    transform: 'translateY(-50%) rotate(90deg)',
+    top: '50%',
     ':hover': {
       opacity: 1,
     },

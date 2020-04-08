@@ -31,10 +31,10 @@ const runInstruction = (pack, cb) => {
       '-p',
       pack.abspath,
       '--onSuccess',
-      `node ${join(cwd, 'scripts', 'write-last-compiled')} --outputPath=${join(pack.abspath, '.last-compile')}`
+      `"node ${join(cwd, 'scripts', 'write-last-compiled')} --outputPath=${join(pack.abspath, '.last-compile')}"`
     ] :
     ['develop'];
-  const proc = cp.spawn(cmd, args, {cwd, env: process.env, stdio: 'inherit'});
+  const proc = cp.spawn(cmd, args, {cwd, env: process.env, stdio: 'inherit', shell: true});
   children.push({
     info: {cwd, cmd, args},
     proc,
