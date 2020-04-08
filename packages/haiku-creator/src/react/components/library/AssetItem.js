@@ -181,6 +181,10 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently();
   }
 
+  considerSketch() {
+    return isMac() && this.props.asset.isSketchFile();
+  }
+
   handleShowAsset () {
     shell.showItemInFolder(this.props.asset.getAbspath());
     this.endDragInCaseItWasStartedInadvertently();
@@ -242,7 +246,7 @@ class AssetItem extends React.Component {
     }
 
     // Only display Open In Sketch on mac
-    if (isMac() && this.props.asset.isSketchFile()) {
+    if (this.considerSketch()) {
       items.push({
         label: 'Open In Sketch',
         icon: SketchIconSVG,
@@ -329,7 +333,7 @@ class AssetItem extends React.Component {
     }
 
     if (
-      (isMac() && this.props.asset.isSketchFile()) ||
+      this.considerSketch() ||
       this.isFigmaAndCanBeOpened() ||
       this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
@@ -386,7 +390,7 @@ class AssetItem extends React.Component {
       );
     }
 
-    if (isMac() && this.props.asset.isSketchFile()) {
+    if (this.considerSketch()) {
       return (
         <span
           className="sketch-icon-container"
@@ -493,7 +497,7 @@ class AssetItem extends React.Component {
       return 'Double click to open in Illustrator';
     }
 
-    if (isMac() && this.props.asset.isSketchFile()) {
+    if (this.considerSketch()) {
       return 'Double click to open in Sketch';
     }
 
@@ -554,7 +558,7 @@ class AssetItem extends React.Component {
       `;
     }
 
-    if (isMac() && this.props.asset.isSketchFile()) {
+    if (this.considerSketch()) {
       return `
         ⇧ Double click to open this file in Sketch.
         Slices and artboards will sync when you save.
