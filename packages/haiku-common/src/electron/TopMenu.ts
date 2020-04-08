@@ -2,6 +2,7 @@ import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
 import {getAccountUrl} from '../environments';
 import {isMac} from '../environments/os';
+import {isWindows} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
 import {TourUtils} from '../types/enums';
@@ -90,7 +91,7 @@ export default class TopMenu {
 
     const developerMenuItems = [
       {
-        label: 'Open in Finder',
+        label: isWindows ? 'Open in File Explorer': 'Open in Finder',
         accelerator: 'CmdOrCtrl+Option+F',
         enabled: this.options.isProjectOpen,
         click: () => {
