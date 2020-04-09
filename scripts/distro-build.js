@@ -17,7 +17,7 @@ switch (platform) {
     process.env.CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`;
     process.env.CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim();
 
-    cp.execSync(`./node_modules/.bin/build --mac --publish=never`, {cwd: ROOT, stdio: 'inherit'});
+    cp.execSync(`yarn electron-builder --mac --publish=never`, {cwd: ROOT, stdio: 'inherit'});
     // The latest build chain breaks our zip archive, so we need to manually zip it.
     const distRoot = path.resolve(ROOT, 'dist');
     const {productName} = require(path.join(ROOT, 'package.json')).build;
@@ -25,14 +25,13 @@ switch (platform) {
     cp.execSync(`/usr/bin/ditto -c -k --sequesterRsrc --keepParent '${productName}.app' '${zipTarget}'`, {cwd: path.join(distRoot, 'mac'), stdio: 'inherit'});
     break;
   case 'windows':
+    // TODO: sign packages on Windows
     // process.env.WIN_CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`
     // process.env.WIN_CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim()
-    // cp.execSync(".\\node_modules\\.bin\\build --windows --publish=never", { cwd: ROOT, stdio: 'inherit' })
-
-    cp.execSync('.\\node_modules\\.bin\\build --windows --publish=never --config.forceCodeSigning=false', {cwd: ROOT, stdio: 'inherit'});
+    cp.execSync('yarn electron-builder --windows --publish=never --config.forceCodeSigning=false', {cwd: ROOT, stdio: 'inherit'});
     break;
   case 'linux':
-    cp.execSync(`./node_modules/.bin/build --linux --publish=never`, {cwd: ROOT, stdio: 'inherit'});
+    cp.execSync(`yarn electron-builder --linux --publish=never`, {cwd: ROOT, stdio: 'inherit'});
     break;
   default:
     throw new Error(`Unexpected platform: ${platform}`);
