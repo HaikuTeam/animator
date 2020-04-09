@@ -89,7 +89,7 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'good',
-                        message: "PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) is healthy!"
+                        message: ":jenkins-hero: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) is healthy!"
                     ])
                 }
                 failure {
@@ -201,7 +201,7 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'good',
-                        message: ":1up: ${env.GITHUB_PR_SOURCE_BRANCH} was syndicated!"
+                        message: ":1up: :animator: ${env.GITHUB_PR_SOURCE_BRANCH} was syndicated!"
                     ])
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicated', STATUS_SUCCESS)
                 }
