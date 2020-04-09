@@ -25,7 +25,7 @@ pipeline {
                 setBuildStatus(CONTEXT_HEALTH, 'health checks started', STATUS_PENDING)
                 sh '''#!/bin/bash -x
                     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
-                    . $HOME/.bash_profile
+                    . $HOME/.bash_profile >> /dev/null 2>&1
                     nvm install 8.15.1
                     nvm use 8.15.1
                     curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.4'''
