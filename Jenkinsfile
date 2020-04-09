@@ -63,7 +63,7 @@ pipeline {
                             slackSend([
                                 channel: 'engineering-feed',
                                 color: 'danger',
-                                message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
+                                message: ":jenkins-rage: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) has failing tests!"
                             ])
                         }
                     }
@@ -89,7 +89,7 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'good',
-                        message: "PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) is healthy!"
+                        message: "PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) is healthy!"
                     ])
                 }
                 failure {
@@ -98,19 +98,19 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'warning',
-                        message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
+                        message: ":professor-farnsworth: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) has lint errors!"
                     ])
                 }
             }
         }
         stage('Build-Advance') {
-            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            when { expression { env.GITHUB_PR_SOURCE_BRANCH.startsWith('rc-') } }
             steps {
                 milestone 1
                 notifyAdvancementRequest()
                 timeout(time: 1, unit: 'HOURS') {
                     script {
-                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,roberto@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: (env.ghprbSourceBranch =~ /^rc-\d+\.\d+\.\d+$/) ? env.ghprbSourceBranch.replace('rc-', '') : '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
+                      env.haikuExplicitSemver = input message: 'Build for syndication?', submitter: 'sasha@haiku.ai,roberto@haiku.ai,zack@haiku.ai', parameters: [string(defaultValue: (env.GITHUB_PR_SOURCE_BRANCH =~ /^rc-\d+\.\d+\.\d+$/) ? env.GITHUB_PR_SOURCE_BRANCH.replace('rc-', '') : '', description: 'Optionally, you may set an explicit semver here.', name: 'haikuExplicitSemver', trim: true)]
                     }
                     setBuildStatus(CONTEXT_BUILD, 'builds started', STATUS_PENDING)
                 }
@@ -118,7 +118,7 @@ pipeline {
             }
         }
         stage('Build') {
-            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            when { expression { env.GITHUB_PR_SOURCE_BRANCH.startsWith('rc-') } }
             parallel {
                 stage('macOS') {
                     agent {
@@ -151,7 +151,7 @@ pipeline {
             }
         }
         stage('Push') {
-            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            when { expression { env.GITHUB_PR_SOURCE_BRANCH.startsWith('rc-') } }
             steps {
                 milestone 3
                 notifyAdvancementRequest()
@@ -170,7 +170,7 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'good',
-                        message: ":1up: ${env.ghprbSourceBranch} was pushed to NPM and CDN!"
+                        message: ":1up: ${env.GITHUB_PR_SOURCE_BRANCH} was pushed to NPM and CDN!"
                     ])
                 }
                 failure {
@@ -178,13 +178,13 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'danger',
-                        message: ":-1up: ${env.ghprbSourceBranch} failed during push to NPM and CDN"
+                        message: ":-1up: ${env.GITHUB_PR_SOURCE_BRANCH} failed during push to NPM and CDN"
                     ])
                 }
             }
         }
         stage('Syndicate') {
-            when { expression { env.ghprbSourceBranch.startsWith('rc-') } }
+            when { expression { env.GITHUB_PR_SOURCE_BRANCH.startsWith('rc-') } }
             steps {
                 milestone 5
                 notifyAdvancementRequest()
@@ -201,7 +201,7 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'good',
-                        message: ":1up: ${env.ghprbSourceBranch} was syndicated!"
+                        message: ":1up: ${env.GITHUB_PR_SOURCE_BRANCH} was syndicated!"
                     ])
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndicated', STATUS_SUCCESS)
                 }
@@ -209,7 +209,7 @@ pipeline {
                     slackSend([
                         channel: 'engineering-feed',
                         color: 'danger',
-                        message: ":-1up: ${env.ghprbSourceBranch} failed during syndication!"
+                        message: ":-1up: ${env.GITHUB_PR_SOURCE_BRANCH} failed during syndication!"
                     ])
                     setBuildStatus(CONTEXT_SYNDICATION, 'syndication failed', STATUS_FAILURE)
                 }
@@ -230,7 +230,7 @@ void notifyAdvancementRequest() {
 void setBuildStatus(String context, String message, String state) {
     step([
         $class: 'GitHubCommitStatusSetter',
-        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.ghprbActualCommit],
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.GITHUB_PR_HEAD_SHA],
         contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
         reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
         errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],
