@@ -63,6 +63,7 @@
     "dotenv": "^5.0.1",
     "electron": "2.0.8",
     "electron-builder": "20.38.5",
+    "electron-notarize": "^0.3.0",
     "electron-rebuild": "^1.8.4",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",
@@ -103,8 +104,13 @@
     "productName": "Haiku",
     "forceCodeSigning": true,
     "electronVersion": "2.0.8",
+    "afterSign": "scripts/notarize.js",
     "mac": {
       "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "target": [
         "dmg"
       ]
