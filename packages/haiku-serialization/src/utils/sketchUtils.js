@@ -3,7 +3,7 @@ const {exec} = require('child_process');
 const logger = require('./LoggerInstance');
 const {isMac} = require('haiku-common/lib/environments/os');
 
-const SKETCH_PATH_FINDER = `mdfind "kMDItemKind == 'Application'" | grep Sketch.app`
+const SKETCH_PATH_FINDER = `mdfind "kMDItemKind == 'Application'" | grep Sketch.app`;
 const PARSER_CLI_PATH = '/Contents/Resources/sketchtool/bin/sketchtool';
 let sketchInstalledCache = null;
 
