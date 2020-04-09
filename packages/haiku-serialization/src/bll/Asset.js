@@ -5,6 +5,7 @@ const Sketch = require('./Sketch');
 const Illustrator = require('./Illustrator');
 const {Figma, PHONY_FIGMA_FILE} = require('./Figma');
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
+const {isMac} = require('haiku-common/lib/environments/os');
 
 const PAGES_REGEX = /\/pages\//;
 const SLICES_REGEX = /\/slices\//;
@@ -457,7 +458,7 @@ Asset.ingestAssets = (project, dict) => {
   for (const relpath in dict) {
     const extname = path.extname(relpath).toLowerCase();
 
-    if (extname === '.sketch') {
+    if (isMac() && extname === '.sketch') {
       designFolderAsset.addSketchAsset(relpath, dict);
     } else if (extname === '.ai') {
       designFolderAsset.addIllustratorAsset(relpath, dict);

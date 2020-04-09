@@ -271,7 +271,7 @@ class AssetItem extends React.Component {
     // Things like built-in components can't be deleted or shown in finder
     if (!this.props.asset.isRemoteAsset() && !this.props.asset.isFigmaFile()) {
       items.push({
-        label: 'Show In Finder',
+        label: isWindows() ? 'Show in File Explorer' : 'Show In Finder',
         icon: FolderIconSVG,
         onClick: this.handleShowAsset.bind(this),
       });
@@ -329,7 +329,7 @@ class AssetItem extends React.Component {
     }
 
     if (
-      this.props.asset.isSketchFile() ||
+      (isMac() && this.props.asset.isSketchFile()) ||
       this.isFigmaAndCanBeOpened() ||
       this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
@@ -386,7 +386,7 @@ class AssetItem extends React.Component {
       );
     }
 
-    if (this.props.asset.isSketchFile()) {
+    if (isMac() && this.props.asset.isSketchFile()) {
       return (
         <span
           className="sketch-icon-container"
@@ -493,7 +493,7 @@ class AssetItem extends React.Component {
       return 'Double click to open in Illustrator';
     }
 
-    if (this.props.asset.isSketchFile()) {
+    if (isMac() && this.props.asset.isSketchFile()) {
       return 'Double click to open in Sketch';
     }
 
@@ -502,7 +502,13 @@ class AssetItem extends React.Component {
     }
 
     if (this.props.asset.isDesignsHostFolder()) {
-      return 'Your design assets — import from Sketch, Figma, or Illustrator';
+      if (isMac()) {
+        return 'Your design assets — import from Sketch, Figma, or Illustrator';
+      }
+      else {
+        return 'Your design assets — import from Figma or Illustrator';
+      }
+      
     }
 
     if (this.props.asset.isDraggable()) {
@@ -548,7 +554,7 @@ class AssetItem extends React.Component {
       `;
     }
 
-    if (this.props.asset.isSketchFile()) {
+    if (isMac() && this.props.asset.isSketchFile()) {
       return `
         ⇧ Double click to open this file in Sketch.
         Slices and artboards will sync when you save.
