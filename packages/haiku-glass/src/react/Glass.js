@@ -28,7 +28,7 @@ import defsMana from '../overlays/defsMana';
 import rotationCursorMana from '../overlays/rotationCursorMana';
 import scaleCursorMana from '../overlays/scaleCursorMana';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {isMac} from 'haiku-common/lib/environments/os';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 import directSelectionMana from '../overlays/directSelectionMana';
 import {calculateValue} from '@haiku/core/lib/Transitions';
 import {
@@ -3365,7 +3365,7 @@ export class Glass extends React.Component {
     items.push({type: 'separator'});
 
     items.push({
-      label: 'Open in Finder',
+      label: isWindows() ? 'Show in File Explorer' : 'Show In Finder',
       enabled: proxy.isSelectionFinderOpenable(),
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:open-in-finder');
