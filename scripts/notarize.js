@@ -16,7 +16,7 @@ exports.default = function notarizing(context) {
 
   const appName = context.packager.appInfo.productFilename;
 
-  return await notarize({
+  return notarize({
     appBundleId: 'com.Haiku.HaikuForDesignersAndEngineers',
     appPath: `${appOutDir}/${appName}.app`,
     appleApiKey: process.env.APPLE_NOTARIZATION_API_KEY,
