@@ -5,13 +5,13 @@ const Sketch = require('./Sketch');
 const Illustrator = require('./Illustrator');
 const {Figma, PHONY_FIGMA_FILE} = require('./Figma');
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
-const {isMac} = require('haiku-common/lib/environments/os');
+const {isMac, isWindows} = require('haiku-common/lib/environments/os');
 
-const PAGES_REGEX = /\/pages\//;
-const SLICES_REGEX = /\/slices\//;
-const ARTBOARDS_REGEX = /\/artboards\//;
-const GROUPS_REGEX = /\/groups\//;
-const FRAMES_REGEX = /\/frames\//;
+const PAGES_REGEX =  isWindows() ? /\\pages\\/ : /\/pages\//;
+const SLICES_REGEX = isWindows() ? /\\slices\\/ : /\/slices\//;
+const ARTBOARDS_REGEX = isWindows() ? /\\artboards\\/ : /\/artboards\//;
+const GROUPS_REGEX = isWindows() ? /\\groups\\/ : /\/groups\//;
+const FRAMES_REGEX = isWindows() ? /\\frames\\/ : /\/frames\//;
 
 const MAIN_COMPONENT_NAME = 'main';
 
@@ -50,7 +50,8 @@ class Asset extends BaseModel {
     // Looking for a path like designs/Foo.sketch.contents/Slices
     const longSource = path.join(parts[0], parts[1], parts[2]);
     const shortSource = path.join(parts[0], parts[1]);
-    const match = longSource.match(/\.(\w+)\.contents\//);
+    const matchRegexp = isWindows() ? /\.(\w+)\.contents\\/ : /\.(\w+)\.contents\//
+    const match = longSource.match(matchRegexp);
 
     if (match) {
       return {
