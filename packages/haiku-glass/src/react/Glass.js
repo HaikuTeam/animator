@@ -28,7 +28,7 @@ import defsMana from '../overlays/defsMana';
 import rotationCursorMana from '../overlays/rotationCursorMana';
 import scaleCursorMana from '../overlays/scaleCursorMana';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {isMac} from 'haiku-common/lib/environments/os';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 import directSelectionMana from '../overlays/directSelectionMana';
 import {calculateValue} from '@haiku/core/lib/Transitions';
 import {
@@ -2227,6 +2227,30 @@ export class Glass extends React.Component {
 
     if (this.getActiveComponent()) {
       this.getActiveComponent().getSelectionMarquee().endSelection();
+    }
+
+    if (isWindows()) {
+      if (Globals.isSpecialKeyDown() && keyEvent.nativeEvent.which === 67) {
+        const proxy = this.fetchProxyElementForSelection();
+        if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
+          this.handleCopyDebounced();
+        }
+
+        return;
+      }
+
+      if (Globals.isSpecialKeyDown() && keyEvent.nativeEvent.which === 86) {
+        this.handlePasteDebounced();
+        return;
+      }
+
+      if (Globals.isSpecialKeyDown() && keyEvent.nativeEvent.which === 88) {
+        const proxy = this.fetchProxyElementForSelection();
+        if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
+          this.handleCutDebounced();
+        }
+        return;
+      }
     }
 
     switch (keyEvent.nativeEvent.which) {
