@@ -1,9 +1,10 @@
 const {notarize} = require('electron-notarize');
 
-if (!process.env.APPLE_NOTARIZATION_API_KEY) {
+if (!process.env.APPLE_NOTARIZATION_APPLE_ID) {
   throw new Error('env var missing');
 }
-if (!process.env.APPLE_NOTARIZATION_API_ISSUER) {
+
+if (!process.env.APPLE_NOTARIZATION_PASSWORD) {
   throw new Error('env var missing');
 }
 
@@ -19,7 +20,7 @@ exports.default = function notarizing(context) {
   return notarize({
     appBundleId: 'com.Haiku.HaikuForDesignersAndEngineers',
     appPath: `${appOutDir}/${appName}.app`,
-    appleApiKey: process.env.APPLE_NOTARIZATION_API_KEY,
-    appleApiIssuer: process.env.APPLE_NOTARIZATION_API_ISSUER,
+    appleId: process.env.APPLE_NOTARIZATION_APPLE_ID,
+    appleIdPassword: process.env.APPLE_NOTARIZATION_PASSWORD
   });
 };
