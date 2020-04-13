@@ -5,7 +5,7 @@
     "packages/@haiku/*",
     "packages/haiku-*"
   ],
-  "version": "4.5.2",
+  "version": "5.0.0",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -31,26 +31,26 @@
     "test-report": "node ./scripts/test-report.js"
   },
   "resolutions": {
-    "@haiku/core": "^4.0.0",
+    "@haiku/core": "^5.0.0",
     "**/@types/react": "15.6.11",
     "@types/node": "10.12.30"
   },
   "dependencies": {
-    "@haiku/cli": "4.5.2",
-    "@haiku/core": "4.5.2",
+    "@haiku/cli": "5.0.0",
+    "@haiku/core": "5.0.0",
     "@haiku/player": "^3.0.4",
-    "@haiku/sdk-client": "4.5.2",
-    "@haiku/sdk-inkstone": "4.5.2",
-    "haiku-common": "4.5.2",
-    "haiku-creator": "4.5.2",
-    "haiku-formats": "4.5.2",
-    "haiku-fs-extra": "4.5.2",
-    "haiku-glass": "4.5.2",
-    "haiku-plumbing": "4.5.2",
-    "haiku-sdk-creator": "4.5.2",
-    "haiku-serialization": "4.5.2",
-    "haiku-timeline": "4.5.2",
-    "haiku-ui-common": "4.5.2"
+    "@haiku/sdk-client": "5.0.0",
+    "@haiku/sdk-inkstone": "5.0.0",
+    "haiku-common": "5.0.0",
+    "haiku-creator": "5.0.0",
+    "haiku-formats": "5.0.0",
+    "haiku-fs-extra": "5.0.0",
+    "haiku-glass": "5.0.0",
+    "haiku-plumbing": "5.0.0",
+    "haiku-sdk-creator": "5.0.0",
+    "haiku-serialization": "5.0.0",
+    "haiku-timeline": "5.0.0",
+    "haiku-ui-common": "5.0.0"
   },
   "devDependencies": {
     "async": "^2.5.0",

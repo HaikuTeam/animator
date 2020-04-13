@@ -196,6 +196,12 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
+"@haiku/core@^4.3.0":
+  version "5.0.0"
+
+"@haiku/core@^4.4.0":
+  version "5.0.0"
+
 "@haiku/player@^3.0.4":
   version "3.0.4"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
