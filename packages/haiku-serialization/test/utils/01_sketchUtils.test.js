@@ -2,8 +2,8 @@ const test = require('tape');
 const sketchUtils = require('../../src/utils/sketchUtils');
 
 const validDump = `
-  path:          /Applications/__MACOSX/Sketch.app
-  path:          /Applications/Sketch.app
+  /Applications/__MACOSX/Sketch.app
+  /Applications/Sketch.app
 `;
 
 test('sketchUtils.dumpToPaths', (t) => {
@@ -14,7 +14,7 @@ test('sketchUtils.dumpToPaths', (t) => {
   t.equal(resultWithValidDump.length, 2, 'returns the correct number of paths');
   t.equal(resultWithValidDump[0], '/Applications/__MACOSX/Sketch.app', 'returns the correct content');
 
-  const resultWithInvalidDump = sketchUtils.dumpToPaths('asdfwer');
+  const resultWithInvalidDump = sketchUtils.dumpToPaths('');
   t.ok(Array.isArray(resultWithInvalidDump), 'returns an array of paths even with invalid data');
   t.equal(resultWithInvalidDump.length, 0);
 

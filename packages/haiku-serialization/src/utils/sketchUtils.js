@@ -14,13 +14,6 @@ module.exports = {
     return rawDump
         .trim()
         .split('\n')
-        .map((pathWithExtras) => {
-          try {
-            return pathWithExtras.split(':')[1].trim();
-          } catch (error) {
-            return null;
-          }
-        })
         .filter(Boolean);
   },
 
@@ -79,6 +72,7 @@ module.exports = {
         this.getDumpInfo()
           .then(this.dumpToPaths)
           .then(this.pathsToInstallationInfo)
+          .then(this.findBestPath)
           .then((path) => {
             sketchInstalledCache = Boolean(path);
             resolve(path);
