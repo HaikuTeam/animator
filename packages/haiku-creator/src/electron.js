@@ -14,7 +14,7 @@ import TopMenu from 'haiku-common/lib/electron/TopMenu';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {isMac} from 'haiku-common/lib/environments/os';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process');
@@ -201,6 +201,11 @@ function createWindow () {
   browserWindow.on('ready-to-show', () => {
     browserWindow.show();
   });
+
+  if (isWindows()) {
+    const {autoUpdater} = require('electron-updater');
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 }
 
 // Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]

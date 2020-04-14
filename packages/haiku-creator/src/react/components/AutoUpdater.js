@@ -37,11 +37,6 @@ class AutoUpdater extends React.Component {
       if (isMac()) {
         this.checkForUpdates();
       }
-
-      if (isWindows()) {
-        const {autoUpdater} = require('electron-updater');
-        autoUpdater.checkForUpdatesAndNotify();
-      }
     }
   }
 
