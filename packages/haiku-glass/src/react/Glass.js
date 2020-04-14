@@ -3393,7 +3393,7 @@ export class Glass extends React.Component {
     items.push({type: 'separator'});
 
     items.push({
-      label: 'Open in Finder',
+      label: isWindows() ? 'Show in File Explorer' : 'Show in Finder',
       enabled: proxy.isSelectionFinderOpenable(),
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:open-in-finder');

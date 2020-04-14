@@ -6,6 +6,7 @@ import Palette from 'haiku-ui-common/lib/Palette';
 import ProjectPreview from './ProjectPreview';
 import {StackMenuSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import {DASH_STYLES} from '../styles/dashShared';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 
 class ProjectThumbnail extends React.Component {
   constructor (props) {
@@ -148,7 +149,7 @@ class ProjectThumbnail extends React.Component {
               !this.state.isMenuActive && DASH_STYLES.gone,
             ]}
           >
-            REVEAL IN FINDER
+            {isWindows() ? 'REVEAL IN FILE EXPLORER' : 'REVEAL IN FINDER'}
           </span>}
           {this.props.allowDelete && <span
             key="delete"
