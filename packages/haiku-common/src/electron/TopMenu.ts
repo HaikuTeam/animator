@@ -118,8 +118,8 @@ export default class TopMenu {
           click: () => {
             this.sender.send('global-menu:open-terminal');
           },
-        }
-      )
+        },
+      );
     }
 
     if (global.process.env.NODE_ENV !== 'production') {

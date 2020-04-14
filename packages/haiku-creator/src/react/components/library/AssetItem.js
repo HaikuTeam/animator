@@ -181,7 +181,7 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently();
   }
 
-  considerSketch() {
+  considerSketch () {
     return isMac() && this.props.asset.isSketchFile();
   }
 
@@ -508,11 +508,10 @@ class AssetItem extends React.Component {
     if (this.props.asset.isDesignsHostFolder()) {
       if (isMac()) {
         return 'Your design assets — import from Sketch, Figma, or Illustrator';
-      }
-      else {
+      } 
         return 'Your design assets — import from Figma or Illustrator';
-      }
       
+
     }
 
     if (this.props.asset.isDraggable()) {

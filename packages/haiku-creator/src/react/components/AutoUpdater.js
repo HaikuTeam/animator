@@ -2,6 +2,7 @@ import * as React from 'react';
 import autoUpdate from '../../utils/autoUpdate';
 import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 
 const statuses = {
   IDLE: 'Idle',
@@ -33,7 +34,14 @@ class AutoUpdater extends React.Component {
       this.state.status === statuses.IDLE &&
       nextProps.check
     ) {
-      this.checkForUpdates();
+      if (isMac()) {
+        this.checkForUpdates();
+      }
+
+      if (isWindows()) {
+        const {autoUpdater} = require('electron-updater');
+        autoUpdater.checkForUpdatesAndNotify();
+      }
     }
   }
 

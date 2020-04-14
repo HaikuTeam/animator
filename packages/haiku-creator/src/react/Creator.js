@@ -474,7 +474,7 @@ export default class Creator extends React.Component {
         return dragEvent.preventDefault();
       }
 
-      Asset.preventDefaultDrag(dragEvent)
+      Asset.preventDefaultDrag(dragEvent);
     }, false);
 
     window.addEventListener('blur', () => {
