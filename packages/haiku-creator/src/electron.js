@@ -205,7 +205,45 @@ function createWindow () {
   if (isWindows()) {
     const {autoUpdater} = require('electron-updater');
     autoUpdater.setFeedURL('http://127.0.0.1:9090/');
-    autoUpdater.checkForUpdatesAndNotify();
+    if (os_1.isWindows()) {
+      console.log('000000000000000000000000 YAYdfasdfadfaseefasfas')
+        var autoUpdater = require('electron-updater').autoUpdater;
+        autoUpdater.setFeedURL('http://127.0.0.1:9090/');
+        // autoUpdater.checkForUpdatesAndNotify();
+        autoUpdater.checkForUpdates().then(function(it) {
+          const downloadPromise = it.downloadPromise;
+
+      if (downloadPromise == null) {
+        const debug = this._logger.debug;
+
+        if (debug != null) {
+          debug("checkForUpdatesAndNotify called, downloadPromise is null");
+        }
+
+        return;
+      }
+
+      downloadPromise.then(() => {
+             var dialog = require('electron').dialog
+             var button = dialog.showMessageBox({
+            type: "none",
+            message: "Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?",
+            buttons: ["Not now", "Yes"],
+            defaultId: 1
+          })
+          console.log('======= option chosen: ', button)
+          if (button === 1) {
+            autoUpdater.quitAndInstall();
+          }
+        }).catch(function(error) {
+          console.log(error)
+        });
+        // new (_electron().Notification)({
+        //   title: "A new update is ready to install",
+        //   body: `${this.app.getName()} version ${it.updateInfo.version} has been downloaded and will be automatically installed on exit`
+        // }).show();
+      });
+    }
   }
 }
 

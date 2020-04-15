@@ -151,7 +151,7 @@
     "extraResources": [
       "app/index.js",
       {
-        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
+        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg${?(\\.exe)}",
         "to": ""
       }
     ],
