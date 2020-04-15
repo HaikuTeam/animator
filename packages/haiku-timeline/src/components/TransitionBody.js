@@ -32,7 +32,7 @@ const THROTTLE_TIME = 17; // ms
 
 const STYLE = {
   keyframePole: {
-    transform: 'scale(1.7) translateY(-1.5px)',
+    transform: 'translateY(-1.5px)',
   },
 };
 
