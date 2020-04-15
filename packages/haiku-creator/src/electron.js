@@ -203,35 +203,51 @@ function createWindow () {
   });
 
   if (isWindows()) {
-    const {autoUpdater} = require('electron-updater');
-    autoUpdater.setFeedURL('https://releases.haiku.ai/releases/production/master/win32/latest');
-    // autoUpdater.checkForUpdatesAndNotify();
-    autoUpdater.checkForUpdates().then(({downloadPromise}) => {
-      if (downloadPromise == null) {
-        return;
-      }
-
-      downloadPromise
-        .then(() => {
-          const dialog = require('electron').dialog;
-          const userResponse = dialog.showMessageBox({
-            type: 'none',
-            message:
-              'Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?',
-            buttons: ['Not now', 'Yes'],
-            defaultId: 1,
-          });
-
-          if (userResponse === 1) {
-            autoUpdater.quitAndInstall();
-            return;
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    ipcMain.on('app:check-updates', () => {
+      windowsCheckForUpdates();
     });
+
+    setInterval(() => {
+      windowsCheckForUpdates();
+    }, 1000 * 60 * 60);
+
+    windowsCheckForUpdates();
   }
+}
+
+function windowsCheckForUpdates () {
+  if (!isWindows()) {
+    return;
+  }
+
+  const {autoUpdater} = require('electron-updater');
+  autoUpdater.setFeedURL('https://releases.haiku.ai/releases/production/master/win32/latest');
+  // autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.checkForUpdates().then(({downloadPromise}) => {
+    if (downloadPromise == null) {
+      return;
+    }
+
+    downloadPromise
+      .then(() => {
+        const dialog = require('electron').dialog;
+        const userResponse = dialog.showMessageBox({
+          type: 'none',
+          message:
+            'Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?',
+          buttons: ['Not now', 'Yes'],
+          defaultId: 1,
+        });
+
+        if (userResponse === 1) {
+          autoUpdater.quitAndInstall();
+          return;
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  });
 }
 
 // Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]

@@ -51,6 +51,7 @@ import {FailWhale} from './components/Popups/FailWhale';
 import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
 import {inkstone} from '@haiku/sdk-inkstone';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -301,13 +302,19 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:check-updates', lodash.debounce(() => {
       logger.info(`[creator] global-menu:check-updates`);
-      this.setState({
-        updater: {
-          shouldCheck: true,
-          shouldRunOnBackground: false,
-          shouldSkipOptIn: true,
-        },
-      });
+      if (isMac()) {
+        this.setState({
+          updater: {
+            shouldCheck: true,
+            shouldRunOnBackground: false,
+            shouldSkipOptIn: true,
+          },
+        });
+      }
+
+      if (isWindows()) {
+        ipcRenderer.send('app:check-updates');
+      }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
@@ -2087,12 +2094,13 @@ export default class Creator extends React.Component {
             startTourOnMount={true}
           />
         }
-        <AutoUpdater
-          onComplete={this.onAutoUpdateCheckComplete}
-          check={this.state.updater.shouldCheck}
-          skipOptIn={this.state.updater.shouldSkipOptIn}
-          runOnBackground={this.state.updater.shouldRunOnBackground}
-        />
+        {isMac() && <AutoUpdater
+            onComplete={this.onAutoUpdateCheckComplete}
+            check={this.state.updater.shouldCheck}
+            skipOptIn={this.state.updater.shouldSkipOptIn}
+            runOnBackground={this.state.updater.shouldRunOnBackground}
+          />
+        }
         {this.state.dashboardVisible && this.envoyClient && this.envoyProject && this.state.username && <ProjectBrowser
           ref="ProjectBrowser"
           explorePro={this.explorePro}
