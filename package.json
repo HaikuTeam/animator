@@ -62,7 +62,7 @@
     "derequire": "^2.0.6",
     "dotenv": "^5.0.1",
     "electron": "2.0.8",
-    "electron-builder": "21.2.0",
+    "electron-builder": "20.34.0",
     "electron-notarize": "^0.3.0",
     "electron-rebuild": "^1.8.4",
     "fs-extra": "^4.0.2",

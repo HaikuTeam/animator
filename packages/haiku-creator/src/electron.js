@@ -204,6 +204,7 @@ function createWindow () {
 
   if (isWindows()) {
     const {autoUpdater} = require('electron-updater');
+    autoUpdater.setFeedURL('http://127.0.0.1:9090/');
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
