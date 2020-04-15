@@ -203,23 +203,23 @@ function createWindow () {
   });
 
   if (isWindows()) {
-    const { autoUpdater } = require("electron-updater");
-    autoUpdater.setFeedURL("https://releases.haiku.ai/releases/production/master/win32/latest");
+    const {autoUpdater} = require('electron-updater');
+    autoUpdater.setFeedURL('https://releases.haiku.ai/releases/production/master/win32/latest');
     // autoUpdater.checkForUpdatesAndNotify();
-    autoUpdater.checkForUpdates().then(({ downloadPromise }) => {
+    autoUpdater.checkForUpdates().then(({downloadPromise}) => {
       if (downloadPromise == null) {
         return;
       }
 
       downloadPromise
         .then(() => {
-          const dialog = require("electron").dialog;
+          const dialog = require('electron').dialog;
           const userResponse = dialog.showMessageBox({
-            type: "none",
+            type: 'none',
             message:
-              "Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?",
-            buttons: ["Not now", "Yes"],
-            defaultId: 1
+              'Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?',
+            buttons: ['Not now', 'Yes'],
+            defaultId: 1,
           });
 
           if (userResponse === 1) {
@@ -227,7 +227,7 @@ function createWindow () {
             return;
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
         });
     });
