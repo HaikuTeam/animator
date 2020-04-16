@@ -236,7 +236,7 @@ function windowsCheckForUpdates () {
           type: 'none',
           message:
             'Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?',
-          buttons: ['Not now', 'Yes'],
+          buttons: ['No', 'Yes'],
           defaultId: 1,
         });
 
