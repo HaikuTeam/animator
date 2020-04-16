@@ -4,7 +4,7 @@ const openSourcePackages = require('./helpers/openSourcePackages');
 const openSourceProjects = require('./helpers/openSourceProjects');
 const nowVersion = require('./helpers/nowVersion');
 
-const branch = global.process.env.ghprbSourceBranch;
+const branch = global.process.env.GITHUB_PR_SOURCE_BRANCH;
 if (!branch || !branch.startsWith('rc-')) {
   throw new Error('Cannot proceed without rc- branch');
 }
