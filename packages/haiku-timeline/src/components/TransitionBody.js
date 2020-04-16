@@ -32,7 +32,7 @@ const THROTTLE_TIME = 17; // ms
 
 const STYLE = {
   keyframePole: {
-    transform: 'translateY(-1.5px)',
+    transform: 'scale(1.7) translateY(-1.5px)',
   },
 };
 
@@ -299,7 +299,7 @@ export default class TransitionBody extends React.Component {
                   ? 'pointer'
                   : 'move',
               }}>
-              <KeyframeSVG style={STYLE.keyframePole} color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
+              <KeyframeSVG color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
             </span>
           </span>
         </span>
