@@ -221,8 +221,7 @@ function windowsCheckForUpdates () {
   }
 
   const {autoUpdater} = require('electron-updater');
-  autoUpdater.setFeedURL('https://releases.haiku.ai/releases/production/master/win32/latest');
-  // autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.setFeedURL('https://releases.haiku.ai/releases/');
   autoUpdater.checkForUpdates().then(({downloadPromise}) => {
     if (downloadPromise == null) {
       return;

@@ -142,16 +142,10 @@
       ]
     },
     "asar": true,
-    "publish": [
-      {
-        "provider": "generic",
-        "url": "http://127.0.0.1:9090/"
-      }
-    ],
     "extraResources": [
       "app/index.js",
       {
-        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg${?(\\.exe)}",
+        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
         "to": ""
       }
     ],
