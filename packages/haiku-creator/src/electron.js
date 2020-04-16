@@ -14,7 +14,7 @@ import TopMenu from 'haiku-common/lib/electron/TopMenu';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {isMac} from 'haiku-common/lib/environments/os';
+import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process');
@@ -35,34 +35,6 @@ const handleUrl = (url) => {
   const parsedUrl = parse(url);
   browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query));
 };
-
-// Handle haiku:// protocol on Windows and Linux
-if (!isMac()) {
-  const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
-    logger.info(`[creator] Received command line on second instance ${commandLine}`);
-
-    // Handle haiku:// protocol on second instance
-    for (const arg of commandLine) {
-      if (arg.startsWith('haiku://')) {
-        handleUrl(arg);
-        break;
-      }
-    }
-
-    // Someone tried to run a second instance, we should focus our window.
-    if (browserWindow) {
-      if (browserWindow.isMinimized()) {
-        browserWindow.restore();
-      }
-      browserWindow.focus();
-    }
-  });
-
-  // Only quit second instance if it would handle haiku:// protocol (simulate Mac OS behavior)
-  if (isSecondInstance && global.process.env.HAIKU_INITIAL_URL) {
-    app.quit();
-  }
-}
 
 // Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
 if (isMac()) {
@@ -118,6 +90,36 @@ if (!haiku.plumbing.url) {
 }
 
 function createWindow () {
+
+  // Before doing anything, ensure we are not in a second instance of the app, if we are, let's short-cirtuit
+  // and let the open instance handle the request.
+  if (!isMac()) {
+    const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
+      logger.info(`[creator] Received command line on second instance ${commandLine}`);
+
+      // Handle haiku:// protocol on second instance
+      for (const arg of commandLine) {
+        if (arg.startsWith('haiku://')) {
+          handleUrl(arg);
+          break;
+        }
+      }
+
+      // Someone tried to run a second instance, we should focus our window.
+      if (browserWindow) {
+        if (browserWindow.isMinimized()) {
+          browserWindow.restore();
+        }
+        browserWindow.focus();
+      }
+    });
+
+    if (isSecondInstance) {
+      app.quit();
+      return;
+    }
+  }
+
   logger.view = 'main';
   mixpanel.haikuTrack('app:initialize');
 
@@ -200,6 +202,52 @@ function createWindow () {
 
   browserWindow.on('ready-to-show', () => {
     browserWindow.show();
+  });
+
+  if (isWindows()) {
+    ipcMain.on('app:check-updates', () => {
+      windowsCheckForUpdates();
+    });
+
+    setInterval(() => {
+      windowsCheckForUpdates();
+    }, 1000 * 60 * 60);
+
+    windowsCheckForUpdates();
+  }
+}
+
+function windowsCheckForUpdates () {
+  if (!isWindows()) {
+    return;
+  }
+
+  const {autoUpdater} = require('electron-updater');
+  autoUpdater.setFeedURL('https://releases.haiku.ai/releases/');
+  autoUpdater.checkForUpdates().then(({downloadPromise}) => {
+    if (downloadPromise == null) {
+      return;
+    }
+
+    downloadPromise
+      .then(() => {
+        const dialog = require('electron').dialog;
+        const userResponse = dialog.showMessageBox({
+          type: 'none',
+          message:
+            'Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?',
+          buttons: ['No', 'Yes'],
+          defaultId: 1,
+        });
+
+        if (userResponse === 1) {
+          autoUpdater.quitAndInstall();
+          return;
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   });
 }
 

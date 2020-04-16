@@ -28,6 +28,7 @@
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
     "electron-proxy-agent": "^1.0.2",
+    "electron-updater": "3.2.3",
     "event-emitter": "^0.3.5",
     "fast-safe-stringify": "^2.0.4",
     "fs-extra": "^4.0.2",

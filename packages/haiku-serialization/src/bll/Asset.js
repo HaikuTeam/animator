@@ -50,7 +50,7 @@ class Asset extends BaseModel {
     // Looking for a path like designs/Foo.sketch.contents/Slices
     const longSource = path.join(parts[0], parts[1], parts[2]);
     const shortSource = path.join(parts[0], parts[1]);
-    const matchRegexp = isWindows() ? /\.(\w+)\.contents\\/ : /\.(\w+)\.contents\//
+    const matchRegexp = isWindows() ? /\.(\w+)\.contents\\/ : /\.(\w+)\.contents\//;
     const match = longSource.match(matchRegexp);
 
     if (match) {

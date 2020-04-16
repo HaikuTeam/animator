@@ -28,7 +28,7 @@ switch (platform) {
     // TODO: sign packages on Windows
     // process.env.WIN_CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`
     // process.env.WIN_CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim()
-    cp.execSync('yarn electron-builder --windows --publish=never --config.forceCodeSigning=false', {cwd: ROOT, stdio: 'inherit'});
+    cp.execSync('yarn electron-builder --windows --publish=never --config.forceCodeSigning=false --x64 --ia32', {cwd: ROOT, stdio: 'inherit'});
     break;
   case 'linux':
     cp.execSync(`yarn electron-builder --linux --publish=never`, {cwd: ROOT, stdio: 'inherit'});
