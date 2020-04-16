@@ -299,7 +299,7 @@ export default class TransitionBody extends React.Component {
                   ? 'pointer'
                   : 'move',
               }}>
-              <KeyframeSVG style={STYLE.keyframePole} color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
+              <KeyframeSVG color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
             </span>
           </span>
         </span>
