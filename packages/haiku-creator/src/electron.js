@@ -36,34 +36,6 @@ const handleUrl = (url) => {
   browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query));
 };
 
-// Handle haiku:// protocol on Windows and Linux
-if (!isMac()) {
-  const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
-    logger.info(`[creator] Received command line on second instance ${commandLine}`);
-
-    // Handle haiku:// protocol on second instance
-    for (const arg of commandLine) {
-      if (arg.startsWith('haiku://')) {
-        handleUrl(arg);
-        break;
-      }
-    }
-
-    // Someone tried to run a second instance, we should focus our window.
-    if (browserWindow) {
-      if (browserWindow.isMinimized()) {
-        browserWindow.restore();
-      }
-      browserWindow.focus();
-    }
-  });
-
-  // Only quit second instance if it would handle haiku:// protocol (simulate Mac OS behavior)
-  if (isSecondInstance && global.process.env.HAIKU_INITIAL_URL) {
-    app.quit();
-  }
-}
-
 // Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
 if (isMac()) {
   systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true);
@@ -118,6 +90,36 @@ if (!haiku.plumbing.url) {
 }
 
 function createWindow () {
+
+  // Before doing anything, ensure we are not in a second instance of the app, if we are, let's short-cirtuit
+  // and let the open instance handle the request.
+  if (!isMac()) {
+    const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
+      logger.info(`[creator] Received command line on second instance ${commandLine}`);
+
+      // Handle haiku:// protocol on second instance
+      for (const arg of commandLine) {
+        if (arg.startsWith('haiku://')) {
+          handleUrl(arg);
+          break;
+        }
+      }
+
+      // Someone tried to run a second instance, we should focus our window.
+      if (browserWindow) {
+        if (browserWindow.isMinimized()) {
+          browserWindow.restore();
+        }
+        browserWindow.focus();
+      }
+    });
+
+    if (isSecondInstance) {
+      app.quit();
+      return;
+    }
+  }
+
   logger.view = 'main';
   mixpanel.haikuTrack('app:initialize');
 
