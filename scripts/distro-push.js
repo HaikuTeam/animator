@@ -28,7 +28,12 @@ cp.execSync(`git checkout ${branch}`, processOptions);
 cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions);
 // Regenerate changelog and push to remote.
 cp.execSync('node ./scripts/changelog.js', processOptions);
-cp.execSync('git stash pop', processOptions);
+try {
+  // Make sure we pop stashed changes, but allow this step to fail if we don't have any.
+  cp.execSync('git stash pop', processOptions);
+} catch (err) {
+  console.log('No stash entries found.')
+}
 cp.execSync('git add -u', processOptions);
 cp.execSync('git commit --allow-empty -m "auto: release"', processOptions);
 
