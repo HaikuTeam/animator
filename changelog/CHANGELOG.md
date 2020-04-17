@@ -1,6 +1,37 @@
 # Changelog
 
 
+## 5.0.0
+
+### Bug Fixes
+
+ * use correct environment variable to get current branch
+ * align post keyframes vertically (#1035)
+ * disable CodeEditor experiment (#1019)
+ * improve logic to check if Sketch is installed (#1018)
+ * bad logic breaking main row normal collapsed behavior
+ * improve wording
+ * use good old module exports in ES6 files
+ * remove animator logo from SideBar
+ * add a missing key in order to make Radium happy and prevent crashes
+ * disable user selection on pagination
+ * remove warnings
+ * ensure that we execute `ditto` and `unzip` from `/usr/bin`
+ * don't hardcode paths in autoupdate & use ditto
+ * update changelog using English
+ * disable `user-select` for child elements of RowManager
+ * improve the logic to calc if a Keyframe `hasCurveBody`
+ * prevent crashes when executing `cmd+key` during stage drag
+ * improve detection of window blur and fix edge cases
+ * improve bezier editor top positioning
+ * retire OutliningElementsOnStage experiment and stop trashing the update loop
+
+### Features
+
+ * warn users when importing large files
+ * remove tween before keyframes if a single tween is selected
+ * improve position calc and add draggagability to Bezier Editor
+
 ## 4.5.1
 
 ### Bug Fixes

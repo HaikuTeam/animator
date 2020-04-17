@@ -9451,5 +9451,122 @@
       "label": "fix",
       "message": "use pre-compiled templates in Vue adapter"
     }
+  },
+  "5.0.0": {
+    "ee86318b564136eddff0cc808de625a740adb385": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use correct environment variable to get current branch"
+    },
+    "775e076822d3228740bada405af87f6ed0ce9458": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "align post keyframes vertically (#1035)"
+    },
+    "267a5202d8d1b31cec841c8f062a9918e6af0028": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable CodeEditor experiment (#1019)"
+    },
+    "2b993247fa0f5c45838934b18d284538100bfcbb": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve logic to check if Sketch is installed (#1018)"
+    },
+    "98ecaa8c634d863c0fb50de214c154e1eed57699": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "bad logic breaking main row normal collapsed behavior"
+    },
+    "8e335fec20da10da322efd660d73cd0c587d082a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve wording"
+    },
+    "dfbf860d47e892ab15705580b45c647167950ad4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "use good old module exports in ES6 files"
+    },
+    "14cfb3349d44f4ee4b208e62c7907d986364336a": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "warn users when importing large files"
+    },
+    "7c8eb6462fd2402732ee58714aeca7d748585390": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove animator logo from SideBar"
+    },
+    "6528ecdc5d1b00a9090cd88988535cc20d645288": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add a missing key in order to make Radium happy and prevent crashes"
+    },
+    "29a98d0dd761c617554b7e5f860c7041bd47b025": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable user selection on pagination"
+    },
+    "c72dfedf8fe61bf46cf026d3c1ac1e320a8c0e93": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "remove warnings"
+    },
+    "f6a4ce40840315b8cb6ca665d6b018c10f825239": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "remove tween before keyframes if a single tween is selected"
+    },
+    "1344be91aa0a5b8cd440660b928546c6a947eefd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure that we execute `ditto` and `unzip` from `/usr/bin`"
+    },
+    "2a556c6826aba1e88d198c10e3cb032657a2355d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "don't hardcode paths in autoupdate & use ditto"
+    },
+    "e0dc8f36b9254270e2ff006c39438fd9380b84ec": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update changelog using English"
+    },
+    "c3ed72af0a189bdeccc8d2b747ecb9e064d7657b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "disable `user-select` for child elements of RowManager"
+    },
+    "a2d20549bcfc7c747257d29c330391df1c894727": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the logic to calc if a Keyframe `hasCurveBody`"
+    },
+    "d692e5501126c9b6e0447d0573a6b17eea3ef923": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent crashes when executing `cmd+key` during stage drag"
+    },
+    "4d80f9f66a7516076a8a5c187bd219d7e98ca156": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve detection of window blur and fix edge cases"
+    },
+    "bf2458b2311853e8ca36cccc726b58fdb9cce4e1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve bezier editor top positioning"
+    },
+    "d7260c326a881c9a83fdb2f53c38ad09437de11e": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "improve position calc and add draggagability to Bezier Editor"
+    },
+    "c7b96744dc9dd626097b426134246151c2aad7e2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "retire OutliningElementsOnStage experiment and stop trashing the update loop"
+    }
   }
 }
