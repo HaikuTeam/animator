@@ -159,7 +159,7 @@ pipeline {
                     input message: 'Push to NPM and CDN?', submitter: 'sasha@haiku.ai,roberto@haiku.ai,zack@haiku.ai'
                     setBuildStatus(CONTEXT_PUSH, 'pushing to NPM and CDN...', STATUS_PENDING)
                     setupBuild()
-                    sh """echo "//registry.npmjs.org/:_authToken=${env.NPM_AUTH_TOKEN}" > ~/.npmrc"""
+                    // sh """echo "//registry.npmjs.org/:_authToken=${env.NPM_AUTH_TOKEN}" > ~/.npmrc"""
                     nodeRun('./scripts/distro-push.js')
                 }
                 milestone 4
