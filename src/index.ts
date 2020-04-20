@@ -890,11 +890,20 @@ export namespace inkstone {
       CancelAtPeriodEnd: boolean;
     }
 
+    export interface Invoice {
+      ID: string;
+      Amount: number;
+      Number: string;
+      Created: number;
+      DownloadLink: string;
+    }
+
     export interface Profile {
       Customer: Customer;
       Cards: Card[];
       Plan: Plan;
       Subscription: Subscription;
+      Invoices: Invoice[];
     }
 
     export interface Product {
