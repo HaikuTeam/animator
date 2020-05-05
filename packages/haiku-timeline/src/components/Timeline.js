@@ -19,7 +19,6 @@ import ExpressionInput from './ExpressionInput';
 import ScrubberInterior from './ScrubberInterior';
 import SimplifiedFrameGrid from './SimplifiedFrameGrid';
 import FrameActionsGrid from './FrameActionsGrid';
-import IntercomWidget from './IntercomWidget';
 import {TrackedExporterRequests} from './TrackedExporterRequests';
 import Gauge from './Gauge';
 import GaugeTimeReadout from './GaugeTimeReadout';
@@ -404,14 +403,14 @@ class Timeline extends React.Component {
 
         case 'global-menu:cut':
           // Delegate cut only if the user is not editing something here
-          if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
+          if (!document.hasFocus() || (!this.isTextSelected())) {
             this.props.websocket.send(relayable);
           }
           break;
 
         case 'global-menu:copy':
           // Delegate copy only if the user is not editing something here
-          if (!document.hasFocus() || (!this.isTextSelected() && !this._isIntercomOpen)) {
+          if (!document.hasFocus() || (!this.isTextSelected())) {
             this.props.websocket.send(relayable);
           }
           break;
@@ -419,7 +418,7 @@ class Timeline extends React.Component {
         case 'global-menu:paste':
           // Delegate paste only if the user is not editing something here
           if (document.hasFocus()) {
-            if (!this.isTextInputFocused() && !this._isIntercomOpen && !this.refs.expressionInput.willHandlePasteEvent()) {
+            if (!this.isTextInputFocused() && !this.refs.expressionInput.willHandlePasteEvent()) {
               this.props.websocket.send(relayable);
             }
           } else {
@@ -430,7 +429,7 @@ class Timeline extends React.Component {
         case 'global-menu:selectAll':
           // Delegate selectall only if the user is not editing something here
           if (document.hasFocus()) {
-            if (!this.isTextInputFocused() && !this._isIntercomOpen) {
+            if (!this.isTextInputFocused()) {
               this.props.websocket.send(relayable);
             }
           } else {
@@ -480,12 +479,6 @@ class Timeline extends React.Component {
 
         case 'assets-changed':
           File.cache.clear();
-          break;
-
-        case 'ui:hide-intercom':
-          if (window.Intercom) {
-            window.Intercom('hide');
-          }
           break;
       }
     });
@@ -1149,19 +1142,10 @@ class Timeline extends React.Component {
             experimentIsEnabled(Experiment.LocalAssetExport) &&
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
-          <IntercomWidget user={this.state.userDetails} onShow={this.setIntercomOpen} onHide={this.setIntercomClosed} />
         </div>
       </div>
     );
   }
-
-  setIntercomOpen = () => {
-    this._isIntercomOpen = true;
-  };
-
-  setIntercomClosed = () => {
-    this._isIntercomOpen = false;
-  };
 
   getCurrentTimelineTime (frameInfo) {
     return Math.round(this.getActiveComponent().getCurrentTimeline().getCurrentFrame() * frameInfo.mspf);

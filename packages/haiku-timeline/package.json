@@ -37,7 +37,6 @@
     "react": "15.6.2",
     "react-dom": "15.6.2",
     "react-draggable": "2.2.3",
-    "react-intercom": "^1.0.14",
     "react-popover": "^0.4.18",
     "strip-indent": "^2.0.0"
   },
