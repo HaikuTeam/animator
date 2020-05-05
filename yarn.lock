@@ -7706,13 +7706,6 @@ prop-types@15, prop-types@^15.5.10, prop-types@^15.5.6, prop-types@^15.5.8, prop
     object-assign "^4.1.1"
     react-is "^16.8.1"
 
-prop-types@15.5.8:
-  version "15.5.8"
-  resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.5.8.tgz#6b7b2e141083be38c8595aa51fc55775c7199394"
-  integrity sha1-a3suFBCDvjjIWVqlH8VXdccZk5Q=
-  dependencies:
-    fbjs "^0.8.9"
-
 property-information@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/property-information/-/property-information-5.0.1.tgz#c3b09f4f5750b1634c0b24205adbf78f18bdf94f"
@@ -7989,13 +7982,6 @@ react-draggable@2.2.3:
   integrity sha1-F2KMuKrv7WOdOOACG5eKaF2AsIs=
   dependencies:
     classnames "^2.2.5"
-
-react-intercom@^1.0.14:
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/react-intercom/-/react-intercom-1.0.15.tgz#29180aca961a319eaab88a66126e484e1abd428b"
-  integrity sha512-e4NhmearKjdxmu6EjiA0d29FqEXJUvWtyxo4ioipNsKBD7gZgvtyJMty9UhNRSf9RoPqtSX2Fw4ooy6Ld86ddw==
-  dependencies:
-    prop-types "15.5.8"
 
 react-is@^16.8.1:
   version "16.8.4"
