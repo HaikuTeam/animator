@@ -2,14 +2,14 @@ const {execSync} = require('child_process');
 const fse = require('haiku-fs-extra');
 const {isMac, isWindows} = require('haiku-common/lib/environments/os');
 const logger = require('../utils/LoggerInstance');
-const {stringifyPath} = '../utils/fileManipulation';
+const {stringifyPath} = require('../utils/fileManipulation');
 const os = require('os');
 const uuid = require('uuid');
 const path = require('path');
 
 const IS_ILLUSTRATOR_FILE_RE = /\.ai$/;
 const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/;
-const cachedWindowsInstallPath =  null;
+let cachedWindowsInstallPath =  null;
 
 /**
  * This template script runs inside Illustrator and perform the export of the
@@ -145,7 +145,7 @@ class Illustrator {
       illustratorPath = installedApplications
         .split('\n')
         .find((record) => record.includes('Illustrator') && record.includes('Default'))
-        .match(/([A-Z]\:*.*)/g)[0];
+        .match(/([a-zA-Z]\:.+)/g)[0];
     } catch (error) {
       logger.info('[illustrator] error finding Illustrator: ', error);
       return;
