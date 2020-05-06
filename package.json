@@ -147,6 +147,10 @@
       {
         "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
         "to": ""
+      },
+      {
+        "from": "packages/haiku-plumbing/bins",
+        "to": "template-design-files"
       }
     ],
     "files": [

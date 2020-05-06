@@ -1,8 +1,15 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
+import {getResourcesPath} from './getResourcesPath';
 
-const PLUMBING_DIR = path.join(__dirname, '../../');
+const getExternalFilesDirectory = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return path.join(getResourcesPath(), 'template-design-files');
+  }
+
+  return path.join(__dirname, '../../');
+};
 
 export const copyAssetFile = (projectPath: string, assetPath: string, bin: string) => {
   try {
@@ -17,9 +24,9 @@ export const copyAssetFile = (projectPath: string, assetPath: string, bin: strin
 };
 
 export const copyDefaultSketchFile = (projectPath: string, assetPath: string) => {
-  return copyAssetFile(projectPath, assetPath, path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'));
+  return copyAssetFile(projectPath, assetPath, path.join(getExternalFilesDirectory(), 'sketch-42.sketch'));
 };
 
 export const copyDefaultIllustratorFile = (projectPath: string, assetPath: string) => {
-  return copyAssetFile(projectPath, assetPath, path.join(PLUMBING_DIR, 'bins', 'illustrator-default.ai'));
+  return copyAssetFile(projectPath, assetPath, path.join(getExternalFilesDirectory(), 'illustrator-default.ai'));
 };
