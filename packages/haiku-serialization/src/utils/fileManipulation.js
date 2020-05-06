@@ -73,4 +73,12 @@ module.exports = {
       .replace(FILENAME_RESERVED_REGEX, RESERVED_CHAR_REPLACEMENT)
       .replace(WINDOWS_NAMES_RESERVED_REGEX, RESERVED_CHAR_REPLACEMENT);
   },
+
+  stringifyPath (path) {
+    if (typeof name !== 'string') {
+      return '';
+    }
+
+    return path.replace(/\\/g, '\\\\');
+  },
 };
