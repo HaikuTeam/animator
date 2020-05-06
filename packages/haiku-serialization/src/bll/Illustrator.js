@@ -83,8 +83,8 @@ class Illustrator {
 
     logger.info('[illustrator] got', abspath);
 
-    const assetBaseFolder = abspath + '.contents/';
-    const artboardFolder = assetBaseFolder + 'artboards/';
+    const assetBaseFolder = `${abspath}.contents`;
+    const artboardFolder = path.join(assetBaseFolder, 'artboards/');
 
     fse.emptyDirSync(assetBaseFolder);
     fse.mkdirpSync(artboardFolder);
@@ -100,9 +100,10 @@ class Illustrator {
     const exportScriptPath = path.join(tmpdir, fileName);
     const exportScript =
       EXPORTER_SCRIPT
-        .replace('DESTINATION_PATH', artboardFolder)
-        .replace('SOURCE_PATH', abspath);
-
+        .replace('DESTINATION_PATH', artboardFolder.replace(/\\/g, '\\\\'))
+        .replace('SOURCE_PATH', abspath.replace(/\\/g, '\\\\'));
+console.log(exportScriptPath)
+console.log(exportScript)
     fse.writeFileSync(exportScriptPath, exportScript);
 
     if (tryToOpenFile) {
@@ -123,7 +124,10 @@ class Illustrator {
     }
 
     if (isWindows()) {
-      // TODO: figure out the correct command in Windows
+      const output = execSync('reg QUERY "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths" /s').toString()
+      const illustratorPath = output.toString().split('\n').find((out) => out.indexOf('Illustrator') > -1 && out.indexOf('Default') > -1).match(/(C\:*.*)/g)[0]
+      console.log(illustratorPath)
+      return `"${illustratorPath}" "${file}"`;
     }
   }
 }
