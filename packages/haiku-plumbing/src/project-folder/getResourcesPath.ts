@@ -23,5 +23,5 @@ export const getResourcesPath = () => {
     return join(process.execPath, '..', '..', '..', '..', '..', 'Resources');
   }
 
-  return join(process.execPath, '..', '..', 'resources');
+  return join(process.execPath, '..', 'resources');
 };
