@@ -31,78 +31,78 @@ pipeline {
                     curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.4'''
             }
         }
-        // stage('Test') {
-        //     parallel {
-        //         stage('Test-macOS') {
-        //             agent {
-        //                 label 'master'
-        //             }
-        //             steps {
-        //                 setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
-        //                 yarnInstallUnixLike()
-        //                 yarnRun('compile-all')
-        //                 yarnRun('test-report')
-        //             }
-        //             post {
-        //                 always {
-        //                     archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
-        //                     step([
-        //                         $class: 'TapPublisher',
-        //                         testResults: 'packages/**/test-result.tap',
-        //                         verbose: true,
-        //                         planRequired: true
-        //                     ])
-        //                     cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
-        //                 }
-        //                 success {
-        //                     setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
-        //                 }
-        //                 failure {
-        //                     setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
-        //                     setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
-        //                     slackSend([
-        //                         channel: 'engineering-feed',
-        //                         color: 'danger',
-        //                         message: ":jenkins-rage: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) has failing tests!"
-        //                     ])
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        // stage('Lint') {
-        //     agent {
-        //         label 'master'
-        //     }
-        //     steps {
-        //         setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
-        //         yarnInstallUnixLike()
-        //         yarnRun('lint-report')
-        //     }
-        //     post {
-        //         always {
-        //             checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
-        //         }
-        //         success {
-        //             setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
-        //             setBuildStatus(CONTEXT_HEALTH, 'all health checks passed', STATUS_SUCCESS)
-        //             slackSend([
-        //                 channel: 'engineering-feed',
-        //                 color: 'good',
-        //                 message: ":jenkins-hero: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) is healthy!"
-        //             ])
-        //         }
-        //         failure {
-        //             setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
-        //             setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
-        //             slackSend([
-        //                 channel: 'engineering-feed',
-        //                 color: 'warning',
-        //                 message: ":professor-farnsworth: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) has lint errors!"
-        //             ])
-        //         }
-        //     }
-        // }
+        stage('Test') {
+            parallel {
+                stage('Test-macOS') {
+                    agent {
+                        label 'master'
+                    }
+                    steps {
+                        setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
+                        yarnInstallUnixLike()
+                        yarnRun('compile-all')
+                        yarnRun('test-report')
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
+                            step([
+                                $class: 'TapPublisher',
+                                testResults: 'packages/**/test-result.tap',
+                                verbose: true,
+                                planRequired: true
+                            ])
+                            cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
+                        }
+                        success {
+                            setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
+                        }
+                        failure {
+                            setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
+                            setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
+                            slackSend([
+                                channel: 'engineering-feed',
+                                color: 'danger',
+                                message: ":jenkins-rage: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) has failing tests!"
+                            ])
+                        }
+                    }
+                }
+            }
+        }
+        stage('Lint') {
+            agent {
+                label 'master'
+            }
+            steps {
+                setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
+                yarnInstallUnixLike()
+                yarnRun('lint-report')
+            }
+            post {
+                always {
+                    checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
+                }
+                success {
+                    setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
+                    setBuildStatus(CONTEXT_HEALTH, 'all health checks passed', STATUS_SUCCESS)
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'good',
+                        message: ":jenkins-hero: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) is healthy!"
+                    ])
+                }
+                failure {
+                    setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
+                    setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'warning',
+                        message: ":professor-farnsworth: PR #${env.GITHUB_PR_NUMBER} (https://github.com/HaikuTeam/mono/pull/${env.GITHUB_PR_NUMBER}) has lint errors!"
+                    ])
+                }
+            }
+        }
         stage('Build-Advance') {
             when { expression { env.GITHUB_PR_SOURCE_BRANCH.startsWith('rc-') } }
             steps {

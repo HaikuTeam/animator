@@ -1497,11 +1497,6 @@ export default class Creator extends React.Component {
     }
 
     if (typeof notice.message === 'string') {
-      // Ignore Intercom widget errors which are transient and confuse the user
-      if (notice.message.match(/intercom/)) {
-        return true;
-      }
-
       // HACK: Skip human-unfriendly duplicate errors that originate from ActiveComponent action calls
       if (notice.message.match(/\[active/)) {
         return true;
