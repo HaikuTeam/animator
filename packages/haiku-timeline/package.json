@@ -1,6 +1,6 @@
 {
   "name": "haiku-timeline",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "private": true,
   "license": "UNLICENSED",
   "authors": [
@@ -21,15 +21,15 @@
     "start": "cross-env AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js"
   },
   "dependencies": {
-    "@haiku/core": "5.0.0",
+    "@haiku/core": "5.1.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",
     "color": "^2.0.1",
-    "haiku-common": "5.0.0",
-    "haiku-formats": "5.0.0",
-    "haiku-fs-extra": "5.0.0",
-    "haiku-serialization": "5.0.0",
-    "haiku-ui-common": "5.0.0",
+    "haiku-common": "5.1.0",
+    "haiku-formats": "5.1.0",
+    "haiku-fs-extra": "5.1.0",
+    "haiku-serialization": "5.1.0",
+    "haiku-ui-common": "5.1.0",
     "lodash": "^4.17.4",
     "qs": "6.4.0",
     "radium": "0.18.1",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "cross-env": "^5.1.6",
     "electron": "2.0.8",
-    "haiku-testing": "5.0.0",
+    "haiku-testing": "5.1.0",
     "istanbul-reporter-cobertura-haiku": "^1.0.2",
     "jsdom": "^11.1.0",
     "leaked-handles": "^5.2.0",

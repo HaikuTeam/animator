@@ -25,6 +25,8 @@
  * improve detection of window blur and fix edge cases
  * improve bezier editor top positioning
  * retire OutliningElementsOnStage experiment and stop trashing the update loop
+ * change sdk-inkstone version to 5.0.0 to make it part of the monorepo
+ * design tool templates and Illustrator in Windows (#1038)
 
 ### Features
 

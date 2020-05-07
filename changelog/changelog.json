@@ -9567,6 +9567,16 @@
       "project": "haiku-testing",
       "label": "fix",
       "message": "retire OutliningElementsOnStage experiment and stop trashing the update loop"
+    },
+    "48fc664850f90c7008614142b80c65192a5a100e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "change sdk-inkstone version to 5.0.0 to make it part of the monorepo"
+    },
+    "0b83bab73c3af3c4a356935fdbfbedcb7aca945b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "design tool templates and Illustrator in Windows (#1038)"
     }
   }
 }
