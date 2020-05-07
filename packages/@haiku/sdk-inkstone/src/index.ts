@@ -861,6 +861,11 @@ export namespace inkstone {
     export interface Customer {
       BillingName: string;
       BillingEmail: string;
+      BillingCountry: string;
+      BillingCity: string;
+      BillingAddressLine: string;
+      BillingZipCode: string;
+      BillingVatNumber: string;
     }
 
     export interface Card {
@@ -890,11 +895,20 @@ export namespace inkstone {
       CancelAtPeriodEnd: boolean;
     }
 
+    export interface Invoice {
+      ID: string;
+      Amount: number;
+      Number: string;
+      Created: number;
+      DownloadLink: string;
+    }
+
     export interface Profile {
       Customer: Customer;
       Cards: Card[];
       Plan: Plan;
       Subscription: Subscription;
+      Invoices: Invoice[];
     }
 
     export interface Product {
@@ -952,6 +966,16 @@ export namespace inkstone {
 
     export interface AddCardRequestParams {
       Token: string;
+    }
+
+    export interface CreateTaxIDRequestParams {
+      Email:       string;
+      VatNumber:   string;
+      CompanyName: string;
+      AddressLine: string;
+      Country:     string;
+      City:        string;
+      ZipCode:     string;
     }
 
     /**
@@ -1065,6 +1089,23 @@ export namespace inkstone {
         .withEndpoint(Endpoints.BillingDescribeCoupon)
         .withUrlParameters({':coupon_id': couponID})
         .callWithCallback(cb);
+    };
+
+        /**
+     * @authentication-required
+     * Creates a Tax ID associated to a customer.
+     *
+     * Error codes:
+     *   E_BILLING_CUSTOMER_NOT_FOUND - when the customer don't exist.
+     *   E_BILLING_VAT_NUMBER_REQUIRED - if the vat number is not passed.
+     *   E_BILLING_CREATE_TAX_ID_INVALID_VALUE - if the vat number is invalid.
+     *   E_BILLING_CREATE_TAX_ID_FAILED - when the Stripe call fails.
+     */
+    export const createTaxID = (taxID: CreateTaxIDRequestParams, cb: inkstone.Callback<void>) => {
+      newPostRequest()
+        .withEndpoint(Endpoints.BillingTaxID)
+        .withJson(taxID)
+        .callWithCallback(cb, 204);
     };
   }
 }

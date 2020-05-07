@@ -21,4 +21,7 @@ export enum ErrorCode {
   ErrorCodeBillingChargeFailed = 'E_BILLING_CHARGE_FAILED',
   ErrorCodeUnknownPlanID = 'E_BILLING_UNKNOWN_PLAN_ID',
   ErrorCodeUnableToCancelSubscription = 'E_BILLING_UNABLE_TO_CANCEL_SUBSCRIPTION',
+  ErrorCodeBillingVatNumberRequired = "E_BILLING_VAT_NUMBER_REQUIRED",
+	ErrorCodeBillingCreateTaxIDFailed = "E_BILLING_CREATE_TAX_ID_FAILED",
+	ErrorCodeBillingCreateTaxIDInvalidValue = "E_BILLING_CREATE_TAX_ID_INVALID_VALUE",
 }
