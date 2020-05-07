@@ -1,21 +1,10 @@
 {
   "sections": {
     "What's new": [
-      "Added the ability drag and reposition the Bezier Editor.",
-      "Added support for <line> elements in Lottie export.",
-      "Added the ability to delete a single tween by pressing ⌫ (delete) without deleting the related keyframes. "
+      "FIRST!"
     ],
     "Fixes": [
-      "Fixed a crash when pressing `Cmd + A` while an element is being dragged.",
-      "Fixed a crash when an invalid curve value is entered while the Curve Editor is open.",
-      "Removed `Control Flow > If` and `Control Flow > Repeat` from the Timeline 'ADD +' menu.",
-      "Renamed 'Translation' to 'Position' in the Timeline 'ADD +' menu.",
-      "Removed a drag ghost image appearing while keyframes are dragged.",
-      "Fixed a crash when the internet connection is lost on some scenarios.",
-      "Added helpful warnings when trying to import complex design assets.",
-      "Fixed a bug causing the Timeline to appear empty when the Main Row is collapsed.",
-      "Fixed a bug causing to ask the user to install Sketch, even though it was already installed.",
-      "Removed 'Code Editor'"
+      "FIRST!"
     ]
   }
 }
