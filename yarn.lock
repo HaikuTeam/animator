@@ -207,6 +207,13 @@
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
   integrity sha512-CHWlgkoaC9KvmICLv0GT7+nuv+Y+u3dTmphLhXCb/+bnRDdDC67g0H0P+eyq1x8J56rHYHRNDYXe3FbMbrkxYQ==
 
+"@haiku/sdk-inkstone@5.0.0":
+  version "5.0.0"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-inkstone/-/sdk-inkstone-5.0.0.tgz#ff9c2f815df5ac2d98907c3a26e7e36383a29e17"
+  integrity sha512-LNckcov+efZlTpaKy+EufqIOVSxvnnL1I8SXSnWirQJ8LBpTZ0izJScmlc2+wkizKsvnuEpN4MHbSNP18UeRsw==
+  dependencies:
+    request "^2.83.0"
+
 "@haiku/taylor-nocon@^0.0.2":
   version "0.0.2"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-nocon/-/taylor-nocon-0.0.2.tgz#4e44c1143d0ad5475266c81f65df31ceee3af039"
