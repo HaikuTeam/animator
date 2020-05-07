@@ -1,13 +1,15 @@
 const {execSync} = require('child_process');
 const fse = require('haiku-fs-extra');
 const {isMac, isWindows} = require('haiku-common/lib/environments/os');
-const logger = require('./../utils/LoggerInstance');
+const logger = require('../utils/LoggerInstance');
+const {stringifyPath} = require('../utils/fileManipulation');
 const os = require('os');
 const uuid = require('uuid');
 const path = require('path');
 
 const IS_ILLUSTRATOR_FILE_RE = /\.ai$/;
 const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/;
+let cachedWindowsInstallPath =  null;
 
 /**
  * This template script runs inside Illustrator and perform the export of the
@@ -38,6 +40,7 @@ const EXPORTER_SCRIPT = `
     exportOptions.embedAllFonts = false
     exportOptions.cssProperties = SVGCSSPropertyLocation.PRESENTATIONATTRIBUTES
     exportOptions.fontSubsetting = SVGFontSubsetting.None
+    exportOptions.fontType = SVGFontType.OUTLINEFONT
     exportOptions.documentEncoding = SVGDocumentEncoding.UTF8
     exportOptions.saveMultipleArtboards = true
 
@@ -83,8 +86,8 @@ class Illustrator {
 
     logger.info('[illustrator] got', abspath);
 
-    const assetBaseFolder = abspath + '.contents/';
-    const artboardFolder = assetBaseFolder + 'artboards/';
+    const assetBaseFolder = `${abspath}.contents`;
+    const artboardFolder = path.join(assetBaseFolder, 'artboards/');
 
     fse.emptyDirSync(assetBaseFolder);
     fse.mkdirpSync(artboardFolder);
@@ -100,8 +103,8 @@ class Illustrator {
     const exportScriptPath = path.join(tmpdir, fileName);
     const exportScript =
       EXPORTER_SCRIPT
-        .replace('DESTINATION_PATH', artboardFolder)
-        .replace('SOURCE_PATH', abspath);
+        .replace('DESTINATION_PATH', stringifyPath(artboardFolder))
+        .replace('SOURCE_PATH', stringifyPath(abspath));
 
     fse.writeFileSync(exportScriptPath, exportScript);
 
@@ -123,8 +126,38 @@ class Illustrator {
     }
 
     if (isWindows()) {
-      // TODO: figure out the correct command in Windows
+      return `"${Illustrator.getWindowsIllustratorPath()}" "${file}"`;
     }
+  }
+
+  static getWindowsIllustratorPath () {
+    if (cachedWindowsInstallPath) {
+      return cachedWindowsInstallPath;
+    }
+
+    let illustratorPath;
+
+    try {
+      const installedApplications =
+        execSync('reg QUERY "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths" /s')
+        .toString();
+
+      illustratorPath = installedApplications
+        .split('\n')
+        .find((record) => record.includes('Illustrator') && record.includes('Default'))
+        .match(/([a-zA-Z]\:.+)/g)[0];
+    } catch (error) {
+      logger.info('[illustrator] error finding Illustrator: ', error);
+      return;
+    }
+
+    if (!illustratorPath) {
+      logger.info('[illustrator] unable to find an Illustrator installation');
+      return;
+    }
+
+    cachedWindowsInstallPath = illustratorPath;
+    return illustratorPath;
   }
 }
 
