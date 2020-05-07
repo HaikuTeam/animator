@@ -885,7 +885,7 @@ export namespace inkstone {
     export interface Plan {
       ID: string;
       Currency: 'usd'; // For now!
-      Interval: 'year'|'month';
+      Interval: 'year'|'quarter'|'month';
       Price: number;
       IsCurrentPlan: boolean;
       BillingScheme: string,
