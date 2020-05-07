@@ -1,10 +1,8 @@
 {
   "sections": {
-    "What's new": [
-      "FIRST!"
-    ],
     "Fixes": [
-      "FIRST!"
+      "Fixed issues with Illustrator integration on Windows.",
+      "Fixed issues importing example design files in new projects."
     ]
   }
 }
