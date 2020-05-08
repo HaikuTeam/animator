@@ -36,7 +36,15 @@ export const enum Endpoints {
   BillingDeleteCardById = '/billing/card/:card_id',
   BillingPlanResource = '/billing/plan',
   BillingDescribeCoupon = '/billing/coupon/:coupon_id',
-  BillingTaxID = '/billing/tax_id'
+  BillingTaxID = '/billing/tax_id',
+  BillingAddSeats = '/billing/add_seats',
+
+  // Volume licensing.
+  Team = '/team',
+  TeamAssignedSeats = '/team/seats',
+  TeamConfirmSeat = '/team/seats/confirm/:verification_unique_id',
+  TeamResendConfirmSeatEmail = '/team/seats/resend-confirmation',
+  TeamAssignSeats = '/team/seats'
 }
 
 export interface UriParams {

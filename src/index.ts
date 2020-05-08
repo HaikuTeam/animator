@@ -877,15 +877,23 @@ export namespace inkstone {
       IsDefault: boolean;
     }
 
+    export interface Tier {
+      Price: number,
+      UpTo: number
+    }
+
     export interface Plan {
       ID: string;
       Currency: 'usd'; // For now!
-      Interval: 'year'|'month';
+      Interval: 'year'|'quarter'|'month';
       Price: number;
       IsCurrentPlan: boolean;
+      BillingScheme: string,
+      Tiers: Tier[]
     }
 
     export interface Subscription {
+      ID: string;
       // CurrentPeriodStart and CurrentPeriodEnd are provided as UNIX timestamps.
       CurrentPeriodStart: number;
       CurrentPeriodEnd: number;
@@ -893,6 +901,7 @@ export namespace inkstone {
       // which is due today.
       DaysUntilDue: number;
       CancelAtPeriodEnd: boolean;
+      Quantity: number;
     }
 
     export interface Invoice {
@@ -1032,6 +1041,7 @@ export namespace inkstone {
 
     export interface SetPlanRequestParams {
       PlanID: string;
+      Quantity?: number;
       Coupon?: string;
     }
 
@@ -1091,7 +1101,7 @@ export namespace inkstone {
         .callWithCallback(cb);
     };
 
-        /**
+     /**
      * @authentication-required
      * Creates a Tax ID associated to a customer.
      *
@@ -1107,5 +1117,110 @@ export namespace inkstone {
         .withJson(taxID)
         .callWithCallback(cb, 204);
     };
+
+    export interface AddSeatsParams {
+      NumberOfSeatsToAdd: number;
+    }
+
+    /**
+     * @authentication-required
+     * A Team admin assign seats to subsdiary users
+     *
+     * Error codes:
+     *   E_BILLING_CUSTOMER_NOT_FOUND when the Stripe customer does not exist.
+     *   E_INVALID_NUMBER_OF_SEATS when the number of seats is not valid.
+     */
+    export const addSeats = (addSeatsParams: AddSeatsParams, cb: inkstone.Callback<void>) => {
+      newPutRequest()
+      .withEndpoint(Endpoints.BillingAddSeats)
+      .withJson(addSeatsParams)
+      .callWithCallback(cb, 200);
+    }
+  }
+
+  export namespace team {
+    export interface CreateTeamParams {
+      NumberOfSeats: number;
+    }
+
+    /**
+     * @authentication-required
+     * Creates a Team.
+     *
+     * Error codes:
+     * E_TEAM_INVALID_NUMBER_OF_SEATS - when the number of seats is not valid.
+	   * E_TEAM_CREATE_FAILED - when something went wrong while creating the team in the DB.
+     */
+    export const createTeam = (team: CreateTeamParams, cb: inkstone.Callback<void>) => {
+      newPostRequest()
+      .withEndpoint(Endpoints.Team)
+      .withJson(team)
+      .callWithCallback(cb, 201);
+    }
+
+    export interface SeatAssignment {
+      Username: string;
+    }
+
+    /**
+     * @authentication-required
+     * Return the already assigned seats for a user.
+     *
+     */
+    export const listAssignedSeats = (cb: inkstone.Callback<SeatAssignment[]>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.TeamAssignedSeats)
+        .callWithCallback(cb);
+    }
+
+    export interface ConfirmSeatParams {
+      VerificationUniqueID: string;
+      Password: string;
+    }
+
+    /**
+     * A invited user confirms the account by reseting the password.
+     *
+     */
+    export const confirmSeat = (confirmSeatParams: ConfirmSeatParams, cb: inkstone.Callback<void>) => {
+      newPostRequest()
+      .withEndpoint(Endpoints.TeamConfirmSeat)
+      .withJson(confirmSeatParams)
+      .callWithCallback(cb, 200);
+    }
+
+    export interface ResendConfirmSeatEmailParams {
+      Email: string;
+      ContinueUrl: string;
+    }
+
+    /**
+     * Resend the invite to join a team.
+     *
+     */
+    export const resendConfirmSeatEmail = (resendConfirmSeatEmailParams: ResendConfirmSeatEmailParams, cb: inkstone.Callback<void>) => {
+      newPostRequest()
+      .withEndpoint(Endpoints.TeamResendConfirmSeatEmail)
+      .withJson(resendConfirmSeatEmailParams)
+      .callWithCallback(cb, 200);
+    }
+
+    export interface AssignSeatsParams {
+      Email: string;
+    }
+
+    /**
+     * @authentication-required
+     * The team admin assing a collection of seats.
+     *
+     * Error codes:
+     * ErrorCodeTeamNotEnoughSeats - when the team does not have enough seats to all users
+     */
+    export const assignSeats = (assignSeatsParams: AssignSeatsParams[], cb: inkstone.Callback<void>) => {
+      newPostRequest()
+      .withEndpoint(Endpoints.TeamAssignSeats)
+      .withJson(assignSeatsParams)
+      .callWithCallback(cb, 200);
+    }
   }
 }
