@@ -1,7 +1,8 @@
 {
   "sections": {
     "Fixes": [
-      "Fixed issues with volume licensing."
+      "Fixed issues with Illustrator integration on Windows.",
+      "Fixed issues importing example design files in new projects."
     ]
   }
 }
