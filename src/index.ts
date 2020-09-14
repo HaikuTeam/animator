@@ -333,6 +333,8 @@ export namespace inkstone {
     export enum Role {
       FREE = 0,
       PRO = 1,
+      TEAM_ADMIN = 2,
+      SUBSIDIARY_PRO = 3,
     }
 
     export const list = (cb: inkstone.Callback<Organization[]>) => {
