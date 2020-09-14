@@ -722,7 +722,7 @@ export default class Creator extends React.Component {
       });
 
       this.user.getOrganization().then((org) => {
-        const pro = org.Role === inkstone.organization.Role.PRO;
+        const pro = org.Role !== inkstone.organization.Role.FREE;
         if (!pro) {
           this.user.getTrialDaysRemaining().then((trialDaysRemaining) => {
             this.setState({trialDaysRemaining});

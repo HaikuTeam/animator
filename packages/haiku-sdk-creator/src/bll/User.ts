@@ -85,7 +85,7 @@ export class UserHandler extends EnvoyHandler {
   isTrialExpired (): MaybeAsync<boolean> {
     // if the user is pro or not authenticated, the answer is false
     const org = this.identity.organization;
-    if (!org || org.Role === inkstone.organization.Role.PRO) {
+    if (!org || org.Role !== inkstone.organization.Role.FREE) {
       return false;
     }
 
