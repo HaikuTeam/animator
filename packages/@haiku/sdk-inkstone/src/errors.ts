@@ -23,5 +23,10 @@ export enum ErrorCode {
   ErrorCodeUnableToCancelSubscription = 'E_BILLING_UNABLE_TO_CANCEL_SUBSCRIPTION',
   ErrorCodeBillingVatNumberRequired = "E_BILLING_VAT_NUMBER_REQUIRED",
 	ErrorCodeBillingCreateTaxIDFailed = "E_BILLING_CREATE_TAX_ID_FAILED",
-	ErrorCodeBillingCreateTaxIDInvalidValue = "E_BILLING_CREATE_TAX_ID_INVALID_VALUE",
+  ErrorCodeBillingCreateTaxIDInvalidValue = "E_BILLING_CREATE_TAX_ID_INVALID_VALUE",
+  ErrorCodeTeamInvalidNumberOfSeats = "E_TEAM_INVALID_NUMBER_OF_SEATS",
+  ErrorCodeTeamCreateFailed = "E_TEAM_CREATE_FAILED",
+  ErrorCodeInternalServerError = "E_INTERNAL_SERVER_ERROR",
+  ErrorCodeTeamNotEnoughSeats = "E_TEAM_NOT_ENOUGH_SEATS",
+  ErrorCodeInvalidNumberOfSeats = "E_INVALID_NUMBER_OF_SEATS"
 }
