@@ -38,7 +38,7 @@ delete inputs.$0;
 const args = argv._;
 
 const branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim();
-log.log(`fyi, your current mono branch is ${JSON.stringify(branch)}\n`);
+log.log(`fyi, your current branch is ${JSON.stringify(branch)}\n`);
 if (!inputs.branch) {
   inputs.branch = branch;
 }

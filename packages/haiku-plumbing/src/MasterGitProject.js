@@ -687,9 +687,14 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   pullRemote (cb) {
+    
+    //skip this; servers unplugged
+    return cb();
+    
     // We can't pull the remote if we don't have any remote info;
     // this can happen if there's a connection problem;
     // instead of crashing, we just silently skip this step
+    
     if (!this.folderState.remoteProjectDescriptor) {
       return cb();
     }

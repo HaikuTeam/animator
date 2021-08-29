@@ -709,9 +709,6 @@ export default class Creator extends React.Component {
         this.setState({isUserAuthenticated: true});
       });
 
-      this.user.checkOfflinePrivileges().then((allowOffline) => {
-        this.setState({allowOffline});
-      });
 
       this.checkOnlineStatus();
 
@@ -2053,20 +2050,6 @@ export default class Creator extends React.Component {
 
     if (this.props.haiku.proxy.active) {
       return <ProxyHelpScreen />;
-    }
-
-    if (this.showAuthenticationUI) {
-      return (
-        <StyleRoot>
-          <AuthenticationUI
-            ref="AuthenticationUI"
-            onSubmit={this.authenticateUser}
-            onSubmitSuccess={this.authenticationComplete}
-            onShowProxySettings={this.boundShowProxySettings}
-            resendEmailConfirmation={this.resendEmailConfirmation}
-            {...this.props} />
-        </StyleRoot>
-      );
     }
 
     return (

@@ -761,28 +761,10 @@ class StageTitleBar extends React.Component {
             </button>
           </div>
         }
-
-        <button
-          key="save"
-          id="publish"
-          aria-label="Publish project"
-          data-tooltip={true}
-          data-tooltip-bottom={true}
-          onClick={this.handleSaveSnapshotClick}
-          disabled={!this.props.isTimelineReady && this.state.snapshotSyndicated === false}
-          style={[
-            BTN_STYLES.btnText,
-            BTN_STYLES.rightBtns,
-            this.state.snapshotSyndicated === false && STYLES.disabled,
-            !this.props.isTimelineReady && STYLES.disabled,
-          ]}
-        >
-          {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
-        </button>
+        
         <button
           key="toggle-preview"
           id="preview"
-          aria-label="Publish project"
           aria-label="Toggle preview"
           onClick={this.props.onPreviewModeToggled}
           disabled={!this.props.isTimelineReady}

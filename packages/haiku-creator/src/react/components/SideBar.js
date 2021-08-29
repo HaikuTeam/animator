@@ -118,21 +118,7 @@ class SideBar extends React.Component {
               {trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''}`}
             </div>
           }
-          <button
-            id="go-to-dashboard"
-            key="dashboard"
-            aria-label="Navigate back to Dashboard"
-            data-tooltip={true}
-            data-tooltip-bottom={true}
-            onClick={this.props.onNavigateToDashboard}
-            style={[
-              BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, BTN_STYLES.btnText,
-              {width: 'auto', position: 'absolute', right: 6},
-            ]}
-          >
-            <ChevronLeftMenuIconSVG />
-            DASHBOARD
-          </button>
+          
         </div>
         <div style={STYLES.nav}>
           <div style={[

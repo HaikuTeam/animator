@@ -155,15 +155,9 @@ export default class TopMenu {
 
     mainMenuPieces.push(
       {
-        label: 'My Account',
+        label: 'About Haiku Animator',
         click: () => {
-          shell.openExternal(getAccountUrl(''));
-        },
-      },
-      {
-        label: 'About Animator',
-        click: () => {
-          shell.openExternal('https://www.haikuforteams.com');
+          shell.openExternal('https://www.haikuanimator.com');
         },
       },
       {
@@ -177,13 +171,11 @@ export default class TopMenu {
       },
     );
 
-    if (process.env.NODE_ENV !== 'production') {
-      mainMenuPieces.push({
-        label: 'Reload Animator',
-        accelerator: 'CmdOrCtrl+R',
-        role: 'reload',
-      });
-    }
+    mainMenuPieces.push({
+      label: 'Reload Animator',
+      accelerator: 'CmdOrCtrl+R',
+      role: 'reload',
+    });
 
     mainMenuPieces.push({
       label: 'Minimize Animator',
@@ -249,13 +241,6 @@ export default class TopMenu {
         },
       },
       {type: 'separator'},
-      {
-        label: 'Publish',
-        enabled: !this.options.isSaving && this.options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:publish');
-        },
-      },
       {
         label: 'Save',
         enabled: this.options.isProjectOpen,
@@ -433,23 +418,11 @@ export default class TopMenu {
         label: 'Community',
         submenu: [
           {
-            label: 'Community on Slack',
+            label: 'Open Source Community on Slack',
             click: () => {
-              shell.openExternal('https://www.haikuforteams.com/slack-community/');
+              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/zt-4u3snz0w-vcL8qttFFHvlrZNl8NSmPg');
             },
           },
-          {
-            label: 'Showcase',
-            click: () => {
-              shell.openExternal('https://share.haiku.ai/');
-            },
-          },
-          {
-            label: 'Blog',
-            click: () => {
-              shell.openExternal('https://www.haikuforteams.com/blog/');
-            },
-          }, {type: 'separator'},
           {
             label: 'YouTube',
             click: () => {
@@ -460,19 +433,6 @@ export default class TopMenu {
             label: 'Twitter',
             click: () => {
               shell.openExternal('https://www.twitter.com/haikuforteams');
-            },
-          },
-          {
-            label: 'Facebook',
-            click: () => {
-              shell.openExternal('https://www.facebook.com/haikuforteams');
-            },
-          },
-          {
-            label: 'Instagram',
-            click: () => {
-              // tslint:disable-next-line
-              shell.openExternal('https://www.instagram.com/haikuforteams/');
             },
           },
         ],
@@ -489,22 +449,6 @@ export default class TopMenu {
             enabled: !!this.options.isUserAuthenticated && !!this.options.projectsList.find((project) => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.sender.send('global-menu:start-tour');
-            },
-          }, {
-            label: 'What\'s New',
-            enabled: !!this.options.isUserAuthenticated,
-            click: () => {
-              this.sender.send('global-menu:show-changelog');
-            },
-          }, {type: 'separator'}, {
-            label: 'Terms of Service',
-            click: () => {
-              shell.openExternal('https://www.haikuforteams.com/terms-of-service.html');
-            },
-          }, {
-            label: 'Privacy Policy',
-            click: () => {
-              shell.openExternal('https://www.haikuforteams.com/privacy-policy.html');
             },
           },
         ],
