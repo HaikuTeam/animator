@@ -830,7 +830,12 @@ export class Glass extends React.Component {
     this.project.getEnvoyClient().closeConnection();
   }
 
+  modColor (i) {
+    return ((i || 0) / 2) % 360;
+  }
+
   renderSnapLines (overlays) {
+    this._renderCount = this._renderCount || 0;
     if (
       !this.state.isMouseDown ||
       !experimentIsEnabled(Experiment.Snapping) ||
@@ -855,7 +860,7 @@ export class Glass extends React.Component {
             y2: snap.positionWorld,
             'stroke-width': 1.25,
             'vector-effect': 'non-scaling-stroke',
-            stroke: Palette.LIGHT_BLUE,
+            stroke: 'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)',
           },
         });
       } else {
@@ -868,13 +873,15 @@ export class Glass extends React.Component {
             y2: 5000,
             'stroke-width': 1.25,
             'vector-effect': 'non-scaling-stroke',
-            stroke: Palette.LIGHT_BLUE,
+            stroke: 'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)',
           },
         });
       }
     });
+    this._renderCount++;
 
-    overlays.push({
+
+overlays.push({
       elementName: 'g',
       attributes: {
         style: {
@@ -884,7 +891,9 @@ export class Glass extends React.Component {
       },
       children,
     });
+    
   }
+
 
   interpolateAttributesAtKeyframes (el, attributes) {
     const curKeys = {};
@@ -3827,7 +3836,7 @@ export class Glass extends React.Component {
                 style={{
                   strokeWidth: 1.5,
                   fill: 'none',
-                  stroke: Palette.LIGHT_BLUE,
+                  stroke: 'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)',
                   opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 1 : 0,
                   overflow: 'visible',
                 }}
