@@ -42,7 +42,7 @@ Our hope is that open-sourcing Haiku Animator allows it to be even more useful, 
 
 # Installation
 
-Download and install Haiku Animator here:  TODO: installation binaries link
+Download and install the latest release here:  https://github.com/HaikuTeam/animator/releases/
 
 Or run from source by following the `Development` instructions below.
 
@@ -189,7 +189,7 @@ Create a PR, file an issue, or join the Slack community with [this invite link](
 
 Every project you create with Haiku Animator is entirely *yours,* to license or sell or publish however you'd like.
 
-This project's source code is licensed under AGPL.
+This project's source code is licensed AGPL.
 
 
 ## Status of this project
