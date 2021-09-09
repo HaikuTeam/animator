@@ -3,6 +3,7 @@
 Haiku Animator is a design tool for creating Lottie animations and interactive web components. Animator was developed commercially for several years under Haiku Systems Inc., a software startup based in San Francisco, California with a team spread across the world.
 
 Some features:
+ - Exports Lottie animations, GIFs, and videos
  - Free-transform canvas for visual vector editing 
  - Timeline for per-property keyframe animations
  - Vector asset-linking from Figma, Illustrator, or Sketch
@@ -17,28 +18,6 @@ As of open-sourcing, Haiku Animator has many active users across segments like e
 
 Our hope is that open-sourcing Haiku Animator allows it to be even more useful, to more people (it's free), for longer (FOSS).
 
-Read more at https://www.haikuanimator.com/
-
-Haiku Animator is an Electron-based desktop app with working builds for macOS and Windows.  Some features:
- - Exports Lottie animations, GIFs, and videos
- - Edit vectors visually on a free-transform canvas
- - Animate with a visual timeline and per-property keyframes
- - Link vector assets from Figma, Illustrator, or Sketch
- - Make any property dynamic with Expressions, spreadsheet-like property formulas
- - Edit element actions (like click handlers) with code 
-
-<br>
-<img src="haiku-animator-screenshot.png" />
-
-_Screenshot of Haiku Animator animating its own logo_
-
-<br>
-This code was open-sourced in August 2021 when Haiku shut down the commercial collaboration/storage services connected to Haiku Animator.  Previously available features like publishing, forking, and link-sharing have been removed.
-<br><br>
-As of open-sourcing, Haiku Animator is used by folks like enterprise motion design teams, higher education instructors and students, and digital creative studios.  Many people use it for its ability to create Lottie animations as an alternative to Adobe After Effects.
-<br><br>
-Our hope is that open-sourcing Haiku Animator allows it to be even more useful, to more people (it's free), for longer (FOSS).
-<br><br>
 
 # Installation
 
