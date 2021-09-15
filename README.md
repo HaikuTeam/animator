@@ -3,20 +3,20 @@
 Haiku Animator is a design tool for creating Lottie animations and interactive web components. It's popular among enterprise motion design teams, digital creative studios, and animation classrooms.
 
 Some features:
- - Exports Lottie animations, GIFs, and videos
- - Free-transform canvas for visual vector editing 
+
+ - Free-transform canvas for visual vector editing
  - Visual timeline for keyframe animations
+ - Exporters for Lottie animations, GIFs, and videos 
  - Asset-linking from Figma, Illustrator, or Sketch
  - Spreadsheet-like property "Expressions" for interactions and animations
- - Code editors for element actions & raw project source
+ - Code editors for interactive element actions & raw project source
 
-<img src="haiku-animator-screenshot.png" />
-_Screenshot of Haiku Animator animating its own logo_
+<img alt="Screenshot of Haiku Animator animating its own logo" src="haiku-animator-screenshot.png" />
 
 
 # Installation
 
-Download and install the latest release here:  https://github.com/HaikuTeam/animator/releases/
+👉👉 **Install the latest build from here:  https://github.com/HaikuTeam/animator/releases/**
 
 Or run from source by following the `Development` instructions below.
 
