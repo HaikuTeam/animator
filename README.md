@@ -16,9 +16,9 @@ Some features:
 
 # Installation
 
-👉👉 **Install the latest build from here:  https://github.com/HaikuTeam/animator/releases/**
-
-Or run from source by following the `Development` instructions below.
+👉 Install the latest build from here:  https://github.com/HaikuTeam/animator/releases/ 👈
+ 
+💻 Or run from source by following the `Development` instructions below. 💻
 
 
 # Development
