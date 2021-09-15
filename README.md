@@ -1,22 +1,17 @@
 # Haiku Animator
 
-Haiku Animator is a design tool for creating Lottie animations and interactive web components. Animator was developed commercially for several years under Haiku Systems Inc., a software startup based in San Francisco, California with a team spread across the world.
+Haiku Animator is a design tool for creating Lottie animations and interactive web components. It's popular among enterprise motion design teams, digital creative studios, and animation classrooms.
 
 Some features:
  - Exports Lottie animations, GIFs, and videos
  - Free-transform canvas for visual vector editing 
- - Timeline for per-property keyframe animations
- - Vector asset-linking from Figma, Illustrator, or Sketch
- - Expression editor for spreadsheet-like property formulas
- - Code editors for element actions & raw project source code
+ - Visual timeline for keyframe animations
+ - Asset-linking from Figma, Illustrator, or Sketch
+ - Spreadsheet-like property "Expressions" for interactions and animations
+ - Code editors for element actions & raw project source
 
 <img src="haiku-animator-screenshot.png" />
-
-This code was open-sourced in August 2021 when Haiku shut down the commercial collaboration/storage services connected to Haiku Animator.  Previously available features like publishing & sharing links have been removed.
-
-As of open-sourcing, Haiku Animator has many active users across segments like education, creative studios, and enterprise motion design teams.  Many people use it for its ability to create Lottie animations (as an alternative to Adobe After Effects.)  
-
-Our hope is that open-sourcing Haiku Animator allows it to be even more useful, to more people (it's free), for longer (FOSS).
+_Screenshot of Haiku Animator animating its own logo_
 
 
 # Installation
@@ -24,8 +19,6 @@ Our hope is that open-sourcing Haiku Animator allows it to be even more useful, 
 Download and install the latest release here:  https://github.com/HaikuTeam/animator/releases/
 
 Or run from source by following the `Development` instructions below.
-
-<br><br>
 
 
 # Development
@@ -50,7 +43,6 @@ It's important to use precise minor version numbers where specified.  `nodegit`/
 4.) python 2.7.16 (if you need multiple Python environments on your machine, we recommend [pyenv](https://github.com/pyenv/pyenv))
 
 5.) libgcrypt (required for nodegit native bindings)
-
     $ brew install libgcrypt
 
 ### Windows OS dependencies
@@ -173,5 +165,10 @@ This project's source code is licensed AGPL.
 
 ## Status of this project
 
+Animator was developed commercially for several years under Haiku Systems Inc., a software startup based in San Francisco, California with a team spread across the world.  This code was open-sourced in August 2021 when Haiku shut down the commercial collaboration/storage services connected to Haiku Animator.  Previously available features like publishing & sharing links have been removed.
+
+Our hope is that open-sourcing Haiku Animator allows it to be even more useful, to more people (it's free), and lesfor longer (open source).
+
 This project is open to new maintainers.  This codebase isn't perfect.  In fact, in its current state it has deep flaws.  That said, to a dedicated tinkerer, it has potential.  We created it chasing a dream of creative empowerment — we open-source it in hopes of that dream continuing on.
 
+Read more at https://www.haikuanimator.com/
