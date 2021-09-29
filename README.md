@@ -77,9 +77,14 @@ If the app fails to start because of wrong precompiled binaries, try re-building
 yarn electron-rebuild
 ```
 
+
 ### Linux OS dependencies
 
-TODO
+* Install a desktop environment like Gnome, XFCE, or KDE if machine does not already have one
+* Install dependences from system repositories: `apt install git curl python2 build-essential libgcrypt20 libcurl4-openssl-dev libssl-dev libgtk-3-0 libgconf-2-4 libnss3`
+* Install nvm: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash`
+* Install node 8.15.1: `nvm install 8.15.1 && nvm alias default 8.15.1 && nvm use 8.15.1`
+* Install yarn 1.13.0: `curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.13.0`
 
 
 ## 2. Install project dependencies
