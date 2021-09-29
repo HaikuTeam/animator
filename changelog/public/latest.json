@@ -1,5 +1,8 @@
 {
   "sections": {
+    "What's new": [
+      "Added dependency install instructions for Debian Gnu/Linux systems."
+    ],
     "Fixes": [
       "Fixed issues with volume licensing."
     ]
