@@ -197,27 +197,27 @@
     tslib "^1.8.1"
 
 "@haiku/core@^4.3.0":
-  version "5.0.0"
+  version "5.1.2"
 
 "@haiku/core@^4.4.0":
-  version "5.0.0"
+  version "5.1.2"
 
 "@haiku/player@^3.0.4":
   version "3.0.4"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
+  resolved "https://registry.yarnpkg.com/@haiku/player/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
   integrity sha512-CHWlgkoaC9KvmICLv0GT7+nuv+Y+u3dTmphLhXCb/+bnRDdDC67g0H0P+eyq1x8J56rHYHRNDYXe3FbMbrkxYQ==
 
 "@haiku/taylor-nocon@^0.0.2":
   version "0.0.2"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-nocon/-/taylor-nocon-0.0.2.tgz#4e44c1143d0ad5475266c81f65df31ceee3af039"
-  integrity sha512-jdBF7zV+a2OdBXPqnwh0vTASI1ILl6SaN3LwiGwGarUN5oXqgiCdxVqWTeS+hHmnMSGtD0EDxfPxzwft96O0ww==
+  resolved "https://registry.yarnpkg.com/@haiku/taylor-nocon/-/taylor-nocon-0.0.2.tgz#a35a8f54f1fb6f05ff66986cf749b1415c5c9815"
+  integrity sha512-1Jqk+zgWIoBfvnRSmcs33v+Npg1rBKNAWRZENOgBtHErKLvBQYlfGrWdlBPsQUKo14yX1+LR6yIfWbjlu5wrhg==
   dependencies:
     "@haiku/core" "^4.4.0"
 
 "@haiku/tina-haikuerror@^0.0.6":
   version "0.0.6"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftina-haikuerror/-/tina-haikuerror-0.0.6.tgz#bff0617db13684118ac4e97cb5781b7eb3d4b488"
-  integrity sha512-U8E3Fwr9jiQjggYiTY8WQqrCdfMOgaU0/E/C5+JJbW/owNw87RAUkGxqY7OmDBnKaszHB387W90HvXPHhq1MEw==
+  resolved "https://registry.yarnpkg.com/@haiku/tina-haikuerror/-/tina-haikuerror-0.0.6.tgz#b82450c4eb827ae4f36130c15f1bb56c3289dd95"
+  integrity sha512-jVpvJnNj+UJbdmVJhNUU0NiQamNXD0ysiWxunWbrS6WQ4sTuc7KTGcc/lzNf7zGZiEfwsd+Ci7vdius9ec5Rxg==
   dependencies:
     "@haiku/core" "^4.3.0"
 

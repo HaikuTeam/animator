@@ -10,3 +10,4 @@ config.js
 !packages/**/.storybook/config.js
 .env
 .vs/
+syndicate.sh
