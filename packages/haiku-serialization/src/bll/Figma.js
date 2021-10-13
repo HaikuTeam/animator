@@ -11,7 +11,7 @@ const {sanitize} = require('../utils/fileManipulation');
 
 const API_BASE = 'https://api.figma.com/v1/';
 const FIGMA_URL = 'https://www.figma.com/';
-const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh';
+const FIGMA_CLIENT_ID = process.env.FIGMA_CLIENT_ID || 'tmhDo4V12I3fEiQ9OG8EHh';
 const IS_FIGMA_FILE_RE = /\.figma$/;
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/;
 const FIGMA_DEFAULT_FILENAME = 'Untitled';

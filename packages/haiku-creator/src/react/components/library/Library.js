@@ -173,7 +173,7 @@ class Library extends React.Component {
         this.props.createNotice({
           type: 'danger',
           title: 'Error',
-          message: 'There was an error while authenticating with Figma',
+          message: 'You must host your own Figma authentication service to use the Figma integration.  See: github.com/HaikuTeam/figma-auth',
         });
       });
   }
