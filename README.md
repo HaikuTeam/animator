@@ -40,7 +40,7 @@ It's important to use precise minor version numbers where specified.  `nodegit`/
 
     $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.13.0
 
-4.) python 2.7.16 (if you need multiple Python environments on your machine, we recommend [pyenv](https://github.com/pyenv/pyenv))
+4.) python 2.7 or 3.x (if you need multiple Python environments on your machine, we recommend [pyenv](https://github.com/pyenv/pyenv))
 
 5.) libgcrypt (required for nodegit native bindings)
     $ brew install libgcrypt
@@ -54,7 +54,7 @@ Assuming a clean Windows 10, open a PowerShell with admin rights:
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install git
-choco install git python2 -y 
+choco install git python -y 
 
 # Install nodejs 
 choco install nodejs-lts -y --version 8.15.1
@@ -81,7 +81,7 @@ yarn electron-rebuild
 ### Linux OS dependencies
 
 * Install a desktop environment like Gnome, XFCE, or KDE if machine does not already have one
-* Install dependences from system repositories: `apt install git curl python2 build-essential libgcrypt20 libcurl4-openssl-dev libssl-dev libgtk-3-0 libgconf-2-4 libnss3`
+* Install dependences from system repositories: `apt install git curl python3 build-essential libgcrypt20 libcurl4-openssl-dev libssl-dev libgtk-3-0 libgconf-2-4 libnss3`
 * Install nvm: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash`
 * Install node 8.15.1: `nvm install 8.15.1 && nvm alias default 8.15.1 && nvm use 8.15.1`
 * Install yarn 1.13.0: `curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.13.0`

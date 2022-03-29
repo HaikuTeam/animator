@@ -1,24 +1,26 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
+import os
 import sys
-from os import environ
-from os import path
 import json
 import subprocess
 
 is_branch_checkout = sys.argv[3]
-if is_branch_checkout == '0' or environ.get('SKIP_HAIKU_HOOKS', '0') == '1':
-  # This is a file checkout or we have been expliticly asked to do nothing.
-  sys.exit(0)
+if is_branch_checkout == '0' or os.environ.get('SKIP_HAIKU_HOOKS', '0') == '1':
+    # This is a file checkout or we have been expliticly asked to do nothing.
+    sys.exit(0)
 
-current_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
-with open(path.join('packages', 'haiku-common', 'config', 'experiments.json')) as experiments_file:
-  experiments = json.load(experiments_file)
+current_branch = subprocess.check_output(
+    ['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
+with open(os.path.join('packages', 'haiku-common', 'config', 'experiments.json')) as experiments_file:
+    experiments = json.load(experiments_file)
 
 if sys.argv[1] != sys.argv[2]:
-  print 'Syncing dependencies....'
-  subprocess.call(['yarn', 'install'])
+    print('Syncing dependencies....')
+    subprocess.call(['yarn', 'install'])
 
-print 'The following experiments are enabled:'
-print '\n'.join([
-  ' - {}'.format(experiment) for experiment in experiments if experiments.get(experiment, False)
-])
+print('The following experiments are enabled:')
+print(
+    '\n'.join([
+        ' - {}'.format(experiment) for experiment in experiments if experiments.get(experiment, False)
+    ])
+)
