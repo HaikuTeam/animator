@@ -1,7 +1,8 @@
 {
   "sections": {
     "What's new": [
-      "Added dependency install instructions for Debian Gnu/Linux systems."
+      "Added dependency install instructions for Debian Gnu/Linux systems.",
+      "Allowed usage of both Python 3.x and 2.7 for dependencies"
     ],
     "Fixes": [
       "Fixed issues with volume licensing."
